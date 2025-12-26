@@ -2140,11 +2140,11 @@ async function handleLogin() {
     // Проверяем доступ
     const hasAccess = await checkAccess(data.user);
     
-    if (hasAccess) {
-      showCalculator();
-    } else {
-      showDenied();
-    }
+if (hasAccess) {
+  window.location.href = '/dashboard.html';
+} else {
+  showDenied();
+}
     
   } catch (e) {
     console.error('Login error:', e);
