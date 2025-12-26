@@ -77,42 +77,35 @@
 
   <script src="shared.js"></script>
   <script>
-    // Инициализация при загрузке
     document.addEventListener('DOMContentLoaded', async () => {
       await initAuth();
       
       const user = await getCurrentUser();
       if (!user) {
-        window.location.href = 'calculator.html?mode=login';
+        window.location.replace('/welcome.html');
         return;
       }
 
-      // Загружаем профиль
       const profile = await getProfile(user.id);
       if (!profile) {
         console.error('Profile not found');
         return;
       }
 
-      // Отображаем информацию
       document.getElementById('userEmail').textContent = user.email;
       document.getElementById('studioName').textContent = profile.studio_name || 'Моя студия';
 
-      // Проверяем триал
       checkTrialStatus(profile);
 
-      // Генерируем реферальную ссылку
       const refLink = `${window.location.origin}/?ref=${profile.referral_code}&mode=trial`;
       document.getElementById('referralLink').value = refLink;
 
-      // Считаем рефералов
       const refCount = await getReferralCount(user.id);
       document.getElementById('referralCount').textContent = `Приглашено: ${refCount} человек`;
 
-      // Кнопка выхода
       document.getElementById('logoutBtn').addEventListener('click', async () => {
         await logout();
-        window.location.href = 'calculator.html?mode=login';
+        window.location.replace('/welcome.html');
       });
     });
 
