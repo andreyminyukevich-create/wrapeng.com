@@ -346,19 +346,24 @@ async function handleDemo(e) {
     });
 
     if (dbError) {
-      errorBox.textContent = 'Ошибка создания профиля: ' + dbError.message;
-      errorBox.style.display = 'block';
-      btn.disabled = false;
-      btn.textContent = 'Получить доступ';
-      return;
-    }
+  errorBox.textContent = 'Ошибка создания профиля: ' + dbError.message;
+  errorBox.style.display = 'block';
+  btn.disabled = false;
+  btn.textContent = 'Получить доступ';
+  return;
+}
 
-    successBox.innerHTML = `✅ Аккаунт создан!<br>Пароль: <strong>${tempPassword}</strong><br>Переход в систему...`;
-    successBox.style.display = 'block';
+successBox.innerHTML = `✅ Аккаунт создан!<br>Пароль: <strong>${tempPassword}</strong><br>Переход в систему...`;
+successBox.style.display = 'block';
 
-    setTimeout(() => {
-      window.location.href = '/dashboard.html';
-    }, 3000);
+// АВТОЛОГИН
+await sb.auth.signInWithPassword({
+  email,
+  password: tempPassword
+});
+
+// Сразу редирект
+window.location.href = '/dashboard.html';
 
   } catch (err) {
     errorBox.textContent = 'Ошибка: ' + err.message;
