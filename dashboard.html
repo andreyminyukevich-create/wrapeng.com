@@ -80,6 +80,8 @@
     document.addEventListener('DOMContentLoaded', async () => {
       await initAuth();
       
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       const user = await getCurrentUser();
       if (!user) {
         window.location.replace('/welcome.html');
