@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Калькулятор оклейки</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <div class="dashboard-container">
+    <!-- Header -->
+    <header class="dashboard-header">
+      <div class="header-left">
+        <h1>🔧 Dashboard</h1>
+        <p id="studioName">Загрузка...</p>
+      </div>
+      <div class="header-right">
+        <span id="userEmail">user@email.com</span>
+        <button id="logoutBtn" class="btn-logout">Выход</button>
+      </div>
+    </header>
+
+    <!-- Trial Banner -->
+    <div id="trialBanner" class="trial-banner" style="display: none;">
+      <span id="trialText">⏰ Пробный период: осталось X дней</span>
+    </div>
+
+    <!-- Main Dashboard -->
+    <main class="dashboard-main">
+      <!-- Calculator Card -->
+      <div class="dashboard-card" id="calculatorCard">
+        <div class="card-icon">🧮</div>
+        <h2>Калькулятор</h2>
+        <p>Создать новый расчёт стоимости работ</p>
+        <button class="btn-primary" onclick="openCalculator()">Открыть калькулятор</button>
+      </div>
+
+      <!-- My Calculations Card -->
+      <div class="dashboard-card">
+        <div class="card-icon">📊</div>
+        <h2>Мои расчёты</h2>
+        <p>Последние 100 сохранённых расчётов</p>
+        <button class="btn-primary" onclick="openMyCalculations()">Посмотреть расчёты</button>
+      </div>
+
+      <!-- Referral Card -->
+      <div class="dashboard-card">
+        <div class="card-icon">🔗</div>
+        <h2>Посоветовать</h2>
+        <p id="referralCount">Приглашено: 0 человек</p>
+        <input type="text" id="referralLink" readonly class="referral-input">
+        <button class="btn-secondary" onclick="copyReferralLink()">📋 Скопировать ссылку</button>
+      </div>
+
+      <!-- Analytics Card (Coming Soon) -->
+      <div class="dashboard-card card-disabled">
+        <div class="card-icon">📈</div>
+        <h2>Аналитика</h2>
+        <p>Прибыль, расходы, ЗП</p>
+        <span class="coming-soon">Скоро...</span>
+      </div>
+    </main>
+
+    <!-- Payment Modal -->
+    <div id="paymentModal" class="modal" style="display: none;">
+      <div class="modal-content">
+        <h2>⚠️ Пробный период закончился</h2>
+        <p>Оплатите доступ на лендинге, после этого мы отметим ваш аккаунт как оплаченный.</p>
+        <button class="btn-primary" onclick="window.open('https://your-landing.com', '_blank')">
+          Перейти к оплате
+        </button>
+        <button class="btn-secondary" onclick="closePaymentModal()">Закрыть</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="shared.js"></script>
+  <script>
+    // Инициализация при загрузке
+    document.addEventListener('DOMContentLoaded', async () => {
+      await initAuth();
+      
+      const user = await getCurrentUser();
+      if (!user) {
+        window.location.href = 'calculator.html?mode=login';
+        return;
+      }
+
+      // Загружаем профиль
+      const profile = await getProfile(user.id);
+      if (!profile) {
+        console.error('Profile not found');
+        return;
+      }
+
+      // Отображаем информацию
+      document.getElementById('userEmail').textContent = user.email;
+      document.getElementById('studioName').textContent = profile.studio_name || 'Моя студия';
+
+      // Проверяем триал
+      checkTrialStatus(profile);
+
+      // Генерируем реферальную ссылку
+      const refLink = `${window.location.origin}/?ref=${profile.referral_code}&mode=trial`;
+      document.getElementById('referralLink').value = refLink;
+
+      // Считаем рефералов
+      const refCount = await getReferralCount(user.id);
+      document.getElementById('referralCount').textContent = `Приглашено: ${refCount} человек`;
+
+      // Кнопка выхода
+      document.getElementById('logoutBtn').addEventListener('click', async () => {
+        await logout();
+        window.location.href = 'calculator.html?mode=login';
+      });
+    });
+
+    function checkTrialStatus(profile) {
+      if (profile.is_paid) {
+        return;
+      }
+
+      const now = new Date();
+      const trialEnds = profile.trial_ends_at ? new Date(profile.trial_ends_at) : null;
+
+      if (!trialEnds) {
+        showPaymentModal();
+        return;
+      }
+
+      const daysLeft = Math.ceil((trialEnds - now) / (1000 * 60 * 60 * 24));
+
+      if (daysLeft <= 0) {
+        showPaymentModal();
+      } else {
+        const banner = document.getElementById('trialBanner');
+        banner.style.display = 'block';
+        document.getElementById('trialText').textContent = 
+          `⏰ Пробный период: осталось ${daysLeft} ${getDaysWord(daysLeft)}`;
+      }
+    }
+
+    function getDaysWord(days) {
+      if (days === 1) return 'день';
+      if (days >= 2 && days <= 4) return 'дня';
+      return 'дней';
+    }
+
+    function showPaymentModal() {
+      document.getElementById('paymentModal').style.display = 'flex';
+      document.getElementById('calculatorCard').classList.add('card-disabled');
+    }
+
+    function closePaymentModal() {
+      document.getElementById('paymentModal').style.display = 'none';
+    }
+
+    function openCalculator() {
+      window.location.href = 'calculator.html';
+    }
+
+    function openMyCalculations() {
+      window.location.href = 'my-calculations.html';
+    }
+
+    async function copyReferralLink() {
+      const input = document.getElementById('referralLink');
+      try {
+        await navigator.clipboard.writeText(input.value);
+        alert('✅ Ссылка скопирована!');
+      } catch (err) {
+        input.select();
+        document.execCommand('copy');
+        alert('✅ Ссылка скопирована!');
+      }
+    }
+
+    async function getReferralCount(userId) {
+      return 0;
+    }
+  </script>
+</body>
+</html>

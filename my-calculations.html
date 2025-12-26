@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Мои расчёты</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <div class="dashboard-container">
+    <!-- Header -->
+    <header class="dashboard-header">
+      <div class="header-left">
+        <button onclick="location.href='dashboard.html'" class="btn-secondary">← Dashboard</button>
+        <h1 style="margin-left: 20px;">📊 Мои расчёты</h1>
+      </div>
+      <div class="header-right">
+        <span id="userEmail">user@email.com</span>
+      </div>
+    </header>
+
+    <!-- Calculations List -->
+    <main style="background: white; border-radius: 20px; padding: 30px; margin-top: 20px;">
+      <div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+        <h2>Последние 100 расчётов</h2>
+        <button onclick="loadCalculations()" class="btn-secondary">🔄 Обновить</button>
+      </div>
+
+      <!-- Таблица -->
+      <div style="overflow-x: auto;">
+        <table id="calculationsTable" style="width: 100%; border-collapse: collapse;">
+          <thead>
+            <tr style="background: #f5f5f5; text-align: left;">
+              <th style="padding: 15px; border-bottom: 2px solid #e0e0e0;">Дата</th>
+              <th style="padding: 15px; border-bottom: 2px solid #e0e0e0;">Автомобиль</th>
+              <th style="padding: 15px; border-bottom: 2px solid #e0e0e0;">Тип</th>
+              <th style="padding: 15px; border-bottom: 2px solid #e0e0e0;">Сумма</th>
+              <th style="padding: 15px; border-bottom: 2px solid #e0e0e0;">Действия</th>
+            </tr>
+          </thead>
+          <tbody id="calculationsBody">
+            <tr>
+              <td colspan="5" style="text-align: center; padding: 40px; color: #999;">
+                Загрузка...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <script src="shared.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      await initAuth();
+      
+      const user = await getCurrentUser();
+      if (!user) {
+        window.location.href = 'dashboard.html';
+        return;
+      }
+
+      document.getElementById('userEmail').textContent = user.email;
+      
+      await loadCalculations();
+    });
+
+    async function loadCalculations() {
+      const tbody = document.getElementById('calculationsBody');
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px; color: #999;">Загрузка...</td></tr>';
+
+      try {
+        const calculations = await getCalculations(100);
+        
+        if (calculations.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px; color: #999;">Расчёты пока не сохранены</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = calculations.map(calc => `
+          <tr style="border-bottom: 1px solid #e0e0e0; cursor: pointer;" onmouseover="this.style.background='#f9f9f9'" onmouseout="this.style.background='white'">
+            <td style="padding: 15px;">${formatDate(calc.created_at)}</td>
+            <td style="padding: 15px;">
+              <strong>${calc.car_brand || 'Не указано'} ${calc.car_model || ''}</strong>
+              ${calc.car_year ? `<br><span style="color: #999; font-size: 12px;">${calc.car_year} г.</span>` : ''}
+            </td>
+            <td style="padding: 15px;">${getTypeLabel(calc.calculation_type)}</td>
+            <td style="padding: 15px;"><strong>${formatMoney(calc.total_cost)}</strong></td>
+            <td style="padding: 15px;">
+              <button onclick="openCalculation('${calc.id}')" class="btn-secondary" style="padding: 8px 15px; margin-right: 5px;">Открыть</button>
+              <button onclick="deleteCalc('${calc.id}')" style="padding: 8px 15px; background: #ff4757; color: white; border: none; border-radius: 8px; cursor: pointer;">Удалить</button>
+            </td>
+          </tr>
+        `).join('');
+        
+      } catch (error) {
+        console.error('Error loading calculations:', error);
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px; color: #ff4757;">Ошибка загрузки расчётов</td></tr>';
+      }
+    }
+
+    function formatDate(dateString) {
+      const date = new Date(dateString);
+      const day = date.getDate();
+      const months = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
+      const month = months[date.getMonth()];
+      const time = date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+      return `${day} ${month}, ${time}`;
+    }
+
+    function getTypeLabel(type) {
+      const types = {
+        'ppf': 'PPF',
+        'vinyl': 'Винил',
+        'detailing': 'Детейлинг',
+        'glass': 'Стёкла'
+      };
+      return types[type] || 'Не указан';
+    }
+
+    function formatMoney(amount) {
+      if (!amount) return '—';
+      return new Intl.NumberFormat('ru-RU', {
+        style: 'currency',
+        currency: 'RUB',
+        minimumFractionDigits: 0
+      }).format(amount);
+    }
+
+    function openCalculation(id) {
+      // TODO: Открыть калькулятор с загрузкой данных
+      window.location.href = `calculator.html?load=${id}`;
+    }
+
+    async function deleteCalc(id) {
+      if (!confirm('Удалить этот расчёт?')) return;
+      
+      try {
+        await deleteCalculation(id);
+        await loadCalculations();
+      } catch (error) {
+        alert('Ошибка удаления: ' + error.message);
+      }
+    }
+  </script>
+</body>
+</html>
