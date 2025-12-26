@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Калькулятор оклейки - Добро пожаловать</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Inter', sans-serif;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.container {
+  background: white;
+  border-radius: 24px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  max-width: 900px;
+  width: 100%;
+  overflow: hidden;
+}
+.hero {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 60px 40px;
+  text-align: center;
+}
+.hero h1 {
+  font-size: 2.5rem;
+  margin-bottom: 16px;
+  font-weight: 700;
+}
+.hero p {
+  font-size: 1.2rem;
+  opacity: 0.95;
+  line-height: 1.6;
+}
+.content {
+  padding: 40px;
+}
+.buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 40px;
+}
+@media (max-width: 600px) {
+  .buttons { grid-template-columns: 1fr; }
+}
+.btn {
+  padding: 20px 30px;
+  border: none;
+  border-radius: 16px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-family: 'Inter', sans-serif;
+}
+.btn-primary {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+}
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(102, 126, 234, 0.5);
+}
+.btn-secondary {
+  background: white;
+  color: #667eea;
+  border: 3px solid #667eea;
+}
+.btn-secondary:hover {
+  background: #667eea;
+  color: white;
+}
+.form-container {
+  display: none;
+}
+.form-container.active {
+  display: block;
+  animation: fadeIn 0.3s;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.form-group {
+  margin-bottom: 20px;
+}
+label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #333;
+  font-size: 0.95rem;
+}
+label .required {
+  color: #ef4444;
+  margin-left: 4px;
+}
+input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 16px;
+  font-family: 'Inter', sans-serif;
+  transition: all 0.3s;
+}
+input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+}
+.error {
+  background: #fee;
+  border: 1px solid #fcc;
+  color: #c33;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 0.9rem;
+}
+.success {
+  background: #efe;
+  border: 1px solid #cfc;
+  color: #3c3;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 0.9rem;
+}
+.back-btn {
+  background: none;
+  border: none;
+  color: #667eea;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 20px;
+  font-size: 1rem;
+  padding: 8px 0;
+}
+.back-btn:hover {
+  text-decoration: underline;
+}
+.submit-btn {
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-family: 'Inter', sans-serif;
+}
+.submit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+}
+.submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="hero">
+    <h1>🚗 Калькулятор оклейки</h1>
+    <p>Профессиональный расчёт стоимости работ для детейлинг студий</p>
+  </div>
+  
+  <div class="content">
+    <div id="welcome-screen">
+      <div class="buttons">
+        <button class="btn btn-primary" onclick="showLogin()">ВОЙТИ</button>
+        <button class="btn btn-secondary" onclick="showDemo()">ДЕМО ДОСТУП</button>
+      </div>
+    </div>
+
+    <div id="login-form" class="form-container">
+      <button class="back-btn" onclick="showWelcome()">← Назад</button>
+      <h2 style="margin-bottom: 24px; color: #333;">Вход в систему</h2>
+      <div id="login-error" class="error" style="display:none"></div>
+      <form onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label>Почта <span class="required">*</span></label>
+          <input type="email" id="login-email" required>
+        </div>
+        <div class="form-group">
+          <label>Пароль <span class="required">*</span></label>
+          <input type="password" id="login-password" required>
+        </div>
+        <button type="submit" class="submit-btn" id="login-btn">Войти</button>
+      </form>
+    </div>
+
+    <div id="demo-form" class="form-container">
+      <button class="back-btn" onclick="showWelcome()">← Назад</button>
+      <h2 style="margin-bottom: 24px; color: #333;">Демо доступ (72 часа)</h2>
+      <div id="demo-error" class="error" style="display:none"></div>
+      <div id="demo-success" class="success" style="display:none"></div>
+      <form onsubmit="handleDemo(event)">
+        <div class="form-group">
+          <label>Имя <span class="required">*</span></label>
+          <input type="text" id="demo-name" required placeholder="Ваше имя">
+        </div>
+        <div class="form-group">
+          <label>Телефон <span class="required">*</span></label>
+          <input type="tel" id="demo-phone" required placeholder="+7 (999) 123-45-67">
+        </div>
+        <div class="form-group">
+          <label>Почта <span class="required">*</span></label>
+          <input type="email" id="demo-email" required placeholder="email@example.com">
+        </div>
+        <div class="form-group">
+          <label>Название студии</label>
+          <input type="text" id="demo-studio" placeholder="Моя студия детейлинга">
+        </div>
+        <button type="submit" class="submit-btn" id="demo-btn">Получить доступ</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://hdghijgrrnzmnttstdvw.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkZ2hpamdycm56bW50aXN0ZHZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMzMyNzksImV4cCI6MjA3NTYwOTI3OX0.D9EDTmVrFRVp0B8_5tCJM29gbFdtadsom0Ihsf4uQ8Q';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+function showWelcome() {
+  document.getElementById('welcome-screen').style.display = 'block';
+  document.getElementById('login-form').classList.remove('active');
+  document.getElementById('demo-form').classList.remove('active');
+}
+
+function showLogin() {
+  document.getElementById('welcome-screen').style.display = 'none';
+  document.getElementById('login-form').classList.add('active');
+  document.getElementById('demo-form').classList.remove('active');
+}
+
+function showDemo() {
+  document.getElementById('welcome-screen').style.display = 'none';
+  document.getElementById('login-form').classList.remove('active');
+  document.getElementById('demo-form').classList.add('active');
+}
+
+async function handleLogin(e) {
+  e.preventDefault();
+  const errorBox = document.getElementById('login-error');
+  const btn = document.getElementById('login-btn');
+  errorBox.style.display = 'none';
+  btn.disabled = true;
+  btn.textContent = 'Вход...';
+
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+
+  try {
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+    
+    if (error) {
+      errorBox.textContent = 'Неверный email или пароль';
+      errorBox.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Войти';
+      return;
+    }
+
+    window.location.href = '/dashboard.html';
+  } catch (err) {
+    errorBox.textContent = 'Ошибка входа: ' + err.message;
+    errorBox.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = 'Войти';
+  }
+}
+
+async function handleDemo(e) {
+  e.preventDefault();
+  const errorBox = document.getElementById('demo-error');
+  const successBox = document.getElementById('demo-success');
+  const btn = document.getElementById('demo-btn');
+  errorBox.style.display = 'none';
+  successBox.style.display = 'none';
+  btn.disabled = true;
+  btn.textContent = 'Создание аккаунта...';
+
+  const name = document.getElementById('demo-name').value.trim();
+  const phone = document.getElementById('demo-phone').value.trim();
+  const email = document.getElementById('demo-email').value.trim();
+  const studio = document.getElementById('demo-studio').value.trim() || 'Моя студия';
+
+  try {
+    const { data: existingProfile } = await sb.from('profiles').select('email').eq('email', email).single();
+    
+    if (existingProfile) {
+      errorBox.textContent = 'Пользователь с таким email уже существует! Попробуйте войти.';
+      errorBox.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Получить доступ';
+      return;
+    }
+
+    const tempPassword = Math.random().toString(36).slice(-8);
+    
+    const { data, error } = await sb.auth.signUp({
+      email,
+      password: tempPassword,
+    });
+
+    if (error) {
+      errorBox.textContent = 'Ошибка регистрации: ' + error.message;
+      errorBox.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Получить доступ';
+      return;
+    }
+
+    const user = data.user;
+    if (!user) {
+      errorBox.textContent = 'Не удалось создать пользователя';
+      errorBox.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Получить доступ';
+      return;
+    }
+
+    const now = new Date();
+    const trialEnds = new Date(now.getTime() + 72 * 60 * 60 * 1000);
+    const referralCode = 'REF' + Math.random().toString(36).substring(2, 10).toUpperCase();
+
+    const { error: dbError } = await sb.from('profiles').insert({
+      id: user.id,
+      email,
+      name,
+      phone,
+      studio_name: studio,
+      is_paid: false,
+      trial_started_at: now.toISOString(),
+      trial_ends_at: trialEnds.toISOString(),
+      referral_code: referralCode
+    });
+
+    if (dbError) {
+      errorBox.textContent = 'Ошибка создания профиля: ' + dbError.message;
+      errorBox.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Получить доступ';
+      return;
+    }
+
+    successBox.innerHTML = `✅ Аккаунт создан!<br>Пароль отправлен на ${email}<br>Пароль: <strong>${tempPassword}</strong><br>Переход в систему...`;
+    successBox.style.display = 'block';
+
+    setTimeout(() => {
+      window.location.href = '/dashboard.html';
+    }, 3000);
+
+  } catch (err) {
+    errorBox.textContent = 'Ошибка: ' + err.message;
+    errorBox.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = 'Получить доступ';
+  }
+}
+
+window.addEventListener('DOMContentLoaded', async () => {
+  const { data } = await sb.auth.getSession();
+  if (data.session) {
+    window.location.href = '/dashboard.html';
+  }
+});
+</script>
+</body>
+</html>
