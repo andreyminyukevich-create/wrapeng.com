@@ -305,16 +305,6 @@ async function handleDemo(e) {
   const studio = document.getElementById('demo-studio').value.trim() || 'Моя студия';
 
   try {
-    const { data: existingProfile } = await sb.from('profiles').select('email').eq('email', email).single();
-    
-    if (existingProfile) {
-      errorBox.textContent = 'Пользователь с таким email уже существует! Попробуйте войти.';
-      errorBox.style.display = 'block';
-      btn.disabled = false;
-      btn.textContent = 'Получить доступ';
-      return;
-    }
-
     const tempPassword = Math.random().toString(36).slice(-8);
     
     const { data, error } = await sb.auth.signUp({
@@ -363,7 +353,7 @@ async function handleDemo(e) {
       return;
     }
 
-    successBox.innerHTML = `✅ Аккаунт создан!<br>Пароль отправлен на ${email}<br>Пароль: <strong>${tempPassword}</strong><br>Переход в систему...`;
+    successBox.innerHTML = `✅ Аккаунт создан!<br>Пароль: <strong>${tempPassword}</strong><br>Переход в систему...`;
     successBox.style.display = 'block';
 
     setTimeout(() => {
@@ -377,13 +367,6 @@ async function handleDemo(e) {
     btn.textContent = 'Получить доступ';
   }
 }
-
-window.addEventListener('DOMContentLoaded', async () => {
-  const { data } = await sb.auth.getSession();
-  if (data.session) {
-    window.location.href = '/dashboard.html';
-  }
-});
 </script>
 </body>
 </html>
