@@ -14,7 +14,18 @@
       color: #333;
     }
     
-    /* HEADER */
+    .loading {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      color: #667eea;
+    }
+    
+    .app { display: none; }
+    .app.active { display: block; }
+    
     .header {
       background: white;
       border-bottom: 1px solid #e5e5e5;
@@ -55,7 +66,6 @@
       background: #dc2626;
     }
 
-    /* TRIAL BANNER */
     .trial-banner {
       background: linear-gradient(135deg, #fef3c7, #fde68a);
       border: 2px solid #fbbf24;
@@ -66,14 +76,12 @@
       font-size: 1rem;
     }
 
-    /* MAIN */
     .main {
       max-width: 1200px;
       margin: 40px auto;
       padding: 0 20px;
     }
 
-    /* CARDS GRID */
     .cards-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -137,7 +145,6 @@
       background: #f0f4ff;
     }
 
-    /* DISABLED CARD */
     .card-disabled {
       opacity: 0.5;
       pointer-events: none;
@@ -158,7 +165,6 @@
       white-space: nowrap;
     }
 
-    /* REFERRAL INPUT */
     .referral-input {
       width: 100%;
       padding: 12px;
@@ -171,7 +177,6 @@
       background: #f9fafb;
     }
 
-    /* PAYMENT MODAL */
     .modal {
       display: none;
       position: fixed;
@@ -220,72 +225,68 @@
 </head>
 <body>
 
-  <!-- HEADER -->
-  <header class="header">
-    <div class="header-left">
-      <h1>🔧 Dashboard</h1>
-      <p id="studioName">Загрузка...</p>
+  <div class="loading" id="loading">Загрузка...</div>
+
+  <div class="app" id="app">
+    <header class="header">
+      <div class="header-left">
+        <h1>🔧 Dashboard</h1>
+        <p id="studioName">Загрузка...</p>
+      </div>
+      <div class="header-right">
+        <span class="user-email" id="userEmail">user@email.com</span>
+        <button class="btn-logout" id="logoutBtn">Выход</button>
+      </div>
+    </header>
+
+    <div id="trialBanner" class="trial-banner" style="display: none;">
+      <span id="trialText">⏰ Пробный период: осталось X дней</span>
     </div>
-    <div class="header-right">
-      <span class="user-email" id="userEmail">user@email.com</span>
-      <button class="btn-logout" id="logoutBtn">Выход</button>
-    </div>
-  </header>
 
-  <!-- TRIAL BANNER -->
-  <div id="trialBanner" class="trial-banner" style="display: none;">
-    <span id="trialText">⏰ Пробный период: осталось X дней</span>
-  </div>
+    <main class="main">
+      <div class="cards-grid">
+        
+        <div class="card" id="calculatorCard">
+          <div class="card-icon">🧮</div>
+          <h2>Калькулятор</h2>
+          <p>Создать новый расчёт стоимости работ</p>
+          <button class="btn-primary" onclick="openCalculator()">Открыть калькулятор</button>
+        </div>
 
-  <!-- MAIN -->
-  <main class="main">
-    <div class="cards-grid">
-      
-      <!-- КАЛЬКУЛЯТОР -->
-      <div class="card" id="calculatorCard">
-        <div class="card-icon">🧮</div>
-        <h2>Калькулятор</h2>
-        <p>Создать новый расчёт стоимости работ</p>
-        <button class="btn-primary" onclick="openCalculator()">Открыть калькулятор</button>
+        <div class="card" id="calculationsCard">
+          <div class="card-icon">📊</div>
+          <h2>Мои расчёты</h2>
+          <p>Последние 100 сохранённых расчётов</p>
+          <button class="btn-primary" onclick="openMyCalculations()">Посмотреть расчёты</button>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">🔗</div>
+          <h2>Посоветовать</h2>
+          <p id="referralCount">Приглашено: 0 человек</p>
+          <input type="text" id="referralLink" readonly class="referral-input">
+          <button class="btn-secondary" onclick="copyReferralLink()">📋 Скопировать ссылку</button>
+        </div>
+
+        <div class="card" id="analyticsCard">
+          <div class="card-icon">📈</div>
+          <h2>Аналитика</h2>
+          <p>Прибыль, расходы, ЗП сотрудников</p>
+          <button class="btn-primary" onclick="openAnalytics()">Открыть аналитику</button>
+        </div>
+
       </div>
+    </main>
 
-      <!-- МОИ РАСЧЁТЫ -->
-      <div class="card" id="calculationsCard">
-        <div class="card-icon">📊</div>
-        <h2>Мои расчёты</h2>
-        <p>Последние 100 сохранённых расчётов</p>
-        <button class="btn-primary" onclick="openMyCalculations()">Посмотреть расчёты</button>
+    <div id="paymentModal" class="modal">
+      <div class="modal-content">
+        <h2>⚠️ Пробный период закончился</h2>
+        <p>Оплатите доступ на лендинге, после этого мы активируем ваш аккаунт.</p>
+        <button class="btn-primary" onclick="window.open('https://your-landing.com', '_blank')" style="margin-bottom: 12px;">
+          Перейти к оплате
+        </button>
+        <button class="btn-secondary" onclick="closePaymentModal()">Закрыть</button>
       </div>
-
-      <!-- ПОСОВЕТОВАТЬ -->
-      <div class="card">
-        <div class="card-icon">🔗</div>
-        <h2>Посоветовать</h2>
-        <p id="referralCount">Приглашено: 0 человек</p>
-        <input type="text" id="referralLink" readonly class="referral-input">
-        <button class="btn-secondary" onclick="copyReferralLink()">📋 Скопировать ссылку</button>
-      </div>
-
-      <!-- АНАЛИТИКА -->
-      <div class="card" id="analyticsCard">
-        <div class="card-icon">📈</div>
-        <h2>Аналитика</h2>
-        <p>Прибыль, расходы, ЗП сотрудников</p>
-        <button class="btn-primary" onclick="openAnalytics()">Открыть аналитику</button>
-      </div>
-
-    </div>
-  </main>
-
-  <!-- PAYMENT MODAL -->
-  <div id="paymentModal" class="modal">
-    <div class="modal-content">
-      <h2>⚠️ Пробный период закончился</h2>
-      <p>Оплатите доступ на лендинге, после этого мы активируем ваш аккаунт.</p>
-      <button class="btn-primary" onclick="window.open('https://your-landing.com', '_blank')" style="margin-bottom: 12px;">
-        Перейти к оплате
-      </button>
-      <button class="btn-secondary" onclick="closePaymentModal()">Закрыть</button>
     </div>
   </div>
 
@@ -297,26 +298,26 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
-    detectSessionInUrl: true,
     storage: window.localStorage
   }
 });
 
 let currentProfile = null;
 
-document.addEventListener('DOMContentLoaded', async () => {
-  console.log('Dashboard loading...');
+async function init() {
+  console.log('Dashboard init...');
   
-  const { data } = await sb.auth.getSession();
-  console.log('Session data:', data);
+  const { data: { session } } = await sb.auth.getSession();
+  console.log('Session:', session);
   
-  if (!data.session) {
-    console.log('No session, redirecting to welcome');
+  if (!session) {
+    console.log('No session');
+    alert('Сессия не найдена! Перенаправление на страницу входа...');
     window.location.replace('welcome.html');
     return;
   }
 
-  const user = data.session.user;
+  const user = session.user;
   console.log('User:', user);
   
   const { data: profile, error } = await sb.from('profiles').select('*').eq('id', user.id).single();
@@ -324,6 +325,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   
   if (error || !profile) {
     console.error('Profile error:', error);
+    alert('Профиль не найден! Перенаправление на страницу входа...');
     window.location.replace('welcome.html');
     return;
   }
@@ -341,18 +343,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   document.getElementById('logoutBtn').addEventListener('click', async () => {
     await sb.auth.signOut();
-    localStorage.removeItem('sb-session');
     window.location.replace('welcome.html');
   });
-});
+
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('app').classList.add('active');
+}
 
 function checkTrialStatus(profile) {
   if (profile.is_paid) {
-    // Платный пользователь - всё доступно
     return;
   }
 
-  // Trial пользователь
   const now = new Date();
   const trialEnds = profile.trial_ends_at ? new Date(profile.trial_ends_at) : null;
 
@@ -364,16 +366,13 @@ function checkTrialStatus(profile) {
   const daysLeft = Math.ceil((trialEnds - now) / (1000 * 60 * 60 * 24));
 
   if (daysLeft <= 0) {
-    // Триал закончился
     showPaymentModal();
   } else {
-    // Показать баннер с оставшимися днями
     const banner = document.getElementById('trialBanner');
     banner.style.display = 'block';
     document.getElementById('trialText').textContent = 
       `⏰ Пробный период: осталось ${daysLeft} ${getDaysWord(daysLeft)}`;
     
-    // Заблокировать "Мои расчёты" и "Аналитика"
     document.getElementById('calculationsCard').classList.add('card-disabled');
     document.getElementById('analyticsCard').classList.add('card-disabled');
   }
@@ -419,6 +418,8 @@ async function copyReferralLink() {
     alert('✅ Ссылка скопирована!');
   }
 }
+
+init();
   </script>
 </body>
 </html>
