@@ -2,11 +2,229 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="refresh" content="0;url=/dashboard.html">
-<script>
-if(window.location.pathname==='/'){window.location.replace('/dashboard.html')}
-</script>
-<title>Redirecting...</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Калькулятор оклейки автомобилей</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Inter', sans-serif;
+  background: #0a0a0a;
+  color: white;
+}
+
+/* HERO SECTION */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="none"/><path d="M0 0L100 100M100 0L0 100" stroke="rgba(255,255,255,0.03)" stroke-width="2"/></svg>');
+  opacity: 0.3;
+}
+.hero-content {
+  position: relative;
+  z-index: 1;
+  max-width: 800px;
+}
+.hero h1 {
+  font-size: 4rem;
+  font-weight: 800;
+  margin-bottom: 20px;
+  line-height: 1.1;
+}
+.hero p {
+  font-size: 1.5rem;
+  margin-bottom: 40px;
+  opacity: 0.95;
+  font-weight: 400;
+}
+.btn-start {
+  padding: 20px 60px;
+  font-size: 1.3rem;
+  font-weight: 700;
+  background: white;
+  color: #667eea;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+  text-decoration: none;
+  display: inline-block;
+}
+.btn-start:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 15px 50px rgba(0,0,0,0.4);
+}
+
+/* FEATURES */
+.features {
+  padding: 100px 20px;
+  background: white;
+  color: #333;
+}
+.features-grid {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 40px;
+}
+.feature {
+  text-align: center;
+  padding: 30px;
+}
+.feature-icon {
+  font-size: 4rem;
+  margin-bottom: 20px;
+}
+.feature h3 {
+  font-size: 1.5rem;
+  margin-bottom: 12px;
+  color: #667eea;
+}
+.feature p {
+  color: #666;
+  line-height: 1.6;
+}
+
+/* VIDEO PLACEHOLDER */
+.video-section {
+  padding: 100px 20px;
+  background: #f9fafb;
+  text-align: center;
+}
+.video-section h2 {
+  font-size: 2.5rem;
+  color: #333;
+  margin-bottom: 40px;
+}
+.video-placeholder {
+  max-width: 900px;
+  margin: 0 auto;
+  aspect-ratio: 16/9;
+  background: #ddd;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  font-size: 1.5rem;
+}
+
+/* TESTIMONIALS */
+.testimonials {
+  padding: 100px 20px;
+  background: white;
+}
+.testimonials h2 {
+  text-align: center;
+  font-size: 2.5rem;
+  color: #333;
+  margin-bottom: 60px;
+}
+.testimonials-grid {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 30px;
+}
+.testimonial {
+  background: #f9fafb;
+  padding: 30px;
+  border-radius: 16px;
+}
+.testimonial p {
+  color: #666;
+  margin-bottom: 20px;
+  line-height: 1.6;
+  font-style: italic;
+}
+.testimonial-author {
+  font-weight: 600;
+  color: #333;
+}
+
+@media (max-width: 768px) {
+  .hero h1 { font-size: 2.5rem; }
+  .hero p { font-size: 1.2rem; }
+}
+</style>
 </head>
-<body></body>
+<body>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-content">
+    <h1>🚗 Калькулятор оклейки автомобилей</h1>
+    <p>Профессиональный расчёт стоимости работ для детейлинг студий</p>
+    <a href="welcome.html" class="btn-start">НАЧАТЬ</a>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features">
+  <div class="features-grid">
+    <div class="feature">
+      <div class="feature-icon">⚡</div>
+      <h3>Быстрый расчёт</h3>
+      <p>Создавайте коммерческие предложения за 2 минуты</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">💎</div>
+      <h3>Профессионально</h3>
+      <p>Готовые PDF-отчёты для клиентов</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">📊</div>
+      <h3>Аналитика</h3>
+      <p>Отслеживайте прибыль и расходы</p>
+    </div>
+  </div>
+</section>
+
+<!-- VIDEO -->
+<section class="video-section">
+  <h2>Как это работает</h2>
+  <div class="video-placeholder">
+    Здесь будет демо-видео
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="testimonials">
+  <h2>Отзывы клиентов</h2>
+  <div class="testimonials-grid">
+    <div class="testimonial">
+      <p>"Раньше на расчёт уходило 30 минут, теперь — 2 минуты. Просто wow!"</p>
+      <div class="testimonial-author">— Дмитрий, DetaliX Studio</div>
+    </div>
+    <div class="testimonial">
+      <p>"Клиенты в восторге от профессиональных PDF-отчётов"</p>
+      <div class="testimonial-author">— Анна, Premium Wrap</div>
+    </div>
+    <div class="testimonial">
+      <p>"Аналитика помогла увидеть реальную прибыль по каждому авто"</p>
+      <div class="testimonial-author">— Сергей, AutoStyle</div>
+    </div>
+  </div>
+</section>
+
+</body>
 </html>
