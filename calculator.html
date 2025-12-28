@@ -2157,8 +2157,13 @@ if (hasAccess) {
 async function handleLogout() {
   if (confirm('Вы уверены, что хотите выйти?')) {
     await sb.auth.signOut();
+    localStorage.clear();
+    sessionStorage.clear();
     currentUser = null;
     currentProfile = null;
+    window.location.href = 'welcome.html';
+  }
+}
     
     const userInfo = document.getElementById('user-info');
     const logoutBtn = document.getElementById('btn-logout');
