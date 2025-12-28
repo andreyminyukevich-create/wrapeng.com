@@ -75,105 +75,109 @@
     </div>
   </div>
 
-  <script src="shared.js"></script>
   <script>
-    document.addEventListener('DOMContentLoaded', async () => {
-      await initAuth();
-      
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      const user = await getCurrentUser();
-      if (!user) {
-        window.location.replace('/welcome.html');
-        return;
-      }
+const SUPABASE_URL = 'https://hdghijgrrnzmntistdvw.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkZ2hpamdycm56bW50aXN0ZHZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMzMyNzksImV4cCI6MjA3NTYwOTI3OX0.D9EDTmVrFRVp0B8_5tCJM29gbFdtadsom0Ihsf4uQ8Q';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-      const profile = await getProfile(user.id);
-      if (!profile) {
-        console.error('Profile not found');
-        return;
-      }
+document.addEventListener('DOMContentLoaded', async () => {
+  console.log('Dashboard loading...');
+  
+  const { data } = await sb.auth.getSession();
+  console.log('Session:', data);
+  
+  if (!data.session) {
+    console.log('No session, redirecting to welcome');
+    window.location.replace('/welcome.html');
+    return;
+  }
 
-      document.getElementById('userEmail').textContent = user.email;
-      document.getElementById('studioName').textContent = profile.studio_name || 'Моя студия';
+  const user = data.session.user;
+  console.log('User:', user);
+  
+  const { data: profile, error } = await sb.from('profiles').select('*').eq('id', user.id).single();
+  console.log('Profile:', profile, 'Error:', error);
+  
+  if (error || !profile) {
+    console.error('Profile error:', error);
+    window.location.replace('/welcome.html');
+    return;
+  }
 
-      checkTrialStatus(profile);
+  document.getElementById('userEmail').textContent = user.email;
+  document.getElementById('studioName').textContent = profile.studio_name || 'Моя студия';
 
-      const refLink = `${window.location.origin}/?ref=${profile.referral_code}&mode=trial`;
-      document.getElementById('referralLink').value = refLink;
+  checkTrialStatus(profile);
 
-      const refCount = await getReferralCount(user.id);
-      document.getElementById('referralCount').textContent = `Приглашено: ${refCount} человек`;
+  const refLink = `${window.location.origin}/?ref=${profile.referral_code}`;
+  document.getElementById('referralLink').value = refLink;
+  document.getElementById('referralCount').textContent = `Приглашено: 0 человек`;
 
-      document.getElementById('logoutBtn').addEventListener('click', async () => {
-        await logout();
-        window.location.replace('/welcome.html');
-      });
-    });
+  document.getElementById('logoutBtn').addEventListener('click', async () => {
+    await sb.auth.signOut();
+    window.location.replace('/welcome.html');
+  });
+});
 
-    function checkTrialStatus(profile) {
-      if (profile.is_paid) {
-        return;
-      }
+function checkTrialStatus(profile) {
+  if (profile.is_paid) {
+    return;
+  }
 
-      const now = new Date();
-      const trialEnds = profile.trial_ends_at ? new Date(profile.trial_ends_at) : null;
+  const now = new Date();
+  const trialEnds = profile.trial_ends_at ? new Date(profile.trial_ends_at) : null;
 
-      if (!trialEnds) {
-        showPaymentModal();
-        return;
-      }
+  if (!trialEnds) {
+    showPaymentModal();
+    return;
+  }
 
-      const daysLeft = Math.ceil((trialEnds - now) / (1000 * 60 * 60 * 24));
+  const daysLeft = Math.ceil((trialEnds - now) / (1000 * 60 * 60 * 24));
 
-      if (daysLeft <= 0) {
-        showPaymentModal();
-      } else {
-        const banner = document.getElementById('trialBanner');
-        banner.style.display = 'block';
-        document.getElementById('trialText').textContent = 
-          `⏰ Пробный период: осталось ${daysLeft} ${getDaysWord(daysLeft)}`;
-      }
-    }
+  if (daysLeft <= 0) {
+    showPaymentModal();
+  } else {
+    const banner = document.getElementById('trialBanner');
+    banner.style.display = 'block';
+    document.getElementById('trialText').textContent = 
+      `⏰ Пробный период: осталось ${daysLeft} ${getDaysWord(daysLeft)}`;
+  }
+}
 
-    function getDaysWord(days) {
-      if (days === 1) return 'день';
-      if (days >= 2 && days <= 4) return 'дня';
-      return 'дней';
-    }
+function getDaysWord(days) {
+  if (days === 1) return 'день';
+  if (days >= 2 && days <= 4) return 'дня';
+  return 'дней';
+}
 
-    function showPaymentModal() {
-      document.getElementById('paymentModal').style.display = 'flex';
-      document.getElementById('calculatorCard').classList.add('card-disabled');
-    }
+function showPaymentModal() {
+  document.getElementById('paymentModal').style.display = 'flex';
+  document.getElementById('calculatorCard').classList.add('card-disabled');
+}
 
-    function closePaymentModal() {
-      document.getElementById('paymentModal').style.display = 'none';
-    }
+function closePaymentModal() {
+  document.getElementById('paymentModal').style.display = 'none';
+}
 
-    function openCalculator() {
-      window.location.href = 'calculator.html';
-    }
+function openCalculator() {
+  window.location.href = 'calculator.html';
+}
 
-    function openMyCalculations() {
-      window.location.href = 'my-calculations.html';
-    }
+function openMyCalculations() {
+  window.location.href = 'my-calculations.html';
+}
 
-    async function copyReferralLink() {
-      const input = document.getElementById('referralLink');
-      try {
-        await navigator.clipboard.writeText(input.value);
-        alert('✅ Ссылка скопирована!');
-      } catch (err) {
-        input.select();
-        document.execCommand('copy');
-        alert('✅ Ссылка скопирована!');
-      }
-    }
-
-    async function getReferralCount(userId) {
-      return 0;
-    }
+async function copyReferralLink() {
+  const input = document.getElementById('referralLink');
+  try {
+    await navigator.clipboard.writeText(input.value);
+    alert('✅ Ссылка скопирована!');
+  } catch (err) {
+    input.select();
+    document.execCommand('copy');
+    alert('✅ Ссылка скопирована!');
+  }
+}
   </script>
 </body>
 </html>
