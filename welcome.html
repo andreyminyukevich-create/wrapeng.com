@@ -118,6 +118,63 @@ input:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(1
   font-weight: 500;
 }
 .forgot-link a:hover { text-decoration: underline; }
+
+/* SUCCESS CREDENTIALS */
+.credentials-box {
+  background: #f0fdf4;
+  border: 2px solid #4ade80;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 20px;
+}
+.credentials-box h3 {
+  color: #15803d;
+  font-size: 1.3rem;
+  margin-bottom: 8px;
+  text-align: center;
+}
+.credentials-box .warning {
+  color: #ef4444;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 0.95rem;
+}
+.credential-item {
+  background: white;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+.credential-item label {
+  display: block;
+  font-size: 0.85rem;
+  color: #666;
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+.credential-item .value {
+  font-size: 1.1rem;
+  color: #333;
+  font-weight: 600;
+  word-break: break-all;
+}
+.btn-copy {
+  width: 100%;
+  padding: 14px;
+  background: #22c55e;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  margin-bottom: 12px;
+}
+.btn-copy:hover {
+  background: #16a34a;
+}
 </style>
 </head>
 <body>
@@ -159,7 +216,6 @@ input:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(1
     <!-- ДЕМО ДОСТУП -->
     <div id="demo-screen" class="screen">
       <div id="demo-error" class="error" style="display:none"></div>
-      <div id="demo-success" class="success" style="display:none"></div>
       <form id="demo-form">
         <div class="form-group">
           <label>Имя <span class="required">*</span></label>
@@ -180,6 +236,27 @@ input:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(1
         <button type="submit" class="btn btn-primary" id="demo-btn">Получить доступ</button>
       </form>
       <div class="back-link" id="back-from-demo">← Назад</div>
+    </div>
+
+    <!-- УСПЕШНАЯ РЕГИСТРАЦИЯ -->
+    <div id="success-screen" class="screen">
+      <div class="credentials-box">
+        <h3>✅ Аккаунт создан!</h3>
+        <p class="warning">⚠️ Сохраните ваши данные для входа</p>
+        
+        <div class="credential-item">
+          <label>ЛОГИН (EMAIL)</label>
+          <div class="value" id="success-email">email@example.com</div>
+        </div>
+        
+        <div class="credential-item">
+          <label>ПАРОЛЬ</label>
+          <div class="value" id="success-password">password123</div>
+        </div>
+      </div>
+      
+      <button class="btn-copy" id="btn-copy-credentials">📋 Скопировать данные</button>
+      <button class="btn btn-primary" onclick="window.location.href='dashboard.html'">Перейти в Dashboard</button>
     </div>
 
     <!-- ЗАБЫЛИ ПАРОЛЬ -->
@@ -212,6 +289,8 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   }
 });
 
+let savedCredentials = { email: '', password: '' };
+
 // NAVIGATION
 function showScreen(screenId) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -227,6 +306,24 @@ document.getElementById('link-forgot').addEventListener('click', (e) => {
   showScreen('forgot-screen');
 });
 document.getElementById('back-from-forgot').addEventListener('click', () => showScreen('login-screen'));
+
+// COPY CREDENTIALS
+document.getElementById('btn-copy-credentials').addEventListener('click', async () => {
+  const text = `Данные для входа в Калькулятор оклейки:\n\nЛОГИН: ${savedCredentials.email}\nПАРОЛЬ: ${savedCredentials.password}`;
+  
+  try {
+    await navigator.clipboard.writeText(text);
+    alert('✅ Данные скопированы в буфер обмена!');
+  } catch (err) {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+    alert('✅ Данные скопированы в буфер обмена!');
+  }
+});
 
 // LOGIN
 document.getElementById('login-form').addEventListener('submit', async (e) => {
@@ -268,10 +365,8 @@ document.getElementById('demo-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   
   const errorBox = document.getElementById('demo-error');
-  const successBox = document.getElementById('demo-success');
   const btn = document.getElementById('demo-btn');
   errorBox.style.display = 'none';
-  successBox.style.display = 'none';
   btn.disabled = true;
   btn.textContent = 'Создание...';
 
@@ -332,8 +427,8 @@ document.getElementById('demo-form').addEventListener('submit', async (e) => {
       return;
     }
 
-    successBox.innerHTML = `✅ Аккаунт создан!<br>Ваш пароль: <strong>${tempPassword}</strong><br>Сохраните его!<br>Вход в систему...`;
-    successBox.style.display = 'block';
+    // Пауза перед автологином
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
     const { data: loginData, error: loginError } = await sb.auth.signInWithPassword({
       email,
@@ -349,11 +444,12 @@ document.getElementById('demo-form').addEventListener('submit', async (e) => {
       return;
     }
 
-    console.log('Auto-login success:', loginData);
+    // Сохранить данные и показать экран успеха
+    savedCredentials = { email, password: tempPassword };
+    document.getElementById('success-email').textContent = email;
+    document.getElementById('success-password').textContent = tempPassword;
     
-    setTimeout(() => {
-      window.location.href = 'dashboard.html';
-    }, 2000);
+    showScreen('success-screen');
 
   } catch (err) {
     console.error('Demo error:', err);
