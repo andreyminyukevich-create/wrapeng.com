@@ -1862,125 +1862,73 @@ function getHoursLeft(endsAt) {
   return hours > 0 ? hours : 0;
 }
 
-function displayUserInfo() {
-  if (!currentProfile) return;
-  
-  const userInfo = document.getElementById('user-info');
-  const logoutBtn = document.getElementById('btn-logout');
-  
-  if (userInfo) {
-    let statusText = '';
-    
-    if (currentProfile.is_paid) {
-      statusText = '✅ Оплачено';
-    } else if (currentProfile.trial_ends_at) {
-      const hours = getHoursLeft(currentProfile.trial_ends_at);
-      if (hours > 0) {
-        statusText = `⏱️ Триал: ${hours}ч`;
-      }
-    }
-    
-    const studioName = currentProfile.studio_name || 'Студия';
-    
-    userInfo.innerHTML = `
-      <span style="font-weight:600">${studioName}</span>
-      ${statusText ? '<br>' + statusText : ''}
-    `;
-    userInfo.style.display = 'block';
-  }
-  
-  if (logoutBtn) {
-    logoutBtn.style.display = 'block';
-  }
-}
-
-async function checkAccess(user) {
-  try {
-    // Загружаем профиль
-    const { data: profile, error } = await sb
-      .from('profiles')
-      .select('*')
-      .eq('email', user.email)
-      .single();
-    
-    if (error) {
-      console.error('Profile load error:', error);
-      return false;
-    }
-    
-    if (!profile) {
-      console.error('Profile not found');
-      return false;
-    }
-    
-    currentProfile = profile;
-    
-    // Проверяем доступ
-    if (profile.is_paid) {
-      return true;
-    }
-    
-    if (profile.trial_ends_at) {
-      const end = new Date(profile.trial_ends_at);
-      const now = new Date();
-      
-      if (end > now) {
-        const hours = getHoursLeft(profile.trial_ends_at);
-        if (trialInfo) {
-          trialInfo.textContent = `✨ Пробный доступ: ${hours} часов`;
-          trialInfo.style.display = 'block';
-        }
-        return true;
-      } else {
-        if (trialInfo) {
-          trialInfo.textContent = '⚠️ Пробный период истёк';
-          trialInfo.style.display = 'block';
-        }
-        return false;
-      }
-    }
-    
-    return false;
-  } catch (e) {
-    console.error('checkAccess error:', e);
-    return false;
-  }
-}
-
-async function handleRegister() {
+async function handleLogin() {
   showError('');
   
   const email = (emailInput?.value || '').trim();
   const pass = (passInput?.value || '').trim();
-  const studio = (studioInput?.value || '').trim() || 'Моя студия';
   
   if (!email || !pass) {
-    showError('Заполни email и пароль');
-    return;
-  }
-  
-  if (pass.length < 6) {
-    showError('Пароль должен быть не менее 6 символов');
+    showError('Введи email и пароль');
     return;
   }
   
   try {
-    console.log('=== НАЧАЛО РЕГИСТРАЦИИ ===');
-    console.log('Email:', email);
-    console.log('Studio:', studio);
+    const { data, error } = await sb.auth.signInWithPassword({
+      email,
+      password: pass,
+    });
     
-    // Проверяем не существует ли уже профиль
-    console.log('Проверка существующего профиля...');
-    const { data: existingProfile } = await sb
-      .from('profiles')
-      .select('email')
-      .eq('email', email)
-      .single();
-    
-    if (existingProfile) {
-      showError('Пользователь с таким email уже существует! Попробуй войти.');
+    if (error) {
+      console.error('signIn error:', error);
+      showError(error.message || 'Неверный email или пароль');
       return;
     }
+    
+    if (!data?.user) {
+      showError('Неверный email или пароль');
+      return;
+    }
+    
+    currentUser = data.user;
+    
+    // Проверяем доступ
+    const hasAccess = await checkAccess(data.user);
+    
+    if (hasAccess) {
+      showCalculator();
+    } else {
+      showDenied();
+    }
+    
+  } catch (e) {
+    console.error('Login error:', e);
+    showError('Ошибка входа: ' + e.message);
+  }
+}
+
+async function handleLogout() {
+  if (confirm('Вы уверены, что хотите выйти?')) {
+    await sb.auth.signOut();
+    localStorage.clear();
+    sessionStorage.clear();
+    currentUser = null;
+    currentProfile = null;
+    
+    hideCalculator();
+    showError('');
+    
+    if (emailInput) emailInput.value = '';
+    if (passInput) passInput.value = '';
+    if (studioInput) studioInput.value = '';
+    
+    const userInfo = document.getElementById('user-info');
+    const logoutBtn = document.getElementById('btn-logout');
+    
+    if (userInfo) userInfo.style.display = 'none';
+    if (logoutBtn) logoutBtn.style.display = 'none';
+  }
+}
     
     // Регистрируем пользователя
     console.log('Создание пользователя в Auth...');
