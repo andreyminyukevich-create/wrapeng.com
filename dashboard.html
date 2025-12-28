@@ -4,48 +4,261 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard - Калькулятор оклейки</title>
-  <link rel="stylesheet" href="styles.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f5f5f7;
+      color: #333;
+    }
+    
+    /* HEADER */
+    .header {
+      background: white;
+      border-bottom: 1px solid #e5e5e5;
+      padding: 20px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .header-left h1 {
+      font-size: 1.5rem;
+      color: #667eea;
+      margin-bottom: 4px;
+    }
+    .header-left p {
+      color: #666;
+      font-size: 0.9rem;
+    }
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .user-email {
+      color: #666;
+      font-size: 0.9rem;
+    }
+    .btn-logout {
+      padding: 10px 20px;
+      background: #ef4444;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+    .btn-logout:hover {
+      background: #dc2626;
+    }
+
+    /* TRIAL BANNER */
+    .trial-banner {
+      background: linear-gradient(135deg, #fef3c7, #fde68a);
+      border: 2px solid #fbbf24;
+      color: #92400e;
+      padding: 16px;
+      text-align: center;
+      font-weight: 600;
+      font-size: 1rem;
+    }
+
+    /* MAIN */
+    .main {
+      max-width: 1200px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+
+    /* CARDS GRID */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+    }
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 32px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      transition: all 0.3s;
+      text-align: center;
+    }
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    }
+    .card-icon {
+      font-size: 3rem;
+      margin-bottom: 16px;
+    }
+    .card h2 {
+      font-size: 1.3rem;
+      margin-bottom: 8px;
+      color: #333;
+    }
+    .card p {
+      color: #666;
+      margin-bottom: 24px;
+      font-size: 0.95rem;
+    }
+    .btn-primary {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
+    .btn-secondary {
+      width: 100%;
+      padding: 14px;
+      background: white;
+      color: #667eea;
+      border: 2px solid #667eea;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .btn-secondary:hover {
+      background: #f0f4ff;
+    }
+
+    /* DISABLED CARD */
+    .card-disabled {
+      opacity: 0.5;
+      pointer-events: none;
+      position: relative;
+    }
+    .card-disabled::after {
+      content: '🔒 Доступно после оплаты';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0,0,0,0.8);
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      white-space: nowrap;
+    }
+
+    /* REFERRAL INPUT */
+    .referral-input {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e5e5e5;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.9rem;
+      text-align: center;
+      background: #f9fafb;
+    }
+
+    /* PAYMENT MODAL */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.7);
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .modal.active {
+      display: flex;
+    }
+    .modal-content {
+      background: white;
+      border-radius: 20px;
+      padding: 40px;
+      max-width: 500px;
+      text-align: center;
+    }
+    .modal-content h2 {
+      font-size: 1.8rem;
+      margin-bottom: 16px;
+      color: #333;
+    }
+    .modal-content p {
+      color: #666;
+      margin-bottom: 32px;
+      line-height: 1.6;
+    }
+
+    @media (max-width: 768px) {
+      .header {
+        padding: 16px 20px;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .header-right {
+        width: 100%;
+        justify-content: space-between;
+      }
+    }
+  </style>
 </head>
 <body>
-  <div class="dashboard-container">
-    <!-- Header -->
-    <header class="dashboard-header">
-      <div class="header-left">
-        <h1>🔧 Dashboard</h1>
-        <p id="studioName">Загрузка...</p>
-      </div>
-      <div class="header-right">
-        <span id="userEmail">user@email.com</span>
-        <button id="logoutBtn" class="btn-logout">Выход</button>
-      </div>
-    </header>
 
-    <!-- Trial Banner -->
-    <div id="trialBanner" class="trial-banner" style="display: none;">
-      <span id="trialText">⏰ Пробный период: осталось X дней</span>
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-left">
+      <h1>🔧 Dashboard</h1>
+      <p id="studioName">Загрузка...</p>
     </div>
+    <div class="header-right">
+      <span class="user-email" id="userEmail">user@email.com</span>
+      <button class="btn-logout" id="logoutBtn">Выход</button>
+    </div>
+  </header>
 
-    <!-- Main Dashboard -->
-    <main class="dashboard-main">
-      <!-- Calculator Card -->
-      <div class="dashboard-card" id="calculatorCard">
+  <!-- TRIAL BANNER -->
+  <div id="trialBanner" class="trial-banner" style="display: none;">
+    <span id="trialText">⏰ Пробный период: осталось X дней</span>
+  </div>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="cards-grid">
+      
+      <!-- КАЛЬКУЛЯТОР -->
+      <div class="card" id="calculatorCard">
         <div class="card-icon">🧮</div>
         <h2>Калькулятор</h2>
         <p>Создать новый расчёт стоимости работ</p>
         <button class="btn-primary" onclick="openCalculator()">Открыть калькулятор</button>
       </div>
 
-      <!-- My Calculations Card -->
-      <div class="dashboard-card">
+      <!-- МОИ РАСЧЁТЫ -->
+      <div class="card" id="calculationsCard">
         <div class="card-icon">📊</div>
         <h2>Мои расчёты</h2>
         <p>Последние 100 сохранённых расчётов</p>
         <button class="btn-primary" onclick="openMyCalculations()">Посмотреть расчёты</button>
       </div>
 
-      <!-- Referral Card -->
-      <div class="dashboard-card">
+      <!-- ПОСОВЕТОВАТЬ -->
+      <div class="card">
         <div class="card-icon">🔗</div>
         <h2>Посоветовать</h2>
         <p id="referralCount">Приглашено: 0 человек</p>
@@ -53,42 +266,53 @@
         <button class="btn-secondary" onclick="copyReferralLink()">📋 Скопировать ссылку</button>
       </div>
 
-      <!-- Analytics Card (Coming Soon) -->
-      <div class="dashboard-card card-disabled">
+      <!-- АНАЛИТИКА -->
+      <div class="card" id="analyticsCard">
         <div class="card-icon">📈</div>
         <h2>Аналитика</h2>
-        <p>Прибыль, расходы, ЗП</p>
-        <span class="coming-soon">Скоро...</span>
+        <p>Прибыль, расходы, ЗП сотрудников</p>
+        <button class="btn-primary" onclick="openAnalytics()">Открыть аналитику</button>
       </div>
-    </main>
 
-    <!-- Payment Modal -->
-    <div id="paymentModal" class="modal" style="display: none;">
-      <div class="modal-content">
-        <h2>⚠️ Пробный период закончился</h2>
-        <p>Оплатите доступ на лендинге, после этого мы отметим ваш аккаунт как оплаченный.</p>
-        <button class="btn-primary" onclick="window.open('https://your-landing.com', '_blank')">
-          Перейти к оплате
-        </button>
-        <button class="btn-secondary" onclick="closePaymentModal()">Закрыть</button>
-      </div>
+    </div>
+  </main>
+
+  <!-- PAYMENT MODAL -->
+  <div id="paymentModal" class="modal">
+    <div class="modal-content">
+      <h2>⚠️ Пробный период закончился</h2>
+      <p>Оплатите доступ на лендинге, после этого мы активируем ваш аккаунт.</p>
+      <button class="btn-primary" onclick="window.open('https://your-landing.com', '_blank')" style="margin-bottom: 12px;">
+        Перейти к оплате
+      </button>
+      <button class="btn-secondary" onclick="closePaymentModal()">Закрыть</button>
     </div>
   </div>
 
   <script>
 const SUPABASE_URL = 'https://hdghijgrrnzmntistdvw.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkZ2hpamdycm56bW50aXN0ZHZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMzMyNzksImV4cCI6MjA3NTYwOTI3OX0.D9EDTmVrFRVp0B8_5tCJM29gbFdtadsom0Ihsf4uQ8Q';
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
+    storage: window.localStorage
+  }
+});
+
+let currentProfile = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
   console.log('Dashboard loading...');
   
   const { data } = await sb.auth.getSession();
-  console.log('Session:', data);
+  console.log('Session data:', data);
   
   if (!data.session) {
     console.log('No session, redirecting to welcome');
-    window.location.replace('/welcome.html');
+    window.location.replace('welcome.html');
     return;
   }
 
@@ -100,9 +324,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   
   if (error || !profile) {
     console.error('Profile error:', error);
-    window.location.replace('/welcome.html');
+    window.location.replace('welcome.html');
     return;
   }
+
+  currentProfile = profile;
 
   document.getElementById('userEmail').textContent = user.email;
   document.getElementById('studioName').textContent = profile.studio_name || 'Моя студия';
@@ -115,15 +341,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   document.getElementById('logoutBtn').addEventListener('click', async () => {
     await sb.auth.signOut();
-    window.location.replace('/welcome.html');
+    localStorage.removeItem('sb-session');
+    window.location.replace('welcome.html');
   });
 });
 
 function checkTrialStatus(profile) {
   if (profile.is_paid) {
+    // Платный пользователь - всё доступно
     return;
   }
 
+  // Trial пользователь
   const now = new Date();
   const trialEnds = profile.trial_ends_at ? new Date(profile.trial_ends_at) : null;
 
@@ -135,12 +364,18 @@ function checkTrialStatus(profile) {
   const daysLeft = Math.ceil((trialEnds - now) / (1000 * 60 * 60 * 24));
 
   if (daysLeft <= 0) {
+    // Триал закончился
     showPaymentModal();
   } else {
+    // Показать баннер с оставшимися днями
     const banner = document.getElementById('trialBanner');
     banner.style.display = 'block';
     document.getElementById('trialText').textContent = 
       `⏰ Пробный период: осталось ${daysLeft} ${getDaysWord(daysLeft)}`;
+    
+    // Заблокировать "Мои расчёты" и "Аналитика"
+    document.getElementById('calculationsCard').classList.add('card-disabled');
+    document.getElementById('analyticsCard').classList.add('card-disabled');
   }
 }
 
@@ -151,12 +386,14 @@ function getDaysWord(days) {
 }
 
 function showPaymentModal() {
-  document.getElementById('paymentModal').style.display = 'flex';
+  document.getElementById('paymentModal').classList.add('active');
   document.getElementById('calculatorCard').classList.add('card-disabled');
+  document.getElementById('calculationsCard').classList.add('card-disabled');
+  document.getElementById('analyticsCard').classList.add('card-disabled');
 }
 
 function closePaymentModal() {
-  document.getElementById('paymentModal').style.display = 'none';
+  document.getElementById('paymentModal').classList.remove('active');
 }
 
 function openCalculator() {
@@ -165,6 +402,10 @@ function openCalculator() {
 
 function openMyCalculations() {
   window.location.href = 'my-calculations.html';
+}
+
+function openAnalytics() {
+  window.location.href = 'analytics.html';
 }
 
 async function copyReferralLink() {
