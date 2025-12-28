@@ -131,15 +131,15 @@ input:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(1
     <!-- ГЛАВНОЕ МЕНЮ -->
     <div id="main-screen" class="screen active">
       <div class="buttons">
-        <button class="btn btn-primary" onclick="showLogin()">ВОЙТИ</button>
-        <button class="btn btn-secondary" onclick="showDemo()">ДЕМО ДОСТУП (72 часа)</button>
+        <button class="btn btn-primary" id="btn-show-login">ВОЙТИ</button>
+        <button class="btn btn-secondary" id="btn-show-demo">ДЕМО ДОСТУП (72 часа)</button>
       </div>
     </div>
 
     <!-- ВХОД -->
     <div id="login-screen" class="screen">
       <div id="login-error" class="error" style="display:none"></div>
-      <form onsubmit="handleLogin(event)">
+      <form id="login-form">
         <div class="form-group">
           <label>Почта <span class="required">*</span></label>
           <input type="email" id="login-email" required>
@@ -149,18 +149,18 @@ input:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(1
           <input type="password" id="login-password" required>
         </div>
         <div class="forgot-link">
-          <a href="#" onclick="showForgot(); return false;">Забыли пароль?</a>
+          <a href="#" id="link-forgot">Забыли пароль?</a>
         </div>
         <button type="submit" class="btn btn-primary" id="login-btn">Войти</button>
       </form>
-      <div class="back-link" onclick="showMain()">← Назад</div>
+      <div class="back-link" id="back-from-login">← Назад</div>
     </div>
 
     <!-- ДЕМО ДОСТУП -->
     <div id="demo-screen" class="screen">
       <div id="demo-error" class="error" style="display:none"></div>
       <div id="demo-success" class="success" style="display:none"></div>
-      <form onsubmit="handleDemo(event)">
+      <form id="demo-form">
         <div class="form-group">
           <label>Имя <span class="required">*</span></label>
           <input type="text" id="demo-name" required placeholder="Ваше имя">
@@ -179,7 +179,7 @@ input:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(1
         </div>
         <button type="submit" class="btn btn-primary" id="demo-btn">Получить доступ</button>
       </form>
-      <div class="back-link" onclick="showMain()">← Назад</div>
+      <div class="back-link" id="back-from-demo">← Назад</div>
     </div>
 
     <!-- ЗАБЫЛИ ПАРОЛЬ -->
@@ -187,14 +187,14 @@ input:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(1
       <div id="forgot-error" class="error" style="display:none"></div>
       <div id="forgot-success" class="success" style="display:none"></div>
       <p style="margin-bottom: 20px; color: #666;">Введите ваш email, мы отправим инструкции для сброса пароля</p>
-      <form onsubmit="handleForgot(event)">
+      <form id="forgot-form">
         <div class="form-group">
           <label>Почта <span class="required">*</span></label>
           <input type="email" id="forgot-email" required>
         </div>
         <button type="submit" class="btn btn-primary" id="forgot-btn">Отправить</button>
       </form>
-      <div class="back-link" onclick="showLogin()">← Назад к входу</div>
+      <div class="back-link" id="back-from-forgot">← Назад к входу</div>
     </div>
   </div>
 </div>
@@ -212,19 +212,26 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   }
 });
 
+// NAVIGATION
 function showScreen(screenId) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(screenId).classList.add('active');
 }
 
-function showMain() { showScreen('main-screen'); }
-function showLogin() { showScreen('login-screen'); }
-function showDemo() { showScreen('demo-screen'); }
-function showForgot() { showScreen('forgot-screen'); }
-
-// ВХОД
-async function handleLogin(e) {
+document.getElementById('btn-show-login').addEventListener('click', () => showScreen('login-screen'));
+document.getElementById('btn-show-demo').addEventListener('click', () => showScreen('demo-screen'));
+document.getElementById('back-from-login').addEventListener('click', () => showScreen('main-screen'));
+document.getElementById('back-from-demo').addEventListener('click', () => showScreen('main-screen'));
+document.getElementById('link-forgot').addEventListener('click', (e) => {
   e.preventDefault();
+  showScreen('forgot-screen');
+});
+document.getElementById('back-from-forgot').addEventListener('click', () => showScreen('login-screen'));
+
+// LOGIN
+document.getElementById('login-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
   const errorBox = document.getElementById('login-error');
   const btn = document.getElementById('login-btn');
   errorBox.style.display = 'none';
@@ -246,7 +253,6 @@ async function handleLogin(e) {
     }
 
     console.log('Login success:', data);
-    localStorage.setItem('sb-session', JSON.stringify(data.session));
     window.location.href = 'dashboard.html';
   } catch (err) {
     console.error('Login error:', err);
@@ -255,11 +261,12 @@ async function handleLogin(e) {
     btn.disabled = false;
     btn.textContent = 'Войти';
   }
-}
+});
 
-// ДЕМО РЕГИСТРАЦИЯ
-async function handleDemo(e) {
+// DEMO
+document.getElementById('demo-form').addEventListener('submit', async (e) => {
   e.preventDefault();
+  
   const errorBox = document.getElementById('demo-error');
   const successBox = document.getElementById('demo-success');
   const btn = document.getElementById('demo-btn');
@@ -274,24 +281,13 @@ async function handleDemo(e) {
   const studio = document.getElementById('demo-studio').value.trim() || 'Моя студия';
 
   try {
-    // Проверка существующего email
-    const { data: existingUser } = await sb.auth.admin.getUserByEmail(email).catch(() => ({ data: null }));
-    
-    if (existingUser) {
-      errorBox.textContent = 'Пользователь с таким email уже зарегистрирован! Используйте кнопку "ВОЙТИ"';
-      errorBox.style.display = 'block';
-      btn.disabled = false;
-      btn.textContent = 'Получить доступ';
-      return;
-    }
-
     const tempPassword = Math.random().toString(36).slice(-10) + 'A1!';
     
     const { data, error } = await sb.auth.signUp({ email, password: tempPassword });
 
     if (error) {
-      if (error.message.includes('already registered')) {
-        errorBox.textContent = 'Этот email уже зарегистрирован! Используйте кнопку "ВОЙТИ"';
+      if (error.message.includes('already registered') || error.message.includes('User already registered')) {
+        errorBox.textContent = 'Пользователь с таким email уже зарегистрирован! Нажмите кнопку "ВОЙТИ"';
       } else {
         errorBox.textContent = 'Ошибка регистрации: ' + error.message;
       }
@@ -336,10 +332,9 @@ async function handleDemo(e) {
       return;
     }
 
-    successBox.innerHTML = `✅ Аккаунт создан!<br>Ваш пароль: <strong>${tempPassword}</strong><br>Сохраните его!`;
+    successBox.innerHTML = `✅ Аккаунт создан!<br>Ваш пароль: <strong>${tempPassword}</strong><br>Сохраните его!<br>Вход в систему...`;
     successBox.style.display = 'block';
 
-    // Автологин
     const { data: loginData, error: loginError } = await sb.auth.signInWithPassword({
       email,
       password: tempPassword
@@ -347,12 +342,14 @@ async function handleDemo(e) {
 
     if (loginError) {
       console.error('Auto-login failed:', loginError);
-      setTimeout(() => showLogin(), 3000);
+      errorBox.textContent = 'Регистрация успешна, но автоматический вход не удался. Используйте кнопку ВОЙТИ с паролем: ' + tempPassword;
+      errorBox.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Получить доступ';
       return;
     }
 
     console.log('Auto-login success:', loginData);
-    localStorage.setItem('sb-session', JSON.stringify(loginData.session));
     
     setTimeout(() => {
       window.location.href = 'dashboard.html';
@@ -365,11 +362,12 @@ async function handleDemo(e) {
     btn.disabled = false;
     btn.textContent = 'Получить доступ';
   }
-}
+});
 
-// ЗАБЫЛИ ПАРОЛЬ
-async function handleForgot(e) {
+// FORGOT PASSWORD
+document.getElementById('forgot-form').addEventListener('submit', async (e) => {
   e.preventDefault();
+  
   const errorBox = document.getElementById('forgot-error');
   const successBox = document.getElementById('forgot-success');
   const btn = document.getElementById('forgot-btn');
@@ -402,8 +400,6 @@ async function handleForgot(e) {
     errorBox.style.display = 'block';
     btn.disabled = false;
     btn.textContent = 'Отправить';
-  }
-}
   }
 });
 </script>
