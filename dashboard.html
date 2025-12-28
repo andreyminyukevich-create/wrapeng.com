@@ -140,6 +140,7 @@
       font-size: 1rem;
       cursor: pointer;
       transition: all 0.3s;
+      margin-top: 8px;
     }
     .btn-secondary:hover {
       background: #f0f4ff;
@@ -263,9 +264,10 @@
         <div class="card">
           <div class="card-icon">🔗</div>
           <h2>Посоветовать</h2>
-          <p id="referralCount">Приглашено: 0 человек</p>
+          <p id="referralCount">Приглашено: <span id="referralCountValue">0</span> человек</p>
           <input type="text" id="referralLink" readonly class="referral-input">
-          <button class="btn-secondary" onclick="copyReferralLink()">📋 Скопировать ссылку</button>
+          <button class="btn-primary" onclick="copyReferralLink()">📋 Скопировать ссылку</button>
+          <button class="btn-secondary" onclick="openReferrals()">👥 Посмотреть список</button>
         </div>
 
         <div class="card" id="analyticsCard">
@@ -339,7 +341,15 @@ async function init() {
 
   const refLink = `${window.location.origin}/?ref=${profile.referral_code}`;
   document.getElementById('referralLink').value = refLink;
-  document.getElementById('referralCount').textContent = `Приглашено: 0 человек`;
+
+  // Подсчёт рефералов
+  const { data: referrals, error: refError } = await sb
+    .from('profiles')
+    .select('id')
+    .eq('referred_by', user.id);
+  
+  const refCount = referrals ? referrals.length : 0;
+  document.getElementById('referralCountValue').textContent = refCount;
 
   document.getElementById('logoutBtn').addEventListener('click', async () => {
     await sb.auth.signOut();
@@ -405,6 +415,10 @@ function openMyCalculations() {
 
 function openAnalytics() {
   window.location.href = 'analytics.html';
+}
+
+function openReferrals() {
+  window.location.href = 'referrals.html';
 }
 
 async function copyReferralLink() {
