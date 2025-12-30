@@ -2714,7 +2714,6 @@ function renderCost(s) {
   q('#cMot').textContent = fmt(totO);
   q('#cTotal').textContent = fmt(totM + totO);
 }
-
 function renderExecutors(s) {
   const container = q('#executorsContent');
   if (!container) return;
@@ -2760,7 +2759,7 @@ function renderExecutors(s) {
   allServices.forEach(srv => {
     const baseId = `exec${srv.idx}`;
     
-    // Получаем текущие значения из DOM (не из savedValues)
+    // Получаем текущие значения из DOM
     const existingRow = container.querySelector(`[data-exec-id="${baseId}"]`);
     const currentValues = existingRow ? {
       name: existingRow.querySelector(`#${baseId}name`)?.value || '',
@@ -2799,7 +2798,7 @@ function renderExecutors(s) {
   if (oldHTML !== html) {
     container.innerHTML = html;
     
-    // Навешиваем обработчики на чекбоксы "Добавить исполнителя"
+    // Навешиваем обработчики на чекбоксы
     qa('.add-executor-chk').forEach(chk => {
       chk.addEventListener('change', function() {
         if (this.checked) {
@@ -2829,8 +2828,6 @@ function renderExecutors(s) {
           `;
           
           extraContainer.appendChild(row);
-          
-          // Снимаем галочку
           this.checked = false;
           
           // Навешиваем обработчик на новый чекбокс
@@ -2840,62 +2837,6 @@ function renderExecutors(s) {
     });
   }
 }
-  
-  let html = '';
-  let execIndex = 0;
-  
-  const allServices = [];
-  
-  if (s.pkg.mat + s.pkg.mot > 0) {
-    allServices.push({ name: 'Полная защита вкруг', idx: execIndex++ });
-  }
-  
-  if (s.impact.mat + s.impact.mot > 0) {
-    allServices.push({ name: 'Защита ударной части', idx: execIndex++ });
-  }
-  
-  s.arm.names.forEach(name => {
-    allServices.push({ name, idx: execIndex++ });
-  });
-  
-  if (s.wrap.details && s.wrap.details.length > 0) {
-    s.wrap.details.forEach(detail => {
-      allServices.push({ name: detail[0], idx: execIndex++ });
-    });
-  }
-  
-  s.det.names.forEach(name => {
-    allServices.push({ name, idx: execIndex++ });
-  });
-  
-  s.gl.names.forEach(name => {
-    allServices.push({ name, idx: execIndex++ });
-  });
-  
-  s.ms.names.forEach(name => {
-    allServices.push({ name, idx: execIndex++ });
-  });
-  
-  allServices.forEach(srv => {
-    const nameId = `exec${srv.idx}name`;
-    const receiveId = `exec${srv.idx}receive`;
-    const returnId = `exec${srv.idx}return`;
-    const noteId = `exec${srv.idx}note`;
-    
-    html += `<div class="executor-row">
-      <div class="executor-row-header">${srv.name}</div>
-      <div class="executor-fields">
-        <input type="text" id="${nameId}" placeholder="Исполнитель" value="${savedValues[nameId] || ''}">
-        <input type="date" id="${receiveId}" placeholder="Дата приема" value="${savedValues[receiveId] || ''}">
-        <input type="date" id="${returnId}" placeholder="Дата выдачи" value="${savedValues[returnId] || ''}">
-        <input type="text" id="${noteId}" placeholder="Примечание" value="${savedValues[noteId] || ''}">
-      </div>
-    </div>`;
-  });
-  
-  container.innerHTML = html;
-}
-
 function renderBadges(s, mu) {
   q('#sumPkgMat').value = s.pkg.mat.toFixed(2);
   q('#sumPkgMot').value = s.pkg.mot.toFixed(2);
