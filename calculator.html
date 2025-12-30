@@ -2052,7 +2052,13 @@ function fillBrands() {
     s.appendChild(o);
   });
 }
-
+function formatYearInput(input) {
+  // Убираем все нецифровые символы
+  let val = input.value.replace(/\D/g, '');
+  // Ограничиваем 4 цифрами
+  if (val.length > 4) val = val.slice(0, 4);
+  input.value = val;
+}
 function onBrandChange() {
   const b = q('#brand').value;
   const m = q('#model');
@@ -2742,12 +2748,38 @@ function renderExecutors(s) {
   let execIndex = 0;
   const allServices = [];
   
-  if (s.pkg.mat + s.pkg.mot > 0) {
-    allServices.push({ name: 'Полная защита вкруг', mot: s.pkg.mot, idx: execIndex++ });
+// Пакет "Полная защита вкруг" - разбиваем на услуги
+  const pkgWrapMot = parseFloat(q('#pkgWrapMot')?.value) || 0;
+  const pkgPrepMot = parseFloat(q('#pkgPrepMot')?.value) || 0;
+  const pkgArmMot = parseFloat(q('#pkgArmMot')?.value) || 0;
+  
+  if (pkgWrapMot > 0 || pkgPrepMot > 0 || pkgArmMot > 0) {
+    if (pkgWrapMot > 0) {
+      allServices.push({ name: 'Полная защита вкруг - Инсталляция пленки', mot: pkgWrapMot, idx: execIndex++ });
+    }
+    if (pkgPrepMot > 0) {
+      allServices.push({ name: 'Полная защита вкруг - Подготовка', mot: pkgPrepMot, idx: execIndex++ });
+    }
+    if (pkgArmMot > 0) {
+      allServices.push({ name: 'Полная защита вкруг - Арматурные работы', mot: pkgArmMot, idx: execIndex++ });
+    }
   }
   
-  if (s.impact.mat + s.impact.mot > 0) {
-    allServices.push({ name: 'Защита ударной части', mot: s.impact.mot, idx: execIndex++ });
+  // Пакет "Защита ударной части" - разбиваем на услуги
+  const impactWrapMot = parseFloat(q('#impactWrapMot')?.value) || 0;
+  const impactPrepMot = parseFloat(q('#impactPrepMot')?.value) || 0;
+  const impactArmMot = parseFloat(q('#impactArmMot')?.value) || 0;
+  
+  if (impactWrapMot > 0 || impactPrepMot > 0 || impactArmMot > 0) {
+    if (impactWrapMot > 0) {
+      allServices.push({ name: 'Защита ударной части - Инсталляция пленки', mot: impactWrapMot, idx: execIndex++ });
+    }
+    if (impactPrepMot > 0) {
+      allServices.push({ name: 'Защита ударной части - Подготовка', mot: impactPrepMot, idx: execIndex++ });
+    }
+    if (impactArmMot > 0) {
+      allServices.push({ name: 'Защита ударной части - Арматурные работы', mot: impactArmMot, idx: execIndex++ });
+    }
   }
   
   s.arm.names.forEach(name => {
@@ -2881,43 +2913,34 @@ function setupSalaryListeners(baseId) {
   
   if (!baseSalaryInput) return;
   
-  // Отмечаем, что поле было изменено вручную
-  baseSalaryInput.addEventListener('input', function() {
-    this.dataset.manuallySet = 'true';
-  });
-  
-  // При изменении базовой зарплаты
-  baseSalaryInput.addEventListener('change', function() {
-    if (!extraContainer) return;
-    
-    const allSalaryInputs = [this];
-    extraContainer.querySelectorAll('input[type="number"]').forEach(inp => allSalaryInputs.push(inp));
+  // Функция пересчёта зарплат
+  function recalculateSalaries(changedInput) {
+    const allSalaryInputs = [baseSalaryInput];
+    if (extraContainer) {
+      extraContainer.querySelectorAll('input[type="number"]').forEach(inp => allSalaryInputs.push(inp));
+    }
     
     const total = allSalaryInputs.reduce((sum, inp) => sum + (parseFloat(inp.value) || 0), 0);
-    const others = allSalaryInputs.filter(inp => inp !== this);
+    const others = allSalaryInputs.filter(inp => inp !== changedInput);
     
     if (others.length > 0) {
-      const remaining = r100(total - (parseFloat(this.value) || 0));
+      const remaining = r100(total - (parseFloat(changedInput.value) || 0));
       const perOther = r100(remaining / others.length);
       others.forEach(inp => inp.value = perOther.toFixed(2));
     }
+  }
+  
+  // Отмечаем, что поле было изменено вручную
+  baseSalaryInput.addEventListener('input', function() {
+    this.dataset.manuallySet = 'true';
+    recalculateSalaries(this);
   });
   
   // Аналогично для дополнительных исполнителей
   if (extraContainer) {
     extraContainer.querySelectorAll('input[type="number"]').forEach(extraInput => {
-      extraInput.addEventListener('change', function() {
-        const allSalaryInputs = [baseSalaryInput];
-        extraContainer.querySelectorAll('input[type="number"]').forEach(inp => allSalaryInputs.push(inp));
-        
-        const total = allSalaryInputs.reduce((sum, inp) => sum + (parseFloat(inp.value) || 0), 0);
-        const others = allSalaryInputs.filter(inp => inp !== this);
-        
-        if (others.length > 0) {
-          const remaining = r100(total - (parseFloat(this.value) || 0));
-          const perOther = r100(remaining / others.length);
-          others.forEach(inp => inp.value = perOther.toFixed(2));
-        }
+      extraInput.addEventListener('input', function() {
+        recalculateSalaries(this);
       });
     });
   }
@@ -3332,7 +3355,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (confirm('Вы уверены, что хотите сбросить все данные?')) location.reload();
   });
   
-  document.addEventListener('input', e => {
+document.addEventListener('input', e => {
+    if (e.target.id === 'year') {
+      formatYearInput(e.target);
+      renderAll();
+      return;
+    }
+    
     if (e.target.matches('input[type="number"]')) {
       let val = parseFloat(e.target.value);
       if (!isNaN(val) && val < 0) {
