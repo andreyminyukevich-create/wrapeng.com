@@ -2210,6 +2210,19 @@ function renderPartialLists() {
           <div class="form-group"><label>Своя наценка (%):</label><input type="number" class="ppf-part-markup" placeholder="0"></div>
         </div>
         <div class="service-complexity"><input type="checkbox" class="ppf-part-complex" id="ppfp${idx}c"><label for="ppfp${idx}c">Усложнение +10%</label></div>
+        <div class="chips" style="margin-top:10px">
+          <span class="chip" data-ppf-markup="${idx}">10</span>
+          <span class="chip" data-ppf-markup="${idx}">20</span>
+          <span class="chip" data-ppf-markup="${idx}">30</span>
+          <span class="chip" data-ppf-markup="${idx}">40</span>
+          <span class="chip" data-ppf-markup="${idx}">50</span>
+          <span class="chip" data-ppf-markup="${idx}">60</span>
+          <span class="chip" data-ppf-markup="${idx}">70</span>
+          <span class="chip" data-ppf-markup="${idx}">80</span>
+          <span class="chip" data-ppf-markup="${idx}">90</span>
+          <span class="chip" data-ppf-markup="${idx}">100</span>
+        </div>
+        <div class="service-complexity"><input type="checkbox" class="ppf-part-complex" id="ppfp${idx}c"><label for="ppfp${idx}c">Усложнение +10%</label></div>
       </div>
     </div>`;
     
@@ -2220,7 +2233,20 @@ function renderPartialLists() {
           <div class="form-group"><label>Метры (м):</label><input type="number" class="pvc-part-m" placeholder="0" step="0.01"></div>
           <div class="form-group"><label>Цена за метр (₽):</label><input type="number" class="pvc-part-price" placeholder="0" step="0.01"></div>
           <div class="form-group"><label>Мотивация (₽):</label><input type="number" class="pvc-part-mot" placeholder="0" step="0.01"></div>
-          <div class="form-group"><label>Своя наценка (%):</label><input type="number" class="pvc-part-markup" placeholder="0"></div>
+<div class="form-group"><label>Своя наценка (%):</label><input type="number" class="pvc-part-markup" placeholder="0"></div>
+        </div>
+        <div class="service-complexity"><input type="checkbox" class="pvc-part-complex" id="pvcp${idx}c"><label for="pvcp${idx}c">Усложнение +10%</label></div>
+        <div class="chips" style="margin-top:10px">
+          <span class="chip" data-pvc-markup="${idx}">10</span>
+          <span class="chip" data-pvc-markup="${idx}">20</span>
+          <span class="chip" data-pvc-markup="${idx}">30</span>
+          <span class="chip" data-pvc-markup="${idx}">40</span>
+          <span class="chip" data-pvc-markup="${idx}">50</span>
+          <span class="chip" data-pvc-markup="${idx}">60</span>
+          <span class="chip" data-pvc-markup="${idx}">70</span>
+          <span class="chip" data-pvc-markup="${idx}">80</span>
+          <span class="chip" data-pvc-markup="${idx}">90</span>
+          <span class="chip" data-pvc-markup="${idx}">100</span>
         </div>
         <div class="service-complexity"><input type="checkbox" class="pvc-part-complex" id="pvcp${idx}c"><label for="pvcp${idx}c">Усложнение +10%</label></div>
       </div>
@@ -2693,12 +2719,127 @@ function renderExecutors(s) {
   const container = q('#executorsContent');
   if (!container) return;
   
-  const savedValues = {};
-  container.querySelectorAll('input').forEach(inp => {
-    if (inp.id && inp.value) {
-      savedValues[inp.id] = inp.value;
-    }
+  // Сохраняем старый HTML для сравнения
+  const oldHTML = container.innerHTML;
+  
+  let html = '';
+  let execIndex = 0;
+  
+  const allServices = [];
+  
+  if (s.pkg.mat + s.pkg.mot > 0) {
+    allServices.push({ name: 'Полная защита вкруг', mot: s.pkg.mot, idx: execIndex++ });
+  }
+  
+  if (s.impact.mat + s.impact.mot > 0) {
+    allServices.push({ name: 'Защита ударной части', mot: s.impact.mot, idx: execIndex++ });
+  }
+  
+  s.arm.names.forEach(name => {
+    allServices.push({ name, mot: 0, idx: execIndex++ });
   });
+  
+  if (s.wrap.details && s.wrap.details.length > 0) {
+    s.wrap.details.forEach(detail => {
+      allServices.push({ name: detail[0], mot: detail[4], idx: execIndex++ });
+    });
+  }
+  
+  s.det.names.forEach(name => {
+    allServices.push({ name, mot: 0, idx: execIndex++ });
+  });
+  
+  s.gl.names.forEach(name => {
+    allServices.push({ name, mot: 0, idx: execIndex++ });
+  });
+  
+  s.ms.names.forEach(name => {
+    allServices.push({ name, mot: 0, idx: execIndex++ });
+  });
+  
+  allServices.forEach(srv => {
+    const baseId = `exec${srv.idx}`;
+    
+    // Получаем текущие значения из DOM (не из savedValues)
+    const existingRow = container.querySelector(`[data-exec-id="${baseId}"]`);
+    const currentValues = existingRow ? {
+      name: existingRow.querySelector(`#${baseId}name`)?.value || '',
+      receive: existingRow.querySelector(`#${baseId}receive`)?.value || '',
+      return: existingRow.querySelector(`#${baseId}return`)?.value || '',
+      note: existingRow.querySelector(`#${baseId}note`)?.value || '',
+      salary: existingRow.querySelector(`#${baseId}salary`)?.value || srv.mot.toFixed(2)
+    } : {
+      name: '',
+      receive: '',
+      return: '',
+      note: '',
+      salary: srv.mot.toFixed(2)
+    };
+    
+    html += `<div class="executor-row" data-exec-id="${baseId}">
+      <div class="executor-row-header">${srv.name}</div>
+      <div class="executor-fields">
+        <input type="text" id="${baseId}name" placeholder="Исполнитель" value="${currentValues.name}">
+        <input type="date" id="${baseId}receive" placeholder="Дата приема" value="${currentValues.receive}">
+        <input type="date" id="${baseId}return" placeholder="Дата выдачи" value="${currentValues.return}">
+        <input type="number" id="${baseId}salary" placeholder="Зарплата" value="${currentValues.salary}" step="0.01">
+        <input type="text" id="${baseId}note" placeholder="Примечание" value="${currentValues.note}">
+      </div>
+      <div style="margin-top:8px;text-align:center">
+        <label style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:0.85rem">
+          <input type="checkbox" class="add-executor-chk" data-exec-base="${baseId}">
+          <span>+ Добавить исполнителя</span>
+        </label>
+      </div>
+      <div class="extra-executors" id="${baseId}-extra"></div>
+    </div>`;
+  });
+  
+  // Обновляем только если HTML изменился
+  if (oldHTML !== html) {
+    container.innerHTML = html;
+    
+    // Навешиваем обработчики на чекбоксы "Добавить исполнителя"
+    qa('.add-executor-chk').forEach(chk => {
+      chk.addEventListener('change', function() {
+        if (this.checked) {
+          const baseId = this.getAttribute('data-exec-base');
+          const extraContainer = q(`#${baseId}-extra`);
+          const extraCount = extraContainer.querySelectorAll('.extra-executor-row').length;
+          const newId = `${baseId}-ex${extraCount + 1}`;
+          
+          const row = document.createElement('div');
+          row.className = 'extra-executor-row';
+          row.style.cssText = 'margin-top:12px;padding:12px;background:var(--bg-tertiary);border-radius:12px;border:1px solid var(--border)';
+          row.innerHTML = `
+            <div class="executor-row-header" style="font-size:0.8rem;margin-bottom:8px">Исполнитель ${extraCount + 2}</div>
+            <div class="executor-fields">
+              <input type="text" id="${newId}name" placeholder="Исполнитель" value="">
+              <input type="date" id="${newId}receive" placeholder="Дата приема" value="">
+              <input type="date" id="${newId}return" placeholder="Дата выдачи" value="">
+              <input type="number" id="${newId}salary" placeholder="Зарплата" value="0" step="0.01">
+              <input type="text" id="${newId}note" placeholder="Примечание" value="">
+            </div>
+            <div style="margin-top:8px;text-align:center">
+              <label style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:0.85rem">
+                <input type="checkbox" class="add-executor-chk" data-exec-base="${baseId}">
+                <span>+ Добавить исполнителя</span>
+              </label>
+            </div>
+          `;
+          
+          extraContainer.appendChild(row);
+          
+          // Снимаем галочку
+          this.checked = false;
+          
+          // Навешиваем обработчик на новый чекбокс
+          row.querySelector('.add-executor-chk').addEventListener('change', arguments.callee);
+        }
+      });
+    });
+  }
+}
   
   let html = '';
   let execIndex = 0;
@@ -3182,14 +3323,35 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }, true);
   
-  qa('.chip').forEach(ch => ch.addEventListener('click', () => {
+qa('.chip').forEach(ch => {
+  ch.addEventListener('click', () => {
     const sel = ch.getAttribute('data-markup-target');
-    const tgt = q(sel);
-    if (tgt) {
-      tgt.value = ch.textContent.trim();
-      renderAll();
+    const ppfIdx = ch.getAttribute('data-ppf-markup');
+    const pvcIdx = ch.getAttribute('data-pvc-markup');
+    
+    if (sel) {
+      const tgt = q(sel);
+      if (tgt) {
+        tgt.value = ch.textContent.trim();
+        renderAll();
+      }
+    } else if (ppfIdx !== null) {
+      const item = ch.closest('.service-item');
+      const inp = item.querySelector('.ppf-part-markup');
+      if (inp) {
+        inp.value = ch.textContent.trim();
+        renderAll();
+      }
+    } else if (pvcIdx !== null) {
+      const item = ch.closest('.service-item');
+      const inp = item.querySelector('.pvc-part-markup');
+      if (inp) {
+        inp.value = ch.textContent.trim();
+        renderAll();
+      }
     }
-  }));
+  });
+});
   
   q('#btnExportKP')?.addEventListener('click', () => {
     prepKP();
