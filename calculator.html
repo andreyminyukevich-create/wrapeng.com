@@ -250,6 +250,10 @@ body::before {
     max-height: calc(100vh - 120px);
     overflow-y: auto;
   }
+  
+  .right-column .card {
+    margin-bottom: 20px;
+  }
 }
 
 .card {
@@ -387,7 +391,11 @@ body::before {
   
   .right-column .card {
     padding: 20px;
-    margin-bottom: 0;
+    margin-bottom: 20px;
+  }
+  
+  .right-column .card-content {
+    display: block !important;
   }
 }
 
@@ -431,7 +439,25 @@ select {
   font-family: 'Inter', sans-serif;
   font-weight: 500;
 }
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  background-size: 16px;
+  padding-right: 48px;
+  cursor: pointer;
+}
 
+select option {
+  background: var(--bg-secondary);
+  color: var(--text);
+  padding: 12px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+}
 @media (min-width: 768px) {
   input {
     padding: 12px 14px;
