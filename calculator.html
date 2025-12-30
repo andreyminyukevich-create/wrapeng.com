@@ -1463,30 +1463,8 @@ tfoot th:first-child {
 </style>
 </head>
 <body>
-<div id="auth-wrapper" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.95);backdrop-filter:blur(10px);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px">
-  <div id="auth-box">
-    <h2>🔐 Вход в калькулятор</h2>
-    <p>Войдите или зарегистрируйтесь по почте, чтобы пользоваться калькулятором.</p>
-    <div id="auth-trial-info" style="display:none"></div>
-    <div id="auth-denied" style="display:none">
-      ⚠️ Ваш пробный период (72 часа) закончился.<br>
-      Оплатите доступ на лендинге, после этого мы отметим ваш аккаунт как оплаченный.
-    </div>
-    <form id="auth-form" onsubmit="return false;">
-      <input type="email" id="auth-email" placeholder="Почта" required>
-      <input type="password" id="auth-password" placeholder="Пароль" required>
-      <input type="text" id="auth-studio" placeholder="Название студии (Keep1R PPF)">
-      <div id="auth-error" style="display:none"></div>
-      <div id="auth-buttons">
-        <button type="button" id="auth-login-btn">Войти</button>
-        <button type="button" id="auth-register-btn">Зарегистрироваться</button>
-      </div>
-    </form>
-    <div id="auth-ref-link" style="display:none;"></div>
-  </div>
-</div>
 
-<div id="calc-wrapper" style="display:none">
+<div id="calc-wrapper">
 <div id="app">
 <div class="top-bar">
   <h1>Калькулятор оклейки</h1>
@@ -1790,316 +1768,120 @@ tfoot th:first-child {
 
 </div>
 </div>
-
 <script>
 (function() {
 'use strict';
 
-// ========================================
-// SUPABASE AUTH SYSTEM - SIMPLIFIED
-// ========================================
-
 const SUPABASE_URL = 'https://hdghijgrrnzmntistdvw.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkZ2hpamdycm56bW50aXN0ZHZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMzMyNzksImV4cCI6MjA3NTYwOTI3OX0.D9EDTmVrFRVp0B8_5tCJM29gbFdtadsom0Ihsf4uQ8Q';
 
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-const authWrapper = document.getElementById('auth-wrapper');
-const calcWrapper = document.getElementById('calc-wrapper');
-const emailInput = document.getElementById('auth-email');
-const passInput = document.getElementById('auth-password');
-const studioInput = document.getElementById('auth-studio');
-const loginBtn = document.getElementById('auth-login-btn');
-const registerBtn = document.getElementById('auth-register-btn');
-const errorBox = document.getElementById('auth-error');
-const trialInfo = document.getElementById('auth-trial-info');
-const deniedBox = document.getElementById('auth-denied');
-const authForm = document.getElementById('auth-form');
-const refLink = document.getElementById('auth-ref-link');
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: { persistSession: true }
+});
 
 let currentUser = null;
 let currentProfile = null;
 
-function showError(message) {
-  if (errorBox) {
-    errorBox.textContent = message || '';
-    errorBox.style.display = message ? 'block' : 'none';
-  }
-}
-
-function showCalculator() {
-  if (authWrapper) authWrapper.style.display = 'none';
-  if (calcWrapper) calcWrapper.style.display = 'block';
-  displayUserInfo();
-}
-
-function hideCalculator() {
-  if (authWrapper) authWrapper.style.display = 'flex';
-  if (calcWrapper) calcWrapper.style.display = 'none';
-  if (deniedBox) deniedBox.style.display = 'none';
-  if (authForm) authForm.style.display = 'block';
-}
-
-function showDenied() {
-  if (deniedBox) deniedBox.style.display = 'block';
-  if (authForm) authForm.style.display = 'none';
-}
-
-function getUrlParams() {
-  const p = new URLSearchParams(window.location.search);
-  return {
-    mode: p.get('mode'),
-    ref: p.get('ref')
-  };
-}
-
-function getHoursLeft(endsAt) {
-  if (!endsAt) return 0;
-  const end = new Date(endsAt);
-  const now = new Date();
-  const diff = end - now;
-  const hours = Math.floor(diff / (1000 * 60 * 60));
-  return hours > 0 ? hours : 0;
-}
-
-async function handleLogin() {
-  showError('');
-  
-  const email = (emailInput?.value || '').trim();
-  const pass = (passInput?.value || '').trim();
-  
-  if (!email || !pass) {
-    showError('Введи email и пароль');
-    return;
-  }
-  
+async function checkAccess(user) {
   try {
-    const { data, error } = await sb.auth.signInWithPassword({
-      email,
-      password: pass,
-    });
+    const { data: profile, error } = await sb.from('profiles').select('*').eq('id', user.id).single();
     
-    if (error) {
-      console.error('signIn error:', error);
-      showError(error.message || 'Неверный email или пароль');
-      return;
+    if (error || !profile) {
+      console.error('Profile not found:', error);
+      return false;
     }
-    
-    if (!data?.user) {
-      showError('Неверный email или пароль');
-      return;
+
+    currentProfile = profile;
+
+    if (profile.is_paid) {
+      return true;
     }
+
+    const now = new Date();
+    const trialEnds = profile.trial_ends_at ? new Date(profile.trial_ends_at) : null;
     
-    currentUser = data.user;
-    
-    // Проверяем доступ
-    const hasAccess = await checkAccess(data.user);
-    
-    if (hasAccess) {
-      showCalculator();
-    } else {
-      showDenied();
+    if (!trialEnds || trialEnds <= now) {
+      return false;
     }
-    
+
+    return true;
   } catch (e) {
-    console.error('Login error:', e);
-    showError('Ошибка входа: ' + e.message);
+    console.error('checkAccess error:', e);
+    return false;
   }
 }
 
-async function handleLogout() {
-  if (confirm('Вы уверены, что хотите выйти?')) {
-    await sb.auth.signOut();
-    localStorage.clear();
-    sessionStorage.clear();
-    currentUser = null;
-    currentProfile = null;
+async function checkAuth() {
+  try {
+    const { data: { session }, error } = await sb.auth.getSession();
     
-    hideCalculator();
-    showError('');
-    
-    if (emailInput) emailInput.value = '';
-    if (passInput) passInput.value = '';
-    if (studioInput) studioInput.value = '';
-    
-    const userInfo = document.getElementById('user-info');
-    const logoutBtn = document.getElementById('btn-logout');
-    
-    if (userInfo) userInfo.style.display = 'none';
-    if (logoutBtn) logoutBtn.style.display = 'none';
-  }
-}
-    
-    // Регистрируем пользователя
-    console.log('Создание пользователя в Auth...');
-    const { data, error } = await sb.auth.signUp({
-      email,
-      password: pass,
-    });
-    
-    if (error) {
-      console.error('Auth signUp error:', error);
-      showError('Ошибка регистрации: ' + error.message);
-      return;
+    if (error || !session) {
+      window.location.href = 'welcome.html';
+      return false;
     }
+
+    currentUser = session.user;
     
-    const user = data.user;
-    if (!user) {
-      showError('Не удалось создать пользователя');
-      return;
-    }
-    
-    console.log('Пользователь создан:', user.email);
-    currentUser = user;
-    
-    // Создаём профиль
-    const { mode, ref } = getUrlParams();
-    console.log('URL params - mode:', mode, 'ref:', ref);
-    
-    const now = new Date();
-    const trialEnds = new Date(now.getTime() + 72 * 60 * 60 * 1000);
-    
-    // Генерируем реферальный код
-    const referralCode = 'REF' + Math.random().toString(36).substring(2, 10).toUpperCase();
-    console.log('Реферальный код:', referralCode);
-    
-    const profileData = {
-      id: user.id, // Используем ID из auth.users
-      email,
-      studio_name: studio,
-      is_paid: false,
-      referral_code: referralCode
-    };
-    
-    // Если есть mode=trial в URL, активируем триал
-    if (mode === 'trial') {
-      profileData.trial_started_at = now.toISOString();
-      profileData.trial_ends_at = trialEnds.toISOString();
-      console.log('Триал активирован до:', trialEnds.toISOString());
-    }
-    
-    // Если пришёл по реферальной ссылке
-    if (ref) {
-      profileData.referred_by = ref;
-      console.log('Referred by:', ref);
-    }
-    
-    console.log('Данные профиля для вставки:', profileData);
-    console.log('Вставка профиля в БД...');
-    
-    const { data: insertedProfile, error: dbError } = await sb
+    const { data: profile, error: profileError } = await sb
       .from('profiles')
-      .insert(profileData)
-      .select()
+      .select('*')
+      .eq('id', currentUser.id)
       .single();
     
-    if (dbError) {
-      console.error('=== ОШИБКА БД ===');
-      console.error('Error object:', dbError);
-      console.error('Error message:', dbError.message);
-      console.error('Error details:', dbError.details);
-      console.error('Error hint:', dbError.hint);
-      console.error('Error code:', dbError.code);
-      console.error('Profile data:', profileData);
+    if (profileError || !profile) {
+      console.error('Profile error:', profileError);
+      await sb.auth.signOut();
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.href = 'welcome.html';
+      return false;
+    }
+
+    currentProfile = profile;
+
+    if (!profile.is_paid) {
+      const now = new Date();
+      const trialEnds = profile.trial_ends_at ? new Date(profile.trial_ends_at) : null;
       
-      // Удаляем пользователя из auth если профиль не создался
-      console.log('Откат: удаление пользователя из auth...');
-      await sb.auth.admin.deleteUser(user.id).catch(e => console.error('Не удалось удалить:', e));
-      
-      showError(
-        'Ошибка БД: ' + (dbError.message || 'Unknown') + 
-        '\n' + (dbError.hint || '') +
-        '\nКод: ' + (dbError.code || 'N/A') +
-        '\n\nПопробуй: 1) Отключить RLS, 2) Проверить email не занят'
-      );
-      return;
-    }
-    
-    console.log('=== ПРОФИЛЬ СОЗДАН УСПЕШНО ===');
-    console.log('Inserted profile:', insertedProfile);
-    
-    currentProfile = insertedProfile;
-    
-    // Показываем реферальную ссылку
-    if (refLink && referralCode) {
-      const baseUrl = window.location.origin + window.location.pathname;
-      const link = baseUrl + '?ref=' + referralCode + '&mode=trial';
-      refLink.innerHTML = `
-        <p style="margin-bottom:8px;color:var(--text-muted);font-size:0.9rem">Ваша реферальная ссылка:</p>
-        <a href="${link}" target="_blank" style="word-break:break-all">${link}</a>
-        <p style="margin-top:8px;color:var(--text-dimmed);font-size:0.85rem">Поделитесь с друзьями!</p>
-      `;
-      refLink.style.display = 'block';
-    }
-    
-    // Показываем инфо о триале
-    if (mode === 'trial' && trialInfo) {
-      trialInfo.textContent = '✨ Пробный доступ активирован на 72 часа!';
-      trialInfo.style.display = 'block';
-    }
-    
-    console.log('Переход к калькулятору через 2 сек...');
-    
-    // Даём время прочитать сообщения
-    setTimeout(() => {
-      if (mode === 'trial') {
-        showCalculator();
-      } else {
-        showError('Регистрация успешна! Добавьте ?mode=trial в URL для активации пробного доступа');
+      if (!trialEnds || trialEnds <= now) {
+        alert('⚠️ Пробный период истёк. Оплатите доступ.');
+        await sb.auth.signOut();
+        localStorage.clear();
+        sessionStorage.clear();
+        window.location.href = 'welcome.html';
+        return false;
       }
-    }, mode === 'trial' ? 2000 : 0);
-    
+    }
+
+    displayUserInfo();
+    return true;
   } catch (e) {
-    console.error('=== НЕОЖИДАННАЯ ОШИБКА ===');
-    console.error('Exception:', e);
-    console.error('Stack:', e.stack);
-    showError('Критическая ошибка: ' + e.message + '\nСмотри консоль (F12)');
+    console.error('Auth check error:', e);
+    window.location.href = 'welcome.html';
+    return false;
   }
 }
 
-async function handleLogin() {
-  showError('');
+function displayUserInfo() {
+  const userInfo = document.getElementById('user-info');
+  const logoutBtn = document.getElementById('btn-logout');
   
-  const email = (emailInput?.value || '').trim();
-  const pass = (passInput?.value || '').trim();
-  
-  if (!email || !pass) {
-    showError('Введи email и пароль');
-    return;
+  if (!userInfo || !currentProfile) return;
+
+  let statusText = '';
+  if (currentProfile.is_paid) {
+    statusText = '✅ Оплачен';
+  } else if (currentProfile.trial_ends_at) {
+    const now = new Date();
+    const end = new Date(currentProfile.trial_ends_at);
+    const hours = Math.floor((end - now) / (1000 * 60 * 60));
+    statusText = hours > 0 ? `🕐 Триал: ${hours}ч` : '⚠️ Истёк';
   }
+
+  userInfo.innerHTML = `<div>${currentProfile.studio_name || 'Студия'}</div><div style="font-size:0.75rem">${statusText}</div>`;
+  userInfo.style.display = 'block';
   
-  try {
-    const { data, error } = await sb.auth.signInWithPassword({
-      email,
-      password: pass,
-    });
-    
-    if (error) {
-      console.error('signIn error:', error);
-      showError(error.message || 'Неверный email или пароль');
-      return;
-    }
-    
-    if (!data?.user) {
-      showError('Неверный email или пароль');
-      return;
-    }
-    
-    currentUser = data.user;
-    
-    // Проверяем доступ
-    const hasAccess = await checkAccess(data.user);
-    
-if (hasAccess) {
-  window.location.href = '/dashboard.html';
-} else {
-  showDenied();
-}
-    
-  } catch (e) {
-    console.error('Login error:', e);
-    showError('Ошибка входа: ' + e.message);
-  }
+  if (logoutBtn) logoutBtn.style.display = 'block';
 }
 
 async function handleLogout() {
@@ -2107,67 +1889,7 @@ async function handleLogout() {
     await sb.auth.signOut();
     localStorage.clear();
     sessionStorage.clear();
-    currentUser = null;
-    currentProfile = null;
     window.location.href = 'welcome.html';
-  }
-}
-    
-    const userInfo = document.getElementById('user-info');
-    const logoutBtn = document.getElementById('btn-logout');
-    
-    if (userInfo) userInfo.style.display = 'none';
-    if (logoutBtn) logoutBtn.style.display = 'none';
-    
-    hideCalculator();
-    showError('');
-    
-    if (emailInput) emailInput.value = '';
-    if (passInput) passInput.value = '';
-    if (studioInput) studioInput.value = '';
-  }
-}
-
-async function initAuth() {
-  // Проверяем существующую сессию
-  try {
-    const { data } = await sb.auth.getSession();
-    if (data.session && data.session.user) {
-      currentUser = data.session.user;
-      const hasAccess = await checkAccess(data.session.user);
-      
-      if (hasAccess) {
-        showCalculator();
-        return;
-      } else {
-        showDenied();
-        return;
-      }
-    }
-  } catch (e) {
-    console.error('Session check error:', e);
-  }
-  
-  // Навешиваем обработчики
-  if (registerBtn) {
-    registerBtn.addEventListener('click', handleRegister);
-  }
-  
-  if (loginBtn) {
-    loginBtn.addEventListener('click', handleLogin);
-  }
-  
-  if (authForm) {
-    authForm.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        loginBtn?.click();
-      }
-    });
-  }
-  
-  const logoutBtn = document.getElementById('btn-logout');
-  if (logoutBtn) {
-    logoutBtn.addEventListener('click', handleLogout);
   }
 }
 
@@ -2971,7 +2693,6 @@ function renderExecutors(s) {
   const container = q('#executorsContent');
   if (!container) return;
   
-  // Сохраняем текущие значения перед перерисовкой
   const savedValues = {};
   container.querySelectorAll('input').forEach(inp => {
     if (inp.id && inp.value) {
@@ -3391,9 +3112,14 @@ function formatNumberInput(input) {
   }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  // Initialize auth system first
-  initAuth();
+document.addEventListener('DOMContentLoaded', async () => {
+  const hasAccess = await checkAuth();
+  if (!hasAccess) return;
+  
+  const logoutBtn = q('#btn-logout');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', handleLogout);
+  }
   
   const isTelegram = window.TelegramWebviewProxy !== undefined || navigator.userAgent.includes('Telegram');
   if (isTelegram) {
@@ -3485,5 +3211,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
 })();
 </script>
-</body>
-</html>
