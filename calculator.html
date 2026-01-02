@@ -1232,65 +1232,98 @@ tfoot th:first-child {
 
 #pdfTemplates {
   display: none;
-  font-family: Arial, sans-serif;
-  font-size: 12px;
-  line-height: 1.4;
+  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+  font-size: 11px;
+  line-height: 1.5;
 }
 
 #pdfTemplates .pdf-block {
   width: 210mm;
   min-height: 297mm;
-  padding: 20mm;
-  background: #fff !important;
-  color: #000 !important;
+  padding: 25mm;
+  background: #ffffff !important;
+  color: #1e293b !important;
+  position: relative;
+}
+
+/* ВОДЯНОЙ ЗНАК ДЛЯ ТРИАЛА */
+#pdfTemplates .trial-watermark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-45deg);
+  font-size: 72px;
+  font-weight: 900;
+  color: rgba(239, 68, 68, 0.08);
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 999;
+  letter-spacing: 4px;
 }
 
 #pdfTemplates h1 {
-  font-size: 18px;
-  margin-bottom: 10px;
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 8px;
   text-align: center;
-  color: #000 !important;
+  color: #0f172a !important;
+  letter-spacing: -0.5px;
+  border-bottom: 3px solid #3b82f6;
+  padding-bottom: 12px;
 }
 
 #pdfTemplates p {
-  color: #000 !important;
+  color: #475569 !important;
+  font-size: 11px;
+  line-height: 1.6;
 }
 
 #pdfTemplates table {
   width: 100%;
   border-collapse: collapse;
-  margin: 10px 0;
-  background: #fff !important;
+  margin: 16px 0;
+  background: #ffffff !important;
+  border: 2px solid #e2e8f0 !important;
 }
 
 #pdfTemplates th,
 #pdfTemplates td {
-  border: 1px solid #333 !important;
-  padding: 5px;
+  border: 1px solid #cbd5e1 !important;
+  padding: 10px 12px;
   text-align: left;
-  color: #000 !important;
-  background: #fff !important;
+  color: #1e293b !important;
+  background: #ffffff !important;
 }
 
 #pdfTemplates th {
-  background: #f0f0f0 !important;
-  font-weight: bold;
-  color: #000 !important;
+  background: #f1f5f9 !important;
+  font-weight: 700;
+  color: #0f172a !important;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-#pdfTemplates tbody tr {
-  background: #fff !important;
+#pdfTemplates tbody tr:nth-child(even) {
+  background: #f8fafc !important;
+}
+
+#pdfTemplates tbody tr:hover {
+  background: #f1f5f9 !important;
 }
 
 #pdfTemplates tfoot th {
   text-align: right;
-  color: #000 !important;
-  background: #f0f0f0 !important;
+  color: #0f172a !important;
+  background: #e2e8f0 !important;
+  font-weight: 700;
+  font-size: 13px;
+  padding: 12px;
 }
 
 #pdfTemplates tfoot th:first-child {
   text-align: left;
-  color: #000 !important;
+  color: #0f172a !important;
 }
 
 #telegramWarning {
@@ -1609,29 +1642,25 @@ tfoot th:first-child {
       </div>
     </div>
 
-    <div class="card">
-      <h2>💳 Форма оплаты</h2>
-      <div class="card-content">
-        <div class="toggle-group">
-          <label class="toggle-btn active">
-            <input type="radio" name="payMode" value="cash" checked style="display:none">
-            <span>💵 Наличные (0%)</span>
-          </label>
-          <label class="toggle-btn">
-            <input type="radio" name="payMode" value="card" style="display:none">
-            <span>💳 Карта (+8%)</span>
-          </label>
-          <label class="toggle-btn">
-            <input type="radio" name="payMode" value="ip" style="display:none">
-            <span>👤 ИП (+8%)</span>
-          </label>
-          <label class="toggle-btn">
-            <input type="radio" name="payMode" value="ooo" style="display:none">
-            <span>🏢 ООО (+20%)</span>
-          </label>
-        </div>
-      </div>
+<div class="card">
+  <h2>💳 Форма оплаты</h2>
+  <div class="card-content">
+    <div class="toggle-group">
+      <label class="toggle-btn active">
+        <input type="radio" name="payMode" value="cash" checked style="display:none">
+        <span>💵 Наличные</span>
+      </label>
+      <label class="toggle-btn">
+        <input type="radio" name="payMode" value="card" style="display:none">
+        <span>💳 Карта или ИП (+13%)</span>
+      </label>
+      <label class="toggle-btn">
+        <input type="radio" name="payMode" value="ooo" style="display:none">
+        <span>🏢 ООО (+22%)</span>
+      </label>
     </div>
+  </div>
+</div>
 
     <div class="card">
       <h2 class="collapsible collapsed">🔧 Арматурные работы</h2>
@@ -1763,20 +1792,24 @@ tfoot th:first-child {
 </div>
 
 <div id="pdfTemplates">
+  <!-- КП -->
   <div id="pdfKP" class="pdf-block">
+    <div class="trial-watermark" id="watermarkKP" style="display:none"></div>
     <h1>КОММЕРЧЕСКОЕ ПРЕДЛОЖЕНИЕ</h1>
-    <p id="pdfKPMeta" style="text-align:center;margin-bottom:20px"></p>
+    <p id="pdfKPMeta" style="text-align:center;margin-bottom:20px;font-weight:600"></p>
     <table>
       <thead><tr><th style="width:25%">Услуга</th><th style="width:50%">Описание</th><th style="width:25%">Стоимость</th></tr></thead>
       <tbody id="pdfKPTBody"></tbody>
       <tfoot><tr><th colspan="2">ИТОГО:</th><th id="pdfKPTotal"></th></tr></tfoot>
     </table>
-    <p style="text-align:center;margin-top:20px;font-style:italic">Коммерческое предложение актуально в течение 3х дней</p>
+    <p style="text-align:center;margin-top:24px;font-style:italic;color:#64748b;font-size:10px">Коммерческое предложение актуально в течение 3х дней</p>
   </div>
   
+  <!-- СЕБЕСТОИМОСТЬ -->
   <div id="pdfCost" class="pdf-block">
+    <div class="trial-watermark" id="watermarkCost" style="display:none"></div>
     <h1>СЕБЕСТОИМОСТЬ</h1>
-    <p id="pdfCostMeta" style="text-align:center;margin-bottom:20px"></p>
+    <p id="pdfCostMeta" style="text-align:center;margin-bottom:20px;font-weight:600"></p>
     <table>
       <thead><tr><th>Услуга</th><th>Материалы</th><th>Мотивация</th></tr></thead>
       <tbody id="pdfCostTBody"></tbody>
@@ -1784,24 +1817,28 @@ tfoot th:first-child {
     </table>
   </div>
   
-<div id="pdfExecutors" class="pdf-block">
+  <!-- ИСПОЛНИТЕЛИ БЕЗ ЗП -->
+  <div id="pdfExecutors" class="pdf-block">
+    <div class="trial-watermark" id="watermarkExecutors" style="display:none"></div>
     <h1>СПИСОК УСЛУГ И ИСПОЛНИТЕЛЕЙ</h1>
-    <p id="pdfExecutorsMeta" style="text-align:center;margin-bottom:20px"></p>
+    <p id="pdfExecutorsMeta" style="text-align:center;margin-bottom:20px;font-weight:600"></p>
     <table>
       <thead><tr><th>Услуга</th><th>Исполнитель</th><th>Прием</th><th>Выдача</th><th>Примечание</th></tr></thead>
       <tbody id="pdfExecutorsTBody"></tbody>
     </table>
   </div>
   
+  <!-- ИСПОЛНИТЕЛИ С ЗП -->
   <div id="pdfExecutorsWithSalary" class="pdf-block">
+    <div class="trial-watermark" id="watermarkExecutorsWithSalary" style="display:none"></div>
     <h1>СПИСОК УСЛУГ И ИСПОЛНИТЕЛЕЙ С ЗАРПЛАТОЙ</h1>
-    <p id="pdfExecutorsWithSalaryMeta" style="text-align:center;margin-bottom:20px"></p>
+    <p id="pdfExecutorsWithSalaryMeta" style="text-align:center;margin-bottom:20px;font-weight:600"></p>
     <table>
       <thead><tr><th>Услуга</th><th>Исполнитель</th><th>Зарплата (₽)</th><th>Прием</th><th>Выдача</th><th>Примечание</th></tr></thead>
       <tbody id="pdfExecutorsWithSalaryTBody"></tbody>
     </table>
   </div>
-
+</div>
 </div>
 </div>
 <script>
@@ -2629,7 +2666,7 @@ function collectAll() {
 
 function taxCoef() {
   const m = q('input[name=payMode]:checked')?.value;
-  return m === 'card' ? 0.08 : m === 'ip' ? 0.08 : m === 'ooo' ? 0.20 : 0;
+  return m === 'card' ? 0.13 : m === 'ooo' ? 0.22 : 0;
 }
 
 function markups() {
@@ -3222,8 +3259,29 @@ function exportPDF(blockId, filename) {
     });
   }, 200);
 }
-
+function showTrialWatermark() {
+  if (!currentProfile) return;
+  
+  // Если оплачен - скрываем водяные знаки
+  if (currentProfile.is_paid) {
+    document.querySelectorAll('.trial-watermark').forEach(w => w.style.display = 'none');
+    return;
+  }
+  
+  // Если триал - показываем водяные знаки
+  const trialEnd = currentProfile.trial_ends_at ? new Date(currentProfile.trial_ends_at) : null;
+  if (!trialEnd) return;
+  
+  const dateStr = trialEnd.toLocaleDateString('ru-RU');
+  const watermarkText = `ПРОБНАЯ ВЕРСИЯ ДО ${dateStr}`;
+  
+  document.querySelectorAll('.trial-watermark').forEach(w => {
+    w.textContent = watermarkText;
+    w.style.display = 'block';
+  });
+}
 function prepKP() {
+  showTrialWatermark();
   const tb = q('#pdfKPTBody');
   if (!tb) return;
   tb.innerHTML = '';
@@ -3245,13 +3303,14 @@ function prepKP() {
   const now = new Date();
   const dateStr = now.toLocaleDateString('ru-RU');
   const timeStr = now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
-  const payMode = q('input[name=payMode]:checked')?.value;
-  const payText = payMode === 'cash' ? 'Наличные' : payMode === 'card' ? 'Карта' : payMode === 'ip' ? 'ИП' : 'ООО';
+const payMode = q('input[name=payMode]:checked')?.value;
+const payText = payMode === 'cash' ? 'Наличные' : payMode === 'card' ? 'Карта или ИП' : 'ООО';
   
   q('#pdfKPMeta').innerHTML = `Автомобиль: ${br || '—'} ${md || '—'} ${yr}<br>Дата: ${dateStr} ${timeStr}<br><b><i>Условия оплаты: ${payText}</i></b>`;
 }
 
 function prepCost() {
+  showTrialWatermark();
   const tb = q('#pdfCostTBody');
   if (!tb) return;
   tb.innerHTML = '';
@@ -3274,6 +3333,7 @@ function prepCost() {
 }
 
 function prepExecutors() {
+  showTrialWatermark();
   const tb = q('#pdfExecutorsTBody');
   if (!tb) return;
   tb.innerHTML = '';
@@ -3325,6 +3385,7 @@ function prepExecutors() {
 }
 
 function prepExecutorsWithSalary() {
+  showTrialWatermark();
   const tb = q('#pdfExecutorsWithSalaryTBody');
   if (!tb) return;
   tb.innerHTML = '';
