@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Калькулятор оклейки</title>
+<title>Калькулятор</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -1588,10 +1588,8 @@ tfoot th:first-child {
 <div id="calc-wrapper">
 <div id="app">
 <div class="top-bar">
-  <h1>Калькулятор оклейки</h1>
+  <h1>Калькулятор</h1>
   <div style="display:flex;align-items:center;gap:12px">
-    <div id="user-info" style="display:none;font-size:0.85rem;color:var(--text-muted)"></div>
-    <button id="btn-logout" class="theme-toggle" style="display:none;padding:8px 12px">🚪 Выход</button>
     <div class="theme-toggle" onclick="toggleTheme()">
       <span id="themeIcon">☀️</span>
     </div>
@@ -1622,7 +1620,7 @@ tfoot th:first-child {
         </div>
         <div class="form-group">
           <label>Год:</label>
-<input type="text" id="year" placeholder="2025" maxlength="4" inputmode="numeric">
+<input type="text" id="year" placeholder="2026" maxlength="4" inputmode="numeric">
         </div>
       </div>
     </div>
@@ -1749,13 +1747,6 @@ tfoot th:first-child {
     </div>
 
     <div class="card">
-      <h2>📊 Итоги по направлениям</h2>
-      <div class="card-content">
-        <div class="summary-cards" id="summaryContent"></div>
-      </div>
-    </div>
-
-    <div class="card">
       <h2>📄 Предпросмотр КП</h2>
       <div class="card-content">
         <div class="table-wrapper">
@@ -1764,7 +1755,7 @@ tfoot th:first-child {
             <tbody></tbody>
           </table>
         </div>
-        <div style="text-align:right;font-weight:bold;margin-top:10px">Итого: <span id="kpTotal">0,00</span> ₽</div>
+        <div style="text-align:right;font-weight:bold;margin-top:10px">Итого: <span id="kpTotal">0,00</span> </div>
       </div>
     </div>
 
@@ -1778,9 +1769,9 @@ tfoot th:first-child {
           </table>
         </div>
         <div style="display:flex;justify-content:space-between;font-weight:bold;margin-top:10px;flex-wrap:wrap;gap:10px;font-size:.9rem">
-          <span>Материалы: <span id="cMat">0,00</span> ₽</span>
-          <span>Мотивация: <span id="cMot">0,00</span> ₽</span>
-          <span>Итого: <span id="cTotal">0,00</span> ₽</span>
+          <span>Материалы: <span id="cMat">0,00</span> </span>
+          <span>Мотивация: <span id="cMot">0,00</span> </span>
+          <span>Итого: <span id="cTotal">0,00</span> </span>
         </div>
       </div>
     </div>
@@ -1801,14 +1792,10 @@ tfoot th:first-child {
     <div class="card">
       <h2>🎁 Скидки</h2>
       <div class="card-content">
-        <div class="discount-grid">
-          <div class="discount-btn" data-discount="0">0%</div>
-          <div class="discount-btn" data-discount="5">5%</div>
-          <div class="discount-btn" data-discount="10">10%</div>
-          <div class="discount-btn" data-discount="15">15%</div>
-          <div class="discount-btn" data-discount="20">20%</div>
-          <div class="discount-btn" data-discount="25">25%</div>
-        </div>
+       <div class="discount-grid">
+  <div class="discount-btn" data-discount="0">Без скидки</div>
+  <div class="discount-btn" data-discount="10">Дружеская 10%</div>
+</div>
         <div style="margin-top:8px">
           <input type="number" id="customDiscount" placeholder="Своя скидка %" min="0" max="100" step="0.01">
         </div>
@@ -1895,7 +1882,7 @@ tfoot th:first-child {
     <h1>СПИСОК УСЛУГ И ИСПОЛНИТЕЛЕЙ С ЗАРПЛАТОЙ</h1>
     <p id="pdfExecutorsWithSalaryMeta" style="text-align:center;margin-bottom:20px;font-weight:600"></p>
     <table>
-      <thead><tr><th>Услуга</th><th>Исполнитель</th><th>Зарплата (₽)</th><th>Прием</th><th>Выдача</th><th>Примечание</th></tr></thead>
+      <thead><tr><th>Услуга</th><th>Исполнитель</th><th>Зарплата </th><th>Прием</th><th>Выдача</th><th>Примечание</th></tr></thead>
       <tbody id="pdfExecutorsWithSalaryTBody"></tbody>
     </table>
   </div>
@@ -2160,6 +2147,11 @@ function fillBrands() {
     o.textContent = b;
     s.appendChild(o);
   });
+    // Автозаполнение года
+  const yearInput = q('#year');
+  if (yearInput && !yearInput.value) {
+    yearInput.value = '2026';
+  }
 }
 function formatYearInput(input) {
   let val = input.value.replace(/\D/g, '');
@@ -2205,8 +2197,8 @@ function renderServiceList(containerId, services, classPrefix) {
       </div>
       <div class="service-body">
         <div class="service-fields">
-          <div class="form-group"><label>Материалы (₽):</label><input type="number" class="${classPrefix}-mat" placeholder="0" step="0.01"></div>
-          <div class="form-group"><label>Мотивация (₽):</label><input type="number" class="${classPrefix}-mot" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Материалы :</label><input type="number" class="${classPrefix}-mat" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Мотивация :</label><input type="number" class="${classPrefix}-mot" placeholder="0" step="0.01"></div>
         </div>
         <div class="service-complexity">
           <input type="checkbox" class="${classPrefix}-complex" id="${classPrefix}${idx + 1}c">
@@ -2254,8 +2246,8 @@ function renderWrapContent() {
       <div class="service-body">
         <div class="service-fields">
           <div class="form-group"><label>Метры (м):</label><input type="number" id="ppfClearM" placeholder="0" step="0.01"></div>
-          <div class="form-group"><label>Цена за метр (₽):</label><input type="number" id="ppfClearPrice" placeholder="0" step="0.01"></div>
-          <div class="form-group"><label>Мотивация (₽):</label><input type="number" id="ppfClearMot" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Цена за метр :</label><input type="number" id="ppfClearPrice" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Мотивация :</label><input type="number" id="ppfClearMot" placeholder="0" step="0.01"></div>
         </div>
         <div class="service-complexity"><input type="checkbox" id="ppfClearComplex"><label for="ppfClearComplex">Усложнение +10%</label></div>
       </div>
@@ -2265,8 +2257,8 @@ function renderWrapContent() {
       <div class="service-body">
         <div class="service-fields">
           <div class="form-group"><label>Метры (м):</label><input type="number" id="ppfColorM" placeholder="0" step="0.01"></div>
-          <div class="form-group"><label>Цена за метр (₽):</label><input type="number" id="ppfColorPrice" placeholder="0" step="0.01"></div>
-          <div class="form-group"><label>Мотивация (₽):</label><input type="number" id="ppfColorMot" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Цена за метр :</label><input type="number" id="ppfColorPrice" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Мотивация :</label><input type="number" id="ppfColorMot" placeholder="0" step="0.01"></div>
         </div>
         <div class="service-complexity"><input type="checkbox" id="ppfColorComplex"><label for="ppfColorComplex">Усложнение +10%</label></div>
       </div>
@@ -2276,8 +2268,8 @@ function renderWrapContent() {
       <div class="service-body">
         <div class="service-fields">
           <div class="form-group"><label>Метры (м):</label><input type="number" id="ppfMatM" placeholder="0" step="0.01"></div>
-          <div class="form-group"><label>Цена за метр (₽):</label><input type="number" id="ppfMatPrice" placeholder="0" step="0.01"></div>
-          <div class="form-group"><label>Мотивация (₽):</label><input type="number" id="ppfMatMot" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Цена за метр :</label><input type="number" id="ppfMatPrice" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Мотивация :</label><input type="number" id="ppfMatMot" placeholder="0" step="0.01"></div>
         </div>
         <div class="service-complexity"><input type="checkbox" id="ppfMatComplex"><label for="ppfMatComplex">Усложнение +10%</label></div>
       </div>
@@ -2292,8 +2284,8 @@ function renderWrapContent() {
       <div class="service-body">
         <div class="service-fields">
           <div class="form-group"><label>Метры (м):</label><input type="number" id="pvcFullM" placeholder="0" step="0.01"></div>
-          <div class="form-group"><label>Цена за метр (₽):</label><input type="number" id="pvcFullPrice" placeholder="0" step="0.01"></div>
-          <div class="form-group"><label>Мотивация (₽):</label><input type="number" id="pvcFullMot" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Цена за метр :</label><input type="number" id="pvcFullPrice" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Мотивация :</label><input type="number" id="pvcFullMot" placeholder="0" step="0.01"></div>
         </div>
         <div class="service-complexity"><input type="checkbox" id="pvcFullComplex"><label for="pvcFullComplex">Усложнение +10%</label></div>
       </div>
@@ -2343,8 +2335,8 @@ function renderPartialLists() {
       <div class="service-body">
         <div class="service-fields">
           <div class="form-group"><label>Метры (м):</label><input type="number" class="ppf-part-m" placeholder="0" step="0.01"></div>
-          <div class="form-group"><label>Цена за метр (₽):</label><input type="number" class="ppf-part-price" placeholder="0" step="0.01"></div>
-          <div class="form-group"><label>Мотивация (₽):</label><input type="number" class="ppf-part-mot" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Цена за метр :</label><input type="number" class="ppf-part-price" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Мотивация :</label><input type="number" class="ppf-part-mot" placeholder="0" step="0.01"></div>
           <div class="form-group"><label>Своя наценка (%):</label><input type="number" class="ppf-part-markup" placeholder="0"></div>
         </div>
 <div class="chips" style="margin-top:10px">
@@ -2367,8 +2359,8 @@ function renderPartialLists() {
       <div class="service-body">
         <div class="service-fields">
           <div class="form-group"><label>Метры (м):</label><input type="number" class="pvc-part-m" placeholder="0" step="0.01"></div>
-          <div class="form-group"><label>Цена за метр (₽):</label><input type="number" class="pvc-part-price" placeholder="0" step="0.01"></div>
-          <div class="form-group"><label>Мотивация (₽):</label><input type="number" class="pvc-part-mot" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Цена за метр :</label><input type="number" class="pvc-part-price" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Мотивация :</label><input type="number" class="pvc-part-mot" placeholder="0" step="0.01"></div>
 <div class="form-group"><label>Своя наценка (%):</label><input type="number" class="pvc-part-markup" placeholder="0"></div>
         </div>
 <div class="chips" style="margin-top:10px">
@@ -2426,7 +2418,7 @@ function addCostRow(prefix) {
   row.innerHTML = `
     <div class="form-group">
       <input type="text" placeholder="Название затраты" class="${prefix}-cost-name">
-      <input type="number" placeholder="Сумма (₽)" class="${prefix}-cost-val" step="0.01">
+      <input type="number" placeholder="Сумма " class="${prefix}-cost-val" step="0.01">
     </div>
     <button type="button" onclick="this.closest('.cost-row').remove();renderAll()">❌</button>
   `;
@@ -2446,8 +2438,8 @@ function addDynRow(id, cls) {
   </div>
   <div class="service-body open">
     <div class="service-fields">
-      <div class="form-group"><label>Материалы (₽):</label><input type="number" class="${cls}-mat" placeholder="0" step="0.01"></div>
-      <div class="form-group"><label>Мотивация (₽):</label><input type="number" class="${cls}-mot" placeholder="0" step="0.01"></div>
+      <div class="form-group"><label>Материалы :</label><input type="number" class="${cls}-mat" placeholder="0" step="0.01"></div>
+      <div class="form-group"><label>Мотивация :</label><input type="number" class="${cls}-mot" placeholder="0" step="0.01"></div>
     </div>
     <div class="service-complexity">
       <input type="checkbox" class="${cls}-complex" id="dyn${cls}${dynCounter}c">
@@ -2939,7 +2931,7 @@ function renderExecutors(s) {
           <input type="text" id="${baseId}name" placeholder="ФИО" value="">
         </div>
         <div class="executor-field">
-          <label>Зарплата (₽):</label>
+          <label>Зарплата :</label>
           <input type="number" id="${baseId}salary" placeholder="0" value="${srv.mot.toFixed(2)}" step="0.01">
         </div>
         <div class="executor-field">
@@ -3003,7 +2995,7 @@ function renderExecutors(s) {
               <input type="text" id="${newId}name" placeholder="ФИО" value="">
             </div>
             <div class="executor-field">
-              <label>Зарплата (₽):</label>
+              <label>Зарплата :</label>
               <input type="number" id="${newId}salary" placeholder="0" value="${newSalary.toFixed(2)}" step="0.01">
             </div>
             <div class="executor-field">
@@ -3308,7 +3300,7 @@ function initChart() {
           displayColors: true,
           callbacks: {
             label: function(context) {
-              return context.label + ': ' + fmt(context.parsed) + ' ₽';
+              return context.label + ': ' + fmt(context.parsed);
             }
           }
         }
