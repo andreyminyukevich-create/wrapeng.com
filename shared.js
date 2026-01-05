@@ -1,8 +1,8 @@
 // shared.js - Общие функции для всех страниц
 
-// Supabase конфигурация
-const SUPABASE_URL = 'https://hdghjjgrrnzmnttstdvw.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkZ2hqamdycm56bW50dHN0ZHZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzUxMTc1MjYsImV4cCI6MjA1MDY5MzUyNn0.pPKs7TUONpGgTEkfvnJFa7irv_9YaFo7LT4F_VZLXvs';
+// Supabase конфигурация (ИСПРАВЛЕНО!)
+const SUPABASE_URL = 'https://hdghijgrrnzmntistdvw.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkZ2hpamdycm56bW50aXN0ZHZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMzMyNzksImV4cCI6MjA3NTYwOTI3OX0.D9EDTmVrFRVp0B8_5tCJM29gbFdtadsom0Ihsf4uQ8Q';
 
 let sb = null;
 let currentUser = null;
