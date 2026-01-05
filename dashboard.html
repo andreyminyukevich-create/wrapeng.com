@@ -235,7 +235,7 @@
         <p id="studioName">Загрузка...</p>
       </div>
       <div class="header-right">
-        <span class="user-email" id="userEmail"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="81f4f2e4f3c1e4ece0e8edafe2eeec">[email&#160;protected]</a></span>
+        <span class="user-email" id="userEmail">user@email.com</span>
         <button class="btn-logout" id="logoutBtn">Выход</button>
       </div>
     </header>
@@ -292,7 +292,11 @@
     </div>
   </div>
 
-  <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+  <script>
+// ============================================
+// ВСТРОЕННЫЙ КОД ИЗ SHARED.JS
+// ============================================
+
 const SUPABASE_URL = 'https://hdghijgrrnzmntistdvw.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkZ2hpamdycm56bW50aXN0ZHZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMzMyNzksImV4cCI6MjA3NTYwOTI3OX0.D9EDTmVrFRVp0B8_5tCJM29gbFdtadsom0Ihsf4uQ8Q';
 
@@ -305,6 +309,10 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
 });
 
 let currentProfile = null;
+
+// ============================================
+// DASHBOARD КОД
+// ============================================
 
 async function init() {
   console.log('Dashboard init...');
@@ -425,3 +433,15 @@ async function copyReferralLink() {
   const input = document.getElementById('referralLink');
   try {
     await navigator.clipboard.writeText(input.value);
+    alert('✅ Ссылка скопирована!');
+  } catch (err) {
+    input.select();
+    document.execCommand('copy');
+    alert('✅ Ссылка скопирована!');
+  }
+}
+
+init();
+  </script>
+</body>
+</html>
