@@ -2883,6 +2883,7 @@ function renderExecutors(s) {
     }
   }
   
+  // Остальные услуги
   s.arm.names.forEach(name => {
     allServices.push({ name, mot: 0, idx: execIndex++ });
   });
@@ -2919,7 +2920,7 @@ function renderExecutors(s) {
     return; // НЕ перерисовываем
   }
   
-  // Если количество изменилось — полная перерисовка
+  // ПОЛНАЯ ПЕРЕРИСОВКА
   let html = '';
   
   allServices.forEach(srv => {
@@ -2944,7 +2945,7 @@ function renderExecutors(s) {
           <label>Дата выдачи:</label>
           <input type="date" id="${baseId}return" value="">
         </div>
-       <div class="executor-field executor-field-note">
+        <div class="executor-field executor-field-note">
           <label>Примечание:</label>
           <input type="text" id="${baseId}note" placeholder="Заметки" value="">
         </div>
@@ -2961,13 +2962,12 @@ function renderExecutors(s) {
   
   container.innerHTML = html;
   
-  // Навешиваем обработчики
+  // Навешиваем обработчики на добавление исполнителей
   qa('.add-executor-chk').forEach(chk => {
     chk.addEventListener('change', function() {
       if (this.checked) {
         const baseId = this.getAttribute('data-exec-base');
         const extraContainer = q(`#${baseId}-extra`);
-        const baseRow = this.closest('.executor-row');
         
         const extraCount = extraContainer.querySelectorAll('.extra-executor-row').length;
         const newId = `${baseId}-ex${extraCount + 1}`;
@@ -3503,6 +3503,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
   
 document.addEventListener('input', e => {
+    // Помечаем зарплаты как изменённые вручную
+    if (e.target.matches('input[id$="salary"]')) {
+      e.target.dataset.manuallySet = 'true';
+    }
+    
     if (e.target.id === 'year') {
       formatYearInput(e.target);
       renderAll();
