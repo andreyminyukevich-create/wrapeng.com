@@ -3079,34 +3079,6 @@ function setupSalaryListeners(baseId) {
   }
 }
 function renderBadges(s, mu) {
-  q('#sumPkgMat').value = s.pkg.mat.toFixed(2);
-  q('#sumPkgMot').value = s.pkg.mot.toFixed(2);
-  q('#sebPkg').value = (s.pkg.mat + s.pkg.mot).toFixed(2);
-  
-  q('#sumImpactMat').value = s.impact.mat.toFixed(2);
-  q('#sumImpactMot').value = s.impact.mot.toFixed(2);
-  q('#sebImpact').value = (s.impact.mat + s.impact.mot).toFixed(2);
-  
-  q('#sumArmMat').value = s.arm.mat.toFixed(2);
-  q('#sumArmMot').value = s.arm.mot.toFixed(2);
-  q('#sebArm').value = (s.arm.mat + s.arm.mot).toFixed(2);
-  
-  q('#sumWrapMat').value = s.wrap.mat.toFixed(2);
-  q('#sumWrapMot').value = s.wrap.mot.toFixed(2);
-  q('#sebWrap').value = (s.wrap.mat + s.wrap.mot).toFixed(2);
-  
-  q('#sumDetMat').value = s.det.mat.toFixed(2);
-  q('#sumDetMot').value = s.det.mot.toFixed(2);
-  q('#sebDet').value = (s.det.mat + s.det.mot).toFixed(2);
-  
-  q('#sumGlMat').value = s.gl.mat.toFixed(2);
-  q('#sumGlMot').value = s.gl.mot.toFixed(2);
-  q('#sebGl').value = (s.gl.mat + s.gl.mot).toFixed(2);
-  
-  q('#sumMiscMat').value = s.ms.mat.toFixed(2);
-  q('#sumMiscMot').value = s.ms.mot.toFixed(2);
-  q('#sebMisc').value = (s.ms.mat + s.ms.mot).toFixed(2);
-  
   const pkgTotal = s.pkg.mat + s.pkg.mot;
   const impactTotal = s.impact.mat + s.impact.mot;
   const armTotal = s.arm.mat + s.arm.mot;
