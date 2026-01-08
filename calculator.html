@@ -2949,12 +2949,6 @@ function renderExecutors(s) {
           <input type="text" id="${baseId}note" placeholder="Заметки" value="">
         </div>
       </div>
-      <div style="margin-top:12px;text-align:center">
-        <label style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:0.9rem;user-select:none">
-          <input type="checkbox" class="add-executor-chk" data-exec-base="${baseId}" style="width:20px;height:20px;cursor:pointer;accent-color:var(--primary)">
-          <span>+ Добавить исполнителя</span>
-        </label>
-      </div>
       <div class="extra-executors" id="${baseId}-extra"></div>
     </div>`;
   });
@@ -3026,9 +3020,7 @@ function renderExecutors(s) {
         
         // Навешиваем обработчики на поля зарплаты
         setupSalaryListeners(baseId);
-        
-        // Рекурсивно навешиваем на новый чекбокс
-        row.querySelector('.add-executor-chk').addEventListener('change', arguments.callee);
+ 
       }
     });
   });
