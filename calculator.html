@@ -3342,7 +3342,6 @@ function prepExecutors() {
   qa('#executorsContent .executor-row').forEach(row => {
     const name = row.querySelector('.executor-row-header')?.textContent?.trim() || '';
     
-    // Основной исполнитель
     const baseId = row.getAttribute('data-exec-id');
     if (baseId) {
       const executor = row.querySelector(`#${baseId}name`)?.value || '';
@@ -3357,7 +3356,6 @@ function prepExecutors() {
       }
     }
     
-    // Дополнительные исполнители
     const extraContainer = row.querySelector(`#${baseId}-extra`);
     if (extraContainer) {
       extraContainer.querySelectorAll('.extra-executor-row').forEach(extraRow => {
@@ -3382,14 +3380,6 @@ function prepExecutors() {
   
   q('#pdfExecutorsMeta').textContent = `Автомобиль: ${br || '—'} ${md || '—'} ${yr}`;
 }
-  });
-  
-  const br = q('#brandManual').classList.contains('invis') ? q('#brand').value : q('#brandManual').value;
-  const md = q('#modelManual').classList.contains('invis') ? q('#model').value : q('#modelManual').value;
-  const yr = q('#year').value || '—';
-  
-  q('#pdfExecutorsMeta').textContent = `Автомобиль: ${br || '—'} ${md || '—'} ${yr}`;
-}
 
 function prepExecutorsWithSalary() {
   showTrialWatermark();
@@ -3403,7 +3393,6 @@ function prepExecutorsWithSalary() {
   qa('#executorsContent .executor-row').forEach(row => {
     const name = row.querySelector('.executor-row-header')?.textContent?.trim() || '';
     
-    // Основной исполнитель
     const baseId = row.getAttribute('data-exec-id');
     if (baseId) {
       const executor = row.querySelector(`#${baseId}name`)?.value || '';
@@ -3419,7 +3408,6 @@ function prepExecutorsWithSalary() {
       }
     }
     
-    // Дополнительные исполнители
     const extraContainer = row.querySelector(`#${baseId}-extra`);
     if (extraContainer) {
       extraContainer.querySelectorAll('.extra-executor-row').forEach(extraRow => {
@@ -3437,14 +3425,6 @@ function prepExecutorsWithSalary() {
         }
       });
     }
-  });
-  
-  const br = q('#brandManual').classList.contains('invis') ? q('#brand').value : q('#brandManual').value;
-  const md = q('#modelManual').classList.contains('invis') ? q('#model').value : q('#modelManual').value;
-  const yr = q('#year').value || '—';
-  
-  q('#pdfExecutorsWithSalaryMeta').textContent = `Автомобиль: ${br || '—'} ${md || '—'} ${yr}`;
-}
   });
   
   const br = q('#brandManual').classList.contains('invis') ? q('#brand').value : q('#brandManual').value;
