@@ -3337,7 +3337,7 @@ function prepExecutors() {
   tb.innerHTML = '';
   
   const now = new Date();
-  const todayStr = now.toISOString().split('T')[0]; // YYYY-MM-DD
+  const todayStr = now.toISOString().split('T')[0];
   
   qa('#executorsContent .executor-row').forEach(row => {
     const name = row.querySelector('.executor-row-header')?.textContent?.trim() || '';
@@ -3358,13 +3358,14 @@ function prepExecutors() {
     }
     
     // Дополнительные исполнители
-    const extraContainer = row.querySelector('.extra-executors');
+    const extraContainer = row.querySelector(`#${baseId}-extra`);
     if (extraContainer) {
       extraContainer.querySelectorAll('.extra-executor-row').forEach(extraRow => {
-        const extraName = extraRow.querySelector('input[id*="name"]')?.value || '';
-        const extraReceive = extraRow.querySelector('input[id*="receive"]')?.value || todayStr;
-        const extraReturn = extraRow.querySelector('input[id*="return"]')?.value || '';
-        const extraNote = extraRow.querySelector('input[id*="note"]')?.value || '';
+        const extraInputs = extraRow.querySelectorAll('input');
+        const extraName = extraInputs[0]?.value || '';
+        const extraReceive = extraInputs[2]?.value || todayStr;
+        const extraReturn = extraInputs[3]?.value || '';
+        const extraNote = extraInputs[4]?.value || '';
         
         if (extraName) {
           const r = document.createElement('tr');
@@ -3373,6 +3374,14 @@ function prepExecutors() {
         }
       });
     }
+  });
+  
+  const br = q('#brandManual').classList.contains('invis') ? q('#brand').value : q('#brandManual').value;
+  const md = q('#modelManual').classList.contains('invis') ? q('#model').value : q('#modelManual').value;
+  const yr = q('#year').value || '—';
+  
+  q('#pdfExecutorsMeta').textContent = `Автомобиль: ${br || '—'} ${md || '—'} ${yr}`;
+}
   });
   
   const br = q('#brandManual').classList.contains('invis') ? q('#brand').value : q('#brandManual').value;
@@ -3411,14 +3420,15 @@ function prepExecutorsWithSalary() {
     }
     
     // Дополнительные исполнители
-    const extraContainer = row.querySelector('.extra-executors');
+    const extraContainer = row.querySelector(`#${baseId}-extra`);
     if (extraContainer) {
       extraContainer.querySelectorAll('.extra-executor-row').forEach(extraRow => {
-        const extraName = extraRow.querySelector('input[id*="name"]')?.value || '';
-        const extraSalary = extraRow.querySelector('input[id*="salary"]')?.value || '0';
-        const extraReceive = extraRow.querySelector('input[id*="receive"]')?.value || todayStr;
-        const extraReturn = extraRow.querySelector('input[id*="return"]')?.value || '';
-        const extraNote = extraRow.querySelector('input[id*="note"]')?.value || '';
+        const extraInputs = extraRow.querySelectorAll('input');
+        const extraName = extraInputs[0]?.value || '';
+        const extraSalary = extraInputs[1]?.value || '0';
+        const extraReceive = extraInputs[2]?.value || todayStr;
+        const extraReturn = extraInputs[3]?.value || '';
+        const extraNote = extraInputs[4]?.value || '';
         
         if (extraName) {
           const r = document.createElement('tr');
@@ -3427,6 +3437,14 @@ function prepExecutorsWithSalary() {
         }
       });
     }
+  });
+  
+  const br = q('#brandManual').classList.contains('invis') ? q('#brand').value : q('#brandManual').value;
+  const md = q('#modelManual').classList.contains('invis') ? q('#model').value : q('#modelManual').value;
+  const yr = q('#year').value || '—';
+  
+  q('#pdfExecutorsWithSalaryMeta').textContent = `Автомобиль: ${br || '—'} ${md || '—'} ${yr}`;
+}
   });
   
   const br = q('#brandManual').classList.contains('invis') ? q('#brand').value : q('#brandManual').value;
