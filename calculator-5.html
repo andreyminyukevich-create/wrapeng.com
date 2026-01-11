@@ -1,0 +1,3678 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Калькулятор оклейки</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-tertiary: #334155;
+  --card: rgba(255, 255, 255, 0.05);
+  --card-hover: rgba(255, 255, 255, 0.08);
+  --text: #f1f5f9;
+  --text-muted: #94a3b8;
+  --text-dimmed: #64748b;
+  --border: rgba(148, 163, 184, 0.1);
+  --border-hover: rgba(148, 163, 184, 0.2);
+  --primary: #3b82f6;
+  --primary-dark: #2563eb;
+  --primary-light: #60a5fa;
+  --success: #10b981;
+  --success-dark: #059669;
+  --warning: #f59e0b;
+  --warning-dark: #d97706;
+  --danger: #ef4444;
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.15);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.2);
+  --shadow-xl: 0 12px 48px rgba(0, 0, 0, 0.3);
+  --glow-primary: 0 0 20px rgba(59, 130, 246, 0.3);
+  --glow-success: 0 0 20px rgba(16, 185, 129, 0.3);
+  --glass: rgba(255, 255, 255, 0.05);
+  --glass-border: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="light"] {
+  --bg-primary: #f8fafc;
+  --bg-secondary: #f1f5f9;
+  --bg-tertiary: #e2e8f0;
+  --card: rgba(255, 255, 255, 0.9);
+  --card-hover: rgba(255, 255, 255, 1);
+  --text: #0f172a;
+  --text-muted: #475569;
+  --text-dimmed: #64748b;
+  --border: rgba(15, 23, 42, 0.08);
+  --border-hover: rgba(15, 23, 42, 0.15);
+  --glass: rgba(255, 255, 255, 0.8);
+  --glass-border: rgba(15, 23, 42, 0.1);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg-primary);
+  color: var(--text);
+  line-height: 1.6;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  -webkit-tap-highlight-color: transparent;
+  overflow-x: hidden;
+  position: relative;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(16, 185, 129, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(245, 158, 11, 0.08) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+  animation: backgroundPulse 20s ease-in-out infinite;
+}
+
+@keyframes backgroundPulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.8; }
+}
+
+.top-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: var(--glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-md);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  animation: slideDown 0.5s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.top-bar h1 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--primary), var(--success));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -0.02em;
+}
+
+@media (min-width: 768px) {
+  .top-bar h1 {
+    font-size: 1.3rem;
+  }
+}
+
+.theme-toggle {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  color: var(--text);
+}
+
+.theme-toggle::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, var(--primary), var(--success));
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.theme-toggle:hover::before {
+  opacity: 0.1;
+}
+
+.theme-toggle:active {
+  transform: scale(0.95);
+}
+
+.theme-toggle span {
+  position: relative;
+  z-index: 1;
+}
+
+#user-info {
+  text-align: right;
+  line-height: 1.4;
+}
+
+@media (max-width: 768px) {
+  #user-info {
+    font-size: 0.75rem;
+    max-width: 120px;
+  }
+  
+  #btn-logout {
+    font-size: 0.75rem;
+    padding: 6px 10px !important;
+    min-height: auto !important;
+  }
+}
+
+.main-container {
+  padding-top: 90px;
+  min-height: 100vh;
+  position: relative;
+  z-index: 1;
+}
+
+@media (max-width: 767px) {
+  .main-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 90px 16px 40px;
+  }
+  
+  .left-column,
+  .right-column {
+    width: 100%;
+  }
+}
+
+@media (min-width: 768px) {
+  .main-container {
+    display: flex;
+    gap: 24px;
+    padding: 100px 24px 40px;
+    max-width: 1400px;
+    margin: 0 auto;
+    align-items: flex-start;
+  }
+  
+.left-column {
+    flex: 1;
+    min-width: 0;
+    margin-right: 444px;
+  }
+  
+.right-column {
+    width: 420px;
+    min-width: 420px;
+    max-width: 420px;
+    flex-shrink: 0;
+    position: fixed;
+    right: 24px;
+    top: 100px;
+    bottom: 20px;
+    overflow-y: auto;
+  }
+  
+  .right-column .card {
+    margin-bottom: 20px;
+  }
+}
+
+.card {
+  background: var(--card);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 20px;
+  box-shadow: var(--shadow-md);
+  padding: 24px;
+  margin-bottom: 20px;
+  border: 1px solid var(--border);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: fadeInUp 0.6s ease-out backwards;
+  position: relative;
+  overflow: hidden;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.card:nth-child(1) { animation-delay: 0.1s; }
+.card:nth-child(2) { animation-delay: 0.2s; }
+.card:nth-child(3) { animation-delay: 0.3s; }
+.card:nth-child(4) { animation-delay: 0.4s; }
+.card:nth-child(5) { animation-delay: 0.5s; }
+
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--primary), var(--success));
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.card:hover::before {
+  opacity: 1;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--border-hover);
+}
+
+@media (min-width: 768px) {
+  .card {
+    padding: 28px;
+  }
+}
+
+.card h2 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  min-height: 44px;
+  letter-spacing: -0.02em;
+  transition: all 0.3s;
+}
+
+.card h2:hover {
+  color: var(--primary);
+}
+
+@media (min-width: 768px) {
+  .card h2 {
+    font-size: 1.3rem;
+  }
+}
+
+.card h2::before {
+  content: '';
+  width: 4px;
+  height: 24px;
+  background: linear-gradient(180deg, var(--primary), var(--primary-light));
+  border-radius: 4px;
+  box-shadow: var(--glow-primary);
+  transition: all 0.3s;
+}
+
+.card h2:hover::before {
+  height: 28px;
+  box-shadow: 0 0 30px rgba(59, 130, 246, 0.5);
+}
+
+.card h2.collapsible::after {
+  content: '▼';
+  margin-left: auto;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 0.9rem;
+  opacity: 0.9;
+  color: var(--text);
+}
+
+.card h2.collapsible:hover::after {
+  opacity: 1;
+}
+
+.card h2.collapsible.collapsed::after {
+  transform: rotate(-90deg);
+}
+
+.card-content {
+  transition: all 0.3s ease;
+}
+
+.card-content.collapsed {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .right-column .card h2 {
+    cursor: default;
+  }
+  
+  .right-column .card h2::after {
+    display: none;
+  }
+  
+  .right-column .card {
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  
+  .right-column .card-content {
+    display: block !important;
+  }
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+label {
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+  display: block;
+  font-size: 0.9rem;
+  letter-spacing: -0.01em;
+  transition: color 0.3s;
+}
+
+.form-group:focus-within label {
+  color: var(--primary);
+}
+
+.markup-label {
+  color: var(--warning);
+  font-weight: 700;
+}
+
+input,
+select {
+  padding: 14px 16px;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  font-size: 16px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: var(--bg-secondary);
+  color: var(--text);
+  width: 100%;
+  min-height: 48px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+}
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  background-size: 16px;
+  padding-right: 48px;
+  cursor: pointer;
+}
+
+select option {
+  background: var(--bg-secondary);
+  color: var(--text);
+  padding: 12px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+}
+@media (min-width: 768px) {
+  input {
+    padding: 12px 14px;
+    font-size: 0.95rem;
+    min-height: auto;
+  }
+  
+  select {
+    padding: 14px 16px;
+    font-size: 16px;
+    min-height: 54px;
+    height: 54px;
+  }
+}
+
+input:hover,
+select:hover {
+  border-color: var(--border-hover);
+}
+
+input.markup-warning {
+  background: rgba(245, 158, 11, 0.1);
+  border-color: var(--warning);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
+}
+
+input:focus,
+select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1), var(--glow-primary);
+  transform: translateY(-1px);
+}
+
+input:read-only {
+  background: var(--bg-tertiary);
+  color: var(--text-dimmed);
+  cursor: not-allowed;
+}
+
+.service-item {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 16px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.service-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(180deg, var(--primary), var(--success));
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.service-item:hover::before {
+  opacity: 1;
+}
+
+.service-item:hover {
+  border-color: var(--border-hover);
+  transform: translateX(4px);
+  box-shadow: var(--shadow-sm);
+}
+
+.service-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.service-header input[type="checkbox"] {
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  cursor: pointer;
+  min-height: auto;
+  accent-color: var(--primary);
+  border-radius: 6px;
+}
+
+.service-header label {
+  font-weight: 600;
+  color: var(--text);
+  font-size: 0.95rem;
+  margin: 0;
+  cursor: pointer;
+  flex: 1;
+  transition: color 0.3s;
+}
+
+.service-header:hover label {
+  color: var(--primary);
+}
+
+.service-body {
+  margin-top: 16px;
+  display: none;
+  animation: slideDownFade 0.3s ease-out;
+}
+
+@keyframes slideDownFade {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.service-body.open {
+  display: block;
+}
+
+.service-fields {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.service-complexity {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  padding: 8px;
+  background: var(--bg-tertiary);
+  border-radius: 8px;
+  transition: all 0.3s;
+}
+
+.service-complexity:hover {
+  background: var(--card-hover);
+}
+
+.service-complexity input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  min-height: auto;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+.partial-wrapper {
+  margin: 24px 0;
+}
+
+.partial-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  padding: 16px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  user-select: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.partial-header:hover {
+  border-color: var(--border-hover);
+  transform: translateX(4px);
+  box-shadow: var(--shadow-sm);
+}
+
+.partial-header input[type="checkbox"] {
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  cursor: pointer;
+  min-height: auto;
+  accent-color: var(--primary);
+}
+
+.partial-header label {
+  font-weight: 600;
+  color: var(--text);
+  font-size: 0.95rem;
+  margin: 0;
+  cursor: pointer;
+  flex: 1;
+}
+
+.partial-content {
+  margin-top: 16px;
+  padding-left: 34px;
+  display: none;
+}
+
+.partial-content.open {
+  display: block;
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.cost-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: end;
+  margin-bottom: 12px;
+  padding: 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.cost-row .form-group {
+  margin-bottom: 0;
+}
+
+.cost-row button {
+  padding: 12px 16px;
+  background: var(--danger);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s;
+  min-height: 48px;
+}
+
+@media (min-width: 768px) {
+  .cost-row button {
+    min-height: auto;
+  }
+}
+
+.cost-row button:hover {
+  background: #dc2626;
+  transform: translateY(-2px);
+}
+
+.executor-row {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 10px;
+}
+
+.executor-row-header {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.executor-fields {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+@media (min-width: 768px) {
+  .executor-fields {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+.executor-fields input {
+  padding: 10px 12px;
+  min-height: 40px;
+  font-size: 0.9rem;
+}
+
+.btn {
+  padding: 14px 20px;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  touch-action: manipulation;
+  position: relative;
+  overflow: hidden;
+  letter-spacing: -0.01em;
+}
+
+@media (min-width: 768px) {
+  .btn {
+    padding: 12px 18px;
+    font-size: 0.95rem;
+  }
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.btn:active::before {
+  width: 300px;
+  height: 300px;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: #fff;
+  box-shadow: var(--shadow-md), var(--glow-primary);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg), 0 0 30px rgba(59, 130, 246, 0.4);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-secondary {
+  background: var(--bg-secondary);
+  color: var(--text);
+  border: 2px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-secondary:hover {
+  background: var(--bg-tertiary);
+  border-color: var(--border-hover);
+  transform: translateY(-2px);
+}
+
+.btn-secondary:active {
+  transform: translateY(0);
+}
+
+.btn-success {
+  background: linear-gradient(135deg, var(--success), var(--success-dark));
+  color: #fff;
+  box-shadow: var(--shadow-md), var(--glow-success);
+}
+
+.btn-success:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg), 0 0 30px rgba(16, 185, 129, 0.4);
+}
+
+.btn-success:active {
+  transform: translateY(0);
+}
+
+.chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.chip {
+  padding: 10px 16px;
+  background: var(--bg-secondary);
+  border: 2px solid var(--border);
+  border-radius: 24px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  color: var(--text);
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  touch-action: manipulation;
+}
+
+@media (min-width: 768px) {
+  .chip {
+    padding: 8px 14px;
+    font-size: 0.85rem;
+    min-height: auto;
+  }
+}
+
+.chip:hover {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md), var(--glow-primary);
+}
+
+.chip:active {
+  transform: scale(0.95);
+}
+
+.discount-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 12px;
+}
+
+@media (min-width: 768px) {
+  .discount-grid {
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+  }
+}
+
+.discount-btn {
+  padding: 14px;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.05));
+  border: 2px solid rgba(245, 158, 11, 0.3);
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  text-align: center;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: manipulation;
+  color: var(--text);
+}
+
+@media (min-width: 768px) {
+  .discount-btn {
+    padding: 10px 12px;
+    font-size: 0.85rem;
+    min-height: auto;
+  }
+}
+
+.discount-btn:hover {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(245, 158, 11, 0.1));
+  border-color: var(--warning);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.discount-btn:active {
+  transform: scale(0.95);
+}
+
+.discount-btn.active {
+  background: linear-gradient(135deg, var(--warning), var(--warning-dark));
+  border-color: var(--warning);
+  color: #fff;
+  box-shadow: var(--shadow-md), 0 0 20px rgba(245, 158, 11, 0.3);
+}
+.discount-btn.active {
+  background: linear-gradient(135deg, var(--warning), var(--warning-dark));
+  border-color: var(--warning);
+  color: #fff;
+  box-shadow: var(--shadow-md), 0 0 20px rgba(245, 158, 11, 0.3);
+}
+
+/* ← ДОБАВЬ СЮДА ↓ */
+
+/* НОВЫЙ ДИЗАЙН СПИСКА ИСПОЛНИТЕЛЕЙ */
+.executor-fields-new {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+@media (min-width: 768px) {
+  .executor-fields-new {
+    grid-template-columns: 2fr 1.5fr 1.5fr 1.5fr 2fr;
+    gap: 12px;
+  }
+}
+
+.executor-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.executor-field label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.executor-field input {
+  padding: 10px 12px;
+  min-height: 42px;
+  font-size: 0.9rem;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-secondary);
+  color: var(--text);
+  transition: all 0.3s;
+}
+
+.executor-field input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.executor-field-note {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 767px) {
+  .executor-field-note {
+    grid-column: 1;
+  }
+}
+.toggle-group {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.toggle-btn {
+  flex: 1;
+  min-width: calc(50% - 4px);
+  justify-content: center;
+  padding: 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  background: var(--bg-secondary);
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  touch-action: manipulation;
+}
+
+@media (min-width: 768px) {
+  .toggle-btn {
+    padding: 10px 16px;
+  }
+}
+
+.toggle-btn:hover {
+  background: var(--bg-tertiary);
+  border-color: var(--border-hover);
+  transform: translateY(-2px);
+}
+
+.toggle-btn.active {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: #fff;
+  border-color: var(--primary);
+  box-shadow: var(--shadow-md), var(--glow-primary);
+}
+
+.toggle-btn:active {
+  transform: scale(0.98);
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 12px;
+  margin-top: 16px;
+}
+
+table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.8rem;
+  min-width: 600px;
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+@media (min-width: 768px) {
+  table {
+    font-size: 0.9rem;
+  }
+}
+
+th,
+td {
+  padding: 12px 10px;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+}
+
+@media (min-width: 768px) {
+  th,
+  td {
+    padding: 14px 12px;
+  }
+}
+
+th {
+  background: var(--bg-tertiary);
+  font-weight: 700;
+  color: var(--text);
+  font-size: 0.85rem;
+  letter-spacing: -0.01em;
+}
+
+tbody tr {
+  transition: all 0.2s;
+}
+
+tbody tr:hover {
+  background: var(--card-hover);
+}
+
+tbody tr:last-child td {
+  border-bottom: none;
+}
+
+td:last-child {
+  text-align: right;
+  font-weight: 600;
+}
+
+#costTable td:nth-child(2),
+#costTable td:nth-child(3) {
+  text-align: right;
+  font-weight: 600;
+}
+
+tfoot th {
+  text-align: right;
+  background: var(--bg-tertiary);
+  font-weight: 700;
+  padding: 16px 12px;
+  font-size: 1rem;
+}
+
+tfoot th:first-child {
+  text-align: left;
+}
+
+.totals-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+@media (min-width: 768px) {
+  .totals-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.total-item {
+  text-align: center;
+  padding: 16px;
+  background: var(--bg-secondary);
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  min-height: 80px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.total-item:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--border-hover);
+}
+
+@media (min-width: 768px) {
+  .total-item {
+    padding: 14px;
+  }
+}
+
+.total-label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+@media (min-width: 768px) {
+  .total-label {
+    font-size: 0.8rem;
+  }
+}
+
+.total-value {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.02em;
+}
+
+.final-total {
+  background: linear-gradient(135deg, var(--success), var(--success-dark));
+  color: #fff;
+  border: none;
+  box-shadow: var(--shadow-md), var(--glow-success);
+  position: relative;
+  overflow: hidden;
+}
+
+.final-total::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  animation: shine 3s infinite;
+}
+
+@keyframes shine {
+  0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+  100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+}
+
+@media (min-width: 768px) {
+  .final-total {
+    grid-column: 1 / -1;
+  }
+}
+
+.final-total .total-value {
+  color: #fff;
+  font-size: 1.5rem;
+}
+
+.final-total .total-label {
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 700;
+}
+
+.final-total:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg), 0 0 40px rgba(16, 185, 129, 0.5);
+}
+
+.chart-container {
+  position: relative;
+  height: 200px;
+  margin-top: 16px;
+  padding: 16px;
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+@media (min-width: 768px) {
+  .chart-container {
+    height: 220px;
+  }
+}
+
+.export-buttons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  flex-direction: column;
+}
+
+@media (min-width: 768px) {
+  .export-buttons .btn {
+    font-size: 0.85rem;
+    padding: 10px 12px;
+  }
+}
+
+.package-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+@media (min-width: 768px) {
+  .package-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.summary-cards {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+.invis {
+  display: none !important;
+}
+
+#pdfTemplates {
+  display: none;
+  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+#pdfTemplates .pdf-block {
+  width: 210mm;
+  min-height: 297mm;
+  padding: 25mm;
+  background: #ffffff !important;
+  color: #1e293b !important;
+  position: relative;
+}
+
+/* ВОДЯНОЙ ЗНАК ДЛЯ ТРИАЛА */
+#pdfTemplates .trial-watermark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-45deg);
+  font-size: 72px;
+  font-weight: 900;
+  color: rgba(239, 68, 68, 0.08);
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 999;
+  letter-spacing: 4px;
+}
+
+#pdfTemplates h1 {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  text-align: center;
+  color: #0f172a !important;
+  letter-spacing: -0.5px;
+  border-bottom: 3px solid #3b82f6;
+  padding-bottom: 12px;
+}
+
+#pdfTemplates p {
+  color: #475569 !important;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+#pdfTemplates table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+  background: #ffffff !important;
+  border: 2px solid #e2e8f0 !important;
+}
+
+#pdfTemplates th,
+#pdfTemplates td {
+  border: 1px solid #cbd5e1 !important;
+  padding: 10px 12px;
+  text-align: left;
+  color: #1e293b !important;
+  background: #ffffff !important;
+}
+
+#pdfTemplates th {
+  background: #f1f5f9 !important;
+  font-weight: 700;
+  color: #0f172a !important;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+#pdfTemplates tbody tr:nth-child(even) {
+  background: #f8fafc !important;
+}
+
+#pdfTemplates tbody tr:hover {
+  background: #f1f5f9 !important;
+}
+
+#pdfTemplates tfoot th {
+  text-align: right;
+  color: #0f172a !important;
+  background: #e2e8f0 !important;
+  font-weight: 700;
+  font-size: 13px;
+  padding: 12px;
+}
+
+#pdfTemplates tfoot th:first-child {
+  text-align: left;
+  color: #0f172a !important;
+}
+
+#telegramWarning {
+  display: none;
+  background: rgba(245, 158, 11, 0.1);
+  border: 2px solid var(--warning);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  font-size: 0.9rem;
+  color: var(--text);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--bg-tertiary);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border-hover);
+}
+
+/* Auth Wrapper */
+#auth-wrapper {
+  font-family: 'Inter', sans-serif;
+}
+
+#auth-box {
+  background: var(--card);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 32px;
+  max-width: 450px;
+  width: 100%;
+  box-shadow: var(--shadow-xl);
+  animation: authSlideIn 0.4s ease-out;
+}
+
+@keyframes authSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+#auth-box h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+#auth-box p {
+  color: var(--text-muted);
+  text-align: center;
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
+#auth-trial-info {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05));
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 20px;
+  text-align: center;
+  color: var(--success);
+  font-weight: 600;
+}
+
+#auth-denied {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.05));
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 20px;
+  text-align: center;
+  color: var(--danger);
+  font-weight: 600;
+  line-height: 1.6;
+}
+
+#auth-form input {
+  width: 100%;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-secondary);
+  color: var(--text);
+  font-size: 16px;
+  font-family: 'Inter', sans-serif;
+  transition: all 0.3s;
+}
+
+#auth-form input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+}
+
+#auth-error {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.05));
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 16px;
+  color: var(--danger);
+  font-size: 0.9rem;
+}
+
+#auth-buttons {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+#auth-buttons button {
+  flex: 1;
+  padding: 14px 20px;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: 'Inter', sans-serif;
+}
+
+#auth-login-btn {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: #fff;
+  box-shadow: var(--shadow-md), var(--glow-primary);
+}
+
+#auth-login-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg), 0 0 30px rgba(59, 130, 246, 0.4);
+}
+
+#auth-login-btn:active {
+  transform: translateY(0);
+}
+
+#auth-register-btn {
+  background: var(--bg-secondary);
+  color: var(--text);
+  border: 2px solid var(--border);
+}
+
+#auth-register-btn:hover {
+  background: var(--bg-tertiary);
+  border-color: var(--border-hover);
+  transform: translateY(-2px);
+}
+
+#auth-register-btn:active {
+  transform: translateY(0);
+}
+
+#auth-ref-link {
+  margin-top: 20px;
+  padding: 16px;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.05));
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 12px;
+  text-align: center;
+}
+
+#auth-ref-link a {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 600;
+  word-break: break-all;
+}
+
+#auth-ref-link a:hover {
+  text-decoration: underline;
+}
+</style>
+</head>
+<body>
+
+<div id="calc-wrapper">
+<div id="app">
+<div class="top-bar">
+  <h1>Калькулятор оклейки</h1>
+  <div style="display:flex;align-items:center;gap:12px">
+    <div id="user-info" style="display:none;font-size:0.85rem;color:var(--text-muted)"></div>
+    <button id="btn-logout" class="theme-toggle" style="display:none;padding:8px 12px">🚪 Выход</button>
+    <div class="theme-toggle" onclick="toggleTheme()">
+      <span id="themeIcon">☀️</span>
+    </div>
+  </div>
+</div>
+
+<div class="main-container">
+  <div class="left-column">
+    
+    <div class="card">
+      <h2>🚗 Автомобиль</h2>
+      <div class="card-content">
+        <div class="form-group">
+          <label>Бренд:</label>
+          <select id="brand">
+            <option value="">Выберите бренд</option>
+            <option value="manual">Ввести вручную</option>
+          </select>
+          <input type="text" id="brandManual" placeholder="Введите бренд" class="invis">
+        </div>
+        <div class="form-group">
+          <label>Модель:</label>
+          <select id="model">
+            <option value="">Сначала выберите бренд</option>
+            <option value="manual">Ввести вручную</option>
+          </select>
+          <input type="text" id="modelManual" placeholder="Введите модель" class="invis">
+        </div>
+        <div class="form-group">
+          <label>Год:</label>
+<input type="text" id="year" placeholder="2025" maxlength="4" inputmode="numeric">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="collapsible collapsed">📦 Полная защита вкруг</h2>
+      <div class="card-content collapsed">
+        <div class="package-grid">
+          <div><label>Стоимость пленки:</label><input type="number" id="pkgWrapMat" placeholder="0" step="0.01"></div>
+          <div><label>Мотивация оклейщика:</label><input type="number" id="pkgWrapMot" placeholder="0" step="0.01"></div>
+          <div><label>Материалы подготовки:</label><input type="number" id="pkgPrepMat" placeholder="0" step="0.01"></div>
+          <div><label>Мотивация подготовки:</label><input type="number" id="pkgPrepMot" placeholder="0" step="0.01"></div>
+          <div><label>Материал арматурки:</label><input type="number" id="pkgArmMat" placeholder="0" step="0.01"></div>
+          <div><label>Мотивация арматурщика:</label><input type="number" id="pkgArmMot" placeholder="0" step="0.01"></div>
+        </div>
+        <div class="partial-wrapper">
+          <div class="partial-header">
+            <input type="checkbox" id="pkgCostsChk">
+            <label for="pkgCostsChk">Дополнительные затраты</label>
+          </div>
+          <div class="partial-content" id="pkgCostsContent"></div>
+        </div>
+        <button type="button" class="btn btn-secondary" id="btnAddPkgCost" style="margin-top:10px;display:none">+ Добавить затрату</button>
+        <div style="margin-top:15px">
+          <label class="markup-label">⚠️ Наценка на пакет (%):</label>
+          <input type="number" id="pkgMarkup" placeholder="0" step="1">
+          <div class="chips">
+            <span class="chip" data-markup-target="#pkgMarkup">10</span>
+            <span class="chip" data-markup-target="#pkgMarkup">20</span>
+            <span class="chip" data-markup-target="#pkgMarkup">30</span>
+            <span class="chip" data-markup-target="#pkgMarkup">40</span>
+            <span class="chip" data-markup-target="#pkgMarkup">50</span>
+            <span class="chip" data-markup-target="#pkgMarkup">60</span>
+            <span class="chip" data-markup-target="#pkgMarkup">70</span>
+            <span class="chip" data-markup-target="#pkgMarkup">80</span>
+            <span class="chip" data-markup-target="#pkgMarkup">90</span>
+            <span class="chip" data-markup-target="#pkgMarkup">100</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="collapsible collapsed">🛡️ Защита ударной части</h2>
+      <div class="card-content collapsed">
+        <div class="package-grid">
+          <div><label>Стоимость пленки:</label><input type="number" id="impactWrapMat" placeholder="0" step="0.01"></div>
+          <div><label>Мотивация оклейщика:</label><input type="number" id="impactWrapMot" placeholder="0" step="0.01"></div>
+          <div><label>Материалы подготовки:</label><input type="number" id="impactPrepMat" placeholder="0" step="0.01"></div>
+          <div><label>Мотивация подготовки:</label><input type="number" id="impactPrepMot" placeholder="0" step="0.01"></div>
+          <div><label>Материал арматурки:</label><input type="number" id="impactArmMat" placeholder="0" step="0.01"></div>
+          <div><label>Мотивация арматурщика:</label><input type="number" id="impactArmMot" placeholder="0" step="0.01"></div>
+        </div>
+        <div class="partial-wrapper">
+          <div class="partial-header">
+            <input type="checkbox" id="impactCostsChk">
+            <label for="impactCostsChk">Дополнительные затраты</label>
+          </div>
+          <div class="partial-content" id="impactCostsContent"></div>
+        </div>
+        <button type="button" class="btn btn-secondary" id="btnAddImpactCost" style="margin-top:10px;display:none">+ Добавить затрату</button>
+        <div style="margin-top:15px">
+          <label class="markup-label">⚠️ Наценка на пакет (%):</label>
+          <input type="number" id="impactMarkup" placeholder="0" step="1">
+          <div class="chips">
+            <span class="chip" data-markup-target="#impactMarkup">10</span>
+            <span class="chip" data-markup-target="#impactMarkup">20</span>
+            <span class="chip" data-markup-target="#impactMarkup">30</span>
+            <span class="chip" data-markup-target="#impactMarkup">40</span>
+            <span class="chip" data-markup-target="#impactMarkup">50</span>
+            <span class="chip" data-markup-target="#impactMarkup">60</span>
+            <span class="chip" data-markup-target="#impactMarkup">70</span>
+            <span class="chip" data-markup-target="#impactMarkup">80</span>
+            <span class="chip" data-markup-target="#impactMarkup">90</span>
+            <span class="chip" data-markup-target="#impactMarkup">100</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+<div class="card">
+  <h2>💳 Форма оплаты</h2>
+  <div class="card-content">
+    <div class="toggle-group">
+      <label class="toggle-btn active">
+        <input type="radio" name="payMode" value="cash" checked style="display:none">
+        <span>💵 Наличные</span>
+      </label>
+      <label class="toggle-btn">
+        <input type="radio" name="payMode" value="card" style="display:none">
+        <span>💳 Карта или ИП (+13%)</span>
+      </label>
+      <label class="toggle-btn">
+        <input type="radio" name="payMode" value="ooo" style="display:none">
+        <span>🏢 ООО (+22%)</span>
+      </label>
+    </div>
+  </div>
+</div>
+
+    <div class="card">
+      <h2 class="collapsible collapsed">🔧 Арматурные работы</h2>
+      <div class="card-content collapsed" id="armContent"></div>
+    </div>
+
+    <div class="card">
+      <h2 class="collapsible collapsed">🎨 Оклейка автомобиля</h2>
+      <div class="card-content collapsed" id="wrapContent"></div>
+    </div>
+
+    <div class="card">
+      <h2 class="collapsible collapsed">✨ Детейлинг</h2>
+      <div class="card-content collapsed" id="detContent"></div>
+    </div>
+
+    <div class="card">
+      <h2 class="collapsible collapsed">🪟 Стёкла</h2>
+      <div class="card-content collapsed" id="glContent"></div>
+    </div>
+
+    <div class="card">
+      <h2 class="collapsible collapsed">🛠️ Прочие работы</h2>
+      <div class="card-content collapsed" id="miscContent"></div>
+    </div>
+
+    <div class="card">
+      <h2>📄 Предпросмотр КП</h2>
+      <div class="card-content">
+        <div class="table-wrapper">
+          <table id="kpTable">
+            <thead><tr><th style="width:25%">Услуга</th><th style="width:50%">Описание</th><th style="width:25%">Стоимость</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div style="text-align:right;font-weight:bold;margin-top:10px">Итого: <span id="kpTotal">0,00</span> ₽</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>💰 Предпросмотр себестоимости</h2>
+      <div class="card-content">
+        <div class="table-wrapper">
+          <table id="costTable">
+            <thead><tr><th style="width:50%">Услуга</th><th style="width:25%">Материалы</th><th style="width:25%">Мотивация</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-weight:bold;margin-top:10px;flex-wrap:wrap;gap:10px;font-size:.9rem">
+          <span>Материалы: <span id="cMat">0,00</span> ₽</span>
+          <span>Мотивация: <span id="cMot">0,00</span> ₽</span>
+          <span>Итого: <span id="cTotal">0,00</span> ₽</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="collapsible collapsed">👥 Исполнители</h2>
+      <div class="card-content collapsed">
+        <div id="executorsContent"></div>
+<button type="button" class="btn btn-success" id="btnExportExecutors" style="width:100%;margin-top:16px">📋 Список исполнителей (PDF)</button>
+<button type="button" class="btn btn-success" id="btnExportExecutorsWithSalary" style="width:100%;margin-top:12px">💰 Список исполнителей с ЗП (PDF)</button>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="right-column">
+    
+    <div class="card">
+      <h2>🎁 Скидки</h2>
+      <div class="card-content">
+        <div class="discount-grid">
+          <div class="discount-btn" data-discount="0">0%</div>
+          <div class="discount-btn" data-discount="5">5%</div>
+          <div class="discount-btn" data-discount="10">10%</div>
+          <div class="discount-btn" data-discount="15">15%</div>
+          <div class="discount-btn" data-discount="20">20%</div>
+          <div class="discount-btn" data-discount="25">25%</div>
+        </div>
+        <div style="margin-top:8px">
+          <input type="number" id="customDiscount" placeholder="Своя скидка %" min="0" max="100" step="0.01">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>💎 Итоги</h2>
+      <div class="card-content">
+        <div class="totals-grid">
+          <div class="total-item"><div class="total-label">Материалы</div><div class="total-value" id="grandMat">0,00</div></div>
+          <div class="total-item"><div class="total-label">Мотивация</div><div class="total-value" id="grandMot">0,00</div></div>
+          <div class="total-item"><div class="total-label">Себестоимость</div><div class="total-value" id="grandBase">0,00</div></div>
+          <div class="total-item"><div class="total-label">Наценка</div><div class="total-value" id="grandMarkup">0,00</div></div>
+          <div class="total-item"><div class="total-label">Налог</div><div class="total-value" id="grandTax">0,00</div></div>
+          <div class="total-item final-total"><div class="total-label">ИТОГО К ОПЛАТЕ</div><div class="total-value" id="finalTotal">0,00</div></div>
+        </div>
+        <div class="chart-container">
+          <canvas id="pieChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>📥 Экспорт</h2>
+      <div class="card-content">
+        <div id="telegramWarning">
+          ⚠️ <b>Telegram WebView:</b> Для скачивания PDF откройте в браузере (••• → Открыть в браузере)
+        </div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px">
+          <button type="button" class="btn btn-primary" id="btnRecalc" style="flex:1;min-width:140px">🔄 Пересчитать</button>
+          <button type="button" class="btn btn-secondary" id="btnReset" style="flex:1;min-width:140px">🔃 Сброс</button>
+        </div>
+        <div class="export-buttons">
+          <button type="button" class="btn btn-success" id="btnExportKP">📄 КП (PDF)</button>
+          <button type="button" class="btn btn-success" id="btnExportCost">💰 Себес (PDF)</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div id="pdfTemplates">
+  <!-- КП -->
+  <div id="pdfKP" class="pdf-block">
+    <div class="trial-watermark" id="watermarkKP" style="display:none"></div>
+    <h1>КОММЕРЧЕСКОЕ ПРЕДЛОЖЕНИЕ</h1>
+    <p id="pdfKPMeta" style="text-align:center;margin-bottom:20px;font-weight:600"></p>
+    <table>
+      <thead><tr><th style="width:25%">Услуга</th><th style="width:50%">Описание</th><th style="width:25%">Стоимость</th></tr></thead>
+      <tbody id="pdfKPTBody"></tbody>
+      <tfoot><tr><th colspan="2">ИТОГО:</th><th id="pdfKPTotal"></th></tr></tfoot>
+    </table>
+    <p style="text-align:center;margin-top:24px;font-style:italic;color:#64748b;font-size:10px">Коммерческое предложение актуально в течение 3х дней</p>
+  </div>
+  
+  <!-- СЕБЕСТОИМОСТЬ -->
+  <div id="pdfCost" class="pdf-block">
+    <div class="trial-watermark" id="watermarkCost" style="display:none"></div>
+    <h1>СЕБЕСТОИМОСТЬ</h1>
+    <p id="pdfCostMeta" style="text-align:center;margin-bottom:20px;font-weight:600"></p>
+    <table>
+      <thead><tr><th>Услуга</th><th>Материалы</th><th>Мотивация</th></tr></thead>
+      <tbody id="pdfCostTBody"></tbody>
+      <tfoot><tr><th>ИТОГО:</th><th id="pdfCM"></th><th id="pdfCO"></th></tr></tfoot>
+    </table>
+  </div>
+  
+  <!-- ИСПОЛНИТЕЛИ БЕЗ ЗП -->
+  <div id="pdfExecutors" class="pdf-block">
+    <div class="trial-watermark" id="watermarkExecutors" style="display:none"></div>
+    <h1>СПИСОК УСЛУГ И ИСПОЛНИТЕЛЕЙ</h1>
+    <p id="pdfExecutorsMeta" style="text-align:center;margin-bottom:20px;font-weight:600"></p>
+    <table>
+      <thead><tr><th>Услуга</th><th>Исполнитель</th><th>Прием</th><th>Выдача</th><th>Примечание</th></tr></thead>
+      <tbody id="pdfExecutorsTBody"></tbody>
+    </table>
+  </div>
+  
+  <!-- ИСПОЛНИТЕЛИ С ЗП -->
+  <div id="pdfExecutorsWithSalary" class="pdf-block">
+    <div class="trial-watermark" id="watermarkExecutorsWithSalary" style="display:none"></div>
+    <h1>СПИСОК УСЛУГ И ИСПОЛНИТЕЛЕЙ С ЗАРПЛАТОЙ</h1>
+    <p id="pdfExecutorsWithSalaryMeta" style="text-align:center;margin-bottom:20px;font-weight:600"></p>
+    <table>
+      <thead><tr><th>Услуга</th><th>Исполнитель</th><th>Зарплата (₽)</th><th>Прием</th><th>Выдача</th><th>Примечание</th></tr></thead>
+      <tbody id="pdfExecutorsWithSalaryTBody"></tbody>
+    </table>
+  </div>
+</div>
+</div>
+</div>
+<script>
+(function() {
+'use strict';
+
+const SUPABASE_URL = 'https://hdghijgrrnzmntistdvw.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkZ2hpamdycm56bW50aXN0ZHZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMzMyNzksImV4cCI6MjA3NTYwOTI3OX0.D9EDTmVrFRVp0B8_5tCJM29gbFdtadsom0Ihsf4uQ8Q';
+
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: { persistSession: true }
+});
+
+let currentUser = null;
+let currentProfile = null;
+
+async function checkAccess(user) {
+  try {
+    const { data: profile, error } = await sb.from('profiles').select('*').eq('id', user.id).single();
+    
+    if (error || !profile) {
+      console.error('Profile not found:', error);
+      return false;
+    }
+
+    currentProfile = profile;
+
+    if (profile.is_paid) {
+      return true;
+    }
+
+    const now = new Date();
+    const trialEnds = profile.trial_ends_at ? new Date(profile.trial_ends_at) : null;
+    
+    if (!trialEnds || trialEnds <= now) {
+      return false;
+    }
+
+    return true;
+  } catch (e) {
+    console.error('checkAccess error:', e);
+    return false;
+  }
+}
+
+async function checkAuth() {
+  try {
+    const { data: { session }, error } = await sb.auth.getSession();
+    
+    if (error || !session) {
+      window.location.href = 'welcome.html';
+      return false;
+    }
+
+    currentUser = session.user;
+    
+    const { data: profile, error: profileError } = await sb
+      .from('profiles')
+      .select('*')
+      .eq('id', currentUser.id)
+      .single();
+    
+    if (profileError || !profile) {
+      console.error('Profile error:', profileError);
+      await sb.auth.signOut();
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.href = 'welcome.html';
+      return false;
+    }
+
+    currentProfile = profile;
+
+    if (!profile.is_paid) {
+      const now = new Date();
+      const trialEnds = profile.trial_ends_at ? new Date(profile.trial_ends_at) : null;
+      
+      if (!trialEnds || trialEnds <= now) {
+        alert('⚠️ Пробный период истёк. Оплатите доступ.');
+        await sb.auth.signOut();
+        localStorage.clear();
+        sessionStorage.clear();
+        window.location.href = 'welcome.html';
+        return false;
+      }
+    }
+
+    displayUserInfo();
+    return true;
+  } catch (e) {
+    console.error('Auth check error:', e);
+    window.location.href = 'welcome.html';
+    return false;
+  }
+}
+
+function displayUserInfo() {
+  const userInfo = document.getElementById('user-info');
+  const logoutBtn = document.getElementById('btn-logout');
+  
+  if (!userInfo || !currentProfile) return;
+
+  let statusText = '';
+  if (currentProfile.is_paid) {
+    statusText = '✅ Оплачен';
+  } else if (currentProfile.trial_ends_at) {
+    const now = new Date();
+    const end = new Date(currentProfile.trial_ends_at);
+    const hours = Math.floor((end - now) / (1000 * 60 * 60));
+    statusText = hours > 0 ? `🕐 Триал: ${hours}ч` : '⚠️ Истёк';
+  }
+
+  userInfo.innerHTML = `<div>${currentProfile.studio_name || 'Студия'}</div><div style="font-size:0.75rem">${statusText}</div>`;
+  userInfo.style.display = 'block';
+  
+  if (logoutBtn) logoutBtn.style.display = 'block';
+}
+
+async function handleLogout() {
+  if (confirm('Вы уверены, что хотите выйти?')) {
+    await sb.auth.signOut();
+    localStorage.clear();
+    sessionStorage.clear();
+    window.location.href = 'welcome.html';
+  }
+}
+
+// ========================================
+// MAIN CALCULATOR CODE
+// ========================================
+
+const q = s => document.querySelector(s);
+const qa = s => document.querySelectorAll(s);
+const fmt = n => parseFloat((n || 0).toFixed(2)).toLocaleString('ru-RU', {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2
+});
+const r100 = n => Math.round((n || 0) * 100) / 100;
+
+let disc = 0;
+let chart = null;
+let costCounter = 0;
+
+const carDB = {
+  Audi: ["A3", "A4", "A5", "A6", "Q3", "Q5", "Q7", "Q8"],
+  BMW: ["1 Series", "3 Series", "5 Series", "7 Series", "X3", "X5"],
+  Buick: ["Cascada", "Enclave", "Encore", "Encore GX", "Envision", "GL8", "LaCrosse", "Regal", "Regal TourX", "Verano"],
+  BYD: ["Dolphin", "Han", "Qin Plus", "Seal", "Song Plus", "Tang", "Yuan Plus"],
+  Cadillac: ["Celestiq", "CT4", "CT5", "CT6", "Escalade", "Escalade ESV", "Lyriq", "XT4", "XT5", "XT6"],
+  Changan: ["CS35 Plus", "CS55 Plus", "CS75 Plus", "Uni-K", "Uni-T"],
+  Chery: ["Arrizo 5", "Tiggo 2", "Tiggo 4", "Tiggo 7", "Tiggo 8"],
+  Chevrolet: ["Blazer", "Colorado", "Equinox", "Malibu", "Silverado 1500", "Silverado 2500/3500 HD", "Suburban", "Tahoe", "Trailblazer", "Traverse"],
+  Chrysler: ["200", "300", "Pacifica", "Pacifica Hybrid", "Town & Country", "Voyager"],
+  Dodge: ["Challenger", "Challenger SRT Hellcat", "Charger", "Charger SRT Hellcat", "Dart", "Durango", "Grand Caravan", "Hornet", "Journey", "Viper"],
+  Fisker: ["Alaska", "Ocean", "Pear", "Ronin"],
+  Ford: ["Bronco", "Edge", "Escape", "Expedition", "Explorer", "F-150", "Maverick", "Mustang", "Mustang Mach-E", "Ranger"],
+  Geely: ["Atlas", "Coolray", "Emgrand", "Monjaro", "Tugella"],
+  GMC: ["Acadia", "Canyon", "Hummer EV Pickup", "Hummer EV SUV", "Savana", "Sierra 1500", "Sierra HD", "Terrain", "Yukon", "Yukon XL"],
+  Haval: ["Dargo", "F7", "F7x", "H6", "H9", "Jolion"],
+  Honda: ["Accord", "Civic", "CR-V", "Fit", "HR-V"],
+  Hummer: ["EV Pickup", "EV SUV"],
+  Hyundai: ["Creta", "Elantra", "Santa Fe", "Sonata", "Tucson"],
+  Jeep: ["Cherokee", "Compass", "Gladiator", "Grand Cherokee", "Grand Wagoneer", "Renegade", "Wagoneer", "Wagoneer S", "Wrangler", "Wrangler 4xe"],
+  Kia: ["Cerato", "Ceed", "Rio", "Seltos", "Sorento", "Sportage"],
+  Lincoln: ["Aviator", "Continental", "Corsair", "MKC", "MKT", "MKX", "MKZ", "Nautilus", "Navigator", "Navigator L"],
+  Lixiang: ["I8", "L6", "L7", "L8", "L9", "Mega", "One"],
+  Lucid: ["Air", "Air Grand Touring", "Air Pure", "Air Sapphire", "Air Touring", "Gravity", "Gravity Grand Touring", "Gravity Touring"],
+  Mazda: ["CX-3", "CX-30", "CX-5", "Mazda3", "Mazda6"],
+  "Mercedes-Benz": ["A-Class", "C-Class", "E-Class", "GLC", "GLE", "S-Class"],
+  Nissan: ["Altima", "Qashqai", "Rogue", "Sentra", "X-Trail"],
+  Omoda: ["C5", "C7", "C9", "E5", "S5"],
+  Ram: ["1500", "1500 Classic", "1500 TRX", "2500", "3500", "4500 Chassis Cab", "5500 Chassis Cab", "ProMaster", "ProMaster City", "ProMaster Rapid"],
+  Rivian: ["EDV", "R1S", "R1T", "R2", "R3", "R3X", "RCV"],
+  Tank: ["300", "400", "500", "700"],
+  Tesla: ["Cybertruck", "Model 3", "Model S", "Model X", "Model Y", "Semi"],
+  Toyota: ["Camry", "Corolla", "Hilux", "Land Cruiser 300", "RAV4", "Yaris"],
+  Volkswagen: ["Arteon", "Golf", "Passat", "Polo", "T-Roc", "Tiguan"],
+  Voyah: ["Courage", "Dream", "Free", "Passion"],
+  Zeekr: ["001", "007", "009", "7X", "9X", "Mix", "X"]
+};
+
+const serviceDescriptions = {
+  'Полная защита вкруг': 'Полная защита глянцевых кузовных элементов автомобиля с разбором съемных элементов и подготовкой кузова',
+  'Защита ударной части': 'Защита ударной части автомобиля с разбором съемных элементов и подготовкой кузова',
+  'Демонтаж элементов': 'Снятие кузовных элементов для проведения работ',
+  'Монтаж элементов': 'Установка кузовных элементов после проведения работ',
+  'Демонтаж и монтаж': 'Полный цикл снятия и установки элементов кузова',
+  'Мойка кузова перед оклейкой': 'Подготовительная мойка автомобиля перед оклейкой',
+  'Подготовка кузова': 'Комплексная подготовка поверхности к нанесению пленки',
+  'Глубокая чистка кузова': 'Детальная очистка кузова от загрязнений и дефектов',
+  'Полировка кузова': 'Восстановление и выравнивание лакокрасочного покрытия',
+  'Нанесение составов на кузов': 'Обработка кузова защитными составами',
+  'Химчистка салона': 'Глубокая очистка салона автомобиля',
+  'Нанесение составов на элементы салона': 'Защитная обработка элементов интерьера',
+  'Полировка глянцевых элементов': 'Восстановление блеска глянцевых поверхностей',
+  'Тонирование задней полусферы': 'Установка тонировочной пленки на заднюю полусферу',
+  'Тонирование передних боковых стекол': 'Установка тонировочной пленки на передние боковые стекла',
+  'Тонирование лобового стекла': 'Установка тонировочной пленки на лобовое стекло',
+  'Бронирование лобового стекла': 'Установка защитной пленки на лобовое стекло',
+  'Малярные работы': 'Локальный окрас элемента',
+  'Выпрямление вмятин без покраски': 'Выпрямление повреждений ЛКП без окраса',
+  'Реставрация ЛКП': 'Работы по лакокрасочному покрытию автомобиля, корректировка и скрытие повреждений',
+  'Шумоизоляция': 'Работы по дооснащению автомобиля материалами, снижающими вибрации, шумы и посторонние звуки',
+  'PPF прозрачный вкруг': 'Полная защита глянцевых кузовных элементов автомобиля',
+  'PPF цветной вкруг': 'Полная защита кузовных элементов цветной пленкой',
+  'PPF матовый вкруг': 'Полная защита кузовных элементов матовой пленкой',
+  'ПВХ полная оклейка': 'Полная оклейка автомобиля виниловой пленкой'
+};
+
+const partElements = [
+  'Передний бампер', 'Задний бампер', 'Передний бампер (доп)', 'Задний бампер (доп)',
+  'Передняя оптика', 'Противотуманные фары', 'Задние фонари', 'Решетка радиатора',
+  'Полоска на капот', 'Капот', 'Переднее крыло', 'Два передних крыла',
+  'Расширители арок', 'Стойки вокруг лобового', 'Полоска на крышу', 'Крыша',
+  'Пороги', 'Пороги до замка', 'Дверные проемы', 'Передняя дверь',
+  'Передние двери (2 шт)', 'Зона под ручками (2 шт)', 'Зона под ручками (4 шт)',
+  'Задняя дверь', 'Задние двери (2 шт)', 'Заднее крыло', 'Задние крылья (2 шт)',
+  'Крышка багажника', 'Багажник (доп)', 'Оклейка элементов интерьера', 'Антихром'
+];
+
+const armServices = ['Демонтаж элементов', 'Монтаж элементов', 'Демонтаж и монтаж'];
+const detailServices = [
+  'Мойка кузова перед оклейкой', 'Подготовка кузова', 'Глубокая чистка кузова',
+  'Полировка кузова', 'Нанесение составов на кузов', 'Химчистка салона',
+  'Нанесение составов на элементы салона', 'Полировка глянцевых элементов'
+];
+const glassServices = [
+  'Тонирование задней полусферы', 'Тонирование передних боковых стекол',
+  'Тонирование лобового стекла', 'Бронирование лобового стекла'
+];
+const miscServices = [
+  'Малярные работы', 'Выпрямление вмятин без покраски',
+  'Реставрация ЛКП', 'Шумоизоляция'
+];
+
+window.toggleTheme = function() {
+  const body = document.body;
+  const icon = q('#themeIcon');
+  const currentTheme = body.getAttribute('data-theme');
+  
+  if (currentTheme === 'light') {
+    body.removeAttribute('data-theme');
+    icon.textContent = '☀️';
+    localStorage.setItem('theme', 'dark');
+  } else {
+    body.setAttribute('data-theme', 'light');
+    icon.textContent = '🌙';
+    localStorage.setItem('theme', 'light');
+  }
+};
+
+function fillBrands() {
+  const s = q('#brand');
+  s.innerHTML = '<option value="">Выберите бренд</option><option value="manual">Ввести вручную</option>';
+  Object.keys(carDB).sort().forEach(b => {
+    const o = document.createElement('option');
+    o.value = b;
+    o.textContent = b;
+    s.appendChild(o);
+  });
+}
+function formatYearInput(input) {
+  let val = input.value.replace(/\D/g, '');
+  if (val.length > 4) val = val.slice(0, 4);
+  input.value = val;
+}
+function onBrandChange() {
+  const b = q('#brand').value;
+  const m = q('#model');
+  const bm = q('#brandManual');
+  m.innerHTML = '<option value="">Выберите модель</option><option value="manual">Ввести вручную</option>';
+  
+  if (b && carDB[b]) {
+    bm.classList.add('invis');
+    carDB[b].forEach(md => {
+      const o = document.createElement('option');
+      o.value = md;
+      o.textContent = md;
+      m.appendChild(o);
+    });
+  } else if (b === 'manual') {
+    bm.classList.remove('invis');
+    m.innerHTML = '<option value="manual">Ввести вручную</option>';
+    // Также показываем modelManual для ручного ввода модели
+    const mm = q('#modelManual');
+    if (mm) mm.classList.remove('invis');
+  }
+  renderAll();
+}
+
+function onModelChange() {
+  const m = q('#model').value;
+  const mm = q('#modelManual');
+  if (m === 'manual') mm.classList.remove('invis');
+  else mm.classList.add('invis');
+  renderAll();
+}
+
+function renderServiceList(containerId, services, classPrefix) {
+  const container = q(containerId);
+  let html = '';
+  
+  services.forEach((name, idx) => {
+    html += `<div class="service-item">
+      <div class="service-header">
+        <input type="checkbox" class="${classPrefix}-chk" id="${classPrefix}${idx + 1}">
+        <label for="${classPrefix}${idx + 1}">${name}</label>
+      </div>
+      <div class="service-body">
+        <div class="service-fields">
+          <div class="form-group"><label>Материалы (₽):</label><input type="number" class="${classPrefix}-mat" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Мотивация (₽):</label><input type="number" class="${classPrefix}-mot" placeholder="0" step="0.01"></div>
+        </div>
+        <div class="service-complexity">
+          <input type="checkbox" class="${classPrefix}-complex" id="${classPrefix}${idx + 1}c">
+          <label for="${classPrefix}${idx + 1}c">Усложнение +10%</label>
+        </div>
+      </div>
+    </div>`;
+  });
+  
+  html += `<div id="${classPrefix}Dyn"></div>
+    <button type="button" class="btn btn-secondary" id="btnAdd${classPrefix.charAt(0).toUpperCase() + classPrefix.slice(1)}">+ Дополнительно</button>
+    <div class="partial-wrapper">
+      <div class="partial-header">
+        <input type="checkbox" id="${classPrefix}CostsChk">
+        <label for="${classPrefix}CostsChk">Дополнительные затраты</label>
+      </div>
+      <div class="partial-content" id="${classPrefix}CostsContent"></div>
+    </div>
+    <button type="button" class="btn btn-secondary" id="btnAdd${classPrefix.charAt(0).toUpperCase() + classPrefix.slice(1)}Cost" style="margin-top:10px;display:none">+ Добавить затрату</button>
+    <div style="margin-top:15px">
+      <label class="markup-label">⚠️ Наценка (%):</label>
+      <input type="number" id="${classPrefix}Markup" placeholder="0" step="1">
+      <div class="chips">
+        <span class="chip" data-markup-target="#${classPrefix}Markup">10</span>
+        <span class="chip" data-markup-target="#${classPrefix}Markup">20</span>
+        <span class="chip" data-markup-target="#${classPrefix}Markup">30</span>
+        <span class="chip" data-markup-target="#${classPrefix}Markup">40</span>
+        <span class="chip" data-markup-target="#${classPrefix}Markup">50</span>
+        <span class="chip" data-markup-target="#${classPrefix}Markup">60</span>
+        <span class="chip" data-markup-target="#${classPrefix}Markup">70</span>
+        <span class="chip" data-markup-target="#${classPrefix}Markup">80</span>
+        <span class="chip" data-markup-target="#${classPrefix}Markup">90</span>
+        <span class="chip" data-markup-target="#${classPrefix}Markup">100</span>
+      </div>
+    </div>`;
+  
+  container.innerHTML = html;
+}
+
+function renderWrapContent() {
+  const container = q('#wrapContent');
+  let html = `<h3 style="margin-bottom:10px;font-size:1.05rem;font-weight:700">PPF</h3>
+    <div class="service-item">
+      <div class="service-header"><input type="checkbox" id="ppfClearChk"><label for="ppfClearChk">PPF прозрачный вкруг</label></div>
+      <div class="service-body">
+        <div class="service-fields">
+          <div class="form-group"><label>Метры (м):</label><input type="number" id="ppfClearM" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Цена за метр (₽):</label><input type="number" id="ppfClearPrice" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Мотивация (₽):</label><input type="number" id="ppfClearMot" placeholder="0" step="0.01"></div>
+        </div>
+        <div class="service-complexity"><input type="checkbox" id="ppfClearComplex"><label for="ppfClearComplex">Усложнение +10%</label></div>
+      </div>
+    </div>
+    <div class="service-item">
+      <div class="service-header"><input type="checkbox" id="ppfColorChk"><label for="ppfColorChk">PPF цветной вкруг</label></div>
+      <div class="service-body">
+        <div class="service-fields">
+          <div class="form-group"><label>Метры (м):</label><input type="number" id="ppfColorM" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Цена за метр (₽):</label><input type="number" id="ppfColorPrice" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Мотивация (₽):</label><input type="number" id="ppfColorMot" placeholder="0" step="0.01"></div>
+        </div>
+        <div class="service-complexity"><input type="checkbox" id="ppfColorComplex"><label for="ppfColorComplex">Усложнение +10%</label></div>
+      </div>
+    </div>
+    <div class="service-item">
+      <div class="service-header"><input type="checkbox" id="ppfMatChk"><label for="ppfMatChk">PPF матовый вкруг</label></div>
+      <div class="service-body">
+        <div class="service-fields">
+          <div class="form-group"><label>Метры (м):</label><input type="number" id="ppfMatM" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Цена за метр (₽):</label><input type="number" id="ppfMatPrice" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Мотивация (₽):</label><input type="number" id="ppfMatMot" placeholder="0" step="0.01"></div>
+        </div>
+        <div class="service-complexity"><input type="checkbox" id="ppfMatComplex"><label for="ppfMatComplex">Усложнение +10%</label></div>
+      </div>
+    </div>
+    <div class="partial-wrapper">
+      <div class="partial-header"><input type="checkbox" id="ppfPartChk"><label for="ppfPartChk">PPF частично</label></div>
+      <div class="partial-content" id="ppfPartContent"></div>
+    </div>
+    <h3 style="margin:20px 0 10px;font-size:1.05rem;font-weight:700">PVC</h3>
+    <div class="service-item">
+      <div class="service-header"><input type="checkbox" id="pvcFullChk"><label for="pvcFullChk">ПВХ полная оклейка</label></div>
+      <div class="service-body">
+        <div class="service-fields">
+          <div class="form-group"><label>Метры (м):</label><input type="number" id="pvcFullM" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Цена за метр (₽):</label><input type="number" id="pvcFullPrice" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Мотивация (₽):</label><input type="number" id="pvcFullMot" placeholder="0" step="0.01"></div>
+        </div>
+        <div class="service-complexity"><input type="checkbox" id="pvcFullComplex"><label for="pvcFullComplex">Усложнение +10%</label></div>
+      </div>
+    </div>
+    <div class="partial-wrapper">
+      <div class="partial-header"><input type="checkbox" id="pvcPartChk"><label for="pvcPartChk">ПВХ частично</label></div>
+      <div class="partial-content" id="pvcPartContent"></div>
+    </div>
+    <div id="wrapDyn"></div>
+    <button type="button" class="btn btn-secondary" id="btnAddWrap">+ Дополнительно</button>
+    <div class="partial-wrapper">
+      <div class="partial-header">
+        <input type="checkbox" id="wrapCostsChk">
+        <label for="wrapCostsChk">Дополнительные затраты</label>
+      </div>
+      <div class="partial-content" id="wrapCostsContent"></div>
+    </div>
+    <button type="button" class="btn btn-secondary" id="btnAddWrapCost" style="margin-top:10px;display:none">+ Добавить затрату</button>
+    <div style="margin-top:20px">
+      <label class="markup-label">⚠️ Наценка на оклейку (%):</label>
+      <input type="number" id="wrapMarkup" placeholder="0" step="1">
+      <div class="chips">
+        <span class="chip" data-markup-target="#wrapMarkup">10</span>
+        <span class="chip" data-markup-target="#wrapMarkup">20</span>
+        <span class="chip" data-markup-target="#wrapMarkup">30</span>
+        <span class="chip" data-markup-target="#wrapMarkup">40</span>
+        <span class="chip" data-markup-target="#wrapMarkup">50</span>
+        <span class="chip" data-markup-target="#wrapMarkup">60</span>
+        <span class="chip" data-markup-target="#wrapMarkup">70</span>
+        <span class="chip" data-markup-target="#wrapMarkup">80</span>
+        <span class="chip" data-markup-target="#wrapMarkup">90</span>
+        <span class="chip" data-markup-target="#wrapMarkup">100</span>
+      </div>
+    </div>`;
+  
+  container.innerHTML = html;
+}
+
+function renderPartialLists() {
+  const ppf = q('#ppfPartContent');
+  const pvc = q('#pvcPartContent');
+  let ppfHtml = '', pvcHtml = '';
+  
+  partElements.forEach((name, idx) => {
+    ppfHtml += `<div class="service-item">
+      <div class="service-header"><input type="checkbox" class="ppf-part-chk" id="ppfp${idx}"><label for="ppfp${idx}">${name}</label></div>
+      <div class="service-body">
+        <div class="service-fields">
+          <div class="form-group"><label>Метры (м):</label><input type="number" class="ppf-part-m" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Цена за метр (₽):</label><input type="number" class="ppf-part-price" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Мотивация (₽):</label><input type="number" class="ppf-part-mot" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Своя наценка (%):</label><input type="number" class="ppf-part-markup" placeholder="0"></div>
+        </div>
+<div class="chips" style="margin-top:10px">
+          <span class="chip" data-ppf-markup="${idx}">10</span>
+          <span class="chip" data-ppf-markup="${idx}">20</span>
+          <span class="chip" data-ppf-markup="${idx}">30</span>
+          <span class="chip" data-ppf-markup="${idx}">40</span>
+          <span class="chip" data-ppf-markup="${idx}">50</span>
+          <span class="chip" data-ppf-markup="${idx}">60</span>
+          <span class="chip" data-ppf-markup="${idx}">70</span>
+          <span class="chip" data-ppf-markup="${idx}">80</span>
+          <span class="chip" data-ppf-markup="${idx}">90</span>
+          <span class="chip" data-ppf-markup="${idx}">100</span>
+        </div>
+      </div>
+    </div>`;
+    
+    pvcHtml += `<div class="service-item">
+      <div class="service-header"><input type="checkbox" class="pvc-part-chk" id="pvcp${idx}"><label for="pvcp${idx}">${name}</label></div>
+      <div class="service-body">
+        <div class="service-fields">
+          <div class="form-group"><label>Метры (м):</label><input type="number" class="pvc-part-m" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Цена за метр (₽):</label><input type="number" class="pvc-part-price" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Мотивация (₽):</label><input type="number" class="pvc-part-mot" placeholder="0" step="0.01"></div>
+<div class="form-group"><label>Своя наценка (%):</label><input type="number" class="pvc-part-markup" placeholder="0"></div>
+        </div>
+<div class="chips" style="margin-top:10px">
+          <span class="chip" data-pvc-markup="${idx}">10</span>
+          <span class="chip" data-pvc-markup="${idx}">20</span>
+          <span class="chip" data-pvc-markup="${idx}">30</span>
+          <span class="chip" data-pvc-markup="${idx}">40</span>
+          <span class="chip" data-pvc-markup="${idx}">50</span>
+          <span class="chip" data-pvc-markup="${idx}">60</span>
+          <span class="chip" data-pvc-markup="${idx}">70</span>
+          <span class="chip" data-pvc-markup="${idx}">80</span>
+          <span class="chip" data-pvc-markup="${idx}">90</span>
+          <span class="chip" data-pvc-markup="${idx}">100</span>
+        </div>
+      </div>
+    </div>`;
+  });
+  
+  ppf.innerHTML = ppfHtml;
+  pvc.innerHTML = pvcHtml;
+}
+
+function addCostRow(prefix) {
+  costCounter++;
+  const container = q(`#${prefix}CostsContent`);
+  const row = document.createElement('div');
+  row.className = 'cost-row';
+  row.innerHTML = `
+    <div class="form-group">
+      <input type="text" placeholder="Название затраты" class="${prefix}-cost-name">
+      <input type="number" placeholder="Сумма (₽)" class="${prefix}-cost-val" step="0.01">
+    </div>
+    <button type="button" onclick="this.closest('.cost-row').remove();renderAll()">❌</button>
+  `;
+  container.appendChild(row);
+  renderAll();
+}
+
+let dynCounter = 0;
+function addDynRow(id, cls) {
+  const c = q(id);
+  const d = document.createElement('div');
+  d.className = 'service-item';
+  dynCounter++;
+  
+  // Для wrap - особые поля (метры/цена/мотивация)
+  if (cls === 'wrap') {
+    d.innerHTML = `<div class="service-header">
+      <input type="checkbox" checked id="dyn${cls}${dynCounter}">
+      <label for="dyn${cls}${dynCounter}"><input type="text" placeholder="Название услуги" style="border:none;background:transparent;padding:0;font-weight:600;font-size:.95rem;color:var(--text);width:100%"></label>
+    </div>
+    <div class="service-body open">
+      <div class="service-fields">
+        <div class="form-group"><label>Метры (м):</label><input type="number" class="${cls}-m" placeholder="0" step="0.01"></div>
+        <div class="form-group"><label>Цена за метр (₽):</label><input type="number" class="${cls}-price" placeholder="0" step="0.01"></div>
+        <div class="form-group"><label>Мотивация (₽):</label><input type="number" class="${cls}-mot" placeholder="0" step="0.01"></div>
+      </div>
+      <div class="service-complexity">
+        <input type="checkbox" class="${cls}-complex" id="dyn${cls}${dynCounter}c">
+        <label for="dyn${cls}${dynCounter}c">Усложнение +10%</label>
+      </div>
+    </div>`;
+  } else {
+    // Для остальных - обычные поля (материалы/мотивация)
+    d.innerHTML = `<div class="service-header">
+      <input type="checkbox" checked id="dyn${cls}${dynCounter}">
+      <label for="dyn${cls}${dynCounter}"><input type="text" placeholder="Название услуги" style="border:none;background:transparent;padding:0;font-weight:600;font-size:.95rem;color:var(--text);width:100%"></label>
+    </div>
+    <div class="service-body open">
+      <div class="service-fields">
+        <div class="form-group"><label>Материалы (₽):</label><input type="number" class="${cls}-mat" placeholder="0" step="0.01"></div>
+        <div class="form-group"><label>Мотивация (₽):</label><input type="number" class="${cls}-mot" placeholder="0" step="0.01"></div>
+      </div>
+      <div class="service-complexity">
+        <input type="checkbox" class="${cls}-complex" id="dyn${cls}${dynCounter}c">
+        <label for="dyn${cls}${dynCounter}c">Усложнение +10%</label>
+      </div>
+    </div>`;
+  }
+  c.appendChild(d);
+}
+
+function initServiceToggles() {
+  qa('.service-item').forEach(item => {
+    const chk = item.querySelector('.service-header input[type="checkbox"]');
+    const body = item.querySelector('.service-body');
+    const header = item.querySelector('.service-header');
+    
+    if (!chk || !body) return;
+    
+    header.onclick = function(e) {
+      if (e.target === chk || e.target.tagName === 'INPUT' || e.target.tagName === 'LABEL') return;
+      chk.click();
+    };
+    
+    chk.onchange = function() {
+      if (chk.checked) {
+        body.classList.add('open');
+      } else {
+        body.classList.remove('open');
+      }
+    };
+  });
+  
+  ['ppfPartChk', 'pvcPartChk', 'pkgCostsChk', 'impactCostsChk', 'armCostsChk', 'wrapCostsChk', 'detCostsChk', 'glCostsChk', 'miscCostsChk'].forEach(id => {
+    const chk = q(`#${id}`);
+    if (!chk) return;
+    const content = q(`#${id.replace('Chk', 'Content')}`);
+    
+    // Исправляем регистр: первая буква заглавная
+    let btnId = id.replace('Chk', '').replace('Costs', 'Cost');
+    btnId = btnId.charAt(0).toUpperCase() + btnId.slice(1);
+    const btn = q(`#btnAdd${btnId}`);
+    if (!content) return;
+    
+    chk.onchange = function() {
+      if (chk.checked) {
+        content.classList.add('open');
+        if (btn) btn.style.display = 'block';
+      } else {
+        content.classList.remove('open');
+        if (btn) btn.style.display = 'none';
+      }
+    };
+  });
+}
+
+function collectAdditionalCosts(prefix) {
+  let total = 0;
+  qa(`#${prefix}CostsContent .cost-row`).forEach(row => {
+    const val = parseFloat(row.querySelector(`.${prefix}-cost-val`)?.value) || 0;
+    total += val;
+  });
+  return total;
+}
+
+function collectAll() {
+  const sums = {
+    pkg: { mat: 0, mot: 0, names: [] },
+    impact: { mat: 0, mot: 0, names: [] },
+    arm: { mat: 0, mot: 0, names: [] },
+    wrap: { mat: 0, mot: 0, details: [] },
+    det: { mat: 0, mot: 0, names: [] },
+    gl: { mat: 0, mot: 0, names: [] },
+    ms: { mat: 0, mot: 0, names: [] }
+  };
+  
+  const pkgWrapMat = parseFloat(q('#pkgWrapMat')?.value) || 0;
+  const pkgWrapMot = parseFloat(q('#pkgWrapMot')?.value) || 0;
+  const pkgPrepMat = parseFloat(q('#pkgPrepMat')?.value) || 0;
+  const pkgPrepMot = parseFloat(q('#pkgPrepMot')?.value) || 0;
+  const pkgArmMat = parseFloat(q('#pkgArmMat')?.value) || 0;
+  const pkgArmMot = parseFloat(q('#pkgArmMot')?.value) || 0;
+  const pkgCosts = collectAdditionalCosts('pkg');
+  
+  if (pkgWrapMat > 0 || pkgWrapMot > 0 || pkgPrepMat > 0 || pkgPrepMot > 0 || pkgArmMat > 0 || pkgArmMot > 0 || pkgCosts > 0) {
+    sums.pkg.mat = pkgWrapMat + pkgPrepMat + pkgArmMat + pkgCosts;
+    sums.pkg.mot = pkgWrapMot + pkgPrepMot + pkgArmMot;
+    sums.pkg.names.push('Полная защита вкруг');
+  }
+  
+  const impactWrapMat = parseFloat(q('#impactWrapMat')?.value) || 0;
+  const impactWrapMot = parseFloat(q('#impactWrapMot')?.value) || 0;
+  const impactPrepMat = parseFloat(q('#impactPrepMat')?.value) || 0;
+  const impactPrepMot = parseFloat(q('#impactPrepMot')?.value) || 0;
+  const impactArmMat = parseFloat(q('#impactArmMat')?.value) || 0;
+  const impactArmMot = parseFloat(q('#impactArmMot')?.value) || 0;
+  const impactCosts = collectAdditionalCosts('impact');
+  
+  if (impactWrapMat > 0 || impactWrapMot > 0 || impactPrepMat > 0 || impactPrepMot > 0 || impactArmMat > 0 || impactArmMot > 0 || impactCosts > 0) {
+    sums.impact.mat = impactWrapMat + impactPrepMat + impactArmMat + impactCosts;
+    sums.impact.mot = impactWrapMot + impactPrepMot + impactArmMot;
+    sums.impact.names.push('Защита ударной части');
+  }
+  
+  qa('.arm-chk').forEach(c => {
+    if (c.checked) {
+      const item = c.closest('.service-item');
+      const n = item.querySelector('.service-header label')?.textContent?.trim();
+      let mat = parseFloat(item.querySelector('.arm-mat')?.value) || 0;
+      let mot = parseFloat(item.querySelector('.arm-mot')?.value) || 0;
+      if (item.querySelector('.arm-complex')?.checked) { mat *= 1.1; mot *= 1.1; }
+      if (n && (mat > 0 || mot > 0)) {
+        sums.arm.mat += mat;
+        sums.arm.mot += mot;
+        sums.arm.names.push(n);
+      }
+    }
+  });
+  
+  qa('#armDyn .service-item').forEach(item => {
+    const c = item.querySelector('input[type=checkbox]');
+    if (c?.checked) {
+      const n = item.querySelector('input[type=text]')?.value?.trim() || 'Название услуги';
+      let mat = parseFloat(item.querySelector('.arm-mat')?.value) || 0;
+      let mot = parseFloat(item.querySelector('.arm-mot')?.value) || 0;
+      if (item.querySelector('.arm-complex')?.checked) { mat *= 1.1; mot *= 1.1; }
+      if (mat > 0 || mot > 0) {
+        sums.arm.mat += mat;
+        sums.arm.mot += mot;
+        sums.arm.names.push(n);
+      }
+    }
+  });
+  
+  sums.arm.mat += collectAdditionalCosts('arm');
+  
+  if (q('#ppfClearChk')?.checked) {
+    const pr = parseFloat(q('#ppfClearPrice')?.value) || 0;
+    let m = parseFloat(q('#ppfClearM')?.value) || 0;
+    let mot = parseFloat(q('#ppfClearMot')?.value) || 0;
+    if (q('#ppfClearComplex')?.checked) { m *= 1.1; mot *= 1.1; }
+    const mat = r100(m * pr);
+    sums.wrap.mat += mat;
+    sums.wrap.mot += mot;
+    sums.wrap.details.push(['PPF прозрачный вкруг', m, pr, mat, mot, 0]);
+  }
+  
+  if (q('#ppfColorChk')?.checked) {
+    const pr = parseFloat(q('#ppfColorPrice')?.value) || 0;
+    let m = parseFloat(q('#ppfColorM')?.value) || 0;
+    let mot = parseFloat(q('#ppfColorMot')?.value) || 0;
+    if (q('#ppfColorComplex')?.checked) { m *= 1.1; mot *= 1.1; }
+    const mat = r100(m * pr);
+    sums.wrap.mat += mat;
+    sums.wrap.mot += mot;
+    sums.wrap.details.push(['PPF цветной вкруг', m, pr, mat, mot, 0]);
+  }
+  
+  if (q('#ppfMatChk')?.checked) {
+    const pr = parseFloat(q('#ppfMatPrice')?.value) || 0;
+    let m = parseFloat(q('#ppfMatM')?.value) || 0;
+    let mot = parseFloat(q('#ppfMatMot')?.value) || 0;
+    if (q('#ppfMatComplex')?.checked) { m *= 1.1; mot *= 1.1; }
+    const mat = r100(m * pr);
+    sums.wrap.mat += mat;
+    sums.wrap.mot += mot;
+    sums.wrap.details.push(['PPF матовый вкруг', m, pr, mat, mot, 0]);
+  }
+  
+  qa('.ppf-part-chk').forEach(c => {
+    if (c.checked) {
+      const ppfPartMainChk = q('#ppfPartChk');
+      if (!ppfPartMainChk || !ppfPartMainChk.checked) return;
+      
+      const item = c.closest('.service-item');
+      const n = item.querySelector('.service-header label')?.textContent?.trim();
+      let m = parseFloat(item.querySelector('.ppf-part-m')?.value) || 0;
+      const pr = parseFloat(item.querySelector('.ppf-part-price')?.value) || 0;
+      let mot = parseFloat(item.querySelector('.ppf-part-mot')?.value) || 0;
+      if (item.querySelector('.ppf-part-complex')?.checked) { m *= 1.1; mot *= 1.1; }
+      
+      if (m > 0 || pr > 0 || mot > 0) {
+        const mat = r100(m * pr);
+        const itemMarkup = parseFloat(item.querySelector('.ppf-part-markup')?.value) || 0;
+        sums.wrap.mat += mat;
+        sums.wrap.mot += mot;
+        sums.wrap.details.push([`PPF частично - ${n}`, m, pr, mat, mot, itemMarkup]);
+      }
+    }
+  });
+  
+  if (q('#pvcFullChk')?.checked) {
+    const pr = parseFloat(q('#pvcFullPrice')?.value) || 0;
+    let m = parseFloat(q('#pvcFullM')?.value) || 0;
+    let mot = parseFloat(q('#pvcFullMot')?.value) || 0;
+    if (q('#pvcFullComplex')?.checked) { m *= 1.1; mot *= 1.1; }
+    const mat = r100(m * pr);
+    sums.wrap.mat += mat;
+    sums.wrap.mot += mot;
+    sums.wrap.details.push(['ПВХ полная оклейка', m, pr, mat, mot, 0]);
+  }
+  
+  qa('.pvc-part-chk').forEach(c => {
+    if (c.checked) {
+      const pvcPartMainChk = q('#pvcPartChk');
+      if (!pvcPartMainChk || !pvcPartMainChk.checked) return;
+      
+      const item = c.closest('.service-item');
+      const n = item.querySelector('.service-header label')?.textContent?.trim();
+      let m = parseFloat(item.querySelector('.pvc-part-m')?.value) || 0;
+      const pr = parseFloat(item.querySelector('.pvc-part-price')?.value) || 0;
+      let mot = parseFloat(item.querySelector('.pvc-part-mot')?.value) || 0;
+      if (item.querySelector('.pvc-part-complex')?.checked) { m *= 1.1; mot *= 1.1; }
+      
+      if (m > 0 || pr > 0 || mot > 0) {
+        const mat = r100(m * pr);
+        const itemMarkup = parseFloat(item.querySelector('.pvc-part-markup')?.value) || 0;
+        sums.wrap.mat += mat;
+        sums.wrap.mot += mot;
+        sums.wrap.details.push([`ПВХ частично - ${n}`, m, pr, mat, mot, itemMarkup]);
+      }
+    }
+  });
+  
+  qa('#wrapDyn .service-item').forEach(item => {
+    const c = item.querySelector('input[type=checkbox]');
+    if (c?.checked) {
+      const n = item.querySelector('input[type=text]')?.value?.trim() || 'Название услуги';
+      let m = parseFloat(item.querySelectorAll('input[type=number]')[0]?.value) || 0;
+      const pr = parseFloat(item.querySelectorAll('input[type=number]')[1]?.value) || 0;
+      let mot = parseFloat(item.querySelectorAll('input[type=number]')[2]?.value) || 0;
+      if (item.querySelector('.wrap-complex')?.checked) { m *= 1.1; mot *= 1.1; }
+      
+      if (m > 0 || pr > 0 || mot > 0) {
+        const mat = r100(m * pr);
+        sums.wrap.mat += mat;
+        sums.wrap.mot += mot;
+        sums.wrap.details.push([n, m, pr, mat, mot, 0]);
+      }
+    }
+  });
+  
+  sums.wrap.mat += collectAdditionalCosts('wrap');
+  
+  ['det', 'gl', 'misc'].forEach(tp => {
+    const key = tp === 'misc' ? 'ms' : tp;
+    
+    qa(`.${tp}-chk`).forEach(c => {
+      if (c.checked) {
+        const item = c.closest('.service-item');
+        const n = item.querySelector('.service-header label')?.textContent?.trim();
+        let mat = parseFloat(item.querySelector(`.${tp}-mat`)?.value) || 0;
+        let mot = parseFloat(item.querySelector(`.${tp}-mot`)?.value) || 0;
+        if (item.querySelector(`.${tp}-complex`)?.checked) { mat *= 1.1; mot *= 1.1; }
+        if (n && (mat > 0 || mot > 0)) {
+          sums[key].mat += mat;
+          sums[key].mot += mot;
+          sums[key].names.push(n);
+        }
+      }
+    });
+    
+    qa(`#${tp}Dyn .service-item`).forEach(item => {
+      const c = item.querySelector('input[type=checkbox]');
+      if (c?.checked) {
+        const n = item.querySelector('input[type=text]')?.value?.trim() || 'Название услуги';
+        let mat = parseFloat(item.querySelector(`.${tp}-mat`)?.value) || 0;
+        let mot = parseFloat(item.querySelector(`.${tp}-mot`)?.value) || 0;
+        if (item.querySelector(`.${tp}-complex`)?.checked) { mat *= 1.1; mot *= 1.1; }
+        if (mat > 0 || mot > 0) {
+          sums[key].mat += mat;
+          sums[key].mot += mot;
+          sums[key].names.push(n);
+        }
+      }
+    });
+    
+    sums[key].mat += collectAdditionalCosts(tp);
+  });
+  
+  return sums;
+}
+
+function taxCoef() {
+  const m = q('input[name=payMode]:checked')?.value;
+  return m === 'card' ? 0.13 : m === 'ooo' ? 0.22 : 0;
+}
+
+function markups() {
+  return {
+    pkg: parseFloat(q('#pkgMarkup')?.value) || 0,
+    impact: parseFloat(q('#impactMarkup')?.value) || 0,
+    arm: parseFloat(q('#armMarkup')?.value) || 0,
+    wrap: parseFloat(q('#wrapMarkup')?.value) || 0,
+    det: parseFloat(q('#detMarkup')?.value) || 0,
+    gl: parseFloat(q('#glMarkup')?.value) || 0,
+    ms: parseFloat(q('#miscMarkup')?.value) || 0
+  };
+}
+
+function getServiceDescription(name) {
+  return serviceDescriptions[name] || name;
+}
+
+function renderKP(s, mu) {
+  const tb = q('#kpTable tbody');
+  if (!tb) return;
+  tb.innerHTML = '';
+  
+  const taxK = taxCoef();
+  let tot = 0;
+  
+  const rows = [
+    { t: 'Полная защита вкруг', det: getServiceDescription('Полная защита вкруг'), sum: s.pkg, mu: mu.pkg },
+    { t: 'Защита ударной части', det: getServiceDescription('Защита ударной части'), sum: s.impact, mu: mu.impact },
+    { t: 'Арматурные работы', det: 'Демонтаж и монтаж съемных элементов кузова', sum: s.arm, mu: mu.arm },
+    { t: 'Детейлинг', det: 'Комплексная чистка и подготовка кузова и салона автомобиля', sum: s.det, mu: mu.det },
+    { t: 'Стёкла', det: 'Тонирование и защита стекол автомобиля', sum: s.gl, mu: mu.gl },
+    { t: 'Прочие работы', det: 'Дополнительные работы по кузову автомобиля', sum: s.ms, mu: mu.ms }
+  ];
+  
+  rows.forEach(r => {
+    const base = r.sum.mat + r.sum.mot;
+    if (base <= 0) return;
+    
+    const markupAmount = r100(base * (r.mu || 0) / 100);
+    const markupWithDiscount = r100(markupAmount * (1 - disc / 100));
+    let pr = base + markupWithDiscount;
+    pr = r100(pr * (1 + taxK));
+    tot += pr;
+    
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td style="text-align:left">${r.t}</td><td style="text-align:left">${r.det || '—'}</td><td>${fmt(pr)}</td>`;
+    tb.appendChild(tr);
+  });
+  
+  if (s.wrap.details && s.wrap.details.length > 0) {
+    s.wrap.details.forEach(detail => {
+      const [name, meters, price, mat, mot, itemMarkup] = detail;
+      const base = mat + mot;
+      if (base <= 0) return;
+      
+      const markupToUse = (itemMarkup && itemMarkup > 0) ? itemMarkup : mu.wrap;
+      const markupAmount = r100(base * (markupToUse || 0) / 100);
+      const markupWithDiscount = r100(markupAmount * (1 - disc / 100));
+      let pr = base + markupWithDiscount;
+      pr = r100(pr * (1 + taxK));
+      tot += pr;
+      
+      const tr = document.createElement('tr');
+      const displayName = 'Оклейка автомобиля';
+      const displayDesc = getServiceDescription(name);
+      tr.innerHTML = `<td style="text-align:left">${displayName}</td><td style="text-align:left">${displayDesc}</td><td>${fmt(pr)}</td>`;
+      tb.appendChild(tr);
+    });
+  }
+  
+  q('#kpTotal').textContent = fmt(tot);
+}
+
+function renderCost(s) {
+  const tb = q('#costTable tbody');
+  if (!tb) return;
+  tb.innerHTML = '';
+  
+  const rows = [
+    { t: 'Полная защита вкруг', sum: s.pkg },
+    { t: 'Защита ударной части', sum: s.impact },
+    { t: 'Арматурные работы', sum: s.arm },
+    { t: 'Детейлинг', sum: s.det },
+    { t: 'Стёкла', sum: s.gl },
+    { t: 'Прочие работы', sum: s.ms }
+  ];
+  
+  let totM = 0, totO = 0;
+  
+  rows.forEach(r => {
+    const base = r.sum.mat + r.sum.mot;
+    if (base <= 0) return;
+    
+    totM += r.sum.mat;
+    totO += r.sum.mot;
+    
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td style="text-align:left">${r.t}</td><td>${fmt(r.sum.mat)}</td><td>${fmt(r.sum.mot)}</td>`;
+    tb.appendChild(tr);
+  });
+  
+  if (s.wrap.details && s.wrap.details.length > 0) {
+    s.wrap.details.forEach(detail => {
+      const [name, meters, price, mat, mot, itemMarkup] = detail;
+      if (mat <= 0 && mot <= 0) return;
+      
+      totM += mat;
+      totO += mot;
+      
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td style="text-align:left">${name}</td><td>${fmt(mat)}</td><td>${fmt(mot)}</td>`;
+      tb.appendChild(tr);
+    });
+  }
+  
+  q('#cMat').textContent = fmt(totM);
+  q('#cMot').textContent = fmt(totO);
+  q('#cTotal').textContent = fmt(totM + totO);
+}
+function renderExecutors(s) {
+  const container = q('#executorsContent');
+  if (!container) return;
+  
+  let execIndex = 0;
+  const allServices = [];
+  
+  // Пакет "Полная защита вкруг" - разбиваем на услуги
+  const pkgWrapMot = parseFloat(q('#pkgWrapMot')?.value) || 0;
+  const pkgPrepMot = parseFloat(q('#pkgPrepMot')?.value) || 0;
+  const pkgArmMot = parseFloat(q('#pkgArmMot')?.value) || 0;
+  
+  if (pkgWrapMot > 0 || pkgPrepMot > 0 || pkgArmMot > 0) {
+    if (pkgWrapMot > 0) {
+      allServices.push({ name: 'Полная защита вкруг - Инсталляция пленки', mot: pkgWrapMot, idx: execIndex++ });
+    }
+    if (pkgPrepMot > 0) {
+      allServices.push({ name: 'Полная защита вкруг - Подготовка', mot: pkgPrepMot, idx: execIndex++ });
+    }
+    if (pkgArmMot > 0) {
+      allServices.push({ name: 'Полная защита вкруг - Арматурные работы', mot: pkgArmMot, idx: execIndex++ });
+    }
+  }
+  
+  // Пакет "Защита ударной части" - разбиваем на услуги
+  const impactWrapMot = parseFloat(q('#impactWrapMot')?.value) || 0;
+  const impactPrepMot = parseFloat(q('#impactPrepMot')?.value) || 0;
+  const impactArmMot = parseFloat(q('#impactArmMot')?.value) || 0;
+  
+  if (impactWrapMot > 0 || impactPrepMot > 0 || impactArmMot > 0) {
+    if (impactWrapMot > 0) {
+      allServices.push({ name: 'Защита ударной части - Инсталляция пленки', mot: impactWrapMot, idx: execIndex++ });
+    }
+    if (impactPrepMot > 0) {
+      allServices.push({ name: 'Защита ударной части - Подготовка', mot: impactPrepMot, idx: execIndex++ });
+    }
+    if (impactArmMot > 0) {
+      allServices.push({ name: 'Защита ударной части - Арматурные работы', mot: impactArmMot, idx: execIndex++ });
+    }
+  }
+  
+  s.arm.names.forEach(name => {
+    allServices.push({ name, mot: 0, idx: execIndex++ });
+  });
+  
+  if (s.wrap.details && s.wrap.details.length > 0) {
+    s.wrap.details.forEach(detail => {
+      allServices.push({ name: detail[0], mot: detail[4], idx: execIndex++ });
+    });
+  }
+  
+  s.det.names.forEach(name => {
+    allServices.push({ name, mot: 0, idx: execIndex++ });
+  });
+  
+  s.gl.names.forEach(name => {
+    allServices.push({ name, mot: 0, idx: execIndex++ });
+  });
+  
+  s.ms.names.forEach(name => {
+    allServices.push({ name, mot: 0, idx: execIndex++ });
+  });
+  
+  // Проверяем, изменилось ли количество услуг
+  const existingRows = container.querySelectorAll('[data-exec-id]');
+  if (existingRows.length === allServices.length) {
+    // Только обновляем значения зарплаты если они не были изменены вручную
+    allServices.forEach(srv => {
+      const baseId = `exec${srv.idx}`;
+      const salaryInput = q(`#${baseId}salary`);
+      if (salaryInput && salaryInput.dataset.manuallySet !== 'true') {
+        salaryInput.value = srv.mot.toFixed(2);
+      }
+    });
+    return; // НЕ перерисовываем
+  }
+  
+  // Если количество изменилось — полная перерисовка
+  let html = '';
+  
+  allServices.forEach(srv => {
+    const baseId = `exec${srv.idx}`;
+    
+    html += `<div class="executor-row" data-exec-id="${baseId}">
+      <div class="executor-row-header">${srv.name}</div>
+      <div class="executor-fields-new">
+        <div class="executor-field">
+          <label>Исполнитель:</label>
+          <input type="text" id="${baseId}name" placeholder="ФИО" value="">
+        </div>
+        <div class="executor-field">
+          <label>Зарплата (₽):</label>
+          <input type="number" id="${baseId}salary" placeholder="0" value="${srv.mot.toFixed(2)}" step="0.01">
+        </div>
+        <div class="executor-field">
+          <label>Дата приема:</label>
+          <input type="date" id="${baseId}receive" value="">
+        </div>
+        <div class="executor-field">
+          <label>Дата выдачи:</label>
+          <input type="date" id="${baseId}return" value="">
+        </div>
+        <div class="executor-field executor-field-note">
+          <label>Примечание:</label>
+          <input type="text" id="${baseId}note" placeholder="Заметки" value="">
+        </div>
+      </div>
+      <div style="margin-top:12px;text-align:center">
+        <label style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:0.9rem;user-select:none">
+          <input type="checkbox" class="add-executor-chk" data-exec-base="${baseId}" style="width:20px;height:20px;cursor:pointer;accent-color:var(--primary)">
+          <span>+ Добавить исполнителя</span>
+        </label>
+      </div>
+      <div class="extra-executors" id="${baseId}-extra"></div>
+    </div>`;
+  });
+  
+  container.innerHTML = html;
+  
+  // Навешиваем обработчики
+  qa('.add-executor-chk').forEach(chk => {
+    chk.addEventListener('change', function() {
+      if (this.checked) {
+        const baseId = this.getAttribute('data-exec-base');
+        const extraContainer = q(`#${baseId}-extra`);
+        const baseRow = this.closest('.executor-row');
+        const baseSalary = parseFloat(baseRow.querySelector(`#${baseId}salary`)?.value) || 0;
+        
+        const extraCount = extraContainer.querySelectorAll('.extra-executor-row').length;
+        const totalExecutors = extraCount + 2; // +1 базовый +1 новый
+        const newSalary = r100(baseSalary / totalExecutors);
+        
+        // ИСПРАВЛЕНИЕ: Пересчитываем ВСЕ зарплаты, включая базовую
+        const allSalaryInputs = [baseRow.querySelector(`#${baseId}salary`)];
+        extraContainer.querySelectorAll('.extra-executor-row input[type="number"]').forEach(inp => {
+          allSalaryInputs.push(inp);
+        });
+        
+        allSalaryInputs.forEach(inp => {
+          if (inp) inp.value = newSalary.toFixed(2);
+        });
+        
+        const newId = `${baseId}-ex${extraCount + 1}`;
+        
+        const row = document.createElement('div');
+        row.className = 'extra-executor-row';
+        row.style.cssText = 'margin-top:12px;padding:12px;background:var(--bg-tertiary);border-radius:12px;border:1px solid var(--border)';
+        row.innerHTML = `
+          <div class="executor-row-header" style="font-size:0.8rem;margin-bottom:8px">Исполнитель ${extraCount + 2}</div>
+          <div class="executor-fields-new">
+            <div class="executor-field">
+              <label>Исполнитель:</label>
+              <input type="text" id="${newId}name" placeholder="ФИО" value="">
+            </div>
+            <div class="executor-field">
+              <label>Зарплата (₽):</label>
+              <input type="number" id="${newId}salary" placeholder="0" value="${newSalary.toFixed(2)}" step="0.01">
+            </div>
+            <div class="executor-field">
+              <label>Дата приема:</label>
+              <input type="date" id="${newId}receive" value="">
+            </div>
+            <div class="executor-field">
+              <label>Дата выдачи:</label>
+              <input type="date" id="${newId}return" value="">
+            </div>
+            <div class="executor-field executor-field-note">
+              <label>Примечание:</label>
+              <input type="text" id="${newId}note" placeholder="Заметки" value="">
+            </div>
+          </div>
+          <div style="margin-top:12px;text-align:center">
+            <label style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:0.9rem;user-select:none">
+              <input type="checkbox" class="add-executor-chk" data-exec-base="${baseId}" style="width:20px;height:20px;cursor:pointer;accent-color:var(--primary)">
+              <span>+ Добавить исполнителя</span>
+            </label>
+          </div>
+        `;
+        
+        extraContainer.appendChild(row);
+        this.checked = false;
+        
+        // Навешиваем обработчики на поля зарплаты
+        setupSalaryListeners(baseId);
+      }
+    });
+  });
+  
+  // Навешиваем обработчики на все поля зарплаты
+  allServices.forEach(srv => setupSalaryListeners(`exec${srv.idx}`));
+}
+
+// Новая функция для обработки зарплат
+function setupSalaryListeners(baseId) {
+  const baseRow = q(`[data-exec-id="${baseId}"]`);
+  if (!baseRow) return;
+  
+  const baseSalaryInput = baseRow.querySelector(`#${baseId}salary`);
+  const extraContainer = q(`#${baseId}-extra`);
+  
+  if (!baseSalaryInput) return;
+  
+  // Проверяем, не навешены ли уже обработчики
+  if (baseSalaryInput.dataset.listenersSet === 'true') return;
+  baseSalaryInput.dataset.listenersSet = 'true';
+  
+  // Функция пересчёта зарплат
+  function recalculateSalaries(changedInput) {
+    const allSalaryInputs = [baseSalaryInput];
+    if (extraContainer) {
+      extraContainer.querySelectorAll('input[type="number"]').forEach(inp => allSalaryInputs.push(inp));
+    }
+    
+    const total = allSalaryInputs.reduce((sum, inp) => sum + (parseFloat(inp.value) || 0), 0);
+    const others = allSalaryInputs.filter(inp => inp !== changedInput);
+    
+    if (others.length > 0) {
+      const remaining = r100(total - (parseFloat(changedInput.value) || 0));
+      const perOther = r100(remaining / others.length);
+      others.forEach(inp => inp.value = perOther.toFixed(2));
+    }
+  }
+  
+  // Отмечаем, что поле было изменено вручную
+  baseSalaryInput.addEventListener('input', function() {
+    this.dataset.manuallySet = 'true';
+    recalculateSalaries(this);
+  });
+  
+  // Аналогично для дополнительных исполнителей
+  if (extraContainer) {
+    extraContainer.querySelectorAll('input[type="number"]').forEach(extraInput => {
+      if (extraInput.dataset.listenersSet === 'true') return;
+      extraInput.dataset.listenersSet = 'true';
+      
+      extraInput.addEventListener('input', function() {
+        recalculateSalaries(this);
+      });
+    });
+  }
+}
+function renderBadges(s, mu) {
+  q('#sumPkgMat').value = s.pkg.mat.toFixed(2);
+  q('#sumPkgMot').value = s.pkg.mot.toFixed(2);
+  q('#sebPkg').value = (s.pkg.mat + s.pkg.mot).toFixed(2);
+  
+  q('#sumImpactMat').value = s.impact.mat.toFixed(2);
+  q('#sumImpactMot').value = s.impact.mot.toFixed(2);
+  q('#sebImpact').value = (s.impact.mat + s.impact.mot).toFixed(2);
+  
+  q('#sumArmMat').value = s.arm.mat.toFixed(2);
+  q('#sumArmMot').value = s.arm.mot.toFixed(2);
+  q('#sebArm').value = (s.arm.mat + s.arm.mot).toFixed(2);
+  
+  q('#sumWrapMat').value = s.wrap.mat.toFixed(2);
+  q('#sumWrapMot').value = s.wrap.mot.toFixed(2);
+  q('#sebWrap').value = (s.wrap.mat + s.wrap.mot).toFixed(2);
+  
+  q('#sumDetMat').value = s.det.mat.toFixed(2);
+  q('#sumDetMot').value = s.det.mot.toFixed(2);
+  q('#sebDet').value = (s.det.mat + s.det.mot).toFixed(2);
+  
+  q('#sumGlMat').value = s.gl.mat.toFixed(2);
+  q('#sumGlMot').value = s.gl.mot.toFixed(2);
+  q('#sebGl').value = (s.gl.mat + s.gl.mot).toFixed(2);
+  
+  q('#sumMiscMat').value = s.ms.mat.toFixed(2);
+  q('#sumMiscMot').value = s.ms.mot.toFixed(2);
+  q('#sebMisc').value = (s.ms.mat + s.ms.mot).toFixed(2);
+  
+  const pkgTotal = s.pkg.mat + s.pkg.mot;
+  const impactTotal = s.impact.mat + s.impact.mot;
+  const armTotal = s.arm.mat + s.arm.mot;
+  const wrapTotal = s.wrap.mat + s.wrap.mot;
+  const detTotal = s.det.mat + s.det.mot;
+  const glTotal = s.gl.mat + s.gl.mot;
+  const msTotal = s.ms.mat + s.ms.mot;
+  
+  const pkgCard = q('#sumPkgCard');
+  const impactCard = q('#sumImpactCard');
+  const armCard = q('#sumArmCard');
+  const wrapCard = q('#sumWrapCard');
+  const detCard = q('#sumDetCard');
+  const glCard = q('#sumGlCard');
+  const miscCard = q('#sumMiscCard');
+  
+  if (pkgCard) pkgCard.style.display = pkgTotal > 0 ? 'block' : 'none';
+  if (impactCard) impactCard.style.display = impactTotal > 0 ? 'block' : 'none';
+  if (armCard) armCard.style.display = armTotal > 0 ? 'block' : 'none';
+  if (wrapCard) wrapCard.style.display = wrapTotal > 0 ? 'block' : 'none';
+  if (detCard) detCard.style.display = detTotal > 0 ? 'block' : 'none';
+  if (glCard) glCard.style.display = glTotal > 0 ? 'block' : 'none';
+  if (miscCard) miscCard.style.display = msTotal > 0 ? 'block' : 'none';
+  
+  const baseAll = pkgTotal + impactTotal + armTotal + wrapTotal + detTotal + glTotal + msTotal;
+  
+  const pkgMarkup = r100(pkgTotal * (mu.pkg || 0) / 100);
+  const impactMarkup = r100(impactTotal * (mu.impact || 0) / 100);
+  const armMarkup = r100(armTotal * (mu.arm || 0) / 100);
+  const detMarkup = r100(detTotal * (mu.det || 0) / 100);
+  const glMarkup = r100(glTotal * (mu.gl || 0) / 100);
+  const msMarkup = r100(msTotal * (mu.ms || 0) / 100);
+  
+  let wrapMarkup = 0;
+  if (s.wrap.details && s.wrap.details.length > 0) {
+    s.wrap.details.forEach(detail => {
+      const [name, meters, price, mat, mot, itemMarkup] = detail;
+      const base = mat + mot;
+      const markupToUse = (itemMarkup && itemMarkup > 0) ? itemMarkup : mu.wrap;
+      wrapMarkup += r100(base * (markupToUse || 0) / 100);
+    });
+  } else {
+    wrapMarkup = r100(wrapTotal * (mu.wrap || 0) / 100);
+  }
+  
+  const totalMarkup = pkgMarkup + impactMarkup + armMarkup + wrapMarkup + detMarkup + glMarkup + msMarkup;
+  const markupWithDiscount = r100(totalMarkup * (1 - disc / 100));
+  const afterMarkup = baseAll + markupWithDiscount;
+  const taxK = taxCoef();
+  const tax = r100(afterMarkup * taxK);
+  const fin = afterMarkup + tax;
+  
+  q('#grandMat').textContent = fmt(s.pkg.mat + s.impact.mat + s.arm.mat + s.wrap.mat + s.det.mat + s.gl.mat + s.ms.mat);
+  q('#grandMot').textContent = fmt(s.pkg.mot + s.impact.mot + s.arm.mot + s.wrap.mot + s.det.mot + s.gl.mot + s.ms.mot);
+  q('#grandBase').textContent = fmt(baseAll);
+  q('#grandMarkup').textContent = fmt(markupWithDiscount);
+  q('#grandTax').textContent = fmt(tax);
+  q('#finalTotal').textContent = fmt(fin);
+  
+  if (chart) {
+    chart.data.datasets[0].data = [
+      s.pkg.mat + s.impact.mat + s.arm.mat + s.wrap.mat + s.det.mat + s.gl.mat + s.ms.mat,
+      s.pkg.mot + s.impact.mot + s.arm.mot + s.wrap.mot + s.det.mot + s.gl.mot + s.ms.mot,
+      markupWithDiscount,
+      tax
+    ];
+    chart.update('none');
+  }
+}
+
+function renderAll() {
+  const s = collectAll();
+  const mu = markups();
+  renderBadges(s, mu);
+  renderKP(s, mu);
+  renderCost(s);
+  renderExecutors(s);
+  highlightMarkupFields(s, mu);
+}
+
+function highlightMarkupFields(s, mu) {
+  const checks = [
+    { sum: s.pkg.mat + s.pkg.mot, markup: mu.pkg, field: '#pkgMarkup' },
+    { sum: s.impact.mat + s.impact.mot, markup: mu.impact, field: '#impactMarkup' },
+    { sum: s.arm.mat + s.arm.mot, markup: mu.arm, field: '#armMarkup' },
+    { sum: s.wrap.mat + s.wrap.mot, markup: mu.wrap, field: '#wrapMarkup' },
+    { sum: s.det.mat + s.det.mot, markup: mu.det, field: '#detMarkup' },
+    { sum: s.gl.mat + s.gl.mot, markup: mu.gl, field: '#glMarkup' },
+    { sum: s.ms.mat + s.ms.mot, markup: mu.ms, field: '#miscMarkup' }
+  ];
+  
+  checks.forEach(c => {
+    const field = q(c.field);
+    if (!field) return;
+    if (c.sum > 0 && (!c.markup || c.markup === 0)) {
+      field.classList.add('markup-warning');
+    } else {
+      field.classList.remove('markup-warning');
+    }
+  });
+}
+
+function initTheme() {
+  const sv = localStorage.getItem('theme');
+  const icon = q('#themeIcon');
+  const body = document.body;
+  
+  if (sv === 'light') {
+    body.setAttribute('data-theme', 'light');
+    icon.textContent = '🌙';
+  } else {
+    icon.textContent = '☀️';
+  }
+  
+  qa('.toggle-btn').forEach(b => {
+    b.addEventListener('click', () => {
+      const r = b.querySelector('input[type=radio]');
+      if (r) {
+        r.checked = true;
+        qa('.toggle-btn').forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+        renderAll();
+      }
+    });
+  });
+  
+  qa('.card h2.collapsible').forEach(h => {
+    h.addEventListener('click', () => {
+      h.classList.toggle('collapsed');
+      h.nextElementSibling.classList.toggle('collapsed');
+    });
+  });
+}
+
+function initDiscounts() {
+  qa('.discount-btn').forEach(b => {
+    b.addEventListener('click', () => {
+      disc = parseInt(b.dataset.discount) || 0;
+      qa('.discount-btn').forEach(x => x.classList.toggle('active', parseInt(x.dataset.discount) === disc));
+      q('#customDiscount').value = '';
+      renderAll();
+    });
+  });
+  
+  q('#customDiscount')?.addEventListener('input', e => {
+    const v = Math.max(0, Math.min(100, parseFloat(e.target.value) || 0));
+    disc = v;
+    qa('.discount-btn').forEach(b => b.classList.remove('active'));
+    renderAll();
+  });
+}
+
+function initChart() {
+  const ctx = q('#pieChart')?.getContext('2d');
+  if (!ctx || !window.Chart) return;
+  
+  chart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Материалы', 'Мотивация', 'Наценка', 'Налог'],
+      datasets: [{
+        data: [0, 0, 0, 0],
+        backgroundColor: [
+          'rgba(59, 130, 246, 0.8)',
+          'rgba(16, 185, 129, 0.8)',
+          'rgba(245, 158, 11, 0.8)',
+          'rgba(239, 68, 68, 0.8)'
+        ],
+        borderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: {
+            font: { size: 11, family: 'Inter' },
+            padding: 12,
+            color: 'rgba(241, 245, 249, 0.9)',
+            usePointStyle: true,
+            pointStyle: 'circle'
+          }
+        },
+        tooltip: {
+          backgroundColor: 'rgba(15, 23, 42, 0.95)',
+          titleFont: { size: 12, family: 'Inter', weight: '600' },
+          bodyFont: { size: 11, family: 'Inter' },
+          padding: 12,
+          cornerRadius: 8,
+          displayColors: true,
+          callbacks: {
+            label: function(context) {
+              return context.label + ': ' + fmt(context.parsed) + ' ₽';
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+function exportPDF(blockId, filename) {
+  const { jsPDF } = window.jspdf || {};
+  if (!jsPDF || !window.html2canvas) {
+    alert('Библиотеки PDF загружаются...');
+    return;
+  }
+  
+  const holder = q('#pdfTemplates');
+  const block = q(blockId);
+  const orig = holder.style.display;
+  holder.style.display = 'block';
+  holder.style.position = 'absolute';
+  holder.style.left = '-9999px';
+  
+  setTimeout(() => {
+    html2canvas(block, { scale: 2, useCORS: true, backgroundColor: '#fff' }).then(canvas => {
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
+      const pw = pdf.internal.pageSize.getWidth();
+      const ph = pdf.internal.pageSize.getHeight();
+      const iw = canvas.width;
+      const ih = canvas.height;
+      const ratio = Math.min(pw / iw, ph / ih);
+      const sw = iw * ratio;
+      const sh = ih * ratio;
+      const x = (pw - sw) / 2;
+      const y = 20;
+      
+      pdf.addImage(canvas.toDataURL('image/png'), 'PNG', x, y, sw, Math.min(sh, ph - 40));
+      pdf.save(filename);
+    }).catch(err => {
+      alert('Ошибка создания PDF: ' + err.message);
+    }).finally(() => {
+      holder.style.display = orig;
+    });
+  }, 200);
+}
+function showTrialWatermark() {
+  if (!currentProfile) return;
+  
+  // Если оплачен - скрываем водяные знаки
+  if (currentProfile.is_paid) {
+    document.querySelectorAll('.trial-watermark').forEach(w => w.style.display = 'none');
+    return;
+  }
+  
+  // Если триал - показываем водяные знаки
+  const trialEnd = currentProfile.trial_ends_at ? new Date(currentProfile.trial_ends_at) : null;
+  if (!trialEnd) return;
+  
+  const dateStr = trialEnd.toLocaleDateString('ru-RU');
+  const watermarkText = `ПРОБНАЯ ВЕРСИЯ ДО ${dateStr}`;
+  
+  document.querySelectorAll('.trial-watermark').forEach(w => {
+    w.textContent = watermarkText;
+    w.style.display = 'block';
+  });
+}
+function prepKP() {
+  showTrialWatermark();
+  const tb = q('#pdfKPTBody');
+  if (!tb) return;
+  tb.innerHTML = '';
+  
+  qa('#kpTable tbody tr').forEach(tr => {
+    const t = tr.children[0].textContent.trim();
+    const d = tr.children[1].textContent.trim();
+    const p = tr.children[2].textContent.trim();
+    const r = document.createElement('tr');
+    r.innerHTML = `<td style="width:25%">${t}</td><td style="width:50%">${d || '—'}</td><td style="width:25%">${p}</td>`;
+    tb.appendChild(r);
+  });
+  
+  q('#pdfKPTotal').textContent = q('#kpTotal')?.textContent || '0,00';
+  
+  const br = q('#brandManual').classList.contains('invis') ? q('#brand').value : q('#brandManual').value;
+  const md = q('#modelManual').classList.contains('invis') ? q('#model').value : q('#modelManual').value;
+  const yr = q('#year').value || '—';
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('ru-RU');
+  const timeStr = now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+const payMode = q('input[name=payMode]:checked')?.value;
+const payText = payMode === 'cash' ? 'Наличные' : payMode === 'card' ? 'Карта или ИП' : 'ООО';
+  
+  q('#pdfKPMeta').innerHTML = `Автомобиль: ${br || '—'} ${md || '—'} ${yr}<br>Дата: ${dateStr} ${timeStr}<br><b><i>Условия оплаты: ${payText}</i></b>`;
+}
+
+function prepCost() {
+  showTrialWatermark();
+  const tb = q('#pdfCostTBody');
+  if (!tb) return;
+  tb.innerHTML = '';
+  
+  qa('#costTable tbody tr').forEach(tr => {
+    const c = tr.children;
+    const r = document.createElement('tr');
+    r.innerHTML = `<td>${c[0].textContent.trim()}</td><td>${c[1].textContent.trim()}</td><td>${c[2].textContent.trim()}</td>`;
+    tb.appendChild(r);
+  });
+  
+  q('#pdfCM').textContent = q('#cMat')?.textContent || '0,00';
+  q('#pdfCO').textContent = q('#cMot')?.textContent || '0,00';
+  
+  const br = q('#brandManual').classList.contains('invis') ? q('#brand').value : q('#brandManual').value;
+  const md = q('#modelManual').classList.contains('invis') ? q('#model').value : q('#modelManual').value;
+  const yr = q('#year').value || '—';
+  
+  q('#pdfCostMeta').textContent = `Автомобиль: ${br || '—'} ${md || '—'} ${yr}`;
+}
+
+function prepExecutors() {
+  showTrialWatermark();
+  const tb = q('#pdfExecutorsTBody');
+  if (!tb) return;
+  tb.innerHTML = '';
+  
+  const now = new Date();
+  const todayStr = now.toISOString().split('T')[0]; // YYYY-MM-DD
+  
+  qa('#executorsContent .executor-row').forEach(row => {
+    const name = row.querySelector('.executor-row-header')?.textContent?.trim() || '';
+    
+    // Основной исполнитель
+    const baseId = row.getAttribute('data-exec-id');
+    if (baseId) {
+      const executor = row.querySelector(`#${baseId}name`)?.value || '';
+      const receive = row.querySelector(`#${baseId}receive`)?.value || todayStr;
+      const returnDate = row.querySelector(`#${baseId}return`)?.value || '';
+      const note = row.querySelector(`#${baseId}note`)?.value || '';
+      
+      if (executor) {
+        const r = document.createElement('tr');
+        r.innerHTML = `<td>${name}</td><td>${executor}</td><td>${receive}</td><td>${returnDate}</td><td>${note}</td>`;
+        tb.appendChild(r);
+      }
+    }
+    
+    // Дополнительные исполнители
+    const extraContainer = row.querySelector('.extra-executors');
+    if (extraContainer) {
+      extraContainer.querySelectorAll('.extra-executor-row').forEach(extraRow => {
+        const extraName = extraRow.querySelector('input[id*="name"]')?.value || '';
+        const extraReceive = extraRow.querySelector('input[id*="receive"]')?.value || todayStr;
+        const extraReturn = extraRow.querySelector('input[id*="return"]')?.value || '';
+        const extraNote = extraRow.querySelector('input[id*="note"]')?.value || '';
+        
+        if (extraName) {
+          const r = document.createElement('tr');
+          r.innerHTML = `<td>${name}</td><td>${extraName}</td><td>${extraReceive}</td><td>${extraReturn}</td><td>${extraNote}</td>`;
+          tb.appendChild(r);
+        }
+      });
+    }
+  });
+  
+  const br = q('#brandManual').classList.contains('invis') ? q('#brand').value : q('#brandManual').value;
+  const md = q('#modelManual').classList.contains('invis') ? q('#model').value : q('#modelManual').value;
+  const yr = q('#year').value || '—';
+  
+  q('#pdfExecutorsMeta').textContent = `Автомобиль: ${br || '—'} ${md || '—'} ${yr}`;
+}
+
+function prepExecutorsWithSalary() {
+  showTrialWatermark();
+  const tb = q('#pdfExecutorsWithSalaryTBody');
+  if (!tb) return;
+  tb.innerHTML = '';
+  
+  const now = new Date();
+  const todayStr = now.toISOString().split('T')[0];
+  
+  qa('#executorsContent .executor-row').forEach(row => {
+    const name = row.querySelector('.executor-row-header')?.textContent?.trim() || '';
+    
+    // Основной исполнитель
+    const baseId = row.getAttribute('data-exec-id');
+    if (baseId) {
+      const executor = row.querySelector(`#${baseId}name`)?.value || '';
+      const salary = row.querySelector(`#${baseId}salary`)?.value || '0';
+      const receive = row.querySelector(`#${baseId}receive`)?.value || todayStr;
+      const returnDate = row.querySelector(`#${baseId}return`)?.value || '';
+      const note = row.querySelector(`#${baseId}note`)?.value || '';
+      
+      if (executor) {
+        const r = document.createElement('tr');
+        r.innerHTML = `<td>${name}</td><td>${executor}</td><td>${fmt(parseFloat(salary))}</td><td>${receive}</td><td>${returnDate}</td><td>${note}</td>`;
+        tb.appendChild(r);
+      }
+    }
+    
+    // Дополнительные исполнители
+    const extraContainer = row.querySelector('.extra-executors');
+    if (extraContainer) {
+      extraContainer.querySelectorAll('.extra-executor-row').forEach(extraRow => {
+        const extraName = extraRow.querySelector('input[id*="name"]')?.value || '';
+        const extraSalary = extraRow.querySelector('input[id*="salary"]')?.value || '0';
+        const extraReceive = extraRow.querySelector('input[id*="receive"]')?.value || todayStr;
+        const extraReturn = extraRow.querySelector('input[id*="return"]')?.value || '';
+        const extraNote = extraRow.querySelector('input[id*="note"]')?.value || '';
+        
+        if (extraName) {
+          const r = document.createElement('tr');
+          r.innerHTML = `<td>${name}</td><td>${extraName}</td><td>${fmt(parseFloat(extraSalary))}</td><td>${extraReceive}</td><td>${extraReturn}</td><td>${extraNote}</td>`;
+          tb.appendChild(r);
+        }
+      });
+    }
+  });
+  
+  const br = q('#brandManual').classList.contains('invis') ? q('#brand').value : q('#brandManual').value;
+  const md = q('#modelManual').classList.contains('invis') ? q('#model').value : q('#modelManual').value;
+  const yr = q('#year').value || '—';
+  
+  q('#pdfExecutorsWithSalaryMeta').textContent = `Автомобиль: ${br || '—'} ${md || '—'} ${yr}`;
+}
+
+function setDefaultMarkups() {
+  ['#pkgMarkup', '#impactMarkup', '#armMarkup', '#wrapMarkup', '#detMarkup', '#glMarkup', '#miscMarkup'].forEach(id => {
+    const field = q(id);
+    if (field) field.value = 40;
+  });
+}
+
+function formatNumberInput(input) {
+  const val = parseFloat(input.value);
+  if (!isNaN(val) && val >= 0) {
+    input.value = val.toFixed(2);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+  const hasAccess = await checkAuth();
+  if (!hasAccess) return;
+  
+  const logoutBtn = q('#btn-logout');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', handleLogout);
+  }
+  
+  const isTelegram = window.TelegramWebviewProxy !== undefined || navigator.userAgent.includes('Telegram');
+  if (isTelegram) {
+    const warning = q('#telegramWarning');
+    if (warning) warning.style.display = 'block';
+  }
+  
+  initTheme();
+  initDiscounts();
+  initChart();
+  fillBrands();
+  
+  renderServiceList('#armContent', armServices, 'arm');
+  renderWrapContent();
+  renderPartialLists();
+  renderServiceList('#detContent', detailServices, 'det');
+  renderServiceList('#glContent', glassServices, 'gl');
+  renderServiceList('#miscContent', miscServices, 'misc');
+  initServiceToggles();
+  setDefaultMarkups();
+  
+  q('#brand')?.addEventListener('change', onBrandChange);
+  q('#model')?.addEventListener('change', onModelChange);
+  
+  q('#btnAddPkgCost')?.addEventListener('click', () => addCostRow('pkg'));
+  q('#btnAddImpactCost')?.addEventListener('click', () => addCostRow('impact'));
+  q('#btnAddArm')?.addEventListener('click', () => { addDynRow('#armDyn', 'arm'); initServiceToggles(); });
+  q('#btnAddArmCost')?.addEventListener('click', () => addCostRow('arm'));
+  q('#btnAddWrap')?.addEventListener('click', () => { addDynRow('#wrapDyn', 'wrap'); initServiceToggles(); });
+  q('#btnAddWrapCost')?.addEventListener('click', () => addCostRow('wrap'));
+  q('#btnAddDet')?.addEventListener('click', () => { addDynRow('#detDyn', 'det'); initServiceToggles(); });
+  q('#btnAddDetCost')?.addEventListener('click', () => addCostRow('det'));
+  q('#btnAddGl')?.addEventListener('click', () => { addDynRow('#glDyn', 'gl'); initServiceToggles(); });
+  q('#btnAddGlCost')?.addEventListener('click', () => addCostRow('gl'));
+  q('#btnAddMisc')?.addEventListener('click', () => { addDynRow('#miscDyn', 'misc'); initServiceToggles(); });
+  q('#btnAddMiscCost')?.addEventListener('click', () => addCostRow('misc'));
+  
+  qa('input[name=payMode]').forEach(r => r.addEventListener('change', renderAll));
+  
+  q('#btnRecalc')?.addEventListener('click', renderAll);
+  q('#btnReset')?.addEventListener('click', () => {
+    if (confirm('Вы уверены, что хотите сбросить все данные?')) location.reload();
+  });
+  
+document.addEventListener('input', e => {
+    if (e.target.id === 'year') {
+      formatYearInput(e.target);
+      renderAll();
+      return;
+    }
+    
+    if (e.target.matches('input[type="number"]')) {
+      let val = parseFloat(e.target.value);
+      if (!isNaN(val) && val < 0) {
+        e.target.value = '';
+      }
+    }
+    if (e.target.matches('input, select')) renderAll();
+  });
+  
+  document.addEventListener('blur', e => {
+    if (e.target.matches('input[type="number"]') && e.target.value !== '') {
+      formatNumberInput(e.target);
+      renderAll();
+    }
+  }, true);
+  
+qa('.chip').forEach(ch => {
+  ch.addEventListener('click', () => {
+    const sel = ch.getAttribute('data-markup-target');
+    const ppfIdx = ch.getAttribute('data-ppf-markup');
+    const pvcIdx = ch.getAttribute('data-pvc-markup');
+    
+    if (sel) {
+      const tgt = q(sel);
+      if (tgt) {
+        tgt.value = ch.textContent.trim();
+        renderAll();
+      }
+    } else if (ppfIdx !== null) {
+      const item = ch.closest('.service-item');
+      const inp = item.querySelector('.ppf-part-markup');
+      if (inp) {
+        inp.value = ch.textContent.trim();
+        renderAll();
+      }
+    } else if (pvcIdx !== null) {
+      const item = ch.closest('.service-item');
+      const inp = item.querySelector('.pvc-part-markup');
+      if (inp) {
+        inp.value = ch.textContent.trim();
+        renderAll();
+      }
+    }
+  });
+});
+  
+  q('#btnExportKP')?.addEventListener('click', () => {
+    prepKP();
+    setTimeout(() => exportPDF('#pdfKP', 'Коммерческое_предложение.pdf'), 100);
+  });
+  
+  q('#btnExportCost')?.addEventListener('click', () => {
+    prepCost();
+    setTimeout(() => exportPDF('#pdfCost', 'Себестоимость.pdf'), 100);
+  });
+  
+q('#btnExportExecutors')?.addEventListener('click', () => {
+    prepExecutors();
+    setTimeout(() => exportPDF('#pdfExecutors', 'Список_исполнителей.pdf'), 100);
+  });
+  
+  q('#btnExportExecutorsWithSalary')?.addEventListener('click', () => {
+    prepExecutorsWithSalary();
+    setTimeout(() => exportPDF('#pdfExecutorsWithSalary', 'Список_исполнителей_ЗП.pdf'), 100);
+  });
+  
+  renderAll();
+});
+
+})();
+</script>
