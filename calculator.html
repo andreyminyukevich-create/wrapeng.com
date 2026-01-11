@@ -1417,7 +1417,7 @@ tfoot th:first-child {
   </div>
   <div class="form-group">
   <label>Год:</label>
-<input type="text" id="year" placeholder="2025" maxlength="4" inputmode="numeric">
+<input type="text" id="year" placeholder="2026" value="2026" maxlength="4" inputmode="numeric">
   </div>
   </div>
   </div>
@@ -1559,6 +1559,12 @@ tfoot th:first-child {
   <div class="card-content collapsed" id="miscContent"></div>
   </div>
   <div class="card">
+  <h2>📊 Итоги по направлениям</h2>
+  <div class="card-content">
+  <div class="summary-cards" id="summaryContent"></div>
+  </div>
+  </div>
+  <div class="card">
   <h2>📄 Предпросмотр КП</h2>
   <div class="card-content">
   <div class="table-wrapper">
@@ -1596,18 +1602,6 @@ tfoot th:first-child {
   </div>
   </div>
   <div class="right-column">
-  <div class="card">
-  <h2>🎁 Скидки</h2>
-  <div class="card-content">
-  <div class="discount-grid">
-  <div class="discount-btn" data-discount="0">Без скидки</div>
-  <div class="discount-btn" data-discount="10">Дружеская 10%</div>
-</div>
-  <div style="margin-top:8px">
-  <input type="number" id="customDiscount" placeholder="Своя скидка %" min="0" max="100" step="0.01">
-  </div>
-  </div>
-  </div>
   <div class="card">
   <h2>💎 Итоги</h2>
   <div class="card-content">
@@ -3404,3 +3398,5 @@ q('#btnExportExecutors')?.addEventListener('click', () => {
 });
 })();
 </script>
+</body>
+</html>
