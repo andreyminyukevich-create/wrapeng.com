@@ -3663,12 +3663,39 @@ function exportPDF(blockId, filename) {
   const holder = q('#pdfTemplates');
   const block = q(blockId);
   const orig = holder.style.display;
+  
+  // Показываем блок
   holder.style.display = 'block';
   holder.style.position = 'absolute';
   holder.style.left = '-9999px';
   
+  // ВРЕМЕННО УМЕНЬШАЕМ ШРИФТ В ТАБЛИЦАХ
+  const tempStyle = document.createElement('style');
+  tempStyle.id = 'pdf-temp-style';
+  tempStyle.innerHTML = `
+    #pdfTemplates table td,
+    #pdfTemplates table th {
+      font-size: 6px !important;
+      padding: 3px 4px !important;
+      line-height: 1.2 !important;
+    }
+    #pdfTemplates table th {
+      font-size: 6px !important;
+    }
+    #pdfTemplates tfoot th {
+      font-size: 8px !important;
+      padding: 6px !important;
+    }
+  `;
+  document.head.appendChild(tempStyle);
+  
   setTimeout(() => {
-    html2canvas(block, { scale: 2, useCORS: true, backgroundColor: '#fff' }).then(canvas => {
+    html2canvas(block, { 
+      scale: 2.5, // Увеличил scale для четкости при мелком шрифте
+      useCORS: true, 
+      backgroundColor: '#fff',
+      logging: false
+    }).then(canvas => {
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
       const pw = pdf.internal.pageSize.getWidth();
       const ph = pdf.internal.pageSize.getHeight();
@@ -3685,31 +3712,13 @@ function exportPDF(blockId, filename) {
     }).catch(err => {
       alert('Ошибка создания PDF: ' + err.message);
     }).finally(() => {
+      // УБИРАЕМ ВРЕМЕННЫЕ СТИЛИ
+      const tempStyleEl = document.getElementById('pdf-temp-style');
+      if (tempStyleEl) tempStyleEl.remove();
       holder.style.display = orig;
     });
-  }, 200);
+  }, 300); // Увеличил задержку чтобы стили применились
 }
-
-function showTrialWatermark() {
-  if (!currentProfile) return;
-  
-  if (currentProfile.is_paid) {
-    document.querySelectorAll('.trial-watermark').forEach(w => w.style.display = 'none');
-    return;
-  }
-  
-  const trialEnd = currentProfile.trial_ends_at ? new Date(currentProfile.trial_ends_at) : null;
-  if (!trialEnd) return;
-  
-  const dateStr = trialEnd.toLocaleDateString('ru-RU');
-  const watermarkText = `ПРОБНАЯ ВЕРСИЯ ДО ${dateStr}`;
-  
-  document.querySelectorAll('.trial-watermark').forEach(w => {
-    w.textContent = watermarkText;
-    w.style.display = 'block';
-  });
-}
-
 function prepKP() {
   showTrialWatermark();
   const tb = q('#pdfKPTBody');
