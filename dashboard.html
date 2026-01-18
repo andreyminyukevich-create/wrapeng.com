@@ -325,7 +325,7 @@ body::before {
   </div>
   
   <div class="actions">
-    <a href="calc_optimized.html" class="btn btn-primary">➕ Новый расчет</a>
+    <a href="calculator.html" class="btn btn-primary">➕ Новый расчет</a>
     <button class="btn btn-secondary" onclick="loadCalculations()">🔄 Обновить</button>
   </div>
   
@@ -504,7 +504,7 @@ async function loadCalculations() {
 }
 
 function openCalculation(calcId) {
-  window.location.href = `calc_optimized.html?load=${calcId}`;
+  window.location.href = `calculator.html?load=${calcId}`;
 }
 
 async function deleteCalculation(calcId) {
