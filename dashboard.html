@@ -96,8 +96,20 @@ body::before {
 }
 
 .user-info {
-  text-align: right;
+  display: flex;
+  align-items: center;
+  gap: 16px;
   font-size: 0.9rem;
+}
+
+.user-info > div {
+  white-space: nowrap;
+}
+
+.top-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .btn {
@@ -278,6 +290,16 @@ body::before {
     text-align: center;
   }
   
+  .user-info {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .top-bar-right {
+    flex-direction: column;
+    width: 100%;
+  }
+  
   .actions {
     flex-direction: column;
   }
@@ -293,7 +315,7 @@ body::before {
 <div class="container">
   <div class="top-bar">
     <h1>📊 Дашборд</h1>
-    <div style="display:flex;align-items:center;gap:12px">
+    <div class="top-bar-right">
       <div class="user-info" id="userInfo"></div>
       <div class="theme-toggle" onclick="toggleTheme()">
         <span id="themeIcon">☀️</span>
@@ -303,7 +325,7 @@ body::before {
   </div>
   
   <div class="actions">
-    <a href="calc.html" class="btn btn-primary">➕ Новый расчет</a>
+    <a href="calc_optimized.html" class="btn btn-primary">➕ Новый расчет</a>
     <button class="btn btn-secondary" onclick="loadCalculations()">🔄 Обновить</button>
   </div>
   
@@ -389,8 +411,8 @@ function displayUserInfo() {
 
   userInfo.innerHTML = `
     <div style="font-weight:600">${currentProfile.studio_name || 'Студия'}</div>
-    <div style="font-size:0.85rem;color:var(--text-muted)">${currentUser.email}</div>
-    <div style="font-size:0.85rem;margin-top:4px">${statusText}</div>
+    <div style="color:var(--text-muted)">${currentUser.email}</div>
+    <div>${statusText}</div>
   `;
 }
 
@@ -482,7 +504,7 @@ async function loadCalculations() {
 }
 
 function openCalculation(calcId) {
-  window.location.href = `calc.html?load=${calcId}`;
+  window.location.href = `calc_optimized.html?load=${calcId}`;
 }
 
 async function deleteCalculation(calcId) {
