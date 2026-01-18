@@ -3648,7 +3648,28 @@ function handleCustomPrice(prefix) {
     requestRender();
   });
 }
+// ========================================
+// TRIAL WATERMARK
+// ========================================
 
+function showTrialWatermark() {
+  const watermarks = ['watermarkKP', 'watermarkCost', 'watermarkExecutors', 'watermarkExecutorsWithSalary'];
+  
+  if (!currentProfile || !currentProfile.is_paid) {
+    watermarks.forEach(id => {
+      const el = q(`#${id}`);
+      if (el) {
+        el.style.display = 'block';
+        el.textContent = 'ПРОБНАЯ ВЕРСИЯ';
+      }
+    });
+  } else {
+    watermarks.forEach(id => {
+      const el = q(`#${id}`);
+      if (el) el.style.display = 'none';
+    });
+  }
+}
 // ========================================
 // PDF EXPORT
 // ========================================
@@ -3657,11 +3678,21 @@ function exportPDF(blockId, filename) {
   const { jsPDF } = window.jspdf || {};
   if (!jsPDF || !window.html2canvas) {
     alert('Библиотеки PDF загружаются...');
+    console.error('jsPDF или html2canvas не загружены');
     return;
   }
   
   const holder = q('#pdfTemplates');
   const block = q(blockId);
+
+  if (!holder || !block) {
+    console.error('Не найден holder или block:', blockId);
+    alert('Ошибка: не найден элемент для экспорта');
+    return;
+  }
+  
+  console.log('Начинаем экспорт PDF:', filename);
+  
   const orig = holder.style.display;
   
   // Показываем блок
