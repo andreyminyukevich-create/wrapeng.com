@@ -1,447 +1,564 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard - Калькулятор оклейки</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: 'Inter', sans-serif;
-      background: #f5f5f7;
-      color: #333;
-    }
-    
-    .loading {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.5rem;
-      color: #667eea;
-    }
-    
-    .app { display: none; }
-    .app.active { display: block; }
-    
-    .header {
-      background: white;
-      border-bottom: 1px solid #e5e5e5;
-      padding: 20px 40px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .header-left h1 {
-      font-size: 1.5rem;
-      color: #667eea;
-      margin-bottom: 4px;
-    }
-    .header-left p {
-      color: #666;
-      font-size: 0.9rem;
-    }
-    .header-right {
-      display: flex;
-      align-items: center;
-      gap: 20px;
-    }
-    .user-email {
-      color: #666;
-      font-size: 0.9rem;
-    }
-    .btn-logout {
-      padding: 10px 20px;
-      background: #ef4444;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 600;
-      transition: all 0.3s;
-    }
-    .btn-logout:hover {
-      background: #dc2626;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Дашборд</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
-    .trial-banner {
-      background: linear-gradient(135deg, #fef3c7, #fde68a);
-      border: 2px solid #fbbf24;
-      color: #92400e;
-      padding: 16px;
-      text-align: center;
-      font-weight: 600;
-      font-size: 1rem;
-    }
+:root {
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-tertiary: #334155;
+  --card: rgba(255, 255, 255, 0.05);
+  --card-hover: rgba(255, 255, 255, 0.08);
+  --text: #f1f5f9;
+  --text-muted: #94a3b8;
+  --border: rgba(148, 163, 184, 0.1);
+  --border-hover: rgba(148, 163, 184, 0.2);
+  --primary: #3b82f6;
+  --primary-dark: #2563eb;
+  --success: #10b981;
+  --danger: #ef4444;
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.15);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
 
-    .main {
-      max-width: 1200px;
-      margin: 40px auto;
-      padding: 0 20px;
-    }
+[data-theme="light"] {
+  --bg-primary: #f8fafc;
+  --bg-secondary: #f1f5f9;
+  --bg-tertiary: #e2e8f0;
+  --card: rgba(255, 255, 255, 0.9);
+  --card-hover: rgba(255, 255, 255, 1);
+  --text: #0f172a;
+  --text-muted: #475569;
+  --border: rgba(15, 23, 42, 0.08);
+  --border-hover: rgba(15, 23, 42, 0.15);
+}
 
-    .cards-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 24px;
-    }
-    .card {
-      background: white;
-      border-radius: 16px;
-      padding: 32px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-      transition: all 0.3s;
-      text-align: center;
-    }
-    .card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-    }
-    .card-icon {
-      font-size: 3rem;
-      margin-bottom: 16px;
-    }
-    .card h2 {
-      font-size: 1.3rem;
-      margin-bottom: 8px;
-      color: #333;
-    }
-    .card p {
-      color: #666;
-      margin-bottom: 24px;
-      font-size: 0.95rem;
-    }
-    .btn-primary {
-      width: 100%;
-      padding: 14px;
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      color: white;
-      border: none;
-      border-radius: 10px;
-      font-weight: 600;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: all 0.3s;
-    }
-    .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-    }
-    .btn-secondary {
-      width: 100%;
-      padding: 14px;
-      background: white;
-      color: #667eea;
-      border: 2px solid #667eea;
-      border-radius: 10px;
-      font-weight: 600;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: all 0.3s;
-      margin-top: 8px;
-    }
-    .btn-secondary:hover {
-      background: #f0f4ff;
-    }
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 
-    .card-disabled {
-      opacity: 0.5;
-      pointer-events: none;
-      position: relative;
-    }
-    .card-disabled::after {
-      content: '🔒 Доступно после оплаты';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: rgba(0,0,0,0.8);
-      color: white;
-      padding: 12px 20px;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 0.9rem;
-      white-space: nowrap;
-    }
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text);
+  line-height: 1.6;
+  transition: background-color 0.3s ease;
+  min-height: 100vh;
+}
 
-    .referral-input {
-      width: 100%;
-      padding: 12px;
-      border: 2px solid #e5e5e5;
-      border-radius: 8px;
-      margin-bottom: 12px;
-      font-family: 'Inter', sans-serif;
-      font-size: 0.9rem;
-      text-align: center;
-      background: #f9fafb;
-    }
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(16, 185, 129, 0.15) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
 
-    .modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.7);
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-    }
-    .modal.active {
-      display: flex;
-    }
-    .modal-content {
-      background: white;
-      border-radius: 20px;
-      padding: 40px;
-      max-width: 500px;
-      text-align: center;
-    }
-    .modal-content h2 {
-      font-size: 1.8rem;
-      margin-bottom: 16px;
-      color: #333;
-    }
-    .modal-content p {
-      color: #666;
-      margin-bottom: 32px;
-      line-height: 1.6;
-    }
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  position: relative;
+  z-index: 1;
+}
 
-    @media (max-width: 768px) {
-      .header {
-        padding: 16px 20px;
-        flex-direction: column;
-        gap: 12px;
-      }
-      .header-right {
-        width: 100%;
-        justify-content: space-between;
-      }
-    }
-  </style>
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
+  padding: 20px;
+  background: var(--card);
+  backdrop-filter: blur(20px);
+  border-radius: 16px;
+  border: 1px solid var(--border);
+}
+
+.top-bar h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--primary), var(--success));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.user-info {
+  text-align: right;
+  font-size: 0.9rem;
+}
+
+.btn {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: #fff;
+  box-shadow: var(--shadow-md);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.btn-secondary {
+  background: var(--bg-secondary);
+  color: var(--text);
+  border: 2px solid var(--border);
+}
+
+.btn-secondary:hover {
+  background: var(--bg-tertiary);
+  border-color: var(--border-hover);
+}
+
+.btn-danger {
+  background: var(--danger);
+  color: #fff;
+}
+
+.btn-danger:hover {
+  background: #dc2626;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 30px;
+}
+
+.card {
+  background: var(--card);
+  backdrop-filter: blur(20px);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 20px;
+  border: 1px solid var(--border);
+  transition: all 0.3s;
+}
+
+.card:hover {
+  border-color: var(--border-hover);
+  box-shadow: var(--shadow-md);
+}
+
+.card h2 {
+  font-size: 1.2rem;
+  margin-bottom: 20px;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.card h2::before {
+  content: '';
+  width: 4px;
+  height: 24px;
+  background: linear-gradient(180deg, var(--primary), var(--success));
+  border-radius: 4px;
+}
+
+.calculations-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.calc-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  transition: all 0.3s;
+  position: relative;
+}
+
+.calc-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--border-hover);
+}
+
+.calc-card h3 {
+  font-size: 1.1rem;
+  margin-bottom: 12px;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.calc-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.calc-price {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--success);
+  margin-bottom: 16px;
+}
+
+.calc-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.calc-actions .btn {
+  flex: 1;
+  justify-content: center;
+  font-size: 0.85rem;
+  padding: 10px 16px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-muted);
+}
+
+.empty-state-icon {
+  font-size: 4rem;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.loading {
+  text-align: center;
+  padding: 40px;
+  color: var(--text-muted);
+}
+
+.theme-toggle {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 1.2rem;
+  transition: all 0.3s;
+}
+
+.theme-toggle:hover {
+  background: var(--bg-tertiary);
+}
+
+@media (max-width: 768px) {
+  .top-bar {
+    flex-direction: column;
+    gap: 16px;
+    text-align: center;
+  }
+  
+  .actions {
+    flex-direction: column;
+  }
+  
+  .calculations-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
 </head>
 <body>
 
-  <div class="loading" id="loading">Загрузка...</div>
-
-  <div class="app" id="app">
-    <header class="header">
-      <div class="header-left">
-        <h1>🔧 Dashboard</h1>
-        <p id="studioName">Загрузка...</p>
+<div class="container">
+  <div class="top-bar">
+    <h1>📊 Дашборд</h1>
+    <div style="display:flex;align-items:center;gap:12px">
+      <div class="user-info" id="userInfo"></div>
+      <div class="theme-toggle" onclick="toggleTheme()">
+        <span id="themeIcon">☀️</span>
       </div>
-      <div class="header-right">
-        <span class="user-email" id="userEmail">user@email.com</span>
-        <button class="btn-logout" id="logoutBtn">Выход</button>
-      </div>
-    </header>
-
-    <div id="trialBanner" class="trial-banner" style="display: none;">
-      <span id="trialText">⏰ Пробный период: осталось X дней</span>
-    </div>
-
-    <main class="main">
-      <div class="cards-grid">
-        
-        <div class="card" id="calculatorCard">
-          <div class="card-icon">🧮</div>
-          <h2>Калькулятор</h2>
-          <p>Создать новый расчёт стоимости работ</p>
-          <button class="btn-primary" onclick="openCalculator()">Открыть калькулятор</button>
-        </div>
-
-        <div class="card" id="calculationsCard">
-          <div class="card-icon">📊</div>
-          <h2>Мои расчёты</h2>
-          <p>Последние 100 сохранённых расчётов</p>
-          <button class="btn-primary" onclick="openMyCalculations()">Посмотреть расчёты</button>
-        </div>
-
-        <div class="card">
-          <div class="card-icon">🔗</div>
-          <h2>Посоветовать</h2>
-          <p id="referralCount">Приглашено: <span id="referralCountValue">0</span> человек</p>
-          <input type="text" id="referralLink" readonly class="referral-input">
-          <button class="btn-primary" onclick="copyReferralLink()">📋 Скопировать ссылку</button>
-          <button class="btn-secondary" onclick="openReferrals()">👥 Посмотреть список</button>
-        </div>
-
-        <div class="card" id="analyticsCard">
-          <div class="card-icon">📈</div>
-          <h2>Аналитика</h2>
-          <p>Прибыль, расходы, ЗП сотрудников</p>
-          <button class="btn-primary" onclick="openAnalytics()">Открыть аналитику</button>
-        </div>
-
-      </div>
-    </main>
-
-    <div id="paymentModal" class="modal">
-      <div class="modal-content">
-        <h2>⚠️ Пробный период закончился</h2>
-        <p>Оплатите доступ на лендинге, после этого мы активируем ваш аккаунт.</p>
-        <button class="btn-primary" onclick="window.open('https://your-landing.com', '_blank')" style="margin-bottom: 12px;">
-          Перейти к оплате
-        </button>
-        <button class="btn-secondary" onclick="closePaymentModal()">Закрыть</button>
-      </div>
+      <button class="btn btn-danger" onclick="logout()">Выход</button>
     </div>
   </div>
+  
+  <div class="actions">
+    <a href="calc.html" class="btn btn-primary">➕ Новый расчет</a>
+    <button class="btn btn-secondary" onclick="loadCalculations()">🔄 Обновить</button>
+  </div>
+  
+  <div class="card">
+    <h2>💼 Мои расчеты</h2>
+    <div id="calculationsContainer" class="loading">Загрузка...</div>
+  </div>
+</div>
 
-  <script>
-// ============================================
-// ВСТРОЕННЫЙ КОД ИЗ SHARED.JS
-// ============================================
-
+<script>
 const SUPABASE_URL = 'https://hdghijgrrnzmntistdvw.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkZ2hpamdycm56bW50aXN0ZHZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMzMyNzksImV4cCI6MjA3NTYwOTI3OX0.D9EDTmVrFRVp0B8_5tCJM29gbFdtadsom0Ihsf4uQ8Q';
 
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    storage: window.localStorage
-  }
-});
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+let currentUser = null;
 let currentProfile = null;
 
-// ============================================
-// DASHBOARD КОД
-// ============================================
+// ========================================
+// AUTH
+// ========================================
 
-async function init() {
-  console.log('Dashboard init...');
-  
-  const { data: { session } } = await sb.auth.getSession();
-  console.log('Session:', session);
-  
-  if (!session) {
-    console.log('No session');
-    alert('Сессия не найдена! Перенаправление на страницу входа...');
-    window.location.replace('welcome.html');
-    return;
-  }
-
-  const user = session.user;
-  console.log('User:', user);
-  
-  const { data: profile, error } = await sb.from('profiles').select('*').eq('id', user.id).single();
-  console.log('Profile:', profile, 'Error:', error);
-  
-  if (error || !profile) {
-    console.error('Profile error:', error);
-    alert('Профиль не найден! Перенаправление на страницу входа...');
-    window.location.replace('welcome.html');
-    return;
-  }
-
-  currentProfile = profile;
-
-  document.getElementById('userEmail').textContent = user.email;
-  document.getElementById('studioName').textContent = profile.studio_name || 'Моя студия';
-
-  checkTrialStatus(profile);
-
-  const refLink = `${window.location.origin}/?ref=${profile.referral_code}`;
-  document.getElementById('referralLink').value = refLink;
-
-  // Подсчёт рефералов
-  const { data: referrals, error: refError } = await sb
-    .from('profiles')
-    .select('id')
-    .eq('referred_by', user.id);
-  
-  const refCount = referrals ? referrals.length : 0;
-  document.getElementById('referralCountValue').textContent = refCount;
-
-  document.getElementById('logoutBtn').addEventListener('click', async () => {
-    await sb.auth.signOut();
-    window.location.replace('welcome.html');
-  });
-
-  document.getElementById('loading').style.display = 'none';
-  document.getElementById('app').classList.add('active');
-}
-
-function checkTrialStatus(profile) {
-  if (profile.is_paid) {
-    return;
-  }
-
-  const now = new Date();
-  const trialEnds = profile.trial_ends_at ? new Date(profile.trial_ends_at) : null;
-
-  if (!trialEnds) {
-    showPaymentModal();
-    return;
-  }
-
-  const daysLeft = Math.ceil((trialEnds - now) / (1000 * 60 * 60 * 24));
-
-  if (daysLeft <= 0) {
-    showPaymentModal();
-  } else {
-    const banner = document.getElementById('trialBanner');
-    banner.style.display = 'block';
-    document.getElementById('trialText').textContent = 
-      `⏰ Пробный период: осталось ${daysLeft} ${getDaysWord(daysLeft)}`;
-    
-    document.getElementById('calculationsCard').classList.add('card-disabled');
-    document.getElementById('analyticsCard').classList.add('card-disabled');
-  }
-}
-
-function getDaysWord(days) {
-  if (days === 1) return 'день';
-  if (days >= 2 && days <= 4) return 'дня';
-  return 'дней';
-}
-
-function showPaymentModal() {
-  document.getElementById('paymentModal').classList.add('active');
-  document.getElementById('calculatorCard').classList.add('card-disabled');
-  document.getElementById('calculationsCard').classList.add('card-disabled');
-  document.getElementById('analyticsCard').classList.add('card-disabled');
-}
-
-function closePaymentModal() {
-  document.getElementById('paymentModal').classList.remove('active');
-}
-
-function openCalculator() {
-  window.location.href = 'calculator.html';
-}
-
-function openMyCalculations() {
-  window.location.href = 'my-calculations.html';
-}
-
-function openAnalytics() {
-  window.location.href = 'analytics.html';
-}
-
-function openReferrals() {
-  window.location.href = 'referrals.html';
-}
-
-async function copyReferralLink() {
-  const input = document.getElementById('referralLink');
+async function checkAuth() {
   try {
-    await navigator.clipboard.writeText(input.value);
-    alert('✅ Ссылка скопирована!');
-  } catch (err) {
-    input.select();
-    document.execCommand('copy');
-    alert('✅ Ссылка скопирована!');
+    const { data: { session }, error } = await sb.auth.getSession();
+    
+    if (error || !session) {
+      window.location.href = 'welcome.html';
+      return false;
+    }
+
+    currentUser = session.user;
+    
+    const { data: profile, error: profileError } = await sb
+      .from('profiles')
+      .select('*')
+      .eq('id', currentUser.id)
+      .single();
+    
+    if (profileError || !profile) {
+      console.error('Profile error:', profileError);
+      await sb.auth.signOut();
+      window.location.href = 'welcome.html';
+      return false;
+    }
+
+    currentProfile = profile;
+
+    if (!profile.is_paid) {
+      const now = new Date();
+      const trialEnds = profile.trial_ends_at ? new Date(profile.trial_ends_at) : null;
+      
+      if (!trialEnds || trialEnds <= now) {
+        alert('⚠️ Пробный период истёк. Оплатите доступ.');
+        await sb.auth.signOut();
+        window.location.href = 'welcome.html';
+        return false;
+      }
+    }
+
+    displayUserInfo();
+    return true;
+  } catch (e) {
+    console.error('Auth check error:', e);
+    window.location.href = 'welcome.html';
+    return false;
   }
 }
 
-init();
-  </script>
+function displayUserInfo() {
+  const userInfo = document.getElementById('userInfo');
+  if (!userInfo || !currentProfile) return;
+
+  let statusText = '';
+  if (currentProfile.is_paid) {
+    statusText = '✅ Оплачен';
+  } else if (currentProfile.trial_ends_at) {
+    const now = new Date();
+    const end = new Date(currentProfile.trial_ends_at);
+    const hours = Math.floor((end - now) / (1000 * 60 * 60));
+    statusText = hours > 0 ? `🕐 Триал: ${hours}ч` : '⚠️ Истёк';
+  }
+
+  userInfo.innerHTML = `
+    <div style="font-weight:600">${currentProfile.studio_name || 'Студия'}</div>
+    <div style="font-size:0.85rem;color:var(--text-muted)">${currentUser.email}</div>
+    <div style="font-size:0.85rem;margin-top:4px">${statusText}</div>
+  `;
+}
+
+async function logout() {
+  if (confirm('Выйти из аккаунта?')) {
+    await sb.auth.signOut();
+    localStorage.clear();
+    sessionStorage.clear();
+    window.location.href = 'welcome.html';
+  }
+}
+
+// ========================================
+// CALCULATIONS
+// ========================================
+
+async function loadCalculations() {
+  const container = document.getElementById('calculationsContainer');
+  container.innerHTML = '<div class="loading">Загрузка...</div>';
+  
+  try {
+    const { data, error } = await sb
+      .from('calculations')
+      .select('*')
+      .eq('user_id', currentUser.id)
+      .order('updated_at', { ascending: false });
+    
+    if (error) {
+      console.error('Error loading calculations:', error);
+      container.innerHTML = '<div class="empty-state">❌ Ошибка загрузки</div>';
+      return;
+    }
+    
+    if (!data || data.length === 0) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon">📭</div>
+          <h3>Нет сохраненных расчетов</h3>
+          <p style="margin-top:8px">Создайте новый расчет чтобы он появился здесь</p>
+        </div>
+      `;
+      return;
+    }
+    
+    const grid = document.createElement('div');
+    grid.className = 'calculations-grid';
+    
+    data.forEach(calc => {
+      const card = document.createElement('div');
+      card.className = 'calc-card';
+      
+      const updatedDate = new Date(calc.updated_at);
+      const dateStr = updatedDate.toLocaleDateString('ru-RU', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+      });
+      const timeStr = updatedDate.toLocaleTimeString('ru-RU', {
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      
+      card.innerHTML = `
+        <h3>${calc.car_name || 'Без названия'}</h3>
+        <div class="calc-info">
+          <div>📅 ${dateStr} в ${timeStr}</div>
+        </div>
+        <div class="calc-price">${formatPrice(calc.total_price)}</div>
+        <div class="calc-actions">
+          <button class="btn btn-primary" onclick="openCalculation('${calc.id}')">
+            📂 Открыть
+          </button>
+          <button class="btn btn-danger" onclick="deleteCalculation('${calc.id}')">
+            🗑️
+          </button>
+        </div>
+      `;
+      
+      grid.appendChild(card);
+    });
+    
+    container.innerHTML = '';
+    container.appendChild(grid);
+    
+  } catch (e) {
+    console.error('Error:', e);
+    container.innerHTML = '<div class="empty-state">❌ Ошибка загрузки</div>';
+  }
+}
+
+function openCalculation(calcId) {
+  window.location.href = `calc.html?load=${calcId}`;
+}
+
+async function deleteCalculation(calcId) {
+  if (!confirm('Удалить этот расчет?')) return;
+  
+  try {
+    const { error } = await sb
+      .from('calculations')
+      .delete()
+      .eq('id', calcId)
+      .eq('user_id', currentUser.id);
+    
+    if (error) {
+      console.error('Delete error:', error);
+      alert('Ошибка удаления');
+      return;
+    }
+    
+    loadCalculations();
+  } catch (e) {
+    console.error('Error:', e);
+    alert('Ошибка удаления');
+  }
+}
+
+function formatPrice(price) {
+  return parseFloat(price || 0).toLocaleString('ru-RU', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+}
+
+// ========================================
+// THEME
+// ========================================
+
+function toggleTheme() {
+  const body = document.body;
+  const icon = document.getElementById('themeIcon');
+  const currentTheme = body.getAttribute('data-theme');
+  
+  if (currentTheme === 'light') {
+    body.removeAttribute('data-theme');
+    icon.textContent = '☀️';
+    localStorage.setItem('theme', 'dark');
+  } else {
+    body.setAttribute('data-theme', 'light');
+    icon.textContent = '🌙';
+    localStorage.setItem('theme', 'light');
+  }
+}
+
+function initTheme() {
+  const saved = localStorage.getItem('theme');
+  const icon = document.getElementById('themeIcon');
+  
+  if (saved === 'light') {
+    document.body.setAttribute('data-theme', 'light');
+    icon.textContent = '🌙';
+  } else {
+    icon.textContent = '☀️';
+  }
+}
+
+// ========================================
+// INIT
+// ========================================
+
+document.addEventListener('DOMContentLoaded', async () => {
+  const hasAccess = await checkAuth();
+  if (!hasAccess) return;
+  
+  initTheme();
+  loadCalculations();
+});
+</script>
+
 </body>
 </html>
