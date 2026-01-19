@@ -2133,7 +2133,13 @@ async function checkAuth() {
     return false;
   }
 }
-
+function getLocalDateISO() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
 function displayUserInfo() {
   const userInfo = q('#user-info');
   
@@ -3674,7 +3680,7 @@ function showTrialWatermark() {
 // PDF EXPORT
 // ========================================
 
-function exportPDF(blockId, filename) {
+async function exportPDF(blockId, filename) {
   const { jsPDF } = window.jspdf || {};
   if (!jsPDF || !window.html2canvas) {
     alert('Библиотеки PDF загружаются...');
@@ -3720,14 +3726,19 @@ function exportPDF(blockId, filename) {
   `;
   document.head.appendChild(tempStyle);
   
-  setTimeout(() => {
-    html2canvas(block, { 
+try {
+    // Ждём загрузки шрифтов
+    await document.fonts.ready;
+    await new Promise(resolve => requestAnimationFrame(resolve));
+    
+    const canvas = await html2canvas(block, {
       scale: 2.5, // Увеличил scale для четкости при мелком шрифте
       useCORS: true, 
       backgroundColor: '#fff',
       logging: false
-    }).then(canvas => {
-      const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
+);
+    
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
       const pw = pdf.internal.pageSize.getWidth();
       const ph = pdf.internal.pageSize.getHeight();
       const iw = canvas.width;
@@ -3738,17 +3749,39 @@ function exportPDF(blockId, filename) {
       const x = (pw - sw) / 2;
       const y = 20;
       
-      pdf.addImage(canvas.toDataURL('image/png'), 'PNG', x, y, sw, Math.min(sh, ph - 40));
+      // Размеры для нарезки на страницы
+const pageWidth = pdf.internal.pageSize.getWidth();
+const pageHeight = pdf.internal.pageSize.getHeight();
+const margin = 20;
+const contentHeight = pageHeight - (margin * 2);
+
+const imgWidth = sw;
+const imgHeight = sh;
+
+let heightLeft = imgHeight;
+let position = y;
+
+// Первая страница
+pdf.addImage(canvas.toDataURL('image/png'), 'PNG', x, position, imgWidth, imgHeight);
+heightLeft -= contentHeight;
+
+// Остальные страницы
+while (heightLeft > 0) {
+  position = -(imgHeight - heightLeft) + margin;
+  pdf.addPage();
+  pdf.addImage(canvas.toDataURL('image/png'), 'PNG', x, position, imgWidth, imgHeight);
+  heightLeft -= contentHeight;
+}
       pdf.save(filename);
-    }).catch(err => {
-      alert('Ошибка создания PDF: ' + err.message);
-    }).finally(() => {
+    } catch (err) {
+    console.error('Ошибка создания PDF:', err);
+    alert('Ошибка создания PDF: ' + err.message);
+  } finally {
       // УБИРАЕМ ВРЕМЕННЫЕ СТИЛИ
       const tempStyleEl = document.getElementById('pdf-temp-style');
       if (tempStyleEl) tempStyleEl.remove();
       holder.style.display = orig;
-    });
-  }, 300); // Увеличил задержку чтобы стили применились
+  }
 }
 function prepKP() {
   showTrialWatermark();
@@ -3776,7 +3809,27 @@ function prepKP() {
   const payMode = q('input[name=payMode]:checked')?.value;
   const payText = payMode === 'cash' ? 'Наличные' : payMode === 'card' ? 'Карта или ИП' : 'ООО';
   
-  q('#pdfKPMeta').innerHTML = `Автомобиль: ${br || '—'} ${md || '—'} ${yr}<br>Дата: ${dateStr} ${timeStr}<br><b><i>Условия оплаты: ${payText}</i></b>`;
+  const metaEl = q('#pdfKPMeta');
+if (metaEl) {
+  metaEl.textContent = ''; // очищаем
+  
+  // Строка 1: Автомобиль
+  const line1 = document.createTextNode(`Автомобиль: ${br || '—'} ${md || '—'} ${yr}`);
+  metaEl.appendChild(line1);
+  metaEl.appendChild(document.createElement('br'));
+  
+  // Строка 2: Дата
+  const line2 = document.createTextNode(`Дата: ${dateStr} ${timeStr}`);
+  metaEl.appendChild(line2);
+  metaEl.appendChild(document.createElement('br'));
+  
+  // Строка 3: Условия (жирный + курсив)
+  const boldItalic = document.createElement('b');
+  const italic = document.createElement('i');
+  italic.textContent = `Условия оплаты: ${payText}`;
+  boldItalic.appendChild(italic);
+  metaEl.appendChild(boldItalic);
+}
 }
 
 function prepCost() {
@@ -3808,8 +3861,7 @@ function prepExecutors() {
   if (!tb) return;
   tb.innerHTML = '';
   
-  const now = new Date();
-  const todayStr = now.toISOString().split('T')[0];
+const todayStr = getLocalDateISO();
   
   qa('#executorsContent .executor-row').forEach(row => {
     const name = row.querySelector('.executor-row-header')?.textContent?.trim() || '';
@@ -3858,8 +3910,7 @@ function prepExecutorsWithSalary() {
   if (!tb) return;
   tb.innerHTML = '';
   
-  const now = new Date();
-  const todayStr = now.toISOString().split('T')[0];
+const todayStr = getLocalDateISO();
   
   qa('#executorsContent .executor-row').forEach(row => {
     const name = row.querySelector('.executor-row-header')?.textContent?.trim() || '';
