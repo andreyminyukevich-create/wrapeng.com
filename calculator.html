@@ -1612,6 +1612,41 @@ tfoot th:first-child {
           <select id="brand">
             <option value="">Выберите бренд</option>
             <option value="manual">Ввести вручную</option>
+            <option value="Audi">Audi</option>
+            <option value="BMW">BMW</option>
+            <option value="Buick">Buick</option>
+            <option value="BYD">BYD</option>
+            <option value="Cadillac">Cadillac</option>
+            <option value="Changan">Changan</option>
+            <option value="Chery">Chery</option>
+            <option value="Chevrolet">Chevrolet</option>
+            <option value="Chrysler">Chrysler</option>
+            <option value="Dodge">Dodge</option>
+            <option value="Fisker">Fisker</option>
+            <option value="Ford">Ford</option>
+            <option value="Geely">Geely</option>
+            <option value="GMC">GMC</option>
+            <option value="Haval">Haval</option>
+            <option value="Honda">Honda</option>
+            <option value="Hummer">Hummer</option>
+            <option value="Hyundai">Hyundai</option>
+            <option value="Jeep">Jeep</option>
+            <option value="Kia">Kia</option>
+            <option value="Lincoln">Lincoln</option>
+            <option value="Lixiang">Lixiang</option>
+            <option value="Lucid">Lucid</option>
+            <option value="Mazda">Mazda</option>
+            <option value="Mercedes-Benz">Mercedes-Benz</option>
+            <option value="Nissan">Nissan</option>
+            <option value="Omoda">Omoda</option>
+            <option value="Ram">Ram</option>
+            <option value="Rivian">Rivian</option>
+            <option value="Tank">Tank</option>
+            <option value="Tesla">Tesla</option>
+            <option value="Toyota">Toyota</option>
+            <option value="Volkswagen">Volkswagen</option>
+            <option value="Voyah">Voyah</option>
+            <option value="Zeekr">Zeekr</option>
           </select>
           <input type="text" id="brandManual" placeholder="Введите бренд" class="invis">
         </div>
@@ -1625,7 +1660,7 @@ tfoot th:first-child {
         </div>
         <div class="form-group">
           <label>Год:</label>
-<input type="text" id="year" placeholder="2025" maxlength="4" inputmode="numeric">
+<input type="text" id="year" placeholder="2026" maxlength="4" inputmode="numeric">
         </div>
       </div>
     </div>
@@ -2137,6 +2172,17 @@ window.toggleTheme = function() {
 
 function fillBrands() {
   const s = q('#brand');
+  
+  // Если бренды уже есть в HTML - не трогаем
+  if (s.options.length > 2) {
+    const yearInput = q('#year');
+    if (yearInput && !yearInput.value) {
+      yearInput.value = '2026';
+    }
+    return;
+  }
+  
+  // Если по какой-то причине список пустой - заполняем из carDB
   s.innerHTML = '<option value="">Выберите бренд</option><option value="manual">Ввести вручную</option>';
   Object.keys(carDB).sort().forEach(b => {
     const o = document.createElement('option');
