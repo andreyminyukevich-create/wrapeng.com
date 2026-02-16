@@ -444,11 +444,36 @@ async function loadCalculations() {
   container.innerHTML = '<div class="loading">Загрузка...</div>';
   
   try {
-    const { data, error } = await sb
+    // Получаем studio_id текущего пользователя
+    const { data: memberData, error: memberError } = await sb
+      .from('studio_members')
+      .select('studio_id')
+      .eq('user_id', currentUser.id)
+      .eq('is_active', true)
+      .single();
+    
+    if (memberError || !memberData) {
+      console.error('No studio found:', memberError);
+      // Fallback - загружаем по user_id
+      var studioId = null;
+    } else {
+      var studioId = memberData.studio_id;
+    }
+    
+    // Загружаем расчёты
+    let query = sb
       .from('calculations')
       .select('*')
-      .eq('user_id', currentUser.id)
       .order('updated_at', { ascending: false });
+    
+    // Фильтруем по studio_id если есть, иначе по user_id
+    if (studioId) {
+      query = query.eq('studio_id', studioId);
+    } else {
+      query = query.eq('user_id', currentUser.id);
+    }
+    
+    const { data, error } = await query;
     
     if (error) {
       console.error('Error loading calculations:', error);
