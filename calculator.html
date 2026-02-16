@@ -1197,7 +1197,7 @@ tfoot th:first-child {
 
 .final-total {
   background: linear-gradient(135deg, var(--success), var(--success-dark));
-  color: #fff;
+  color: #fff !important;
   border: none;
   box-shadow: var(--shadow-md), var(--glow-success);
   position: relative;
@@ -1213,6 +1213,7 @@ tfoot th:first-child {
   height: 200%;
   background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
   animation: shine 3s infinite;
+  z-index: 1;
 }
 
 @keyframes shine {
@@ -1227,17 +1228,18 @@ tfoot th:first-child {
 }
 
 .final-total .total-value {
-  color: #fff;
+  color: #fff !important;
   font-size: 1.5rem;
   position: relative;
-  z-index: 10;
+  z-index: 100;
+  font-weight: 700;
 }
 
 .final-total .total-label {
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(255, 255, 255, 0.95) !important;
   font-weight: 700;
   position: relative;
-  z-index: 10;
+  z-index: 100;
 }
 
 .final-total:hover {
@@ -3833,6 +3835,11 @@ document.addEventListener('input', e => {
       renderAll();
       scheduleSave();
       return;
+    }
+    
+    // Если редактируют зарплату исполнителя - помечаем что было ручное изменение
+    if (e.target.id && e.target.id.includes('salary')) {
+      e.target.dataset.manuallySet = 'true';
     }
     
     if (e.target.matches('input[type="number"]')) {
