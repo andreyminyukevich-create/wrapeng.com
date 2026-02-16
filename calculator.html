@@ -1234,7 +1234,6 @@ tfoot th:first-child {
   position: relative;
   z-index: 100;
   font-weight: 700;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 0, 0, 0.6);
 }
 
 .final-total .total-label {
@@ -1242,7 +1241,6 @@ tfoot th:first-child {
   font-weight: 700;
   position: relative;
   z-index: 100;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 0, 0, 0.6);
 }
 
 .final-total:hover {
@@ -1250,23 +1248,6 @@ tfoot th:first-child {
   box-shadow: var(--shadow-lg), 0 0 40px rgba(16, 185, 129, 0.5);
 }
 
-.chart-container {
-  position: relative;
-  height: 200px;
-  margin-top: 16px;
-  padding: 16px;
-  background: var(--bg-secondary);
-  border-radius: 12px;
-  border: 1px solid var(--border);
-}
-
-@media (min-width: 768px) {
-  .chart-container {
-    height: 220px;
-  }
-}
-
-.export-buttons {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
@@ -1857,9 +1838,6 @@ tfoot th:first-child {
           <div class="total-item"><div class="total-label">Наценка</div><div class="total-value" id="grandMarkup">0,00</div></div>
           <div class="total-item"><div class="total-label">Налог</div><div class="total-value" id="grandTax">0,00</div></div>
           <div class="total-item final-total"><div class="total-label">ИТОГО К ОПЛАТЕ</div><div class="total-value" id="finalTotal">0,00</div></div>
-        </div>
-        <div class="chart-container">
-          <canvas id="pieChart"></canvas>
         </div>
       </div>
     </div>
@@ -4014,7 +3992,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   
   initTheme();
   initDiscounts();
-  initChart();
   fillBrands();
   
   renderServiceList('#armContent', armServices, 'arm');
