@@ -1233,6 +1233,7 @@ tfoot th:first-child {
   position: relative;
   z-index: 100;
   font-weight: 700;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .final-total .total-label {
@@ -1240,6 +1241,7 @@ tfoot th:first-child {
   font-weight: 700;
   position: relative;
   z-index: 100;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .final-total:hover {
@@ -2256,13 +2258,41 @@ async function saveCalculation() {
       calcData.studio_id = studioId;
     }
     
-    // Сохраняем в Supabase
-    const { data, error } = await sb
-      .from('calculations')
-      .upsert(calcData, {
-        onConflict: studioId ? 'studio_id,user_id' : 'user_id',
-        ignoreDuplicates: false
-      });
+    // Ищем существующий расчёт
+    let existingCalc = null;
+    if (studioId) {
+      const { data: found } = await sb
+        .from('calculations')
+        .select('id')
+        .eq('studio_id', studioId)
+        .eq('user_id', currentUser.id)
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      existingCalc = found;
+    } else {
+      const { data: found } = await sb
+        .from('calculations')
+        .select('id')
+        .eq('user_id', currentUser.id)
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      existingCalc = found;
+    }
+    
+    // Обновляем или создаём
+    let error;
+    if (existingCalc) {
+      ({ error } = await sb
+        .from('calculations')
+        .update(calcData)
+        .eq('id', existingCalc.id));
+    } else {
+      ({ error } = await sb
+        .from('calculations')
+        .insert(calcData));
+    }
     
     if (error) {
       console.error('Save error:', error);
@@ -2294,6 +2324,147 @@ function scheduleSave() {
 }
 
 // ========================================
+// ЗАГРУЗКА РАСЧЁТА ИЗ URL
+// ========================================
+
+async function loadCalculationFromUrl() {
+  // Получаем ID из URL параметров
+  const urlParams = new URLSearchParams(window.location.search);
+  const calcId = urlParams.get('load');
+  
+  if (!calcId) return; // Нет ID - ничего не делаем
+  
+  try {
+    console.log('Loading calculation:', calcId);
+    
+    // Загружаем расчёт из Supabase
+    const { data: calculation, error } = await sb
+      .from('calculations')
+      .select('*')
+      .eq('id', calcId)
+      .single();
+    
+    if (error || !calculation) {
+      console.error('Failed to load calculation:', error);
+      alert('❌ Не удалось загрузить расчёт');
+      return;
+    }
+    
+    console.log('Calculation loaded:', calculation);
+    
+    const formData = calculation.calculation_data;
+    if (!formData) return;
+    
+    // Заполняем автомобиль
+    if (formData.car) {
+      if (formData.car.brand) {
+        const brandSelect = q('#brand');
+        const brandManual = q('#brandManual');
+        if (brandSelect) brandSelect.value = formData.car.brand;
+        if (brandManual) brandManual.value = formData.car.brand;
+        // Загружаем модели для бренда
+        fillModels(formData.car.brand);
+      }
+      
+      setTimeout(() => {
+        if (formData.car.model) {
+          const modelSelect = q('#model');
+          const modelManual = q('#modelManual');
+          if (modelSelect) modelSelect.value = formData.car.model;
+          if (modelManual) modelManual.value = formData.car.model;
+        }
+        if (formData.car.year) {
+          const yearInput = q('#year');
+          if (yearInput) yearInput.value = formData.car.year;
+        }
+      }, 100);
+    }
+    
+    // Заполняем пакет "Полная защита"
+    if (formData.package) {
+      if (formData.package.wrapMat) q('#pkgWrapMat').value = formData.package.wrapMat;
+      if (formData.package.wrapMot) q('#pkgWrapMot').value = formData.package.wrapMot;
+      if (formData.package.prepMat) q('#pkgPrepMat').value = formData.package.prepMat;
+      if (formData.package.prepMot) q('#pkgPrepMot').value = formData.package.prepMot;
+      if (formData.package.armMat) q('#pkgArmMat').value = formData.package.armMat;
+      if (formData.package.armMot) q('#pkgArmMot').value = formData.package.armMot;
+      if (formData.package.markup) q('#pkgMarkup').value = formData.package.markup;
+      
+      // Доп затраты для пакета
+      if (formData.package.costs && formData.package.costs.length > 0) {
+        formData.package.costs.forEach(cost => {
+          addCostRow('pkg');
+          const rows = qa('#pkgCostsContent .cost-row');
+          const lastRow = rows[rows.length - 1];
+          if (lastRow) {
+            const nameInput = lastRow.querySelector('.pkg-cost-name');
+            const valInput = lastRow.querySelector('.pkg-cost-val');
+            if (nameInput) nameInput.value = cost.name || '';
+            if (valInput) valInput.value = cost.value || '';
+          }
+        });
+      }
+    }
+    
+    // Заполняем пакет "Защита ударной части"
+    if (formData.impact) {
+      if (formData.impact.wrapMat) q('#impactWrapMat').value = formData.impact.wrapMat;
+      if (formData.impact.wrapMot) q('#impactWrapMot').value = formData.impact.wrapMot;
+      if (formData.impact.prepMat) q('#impactPrepMat').value = formData.impact.prepMat;
+      if (formData.impact.prepMot) q('#impactPrepMot').value = formData.impact.prepMot;
+      if (formData.impact.armMat) q('#impactArmMat').value = formData.impact.armMat;
+      if (formData.impact.armMot) q('#impactArmMot').value = formData.impact.armMot;
+      if (formData.impact.markup) q('#impactMarkup').value = formData.impact.markup;
+      
+      // Доп затраты
+      if (formData.impact.costs && formData.impact.costs.length > 0) {
+        formData.impact.costs.forEach(cost => {
+          addCostRow('impact');
+          const rows = qa('#impactCostsContent .cost-row');
+          const lastRow = rows[rows.length - 1];
+          if (lastRow) {
+            const nameInput = lastRow.querySelector('.impact-cost-name');
+            const valInput = lastRow.querySelector('.impact-cost-val');
+            if (nameInput) nameInput.value = cost.name || '';
+            if (valInput) valInput.value = cost.value || '';
+          }
+        });
+      }
+    }
+    
+    // Форма оплаты
+    if (formData.paymentMode) {
+      const payModeRadio = q(`input[name=payMode][value="${formData.paymentMode}"]`);
+      if (payModeRadio) payModeRadio.checked = true;
+    }
+    
+    // Скидка
+    if (formData.discount) {
+      q('#customDiscount').value = formData.discount;
+    }
+    
+    // Наценки
+    if (formData.markups) {
+      if (formData.markups.arm) q('#armMarkup').value = formData.markups.arm;
+      if (formData.markups.wrap) q('#wrapMarkup').value = formData.markups.wrap;
+      if (formData.markups.det) q('#detMarkup').value = formData.markups.det;
+      if (formData.markups.gl) q('#glMarkup').value = formData.markups.gl;
+      if (formData.markups.misc) q('#miscMarkup').value = formData.markups.misc;
+    }
+    
+    // Пересчитываем всё
+    setTimeout(() => {
+      renderAll();
+      console.log('✅ Calculation loaded and rendered');
+    }, 200);
+    
+  } catch (e) {
+    console.error('Error loading calculation:', e);
+    alert('❌ Ошибка загрузки расчёта');
+  }
+}
+
+// ========================================
 // MAIN CALCULATOR CODE
 // ========================================
 
@@ -2310,8 +2481,8 @@ let chart = null;
 let costCounter = 0;
 
 const carDB = {
-  Audi: ["A3", "A4", "A5", "A6", "Q3", "Q5", "Q7", "Q8"],
-  BMW: ["1 Series", "3 Series", "5 Series", "7 Series", "X3", "X5"],
+  Audi: ["A3", "A4", "A5", "A6", "A7", "A8", "Q2", "Q3", "Q4 e-tron", "Q5", "Q7", "Q8", "Q8 e-tron", "RS3", "RS4", "RS5", "RS6", "RS7", "RSQ8", "S3", "S4", "S5", "S6", "S7", "S8", "SQ5", "SQ7", "SQ8", "TT", "e-tron GT"],
+  BMW: ["1 Series", "2 Series", "3 Series", "4 Series", "5 Series", "6 Series", "7 Series", "8 Series", "X1", "X2", "X3", "X4", "X5", "X6", "X7", "iX", "iX3", "i4", "i7", "Z4", "M2", "M3", "M4", "M5", "M8", "X3 M", "X4 M", "X5 M", "X6 M"],
   Buick: ["Cascada", "Enclave", "Encore", "Encore GX", "Envision", "GL8", "LaCrosse", "Regal", "Regal TourX", "Verano"],
   BYD: ["Dolphin", "Han", "Qin Plus", "Seal", "Song Plus", "Tang", "Yuan Plus"],
   Cadillac: ["Celestiq", "CT4", "CT5", "CT6", "Escalade", "Escalade ESV", "Lyriq", "XT4", "XT5", "XT6"],
@@ -2325,24 +2496,26 @@ const carDB = {
   Geely: ["Atlas", "Coolray", "Emgrand", "Monjaro", "Tugella"],
   GMC: ["Acadia", "Canyon", "Hummer EV Pickup", "Hummer EV SUV", "Savana", "Sierra 1500", "Sierra HD", "Terrain", "Yukon", "Yukon XL"],
   Haval: ["Dargo", "F7", "F7x", "H6", "H9", "Jolion"],
-  Honda: ["Accord", "Civic", "CR-V", "Fit", "HR-V"],
+  Honda: ["Accord", "Civic", "Civic Type R", "CR-V", "HR-V", "Odyssey", "Passport", "Pilot", "Ridgeline"],
   Hummer: ["EV Pickup", "EV SUV"],
-  Hyundai: ["Creta", "Elantra", "Santa Fe", "Sonata", "Tucson"],
+  Hyundai: ["Creta", "Elantra", "Ioniq 5", "Ioniq 6", "Kona", "Kona Electric", "Palisade", "Santa Cruz", "Santa Fe", "Sonata", "Tucson", "Venue"],
   Jeep: ["Cherokee", "Compass", "Gladiator", "Grand Cherokee", "Grand Wagoneer", "Renegade", "Wagoneer", "Wagoneer S", "Wrangler", "Wrangler 4xe"],
-  Kia: ["Cerato", "Ceed", "Rio", "Seltos", "Sorento", "Sportage"],
+  Kia: ["Carnival", "Cerato", "Ceed", "EV6", "EV9", "Forte", "K5", "Niro", "Rio", "Seltos", "Sorento", "Soul", "Sportage", "Stinger", "Telluride"],
+  Lexus: ["ES", "GX", "IS", "LC", "LS", "LX", "NX", "RC", "RX", "TX", "UX"],
   Lincoln: ["Aviator", "Continental", "Corsair", "MKC", "MKT", "MKX", "MKZ", "Nautilus", "Navigator", "Navigator L"],
   Lixiang: ["I8", "L6", "L7", "L8", "L9", "Mega", "One"],
   Lucid: ["Air", "Air Grand Touring", "Air Pure", "Air Sapphire", "Air Touring", "Gravity", "Gravity Grand Touring", "Gravity Touring"],
-  Mazda: ["CX-3", "CX-30", "CX-5", "Mazda3", "Mazda6"],
-  "Mercedes-Benz": ["A-Class", "C-Class", "E-Class", "GLC", "GLE", "S-Class"],
-  Nissan: ["Altima", "Qashqai", "Rogue", "Sentra", "X-Trail"],
+  Mazda: ["CX-3", "CX-30", "CX-5", "CX-50", "CX-60", "CX-70", "CX-90", "Mazda2", "Mazda3", "Mazda6", "MX-5", "MX-30"],
+  "Mercedes-Benz": ["A-Class", "B-Class", "C-Class", "CLA", "CLE", "CLS", "E-Class", "EQA", "EQB", "EQC", "EQE", "EQS", "G-Class", "GLA", "GLB", "GLC", "GLE", "GLS", "S-Class", "SL", "AMG GT"],
+  Nissan: ["Altima", "Ariya", "GT-R", "Kicks", "Leaf", "Maxima", "Murano", "Pathfinder", "Qashqai", "Rogue", "Sentra", "Titan", "X-Trail", "Z"],
   Omoda: ["C5", "C7", "C9", "E5", "S5"],
+  Porsche: ["911", "718 Boxster", "718 Cayman", "Cayenne", "Cayenne Coupe", "Macan", "Panamera", "Taycan", "Taycan Cross Turismo"],
   Ram: ["1500", "1500 Classic", "1500 TRX", "2500", "3500", "4500 Chassis Cab", "5500 Chassis Cab", "ProMaster", "ProMaster City", "ProMaster Rapid"],
   Rivian: ["EDV", "R1S", "R1T", "R2", "R3", "R3X", "RCV"],
   Tank: ["300", "400", "500", "700"],
-  Tesla: ["Cybertruck", "Model 3", "Model S", "Model X", "Model Y", "Semi"],
-  Toyota: ["Camry", "Corolla", "Hilux", "Land Cruiser 300", "RAV4", "Yaris"],
-  Volkswagen: ["Arteon", "Golf", "Passat", "Polo", "T-Roc", "Tiguan"],
+  Tesla: ["Cybertruck", "Model 3", "Model S", "Model X", "Model Y", "Roadster", "Semi"],
+  Toyota: ["4Runner", "Alphard", "Avalon", "Camry", "C-HR", "Corolla", "Corolla Cross", "Crown", "GR86", "GR Supra", "Highlander", "Hilux", "Land Cruiser", "Land Cruiser 300", "Prius", "RAV4", "Sequoia", "Sienna", "Tacoma", "Tundra", "Venza", "Yaris"],
+  Volkswagen: ["Arteon", "Atlas", "Golf", "Golf GTI", "Golf R", "ID.4", "ID.Buzz", "Jetta", "Jetta GLI", "Passat", "Polo", "Taos", "T-Roc", "Tiguan", "Touareg"],
   Voyah: ["Courage", "Dream", "Free", "Passion"],
   Zeekr: ["001", "007", "009", "7X", "9X", "Mix", "X"]
 };
@@ -2451,26 +2624,29 @@ function formatYearInput(input) {
 }
 function onBrandChange() {
   const b = q('#brand').value;
+  fillModels(b);
+  renderAll();
+}
+
+function fillModels(brandValue) {
   const m = q('#model');
   const bm = q('#brandManual');
   m.innerHTML = '<option value="">Выберите модель</option><option value="manual">Ввести вручную</option>';
   
-  if (b && carDB[b]) {
+  if (brandValue && carDB[brandValue]) {
     bm.classList.add('invis');
-    carDB[b].forEach(md => {
+    carDB[brandValue].forEach(md => {
       const o = document.createElement('option');
       o.value = md;
       o.textContent = md;
       m.appendChild(o);
     });
-  } else if (b === 'manual') {
+  } else if (brandValue === 'manual') {
     bm.classList.remove('invis');
     m.innerHTML = '<option value="manual">Ввести вручную</option>';
-    // Показываем также modelManual для ручного ввода модели
     const mm = q('#modelManual');
     if (mm) mm.classList.remove('invis');
   }
-  renderAll();
 }
 
 function onModelChange() {
@@ -3975,6 +4151,9 @@ q('#btnExportExecutors')?.addEventListener('click', () => {
     prepExecutorsWithSalary();
     setTimeout(() => exportPDF('#pdfExecutorsWithSalary', 'Список_исполнителей_ЗП.pdf'), 100);
   });
+  
+  // Загружаем расчёт если есть ?load= в URL
+  await loadCalculationFromUrl();
   
   renderAll();
 });
