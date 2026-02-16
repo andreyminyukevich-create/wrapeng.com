@@ -1229,11 +1229,15 @@ tfoot th:first-child {
 .final-total .total-value {
   color: #fff;
   font-size: 1.5rem;
+  position: relative;
+  z-index: 10;
 }
 
 .final-total .total-label {
   color: rgba(255, 255, 255, 0.9);
   font-weight: 700;
+  position: relative;
+  z-index: 10;
 }
 
 .final-total:hover {
@@ -1297,14 +1301,14 @@ tfoot th:first-child {
 #pdfTemplates {
   display: none;
   font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
-  font-size: 11px;
-  line-height: 1.5;
+  font-size: 8px;
+  line-height: 1.4;
 }
 
 #pdfTemplates .pdf-block {
   width: 210mm;
   min-height: 297mm;
-  padding: 25mm;
+  padding: 20mm;
   background: #ffffff !important;
   color: #1e293b !important;
   position: relative;
@@ -1326,46 +1330,51 @@ tfoot th:first-child {
 }
 
 #pdfTemplates h1 {
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 700;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   text-align: center;
   color: #0f172a !important;
   letter-spacing: -0.5px;
   border-bottom: 3px solid #3b82f6;
-  padding-bottom: 12px;
+  padding-bottom: 10px;
 }
 
 #pdfTemplates p {
   color: #475569 !important;
-  font-size: 11px;
-  line-height: 1.6;
+  font-size: 9px;
+  line-height: 1.5;
 }
 
 #pdfTemplates table {
   width: 100%;
   border-collapse: collapse;
-  margin: 16px 0;
+  margin: 12px 0;
   background: #ffffff !important;
   border: 2px solid #e2e8f0 !important;
+  table-layout: auto;
 }
 
 #pdfTemplates th,
 #pdfTemplates td {
   border: 1px solid #cbd5e1 !important;
-  padding: 10px 12px;
+  padding: 5px 6px;
   text-align: left;
   color: #1e293b !important;
   background: #ffffff !important;
+  font-size: 8px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
 }
 
 #pdfTemplates th {
   background: #f1f5f9 !important;
   font-weight: 700;
   color: #0f172a !important;
-  font-size: 11px;
+  font-size: 9px;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
 }
 
 #pdfTemplates tbody tr:nth-child(even) {
@@ -1870,6 +1879,7 @@ tfoot th:first-child {
           <button type="button" class="btn btn-secondary" id="btnReset" style="flex:1;min-width:140px">🔃 Сброс</button>
         </div>
         <div class="export-buttons">
+          <button type="button" class="btn btn-primary" id="btnSaveCalc" style="margin-bottom:12px">💾 Сохранить расчет</button>
           <button type="button" class="btn btn-success" id="btnExportKP">📄 КП (PDF)</button>
           <button type="button" class="btn btn-success" id="btnExportCost">💰 Себес (PDF)</button>
         </div>
@@ -2044,6 +2054,177 @@ function displayUserInfo() {
 
 function goToDashboard() {
   window.location.href = 'dashboard.html';
+}
+
+// ========================================
+// AUTOSAVE FUNCTIONS
+// ========================================
+
+let saveTimeout = null;
+let lastSavedData = null;
+
+function collectFormData() {
+  // Собираем все данные формы
+  const data = {
+    // Автомобиль
+    car: {
+      brand: q('#brandManual')?.classList.contains('invis') ? q('#brand')?.value : q('#brandManual')?.value,
+      model: q('#modelManual')?.classList.contains('invis') ? q('#model')?.value : q('#modelManual')?.value,
+      year: q('#year')?.value
+    },
+    
+    // Полная защита вкруг
+    package: {
+      wrapMat: q('#pkgWrapMat')?.value,
+      wrapMot: q('#pkgWrapMot')?.value,
+      prepMat: q('#pkgPrepMat')?.value,
+      prepMot: q('#pkgPrepMot')?.value,
+      armMat: q('#pkgArmMat')?.value,
+      armMot: q('#pkgArmMot')?.value,
+      markup: q('#pkgMarkup')?.value,
+      costs: []
+    },
+    
+    // Защита ударной части
+    impact: {
+      wrapMat: q('#impactWrapMat')?.value,
+      wrapMot: q('#impactWrapMot')?.value,
+      prepMat: q('#impactPrepMat')?.value,
+      prepMot: q('#impactPrepMot')?.value,
+      armMat: q('#impactArmMat')?.value,
+      armMot: q('#impactArmMot')?.value,
+      markup: q('#impactMarkup')?.value,
+      costs: []
+    },
+    
+    // Форма оплаты
+    paymentMode: q('input[name=payMode]:checked')?.value || 'cash',
+    
+    // Скидка
+    discount: q('#customDiscount')?.value || '0',
+    
+    // Наценки
+    markups: {
+      arm: q('#armMarkup')?.value,
+      wrap: q('#wrapMarkup')?.value,
+      det: q('#detMarkup')?.value,
+      gl: q('#glMarkup')?.value,
+      misc: q('#miscMarkup')?.value
+    }
+  };
+  
+  // Собираем доп затраты для пакетов
+  qa('#pkgCostsContent .cost-row').forEach(row => {
+    data.package.costs.push({
+      name: row.querySelector('.pkg-cost-name')?.value,
+      value: row.querySelector('.pkg-cost-val')?.value
+    });
+  });
+  
+  qa('#impactCostsContent .cost-row').forEach(row => {
+    data.impact.costs.push({
+      name: row.querySelector('.impact-cost-name')?.value,
+      value: row.querySelector('.impact-cost-val')?.value
+    });
+  });
+  
+  return data;
+}
+
+async function saveCalculation() {
+  if (!currentUser || !currentProfile) {
+    console.log('No user - skip save');
+    return;
+  }
+  
+  try {
+    const formData = collectFormData();
+    const dataStr = JSON.stringify(formData);
+    
+    // Проверяем изменились ли данные
+    if (dataStr === lastSavedData) {
+      console.log('No changes - skip save');
+      return;
+    }
+    
+    // Собираем итоги
+    const s = collectAll();
+    const mu = markups();
+    const taxK = taxCoef();
+    
+    const baseAll = (s.pkg.mat + s.pkg.mot) + (s.impact.mat + s.impact.mot) + 
+                    (s.arm.mat + s.arm.mot) + (s.wrap.mat + s.wrap.mot) + 
+                    (s.det.mat + s.det.mot) + (s.gl.mat + s.gl.mot) + (s.ms.mat + s.ms.mot);
+    
+    const pkgTotal = s.pkg.mat + s.pkg.mot;
+    const impactTotal = s.impact.mat + s.impact.mot;
+    const armTotal = s.arm.mat + s.arm.mot;
+    const wrapTotal = s.wrap.mat + s.wrap.mot;
+    const detTotal = s.det.mat + s.det.mot;
+    const glTotal = s.gl.mat + s.gl.mot;
+    const msTotal = s.ms.mat + s.ms.mot;
+    
+    const totalMarkup = 
+      r100(pkgTotal * (mu.pkg || 0) / 100) +
+      r100(impactTotal * (mu.impact || 0) / 100) +
+      r100(armTotal * (mu.arm || 0) / 100) +
+      r100(wrapTotal * (mu.wrap || 0) / 100) +
+      r100(detTotal * (mu.det || 0) / 100) +
+      r100(glTotal * (mu.gl || 0) / 100) +
+      r100(msTotal * (mu.ms || 0) / 100);
+    
+    const disc = parseFloat(q('#customDiscount')?.value) || 0;
+    const markupWithDiscount = r100(totalMarkup * (1 - disc / 100));
+    const afterMarkup = baseAll + markupWithDiscount;
+    const tax = r100(afterMarkup * taxK);
+    const finalTotal = afterMarkup + tax;
+    
+    const car_name = `${formData.car.brand || ''} ${formData.car.model || ''} ${formData.car.year || ''}`.trim();
+    
+    // Сохраняем в Supabase
+    const { data, error } = await sb
+      .from('calculations')
+      .upsert({
+        user_id: currentUser.id,
+        car_name: car_name || 'Без названия',
+        car_brand: formData.car.brand || null,
+        car_model: formData.car.model || null,
+        car_year: formData.car.year || null,
+        total_price: finalTotal,
+        calculation_data: formData,
+        updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'user_id',
+        ignoreDuplicates: false
+      });
+    
+    if (error) {
+      console.error('Save error:', error);
+      return;
+    }
+    
+    lastSavedData = dataStr;
+    console.log('✅ Saved successfully');
+    
+    // Показываем индикатор сохранения
+    const btn = q('#btnSaveCalc');
+    if (btn) {
+      const originalText = btn.textContent;
+      btn.textContent = '✅ Сохранено';
+      btn.style.background = 'linear-gradient(135deg, var(--success), var(--success-dark))';
+      setTimeout(() => {
+        btn.textContent = originalText;
+        btn.style.background = '';
+      }, 2000);
+    }
+  } catch (e) {
+    console.error('Save error:', e);
+  }
+}
+
+function scheduleSave() {
+  if (saveTimeout) clearTimeout(saveTimeout);
+  saveTimeout = setTimeout(saveCalculation, 2000); // Автосохранение через 2 сек после последнего изменения
 }
 
 // ========================================
@@ -3100,19 +3281,8 @@ function renderExecutors(s) {
         const originalMotivation = parseFloat(baseSalaryInput?.getAttribute('data-original-motivation')) || 0;
         
         const extraCount = extraContainer.querySelectorAll('.extra-executor-row').length;
-        const totalExecutors = extraCount + 2; // +1 базовый +1 новый
-        const newSalary = r100(originalMotivation / totalExecutors);
         
-        // ИСПРАВЛЕНИЕ: Пересчитываем ВСЕ зарплаты, включая базовую
-        const allSalaryInputs = [baseSalaryInput];
-        extraContainer.querySelectorAll('.extra-executor-row input[type="number"]').forEach(inp => {
-          allSalaryInputs.push(inp);
-        });
-        
-        allSalaryInputs.forEach(inp => {
-          if (inp) inp.value = newSalary.toFixed(2);
-        });
-        
+        // НЕ делим зарплату! У первого остается 100%, у нового пусто
         const newId = `${baseId}-ex${extraCount + 1}`;
         
         const row = document.createElement('div');
@@ -3130,7 +3300,7 @@ function renderExecutors(s) {
             </div>
             <div class="executor-field">
               <label>Зарплата (₽):</label>
-              <input type="number" id="${newId}salary" placeholder="0" value="${newSalary.toFixed(2)}" step="0.01">
+              <input type="number" id="${newId}salary" placeholder="0" value="" step="0.01">
             </div>
             <div class="executor-field">
               <label>Дата приема:</label>
@@ -3160,69 +3330,13 @@ function renderExecutors(s) {
         row.querySelector('.btn-remove-executor').addEventListener('click', function() {
           if (confirm('Удалить этого исполнителя?')) {
             row.remove();
-            renderAll();
           }
         });
-        
-        // Навешиваем обработчики на поля зарплаты
-        setupSalaryListeners(baseId);
       }
     });
   });
-  
-  // Навешиваем обработчики на все поля зарплаты
-  allServices.forEach(srv => setupSalaryListeners(`exec${srv.idx}`));
 }
 
-// Новая функция для обработки зарплат
-function setupSalaryListeners(baseId) {
-  const baseRow = q(`[data-exec-id="${baseId}"]`);
-  if (!baseRow) return;
-  
-  const baseSalaryInput = baseRow.querySelector(`#${baseId}salary`);
-  const extraContainer = q(`#${baseId}-extra`);
-  
-  if (!baseSalaryInput) return;
-  
-  // Проверяем, не навешены ли уже обработчики
-  if (baseSalaryInput.dataset.listenersSet === 'true') return;
-  baseSalaryInput.dataset.listenersSet = 'true';
-  
-  // Функция пересчёта зарплат
-  function recalculateSalaries(changedInput) {
-    const allSalaryInputs = [baseSalaryInput];
-    if (extraContainer) {
-      extraContainer.querySelectorAll('input[type="number"]').forEach(inp => allSalaryInputs.push(inp));
-    }
-    
-    const total = allSalaryInputs.reduce((sum, inp) => sum + (parseFloat(inp.value) || 0), 0);
-    const others = allSalaryInputs.filter(inp => inp !== changedInput);
-    
-    if (others.length > 0) {
-      const remaining = r100(total - (parseFloat(changedInput.value) || 0));
-      const perOther = r100(remaining / others.length);
-      others.forEach(inp => inp.value = perOther.toFixed(2));
-    }
-  }
-  
-  // Отмечаем, что поле было изменено вручную
-  baseSalaryInput.addEventListener('input', function() {
-    this.dataset.manuallySet = 'true';
-    recalculateSalaries(this);
-  });
-  
-  // Аналогично для дополнительных исполнителей
-  if (extraContainer) {
-    extraContainer.querySelectorAll('input[type="number"]').forEach(extraInput => {
-      if (extraInput.dataset.listenersSet === 'true') return;
-      extraInput.dataset.listenersSet = 'true';
-      
-      extraInput.addEventListener('input', function() {
-        recalculateSalaries(this);
-      });
-    });
-  }
-}
 function renderBadges(s, mu) {
   // Итоги по направлениям удалены, считаем только общие итоги
   
@@ -3687,17 +3801,37 @@ document.addEventListener('DOMContentLoaded', async () => {
   q('#btnAddMisc')?.addEventListener('click', () => { addDynRow('#miscDyn', 'misc'); initServiceToggles(); });
   q('#btnAddMiscCost')?.addEventListener('click', () => addCostRow('misc'));
   
-  qa('input[name=payMode]').forEach(r => r.addEventListener('change', renderAll));
+  qa('input[name=payMode]').forEach(r => r.addEventListener('change', () => {
+    renderAll();
+    scheduleSave();
+  }));
   
   q('#btnRecalc')?.addEventListener('click', renderAll);
   q('#btnReset')?.addEventListener('click', () => {
     if (confirm('Вы уверены, что хотите сбросить все данные?')) location.reload();
   });
   
+  q('#btnSaveCalc')?.addEventListener('click', async () => {
+    const btn = q('#btnSaveCalc');
+    const originalText = btn?.textContent;
+    if (btn) {
+      btn.textContent = '⏳ Сохранение...';
+      btn.disabled = true;
+    }
+    
+    await saveCalculation();
+    
+    if (btn) {
+      btn.textContent = originalText;
+      btn.disabled = false;
+    }
+  });
+  
 document.addEventListener('input', e => {
     if (e.target.id === 'year') {
       formatYearInput(e.target);
       renderAll();
+      scheduleSave();
       return;
     }
     
@@ -3707,13 +3841,17 @@ document.addEventListener('input', e => {
         e.target.value = '';
       }
     }
-    if (e.target.matches('input, select')) renderAll();
+    if (e.target.matches('input, select')) {
+      renderAll();
+      scheduleSave();
+    }
   });
   
   document.addEventListener('blur', e => {
     if (e.target.matches('input[type="number"]') && e.target.value !== '') {
       formatNumberInput(e.target);
       renderAll();
+      scheduleSave();
     }
   }, true);
   
