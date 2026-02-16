@@ -460,11 +460,12 @@ async function loadCalculations() {
       var studioId = memberData.studio_id;
     }
     
-    // Загружаем расчёты
+    // Загружаем расчёты (последние 50)
     let query = sb
       .from('calculations')
       .select('*')
-      .order('updated_at', { ascending: false });
+      .order('updated_at', { ascending: false })
+      .limit(50);
     
     // Фильтруем по studio_id если есть, иначе по user_id
     if (studioId) {
