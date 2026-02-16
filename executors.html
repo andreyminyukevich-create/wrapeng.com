@@ -604,7 +604,7 @@ async function loadExecutors() {
       .from('executors')
       .select('*')
       .eq('studio_id', currentStudio.studio_id)
-      .order('name', { ascending: true });
+      .order('full_name', { ascending: true });
     
     if (!showInactive) {
       query = query.eq('is_active', true);
