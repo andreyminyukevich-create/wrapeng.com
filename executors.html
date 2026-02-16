@@ -665,7 +665,7 @@ function renderExecutorsTable(executors) {
     html += `
       <tr>
         <td>
-          <div class="executor-name">${exec.name}</div>
+          <div class="executor-name">${exec.full_name}</div>
           ${isAdmin}
         </td>
         <td>
@@ -679,8 +679,8 @@ function renderExecutorsTable(executors) {
           <div class="row-actions">
             <button class="btn btn-secondary btn-icon" onclick="editExecutor('${exec.id}')">✏️</button>
             ${exec.is_active 
-              ? `<button class="btn btn-danger btn-icon" onclick="deactivateExecutor('${exec.id}', '${exec.name}')">🔴 Деактивировать</button>`
-              : `<button class="btn btn-success btn-icon" onclick="activateExecutor('${exec.id}', '${exec.name}')">✅ Активировать</button>`
+              ? `<button class="btn btn-danger btn-icon" onclick="deactivateExecutor('${exec.id}', '${exec.full_name}')">🔴 Деактивировать</button>`
+              : `<button class="btn btn-success btn-icon" onclick="activateExecutor('${exec.id}', '${exec.full_name}')">✅ Активировать</button>`
             }
           </div>
         </td>
@@ -728,7 +728,7 @@ window.editExecutor = async function(executorId) {
     
     editingExecutorId = executorId;
     document.getElementById('executorId').value = executorId;
-    document.getElementById('executorName').value = data.name;
+    document.getElementById('executorName').value = data.full_name;
     document.getElementById('executorRole').value = data.role;
     document.getElementById('executorPhone').value = data.phone || '';
     document.getElementById('executorIsAdmin').checked = data.is_admin || false;
@@ -799,14 +799,14 @@ async function saveExecutor(e) {
   
   const executorData = {
     studio_id: currentStudio.studio_id,
-    name: document.getElementById('executorName').value.trim(),
+    full_name: document.getElementById("executorName").value.trim(),
     role: document.getElementById('executorRole').value,
     phone: document.getElementById('executorPhone').value.trim() || null,
     is_admin: document.getElementById('executorIsAdmin').checked,
     is_active: true
   };
   
-  if (!executorData.name || !executorData.role) {
+  if (!executorData.full_name || !executorData.role) {
     alert('❌ Заполните обязательные поля');
     return;
   }
