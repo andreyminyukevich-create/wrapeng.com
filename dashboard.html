@@ -593,34 +593,65 @@ select option {
     </div>
   </div>
 
-  <!-- Stats Grid -->
+  <!-- Stats Grid - Текущий месяц -->
   <div class="stats-grid">
     <div class="stat-card">
       <div class="stat-icon">🚗</div>
-      <div class="stat-label">Всего расчётов</div>
-      <div class="stat-value" id="statTotal">0</div>
-      <div class="stat-change">↗ За всё время</div>
+      <div class="stat-label">Расчётов за месяц</div>
+      <div class="stat-value" id="statMonthTotal">0</div>
+      <div class="stat-change" id="statMonthTotalChange">↗ Текущий месяц</div>
     </div>
 
     <div class="stat-card">
       <div class="stat-icon">💰</div>
-      <div class="stat-label">Общая сумма</div>
-      <div class="stat-value" id="statSum">0 ₽</div>
-      <div class="stat-change">↗ Всех расчётов</div>
+      <div class="stat-label">Сумма расчётов</div>
+      <div class="stat-value" id="statMonthSum">0 ₽</div>
+      <div class="stat-change">↗ Текущий месяц</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">✅</div>
+      <div class="stat-label">Завершённые работы</div>
+      <div class="stat-value" id="statMonthDone">0 ₽</div>
+      <div class="stat-change" id="statMonthDoneCount">↗ 0 машин</div>
     </div>
 
     <div class="stat-card">
       <div class="stat-icon">📊</div>
       <div class="stat-label">Средний чек</div>
-      <div class="stat-value" id="statAvg">0 ₽</div>
-      <div class="stat-change">↗ На расчёт</div>
+      <div class="stat-value" id="statMonthAvg">0 ₽</div>
+      <div class="stat-change">↗ За месяц</div>
+    </div>
+  </div>
+
+  <!-- Stats Grid - Аналитика -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon">📅</div>
+      <div class="stat-label">Прошлый месяц</div>
+      <div class="stat-value" id="statPrevMonth">0 ₽</div>
+      <div class="stat-change" id="statPrevMonthCount">↗ 0 расчётов</div>
     </div>
 
     <div class="stat-card">
-      <div class="stat-icon">📅</div>
-      <div class="stat-label">За этот месяц</div>
-      <div class="stat-value" id="statMonth">0</div>
-      <div class="stat-change">↗ Новых расчётов</div>
+      <div class="stat-icon">✅</div>
+      <div class="stat-label">Работы прошлого месяца</div>
+      <div class="stat-value" id="statPrevMonthDone">0 ₽</div>
+      <div class="stat-change" id="statPrevMonthDoneCount">↗ 0 машин</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">📈</div>
+      <div class="stat-label">Средний оборот</div>
+      <div class="stat-value" id="statAvgMonth">0 ₽</div>
+      <div class="stat-change">↗ В месяц (за всё время)</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">🎯</div>
+      <div class="stat-label">Цель на месяц</div>
+      <div class="stat-value" id="statGoal">500 000 ₽</div>
+      <div class="stat-change" id="statGoalProgress">↗ Выполнено 0%</div>
     </div>
   </div>
 
@@ -727,19 +758,69 @@ function formatDate(dateStr) {
 
 // Stats
 function updateStats(calculations) {
-  const total = calculations.length;
-  const sum = calculations.reduce((acc, c) => acc + (c.total_price || 0), 0);
-  const avg = total > 0 ? sum / total : 0;
-  
   const now = new Date();
-  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-  const monthCalcs = calculations.filter(c => new Date(c.created_at) >= monthStart);
+  const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const prevMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const prevMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
   
-  document.getElementById('statTotal').textContent = total;
-  document.getElementById('statSum').textContent = fmt(sum) + ' ₽';
-  document.getElementById('statAvg').textContent = fmt(avg) + ' ₽';
-  document.getElementById('statMonth').textContent = monthCalcs.length;
+  // Текущий месяц
+  const currentMonthCalcs = calculations.filter(c => new Date(c.created_at) >= currentMonthStart);
+  const currentMonthTotal = currentMonthCalcs.length;
+  const currentMonthSum = currentMonthCalcs.reduce((acc, c) => acc + (c.total_price || 0), 0);
+  const currentMonthDone = currentMonthCalcs.filter(c => c.work_assigned === true);
+  const currentMonthDoneSum = currentMonthDone.reduce((acc, c) => acc + (c.total_price || 0), 0);
+  const currentMonthAvg = currentMonthTotal > 0 ? currentMonthSum / currentMonthTotal : 0;
+  
+  // Прошлый месяц
+  const prevMonthCalcs = calculations.filter(c => {
+    const d = new Date(c.created_at);
+    return d >= prevMonthStart && d <= prevMonthEnd;
+  });
+  const prevMonthSum = prevMonthCalcs.reduce((acc, c) => acc + (c.total_price || 0), 0);
+  const prevMonthDone = prevMonthCalcs.filter(c => c.work_assigned === true);
+  const prevMonthDoneSum = prevMonthDone.reduce((acc, c) => acc + (c.total_price || 0), 0);
+  
+  // Средний оборот за всё время (по месяцам)
+  const firstCalc = calculations.length > 0 ? new Date(calculations[calculations.length - 1].created_at) : now;
+  const monthsTotal = Math.max(1, Math.ceil((now - firstCalc) / (1000 * 60 * 60 * 24 * 30)));
+  const totalSum = calculations.reduce((acc, c) => acc + (c.total_price || 0), 0);
+  const avgMonthSum = totalSum / monthsTotal;
+  
+  // Цель на месяц (можно настроить)
+  const monthGoal = 500000; // TODO: сделать настройку
+  const goalProgress = monthGoal > 0 ? Math.round((currentMonthSum / monthGoal) * 100) : 0;
+  
+  // Обновляем виджеты - ТЕКУЩИЙ МЕСЯЦ
+  document.getElementById('statMonthTotal').textContent = currentMonthTotal;
+  document.getElementById('statMonthSum').textContent = fmt(currentMonthSum) + ' ₽';
+  document.getElementById('statMonthDone').textContent = fmt(currentMonthDoneSum) + ' ₽';
+  document.getElementById('statMonthDoneCount').textContent = `↗ ${currentMonthDone.length} машин`;
+  document.getElementById('statMonthAvg').textContent = fmt(currentMonthAvg) + ' ₽';
+  
+  // Сравнение с прошлым месяцем
+  const monthDiff = currentMonthTotal - prevMonthCalcs.length;
+  const monthDiffText = monthDiff > 0 ? `↗ +${monthDiff}` : monthDiff < 0 ? `↘ ${monthDiff}` : '→ 0';
+  document.getElementById('statMonthTotalChange').textContent = `${monthDiffText} к прошлому месяцу`;
+  
+  // Обновляем виджеты - АНАЛИТИКА
+  document.getElementById('statPrevMonth').textContent = fmt(prevMonthSum) + ' ₽';
+  document.getElementById('statPrevMonthCount').textContent = `↗ ${prevMonthCalcs.length} расчётов`;
+  document.getElementById('statPrevMonthDone').textContent = fmt(prevMonthDoneSum) + ' ₽';
+  document.getElementById('statPrevMonthDoneCount').textContent = `↗ ${prevMonthDone.length} машин`;
+  document.getElementById('statAvgMonth').textContent = fmt(avgMonthSum) + ' ₽';
+  document.getElementById('statGoalProgress').textContent = `↗ Выполнено ${goalProgress}%`;
+  
+  // Меняем цвет прогресса
+  const goalProgressEl = document.getElementById('statGoalProgress');
+  if (goalProgress >= 100) {
+    goalProgressEl.style.color = 'var(--success)';
+  } else if (goalProgress >= 50) {
+    goalProgressEl.style.color = 'var(--warning)';
+  } else {
+    goalProgressEl.style.color = 'var(--text-muted)';
+  }
 }
+
 
 // Load calculations
 async function loadCalculations() {
