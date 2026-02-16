@@ -1827,15 +1827,6 @@ tfoot th:first-child {
       </div>
     </div>
 
-    <div class="card">
-      <h2 class="collapsible collapsed">👥 Исполнители</h2>
-      <div class="card-content collapsed">
-        <div id="executorsContent"></div>
-<button type="button" class="btn btn-success" id="btnExportExecutors" style="width:100%;margin-top:16px">📋 Список исполнителей (PDF)</button>
-<button type="button" class="btn btn-success" id="btnExportExecutorsWithSalary" style="width:100%;margin-top:12px">💰 Список исполнителей с ЗП (PDF)</button>
-      </div>
-    </div>
-
   </div>
 
   <div class="right-column">
@@ -1917,27 +1908,6 @@ tfoot th:first-child {
     </table>
   </div>
   
-  <!-- ИСПОЛНИТЕЛИ БЕЗ ЗП -->
-  <div id="pdfExecutors" class="pdf-block">
-    <div class="trial-watermark" id="watermarkExecutors" style="display:none"></div>
-    <h1>СПИСОК УСЛУГ И ИСПОЛНИТЕЛЕЙ</h1>
-    <p id="pdfExecutorsMeta" style="text-align:center;margin-bottom:20px;font-weight:600"></p>
-    <table>
-      <thead><tr><th>Услуга</th><th>Исполнитель</th><th>Прием</th><th>Выдача</th><th>Примечание</th></tr></thead>
-      <tbody id="pdfExecutorsTBody"></tbody>
-    </table>
-  </div>
-  
-  <!-- ИСПОЛНИТЕЛИ С ЗП -->
-  <div id="pdfExecutorsWithSalary" class="pdf-block">
-    <div class="trial-watermark" id="watermarkExecutorsWithSalary" style="display:none"></div>
-    <h1>СПИСОК УСЛУГ И ИСПОЛНИТЕЛЕЙ С ЗАРПЛАТОЙ</h1>
-    <p id="pdfExecutorsWithSalaryMeta" style="text-align:center;margin-bottom:20px;font-weight:600"></p>
-    <table>
-      <thead><tr><th>Услуга</th><th>Исполнитель</th><th>Зарплата (₽)</th><th>Прием</th><th>Выдача</th><th>Примечание</th></tr></thead>
-      <tbody id="pdfExecutorsWithSalaryTBody"></tbody>
-    </table>
-  </div>
 </div>
 </div>
 </div>
@@ -1954,6 +1924,7 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
 
 let currentUser = null;
 let currentProfile = null;
+let currentStudio = null; // Текущая студия пользователя
 
 async function checkAccess(user) {
   try {
@@ -2011,6 +1982,24 @@ async function checkAuth() {
     }
 
     currentProfile = profile;
+
+    // Получаем студию пользователя
+    const { data: studioMember, error: studioError } = await sb
+      .from('studio_members')
+      .select('studio_id, studios(id, name, subscription_tier)')
+      .eq('user_id', currentUser.id)
+      .eq('is_active', true)
+      .single();
+    
+    if (studioError || !studioMember) {
+      console.error('Studio error:', studioError);
+      alert('❌ Студия не найдена. Обратитесь в поддержку.');
+      await sb.auth.signOut();
+      window.location.href = 'welcome.html';
+      return false;
+    }
+    
+    currentStudio = studioMember.studios;
 
     if (!profile.is_paid) {
       const now = new Date();
@@ -2134,8 +2123,8 @@ function collectFormData() {
 }
 
 async function saveCalculation() {
-  if (!currentUser || !currentProfile) {
-    console.log('No user - skip save');
+  if (!currentUser || !currentStudio) {
+    console.log('No user or studio - skip save');
     return;
   }
   
@@ -2183,22 +2172,42 @@ async function saveCalculation() {
     
     const car_name = `${formData.car.brand || ''} ${formData.car.model || ''} ${formData.car.year || ''}`.trim();
     
-    // Сохраняем в Supabase
-    const { data, error } = await sb
+    // Ищем существующий расчёт этого пользователя в этой студии
+    const { data: existingCalc } = await sb
       .from('calculations')
-      .upsert({
-        user_id: currentUser.id,
-        car_name: car_name || 'Без названия',
-        car_brand: formData.car.brand || null,
-        car_model: formData.car.model || null,
-        car_year: formData.car.year || null,
-        total_price: finalTotal,
-        calculation_data: formData,
-        updated_at: new Date().toISOString()
-      }, {
-        onConflict: 'user_id',
-        ignoreDuplicates: false
-      });
+      .select('id')
+      .eq('studio_id', studioId)
+      .eq('user_id', currentUser.id)
+      .order('updated_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    
+    // Сохраняем в Supabase
+    const calcData = {
+      studio_id: currentStudio.id,
+      user_id: currentUser.id,
+      car_name: car_name || 'Без названия',
+      car_brand: formData.car.brand || null,
+      car_model: formData.car.model || null,
+      car_year: formData.car.year || null,
+      total_price: finalTotal,
+      calculation_data: formData,
+      updated_at: new Date().toISOString()
+    };
+    
+    let error;
+    if (existingCalc) {
+      // Обновляем существующий
+      ({ error } = await sb
+        .from('calculations')
+        .update(calcData)
+        .eq('id', existingCalc.id));
+    } else {
+      // Создаём новый
+      ({ error } = await sb
+        .from('calculations')
+        .insert(calcData));
+    }
     
     if (error) {
       console.error('Save error:', error);
@@ -3158,201 +3167,6 @@ function renderExecutors(s) {
   if (pkgWrapMot > 0 || pkgPrepMot > 0 || pkgArmMot > 0) {
     if (pkgWrapMot > 0) {
       allServices.push({ name: 'Полная защита вкруг - Инсталляция пленки', mot: pkgWrapMot, idx: execIndex++ });
-    }
-    if (pkgPrepMot > 0) {
-      allServices.push({ name: 'Полная защита вкруг - Подготовка', mot: pkgPrepMot, idx: execIndex++ });
-    }
-    if (pkgArmMot > 0) {
-      allServices.push({ name: 'Полная защита вкруг - Арматурные работы', mot: pkgArmMot, idx: execIndex++ });
-    }
-  }
-  
-  // Пакет "Защита ударной части" - разбиваем на услуги
-  const impactWrapMot = parseFloat(q('#impactWrapMot')?.value) || 0;
-  const impactPrepMot = parseFloat(q('#impactPrepMot')?.value) || 0;
-  const impactArmMot = parseFloat(q('#impactArmMot')?.value) || 0;
-  
-  if (impactWrapMot > 0 || impactPrepMot > 0 || impactArmMot > 0) {
-    if (impactWrapMot > 0) {
-      allServices.push({ name: 'Защита ударной части - Инсталляция пленки', mot: impactWrapMot, idx: execIndex++ });
-    }
-    if (impactPrepMot > 0) {
-      allServices.push({ name: 'Защита ударной части - Подготовка', mot: impactPrepMot, idx: execIndex++ });
-    }
-    if (impactArmMot > 0) {
-      allServices.push({ name: 'Защита ударной части - Арматурные работы', mot: impactArmMot, idx: execIndex++ });
-    }
-  }
-  
-  if (s.arm.details && s.arm.details.length > 0) {
-    s.arm.details.forEach(detail => {
-      allServices.push({ name: detail[0], mot: detail[2], idx: execIndex++ });
-    });
-  }
-  
-  if (s.wrap.details && s.wrap.details.length > 0) {
-    s.wrap.details.forEach(detail => {
-      allServices.push({ name: detail[0], mot: detail[4], idx: execIndex++ });
-    });
-  }
-  
-  if (s.det.details && s.det.details.length > 0) {
-    s.det.details.forEach(detail => {
-      allServices.push({ name: detail[0], mot: detail[2], idx: execIndex++ });
-    });
-  }
-  
-  if (s.gl.details && s.gl.details.length > 0) {
-    s.gl.details.forEach(detail => {
-      allServices.push({ name: detail[0], mot: detail[2], idx: execIndex++ });
-    });
-  }
-  
-  if (s.ms.details && s.ms.details.length > 0) {
-    s.ms.details.forEach(detail => {
-      allServices.push({ name: detail[0], mot: detail[2], idx: execIndex++ });
-    });
-  }
-  
-  // Проверяем, изменилось ли количество услуг
-  const existingRows = container.querySelectorAll('[data-exec-id]');
-  if (existingRows.length === allServices.length) {
-    // Только обновляем значения зарплаты если они не были изменены вручную
-    allServices.forEach(srv => {
-      const baseId = `exec${srv.idx}`;
-      const salaryInput = q(`#${baseId}salary`);
-      if (salaryInput && salaryInput.dataset.manuallySet !== 'true') {
-        salaryInput.value = srv.mot.toFixed(2);
-      }
-    });
-    return; // НЕ перерисовываем
-  }
-  
-  // Если количество изменилось — полная перерисовка
-  let html = '';
-  
-  allServices.forEach(srv => {
-    const baseId = `exec${srv.idx}`;
-    
-    html += `<div class="executor-row" data-exec-id="${baseId}">
-      <div class="executor-row-header">${srv.name}</div>
-      <div class="executor-fields-new">
-        <div class="executor-field">
-          <label>Исполнитель:</label>
-          <input type="text" id="${baseId}name" placeholder="ФИО" value="">
-        </div>
-        <div class="executor-field">
-          <label>Зарплата (₽):</label>
-          <input type="number" id="${baseId}salary" placeholder="0" value="${srv.mot.toFixed(2)}" step="0.01" data-original-motivation="${srv.mot.toFixed(2)}">
-        </div>
-        <div class="executor-field">
-          <label>Дата приема:</label>
-          <input type="date" id="${baseId}receive" value="">
-        </div>
-        <div class="executor-field">
-          <label>Дата выдачи:</label>
-          <input type="date" id="${baseId}return" value="">
-        </div>
-        <div class="executor-field executor-field-note">
-          <label>Примечание:</label>
-          <input type="text" id="${baseId}note" placeholder="Заметки" value="">
-        </div>
-      </div>
-      <div style="margin-top:12px;text-align:center">
-        <label style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:0.9rem;user-select:none">
-          <input type="checkbox" class="add-executor-chk" data-exec-base="${baseId}" style="width:20px;height:20px;cursor:pointer;accent-color:var(--primary)">
-          <span>+ Добавить исполнителя</span>
-        </label>
-      </div>
-      <div class="extra-executors" id="${baseId}-extra"></div>
-    </div>`;
-  });
-  
-  container.innerHTML = html;
-  
-  // Навешиваем обработчики
-  qa('.add-executor-chk').forEach(chk => {
-    chk.addEventListener('change', function() {
-      if (this.checked) {
-        const baseId = this.getAttribute('data-exec-base');
-        const extraContainer = q(`#${baseId}-extra`);
-        const baseRow = this.closest('.executor-row');
-        const baseSalaryInput = baseRow.querySelector(`#${baseId}salary`);
-        
-        // Берем ОРИГИНАЛЬНУЮ мотивацию, а не текущее значение
-        const originalMotivation = parseFloat(baseSalaryInput?.getAttribute('data-original-motivation')) || 0;
-        
-        const extraCount = extraContainer.querySelectorAll('.extra-executor-row').length;
-        
-        // НЕ делим зарплату! У первого остается 100%, у нового пусто
-        const newId = `${baseId}-ex${extraCount + 1}`;
-        
-        const row = document.createElement('div');
-        row.className = 'extra-executor-row';
-        row.style.cssText = 'margin-top:12px;padding:12px;background:var(--bg-tertiary);border-radius:12px;border:1px solid var(--border)';
-        row.innerHTML = `
-          <div class="executor-row-header" style="font-size:0.8rem;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">
-            <span>Исполнитель ${extraCount + 2}</span>
-            <button type="button" class="btn-remove-executor" style="background:var(--danger);color:#fff;border:none;padding:6px 12px;border-radius:8px;font-size:0.8rem;cursor:pointer;font-weight:600;transition:all 0.3s">❌ Удалить</button>
-          </div>
-          <div class="executor-fields-new">
-            <div class="executor-field">
-              <label>Исполнитель:</label>
-              <input type="text" id="${newId}name" placeholder="ФИО" value="">
-            </div>
-            <div class="executor-field">
-              <label>Зарплата (₽):</label>
-              <input type="number" id="${newId}salary" placeholder="0" value="" step="0.01">
-            </div>
-            <div class="executor-field">
-              <label>Дата приема:</label>
-              <input type="date" id="${newId}receive" value="">
-            </div>
-            <div class="executor-field">
-              <label>Дата выдачи:</label>
-              <input type="date" id="${newId}return" value="">
-            </div>
-            <div class="executor-field executor-field-note">
-              <label>Примечание:</label>
-              <input type="text" id="${newId}note" placeholder="Заметки" value="">
-            </div>
-          </div>
-          <div style="margin-top:12px;text-align:center">
-            <label style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:0.9rem;user-select:none">
-              <input type="checkbox" class="add-executor-chk" data-exec-base="${baseId}" style="width:20px;height:20px;cursor:pointer;accent-color:var(--primary)">
-              <span>+ Добавить исполнителя</span>
-            </label>
-          </div>
-        `;
-        
-        extraContainer.appendChild(row);
-        this.checked = false;
-        
-        // Обработчик на кнопку удаления
-        row.querySelector('.btn-remove-executor').addEventListener('click', function() {
-          if (confirm('Удалить этого исполнителя?')) {
-            row.remove();
-          }
-        });
-      }
-    });
-  });
-}
-
-function renderBadges(s, mu) {
-  // Итоги по направлениям удалены, считаем только общие итоги
-  
-  const pkgTotal = s.pkg.mat + s.pkg.mot;
-  const impactTotal = s.impact.mat + s.impact.mot;
-  const armTotal = s.arm.mat + s.arm.mot;
-  const wrapTotal = s.wrap.mat + s.wrap.mot;
-  const detTotal = s.det.mat + s.det.mot;
-  const glTotal = s.gl.mat + s.gl.mot;
-  const msTotal = s.ms.mat + s.ms.mot;
-  
-  const baseAll = pkgTotal + impactTotal + armTotal + wrapTotal + detTotal + glTotal + msTotal;
-  
-  const pkgMarkup = r100(pkgTotal * (mu.pkg || 0) / 100);
   const impactMarkup = r100(impactTotal * (mu.impact || 0) / 100);
   const armMarkup = r100(armTotal * (mu.arm || 0) / 100);
   const detMarkup = r100(detTotal * (mu.det || 0) / 100);
@@ -3402,7 +3216,6 @@ function renderAll() {
   renderBadges(s, mu);
   renderKP(s, mu);
   renderCost(s);
-  renderExecutors(s);
   highlightMarkupFields(s, mu);
 }
 
@@ -3638,112 +3451,6 @@ function prepCost() {
   q('#pdfCostMeta').textContent = `Автомобиль: ${br || '—'} ${md || '—'} ${yr}`;
 }
 
-function prepExecutors() {
-  showTrialWatermark();
-  const tb = q('#pdfExecutorsTBody');
-  if (!tb) return;
-  tb.innerHTML = '';
-  
-  const now = new Date();
-  const todayStr = now.toISOString().split('T')[0]; // YYYY-MM-DD
-  
-  qa('#executorsContent .executor-row').forEach(row => {
-    const name = row.querySelector('.executor-row-header')?.textContent?.trim() || '';
-    
-    // Основной исполнитель
-    const baseId = row.getAttribute('data-exec-id');
-    if (baseId) {
-      const executor = row.querySelector(`#${baseId}name`)?.value || '';
-      const receive = row.querySelector(`#${baseId}receive`)?.value || todayStr;
-      const returnDate = row.querySelector(`#${baseId}return`)?.value || '';
-      const note = row.querySelector(`#${baseId}note`)?.value || '';
-      
-      if (executor) {
-        const r = document.createElement('tr');
-        r.innerHTML = `<td>${name}</td><td>${executor}</td><td>${receive}</td><td>${returnDate}</td><td>${note}</td>`;
-        tb.appendChild(r);
-      }
-    }
-    
-    // Дополнительные исполнители
-    const extraContainer = row.querySelector('.extra-executors');
-    if (extraContainer) {
-      extraContainer.querySelectorAll('.extra-executor-row').forEach(extraRow => {
-        const extraName = extraRow.querySelector('input[id*="name"]')?.value || '';
-        const extraReceive = extraRow.querySelector('input[id*="receive"]')?.value || todayStr;
-        const extraReturn = extraRow.querySelector('input[id*="return"]')?.value || '';
-        const extraNote = extraRow.querySelector('input[id*="note"]')?.value || '';
-        
-        if (extraName) {
-          const r = document.createElement('tr');
-          r.innerHTML = `<td>${name}</td><td>${extraName}</td><td>${extraReceive}</td><td>${extraReturn}</td><td>${extraNote}</td>`;
-          tb.appendChild(r);
-        }
-      });
-    }
-  });
-  
-  const br = q('#brandManual').classList.contains('invis') ? q('#brand').value : q('#brandManual').value;
-  const md = q('#modelManual').classList.contains('invis') ? q('#model').value : q('#modelManual').value;
-  const yr = q('#year').value || '—';
-  
-  q('#pdfExecutorsMeta').textContent = `Автомобиль: ${br || '—'} ${md || '—'} ${yr}`;
-}
-
-function prepExecutorsWithSalary() {
-  showTrialWatermark();
-  const tb = q('#pdfExecutorsWithSalaryTBody');
-  if (!tb) return;
-  tb.innerHTML = '';
-  
-  const now = new Date();
-  const todayStr = now.toISOString().split('T')[0];
-  
-  qa('#executorsContent .executor-row').forEach(row => {
-    const name = row.querySelector('.executor-row-header')?.textContent?.trim() || '';
-    
-    // Основной исполнитель
-    const baseId = row.getAttribute('data-exec-id');
-    if (baseId) {
-      const executor = row.querySelector(`#${baseId}name`)?.value || '';
-      const salary = row.querySelector(`#${baseId}salary`)?.value || '0';
-      const receive = row.querySelector(`#${baseId}receive`)?.value || todayStr;
-      const returnDate = row.querySelector(`#${baseId}return`)?.value || '';
-      const note = row.querySelector(`#${baseId}note`)?.value || '';
-      
-      if (executor) {
-        const r = document.createElement('tr');
-        r.innerHTML = `<td>${name}</td><td>${executor}</td><td>${fmt(parseFloat(salary))}</td><td>${receive}</td><td>${returnDate}</td><td>${note}</td>`;
-        tb.appendChild(r);
-      }
-    }
-    
-    // Дополнительные исполнители
-    const extraContainer = row.querySelector('.extra-executors');
-    if (extraContainer) {
-      extraContainer.querySelectorAll('.extra-executor-row').forEach(extraRow => {
-        const extraName = extraRow.querySelector('input[id*="name"]')?.value || '';
-        const extraSalary = extraRow.querySelector('input[id*="salary"]')?.value || '0';
-        const extraReceive = extraRow.querySelector('input[id*="receive"]')?.value || todayStr;
-        const extraReturn = extraRow.querySelector('input[id*="return"]')?.value || '';
-        const extraNote = extraRow.querySelector('input[id*="note"]')?.value || '';
-        
-        if (extraName) {
-          const r = document.createElement('tr');
-          r.innerHTML = `<td>${name}</td><td>${extraName}</td><td>${fmt(parseFloat(extraSalary))}</td><td>${extraReceive}</td><td>${extraReturn}</td><td>${extraNote}</td>`;
-          tb.appendChild(r);
-        }
-      });
-    }
-  });
-  
-  const br = q('#brandManual').classList.contains('invis') ? q('#brand').value : q('#brandManual').value;
-  const md = q('#modelManual').classList.contains('invis') ? q('#model').value : q('#modelManual').value;
-  const yr = q('#year').value || '—';
-  
-  q('#pdfExecutorsWithSalaryMeta').textContent = `Автомобиль: ${br || '—'} ${md || '—'} ${yr}`;
-}
-
 function setDefaultMarkups() {
   ['#pkgMarkup', '#impactMarkup', '#armMarkup', '#wrapMarkup', '#detMarkup', '#glMarkup', '#miscMarkup'].forEach(id => {
     const field = q(id);
@@ -3900,16 +3607,6 @@ qa('.chip').forEach(ch => {
   q('#btnExportCost')?.addEventListener('click', () => {
     prepCost();
     setTimeout(() => exportPDF('#pdfCost', 'Себестоимость.pdf'), 100);
-  });
-  
-q('#btnExportExecutors')?.addEventListener('click', () => {
-    prepExecutors();
-    setTimeout(() => exportPDF('#pdfExecutors', 'Список_исполнителей.pdf'), 100);
-  });
-  
-  q('#btnExportExecutorsWithSalary')?.addEventListener('click', () => {
-    prepExecutorsWithSalary();
-    setTimeout(() => exportPDF('#pdfExecutorsWithSalary', 'Список_исполнителей_ЗП.pdf'), 100);
   });
   
   renderAll();
