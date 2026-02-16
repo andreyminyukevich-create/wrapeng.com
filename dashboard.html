@@ -309,6 +309,15 @@ body::before {
   }
 }
 </style>
+<script>
+// Устанавливаем тему ДО отрисовки страницы (предотвращаем мелькание)
+(function() {
+  const savedTheme = localStorage.getItem('theme');
+  if (savedTheme === 'light') {
+    document.documentElement.setAttribute('data-theme', 'light');
+  }
+})();
+</script>
 </head>
 <body>
 
@@ -326,6 +335,7 @@ body::before {
   
   <div class="actions">
     <a href="calculator.html" class="btn btn-primary">➕ Новый расчет</a>
+    <a href="salaries.html" class="btn btn-success">💰 Подсчет ЗП</a>
     <button class="btn btn-secondary" onclick="loadCalculations()">🔄 Обновить</button>
   </div>
   
