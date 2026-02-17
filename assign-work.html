@@ -13,40 +13,40 @@ document.documentElement.setAttribute('data-theme', savedTheme);
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 :root {
-  --bg-primary: #0f172a;
-  --bg-secondary: #1e293b;
-  --bg-tertiary: #334155;
-  --card: rgba(255, 255, 255, 0.05);
-  --card-hover: rgba(255, 255, 255, 0.08);
-  --text: #f1f5f9;
-  --text-primary: #f1f5f9;
-  --text-muted: #94a3b8;
-  --border: rgba(148, 163, 184, 0.1);
-  --border-hover: rgba(148, 163, 184, 0.2);
-  --primary: #3b82f6;
+  --bg-primary: #0b1120;
+  --bg-secondary: #111827;
+  --bg-card: #1a2236;
+  --bg-input: #0f1a2e;
+  --text: #f0f4ff;
+  --text-muted: #7c8fac;
+  --text-label: #a0b0c8;
+  --border: rgba(99, 132, 180, 0.18);
+  --border-focus: rgba(99, 160, 255, 0.5);
+  --primary: #4f8ef7;
   --primary-dark: #2563eb;
-  --success: #10b981;
+  --success: #22d3a0;
   --success-dark: #059669;
-  --danger: #ef4444;
-  --warning: #f59e0b;
-  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.15);
-  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.2);
-  --shadow-xl: 0 20px 50px rgba(0, 0, 0, 0.3);
+  --success-bg: rgba(34, 211, 160, 0.1);
+  --danger: #f87171;
+  --danger-bg: rgba(248, 113, 113, 0.12);
+  --warning: #fbbf24;
+  --warning-bg: rgba(251, 191, 36, 0.1);
+  --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  --shadow-lg: 0 8px 40px rgba(0,0,0,0.5);
 }
 
 [data-theme="light"] {
-  --bg-primary: #f8fafc;
-  --bg-secondary: #f1f5f9;
-  --bg-tertiary: #e2e8f0;
-  --card: rgba(255, 255, 255, 0.9);
-  --card-hover: rgba(255, 255, 255, 1);
+  --bg-primary: #f0f4fb;
+  --bg-secondary: #ffffff;
+  --bg-card: #ffffff;
+  --bg-input: #f8faff;
   --text: #0f172a;
-  --text-primary: #0f172a;
-  --text-muted: #475569;
-  --border: rgba(15, 23, 42, 0.08);
-  --border-hover: rgba(15, 23, 42, 0.15);
-  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
-  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
+  --text-muted: #64748b;
+  --text-label: #475569;
+  --border: rgba(15, 23, 42, 0.1);
+  --border-focus: rgba(79, 142, 247, 0.5);
+  --shadow: 0 4px 16px rgba(0,0,0,0.08);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.12);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -57,106 +57,116 @@ body {
   color: var(--text);
   line-height: 1.6;
   min-height: 100vh;
+  font-size: 15px;
 }
 
-body::before {
+[data-theme="dark"] body::before {
   content: '';
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
   background: 
-    radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
-    radial-gradient(circle at 80% 70%, rgba(16, 185, 129, 0.15) 0%, transparent 50%);
+    radial-gradient(ellipse at 10% 20%, rgba(79, 142, 247, 0.12) 0%, transparent 55%),
+    radial-gradient(ellipse at 90% 80%, rgba(34, 211, 160, 0.1) 0%, transparent 55%);
   pointer-events: none;
   z-index: 0;
 }
 
 .container {
-  max-width: 900px;
+  max-width: 860px;
   margin: 0 auto;
-  padding: 24px;
+  padding: 28px 20px;
   position: relative;
   z-index: 1;
 }
 
-/* Top Bar */
+/* ── Top Bar ── */
 .top-bar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 32px;
+  margin-bottom: 28px;
   padding: 20px 28px;
-  background: var(--card);
-  backdrop-filter: blur(20px);
-  border-radius: 16px;
+  background: var(--bg-card);
+  border-radius: 18px;
   border: 1px solid var(--border);
+  box-shadow: var(--shadow);
 }
 
 .top-bar-left h1 {
-  font-size: 1.4rem;
-  font-weight: 700;
-  background: linear-gradient(135deg, var(--primary), var(--success));
+  font-size: 1.45rem;
+  font-weight: 800;
+  background: linear-gradient(120deg, var(--primary), var(--success));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  letter-spacing: -0.5px;
 }
 
 .top-bar-left .car-subtitle {
   font-size: 0.9rem;
   color: var(--text-muted);
-  margin-top: 4px;
+  margin-top: 2px;
+  font-weight: 500;
 }
 
 .top-bar-right {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   align-items: center;
 }
 
-/* Buttons */
+/* ── Buttons ── */
 .btn {
   background: var(--primary);
   color: #fff;
   border: none;
-  padding: 12px 24px;
+  padding: 11px 22px;
   border-radius: 12px;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.2s;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   text-decoration: none;
+  letter-spacing: -0.1px;
 }
 
 .btn:hover {
   background: var(--primary-dark);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow);
 }
 
 .btn-success {
-  background: var(--success);
+  background: linear-gradient(135deg, var(--success), #0fa882);
+  color: #fff;
+  font-size: 1rem;
+  padding: 13px 28px;
 }
 
 .btn-success:hover {
-  background: var(--success-dark);
+  background: linear-gradient(135deg, #1db890, #0d9072);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(34,211,160,0.3);
 }
 
 .btn-secondary {
-  background: var(--bg-tertiary);
-  color: var(--text);
+  background: transparent;
+  color: var(--text-muted);
   border: 1px solid var(--border);
 }
 
 .btn-secondary:hover {
-  background: var(--card-hover);
-  border-color: var(--border-hover);
+  background: var(--bg-input);
+  color: var(--text);
+  border-color: var(--border-focus);
 }
 
 .btn-danger {
-  background: rgba(239, 68, 68, 0.15);
+  background: var(--danger-bg);
   color: var(--danger);
-  border: 1px solid var(--danger);
+  border: 1px solid rgba(248,113,113,0.3);
 }
 
 .btn-danger:hover {
@@ -164,52 +174,46 @@ body::before {
   color: #fff;
 }
 
-.btn-sm {
-  padding: 8px 16px;
-  font-size: 0.85rem;
-}
-
-.btn-icon {
-  padding: 8px 12px;
-  font-size: 0.9rem;
-}
+.btn-sm { padding: 8px 16px; font-size: 0.85rem; }
 
 .theme-toggle {
-  background: var(--card);
+  background: var(--bg-input);
   border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 8px 14px;
+  border-radius: 10px;
+  padding: 8px 12px;
   cursor: pointer;
-  font-size: 1.2rem;
-  transition: all 0.3s;
+  font-size: 1.1rem;
+  transition: all 0.2s;
 }
 
-/* Card */
+/* ── Card ── */
 .card {
-  background: var(--card);
-  backdrop-filter: blur(20px);
-  border-radius: 16px;
+  background: var(--bg-card);
+  border-radius: 18px;
   border: 1px solid var(--border);
-  padding: 28px;
-  margin-bottom: 20px;
+  padding: 24px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow);
 }
 
 .card-title {
-  font-size: 1.1rem;
-  font-weight: 600;
+  font-size: 1rem;
+  font-weight: 700;
   margin-bottom: 20px;
+  color: var(--text);
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  letter-spacing: -0.2px;
 }
 
-/* Admin sale block */
+/* ── Admin Sale ── */
 .admin-sale-block {
-  background: rgba(245, 158, 11, 0.08);
-  border: 1px solid rgba(245, 158, 11, 0.2);
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 20px;
+  background: var(--warning-bg);
+  border: 1px solid rgba(251,191,36,0.25);
+  border-radius: 14px;
+  padding: 18px 22px;
+  margin-bottom: 16px;
 }
 
 .admin-sale-row {
@@ -224,241 +228,341 @@ body::before {
   align-items: center;
   gap: 10px;
   cursor: pointer;
+  font-weight: 600;
+  font-size: 0.95rem;
 }
 
 .toggle-switch input[type="checkbox"] {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   accent-color: var(--warning);
   cursor: pointer;
 }
 
 .admin-details {
   display: none;
-  align-items: center;
-  gap: 12px;
+  align-items: flex-end;
+  gap: 14px;
   flex-wrap: wrap;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(251,191,36,0.2);
 }
 
-.admin-details.active {
-  display: flex;
-}
+.admin-details.active { display: flex; }
 
-/* Form */
-.form-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
+/* ── Form ── */
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 5px;
 }
 
 .form-group label {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  font-weight: 500;
+  font-size: 0.78rem;
+  color: var(--text-label);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .form-group input,
 .form-group select {
   padding: 10px 14px;
-  background: var(--bg-tertiary);
+  background: var(--bg-input);
   border: 1px solid var(--border);
   border-radius: 10px;
   color: var(--text);
-  font-size: 0.95rem;
-  transition: all 0.3s;
+  font-size: 0.9rem;
+  font-family: 'Inter', sans-serif;
+  transition: all 0.2s;
 }
 
 .form-group input:focus,
 .form-group select:focus {
   outline: none;
-  border-color: var(--primary);
-  background: var(--card);
+  border-color: var(--border-focus);
+  background: var(--bg-card);
+  box-shadow: 0 0 0 3px rgba(79,142,247,0.12);
 }
 
-/* Work rows */
+/* ── Work Items ── */
 .work-list {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 }
 
 .work-item {
   background: var(--bg-secondary);
   border: 1px solid var(--border);
   border-radius: 14px;
-  padding: 20px;
-  transition: all 0.3s;
+  padding: 18px 20px;
+  transition: border-color 0.2s;
 }
 
 .work-item:hover {
-  border-color: var(--border-hover);
+  border-color: var(--border-focus);
 }
 
 .work-item-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
+  gap: 12px;
 }
 
 .work-service-name {
-  font-weight: 600;
-  font-size: 1rem;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--text);
+  letter-spacing: -0.1px;
 }
 
 .work-base-salary {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  background: var(--bg-tertiary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--success);
+  background: var(--success-bg);
   padding: 4px 12px;
-  border-radius: 6px;
+  border-radius: 20px;
+  white-space: nowrap;
+  border: 1px solid rgba(34,211,160,0.2);
 }
 
+/* ── Executor Row ── */
 .executor-rows {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .executor-row {
   display: grid;
-  grid-template-columns: 1fr 150px 44px;
-  gap: 10px;
-  align-items: center;
+  grid-template-columns: 1fr 160px 36px;
+  gap: 8px;
+  align-items: start;
 }
 
-.executor-row select {
-  padding: 10px 14px;
-  background: var(--bg-tertiary);
+.executor-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.executor-mode-switcher {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 2px;
+}
+
+.mode-btn {
+  background: var(--bg-input);
   border: 1px solid var(--border);
-  border-radius: 10px;
-  color: var(--text);
-  font-size: 0.9rem;
-  transition: all 0.3s;
+  border-radius: 7px;
+  padding: 3px 10px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  transition: all 0.2s;
+  font-family: 'Inter', sans-serif;
 }
 
-.executor-row select:focus {
-  outline: none;
+.mode-btn.active {
+  background: var(--primary);
   border-color: var(--primary);
+  color: #fff;
 }
 
-.executor-row input[type="number"] {
-  padding: 10px 14px;
-  background: var(--bg-tertiary);
+.executor-select-wrap select,
+.executor-manual-wrap .manual-name-input {
+  width: 100%;
+  padding: 9px 13px;
+  background: var(--bg-input);
   border: 1px solid var(--border);
   border-radius: 10px;
   color: var(--text);
-  font-size: 0.9rem;
-  transition: all 0.3s;
-  width: 100%;
+  font-size: 0.88rem;
+  font-family: 'Inter', sans-serif;
+  transition: all 0.2s;
 }
 
-.executor-row input[type="number"]:focus {
+.executor-select-wrap select:focus,
+.executor-manual-wrap .manual-name-input:focus {
+  outline: none;
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px rgba(79,142,247,0.1);
+}
+
+.save-to-list-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--success);
+  cursor: pointer;
+  margin-top: 3px;
+  letter-spacing: 0.1px;
+}
+
+.save-to-list-label input[type="checkbox"] {
+  accent-color: var(--success);
+  width: 13px;
+  height: 13px;
+  cursor: pointer;
+}
+
+.salary-input {
+  padding: 9px 13px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 0.88rem;
+  font-family: 'Inter', sans-serif;
+  transition: all 0.2s;
+  width: 100%;
+  font-weight: 600;
+}
+
+.salary-input:focus {
   outline: none;
   border-color: var(--success);
+  box-shadow: 0 0 0 3px rgba(34,211,160,0.1);
 }
 
 .btn-remove-exec {
-  background: rgba(239, 68, 68, 0.15);
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  background: var(--danger-bg);
+  border: 1px solid rgba(248,113,113,0.25);
   color: var(--danger);
-  border-radius: 10px;
-  padding: 10px;
+  border-radius: 9px;
+  padding: 9px;
   cursor: pointer;
-  font-size: 0.85rem;
-  transition: all 0.3s;
+  font-size: 0.8rem;
+  transition: all 0.2s;
   display: flex;
   align-items: center;
   justify-content: center;
+  height: 36px;
+  width: 36px;
+  margin-top: 30px;
 }
 
 .btn-remove-exec:hover {
   background: var(--danger);
   color: #fff;
+  border-color: var(--danger);
 }
 
 .add-executor-btn {
-  margin-top: 12px;
-  font-size: 0.85rem;
-  padding: 8px 16px;
+  margin-top: 10px;
+  font-size: 0.82rem;
+  padding: 7px 14px;
   color: var(--primary);
-  background: rgba(59, 130, 246, 0.1);
-  border: 1px dashed rgba(59, 130, 246, 0.4);
-  border-radius: 10px;
+  background: rgba(79,142,247,0.08);
+  border: 1px dashed rgba(79,142,247,0.35);
+  border-radius: 9px;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  transition: all 0.3s;
-  font-weight: 500;
+  gap: 5px;
+  transition: all 0.2s;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
 }
 
 .add-executor-btn:hover {
-  background: rgba(59, 130, 246, 0.2);
+  background: rgba(79,142,247,0.15);
   border-color: var(--primary);
 }
 
-/* Add manual work */
+/* ── Add Manual Work ── */
 .add-work-row {
   display: grid;
-  grid-template-columns: 1fr 150px;
+  grid-template-columns: 1fr 160px;
   gap: 12px;
 }
 
-/* Summary */
+.add-work-row input {
+  padding: 10px 14px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 0.9rem;
+  font-family: 'Inter', sans-serif;
+  transition: all 0.2s;
+}
+
+.add-work-row input:focus {
+  outline: none;
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px rgba(79,142,247,0.1);
+}
+
+/* ── Summary ── */
 .summary-block {
-  background: rgba(16, 185, 129, 0.08);
-  border: 1px solid rgba(16, 185, 129, 0.2);
-  border-radius: 12px;
-  padding: 20px;
+  background: var(--success-bg);
+  border: 1px solid rgba(34,211,160,0.25);
+  border-radius: 14px;
+  padding: 20px 24px;
+  overflow: hidden;
 }
 
 .summary-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 0;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+  padding: 10px 0;
+  gap: 20px;
 }
 
-.summary-row:last-child {
-  border-bottom: none;
-  margin-top: 8px;
-  padding-top: 16px;
-  font-size: 1.1rem;
-  font-weight: 700;
+.summary-row + .summary-row {
+  border-top: 1px solid rgba(34,211,160,0.15);
 }
 
 .summary-label {
-  color: var(--text-muted);
+  color: var(--text-label);
   font-size: 0.9rem;
+  font-weight: 500;
+  white-space: nowrap;
 }
 
 .summary-value {
-  font-weight: 600;
+  font-weight: 700;
+  font-size: 1rem;
+  text-align: right;
 }
 
 .summary-total-value {
   color: var(--success);
-  font-size: 1.3rem;
+  font-size: 1.8rem;
   font-weight: 800;
+  letter-spacing: -1px;
+  text-align: right;
+  line-height: 1.1;
+  min-width: 0;
+  word-break: break-word;
 }
 
-.loading { text-align: center; padding: 40px; color: var(--text-muted); }
+.loading { text-align: center; padding: 60px; color: var(--text-muted); font-size: 1rem; }
 
 @media (max-width: 600px) {
   .executor-row {
-    grid-template-columns: 1fr 120px 40px;
+    grid-template-columns: 1fr 120px 36px;
   }
-
   .add-work-row {
     grid-template-columns: 1fr;
+  }
+  .top-bar {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .summary-total-value {
+    font-size: 1.5rem;
   }
 }
 </style>
@@ -657,15 +761,51 @@ function renderWorkItem(service, existingAssignments = []) {
   `;
 }
 
-function renderExecutorRow(id, executorId = '', salary = 0) {
+function renderExecutorRow(id, executorId = '', salary = 0, manualName = '') {
+  const isManual = !executorId && manualName;
   return `
     <div class="executor-row" id="${id}">
-      ${executorSelect(executorId)}
-      <input type="number" value="${salary}" placeholder="Сумма ₽" step="1">
+      <div class="executor-input-group">
+        <div class="executor-mode-switcher">
+          <button class="mode-btn ${!isManual ? 'active' : ''}" onclick="setExecutorMode('${id}', 'select')" title="Выбрать из справочника">📋</button>
+          <button class="mode-btn ${isManual ? 'active' : ''}" onclick="setExecutorMode('${id}', 'manual')" title="Ввести вручную">✏️</button>
+        </div>
+        <div class="executor-select-wrap" style="display:${isManual ? 'none' : 'block'}">
+          ${executorSelect(executorId)}
+        </div>
+        <div class="executor-manual-wrap" style="display:${isManual ? 'block' : 'none'}">
+          <input type="text" class="manual-name-input" value="${manualName}" placeholder="ФИО исполнителя">
+          <label class="save-to-list-label">
+            <input type="checkbox" class="save-to-list" checked>
+            <span>Сохранить в справочник</span>
+          </label>
+        </div>
+      </div>
+      <input type="number" value="${salary}" placeholder="Сумма ₽" step="1" class="salary-input">
       <button class="btn-remove-exec" onclick="removeExecutorRow('${id}')">✕</button>
     </div>
   `;
 }
+
+window.setExecutorMode = function(rowId, mode) {
+  const row = document.getElementById(rowId);
+  if (!row) return;
+  const selectWrap = row.querySelector('.executor-select-wrap');
+  const manualWrap = row.querySelector('.executor-manual-wrap');
+  const btns = row.querySelectorAll('.mode-btn');
+
+  if (mode === 'manual') {
+    selectWrap.style.display = 'none';
+    manualWrap.style.display = 'block';
+    btns[0].classList.remove('active');
+    btns[1].classList.add('active');
+  } else {
+    selectWrap.style.display = 'block';
+    manualWrap.style.display = 'none';
+    btns[0].classList.add('active');
+    btns[1].classList.remove('active');
+  }
+};
 
 window.addExecutorRow = function(containerId, defaultSalary = 0) {
   const id = `exec_${Date.now()}`;
@@ -712,15 +852,30 @@ function renderContent(services, existingAssignments = []) {
         </label>
         <div class="admin-details" id="adminDetails">
           <div class="form-group">
+            <label>Режим</label>
+            <div style="display:flex;gap:6px">
+              <button class="mode-btn active" id="adminModeSelect" onclick="setAdminMode('select')">📋 Из списка</button>
+              <button class="mode-btn" id="adminModeManual" onclick="setAdminMode('manual')">✏️ Вручную</button>
+            </div>
+          </div>
+          <div class="form-group" id="adminSelectWrap">
             <label>Продавец</label>
             ${adminExecutorSelect()}
           </div>
+          <div class="form-group" id="adminManualWrap" style="display:none">
+            <label>ФИО продавца</label>
+            <input type="text" id="adminManualName" placeholder="Иванов Иван Иванович" style="width:220px">
+            <label class="save-to-list-label" style="margin-top:4px">
+              <input type="checkbox" id="adminSaveToList" checked>
+              <span>Сохранить в справочник</span>
+            </label>
+          </div>
           <div class="form-group">
             <label>% от чека</label>
-            <input type="number" id="adminPercent" value="5" min="0" max="100" step="0.5" style="width:100px">
+            <input type="number" id="adminPercent" value="3" min="0" max="100" step="0.5" style="width:100px">
           </div>
-          <div style="font-size:0.85rem;color:var(--text-muted)">
-            Сумма чека: ${fmt(calculation.total_price)} ₽<br>
+          <div style="font-size:0.85rem;color:var(--text-muted);line-height:1.5">
+            Чек: ${fmt(calculation.total_price)} ₽<br>
             <strong id="adminSalaryCalc" style="color:var(--warning)"></strong>
           </div>
         </div>
@@ -803,6 +958,25 @@ window.toggleAdminSale = function() {
   calcAdminSalary();
 };
 
+window.setAdminMode = function(mode) {
+  const selectWrap = document.getElementById('adminSelectWrap');
+  const manualWrap = document.getElementById('adminManualWrap');
+  const btnSelect = document.getElementById('adminModeSelect');
+  const btnManual = document.getElementById('adminModeManual');
+
+  if (mode === 'manual') {
+    selectWrap.style.display = 'none';
+    manualWrap.style.display = 'block';
+    btnSelect.classList.remove('active');
+    btnManual.classList.add('active');
+  } else {
+    selectWrap.style.display = 'block';
+    manualWrap.style.display = 'none';
+    btnSelect.classList.add('active');
+    btnManual.classList.remove('active');
+  }
+};
+
 function calcAdminSalary() {
   const isChecked = document.getElementById('isAdminSale')?.checked;
   if (!isChecked) return;
@@ -855,19 +1029,40 @@ window.saveAssignments = async function() {
   // Admin sale
   const isAdminSale = document.getElementById('isAdminSale')?.checked;
   if (isAdminSale) {
-    const adminExecId = document.getElementById('adminExecutorId')?.value;
-    const adminExec = executors.find(e => e.id === adminExecId);
+    const isManualMode = document.getElementById('adminManualWrap')?.style.display !== 'none';
     const pct = parseFloat(document.getElementById('adminPercent')?.value) || 0;
     const adminSal = Math.round((calculation.total_price || 0) * pct / 100);
+    let adminExecId = null;
+    let adminExecName = '';
 
-    if (adminExecId && adminSal > 0) {
+    if (isManualMode) {
+      adminExecName = document.getElementById('adminManualName')?.value?.trim();
+      const saveToList = document.getElementById('adminSaveToList')?.checked;
+      if (adminExecName && saveToList) {
+        // Сохраняем в справочник
+        const { data: savedAdmin } = await sb.from('executors').insert({
+          studio_id: currentStudio.studio_id,
+          full_name: adminExecName,
+          role: 'universal',
+          is_active: true,
+          is_admin: true
+        }).select().single();
+        if (savedAdmin) { adminExecId = savedAdmin.id; executors.push(savedAdmin); }
+      }
+    } else {
+      adminExecId = document.getElementById('adminExecutorId')?.value;
+      const adminExec = executors.find(e => e.id === adminExecId);
+      adminExecName = adminExec?.full_name || '';
+    }
+
+    if ((adminExecId || adminExecName) && adminSal > 0) {
       assignments.push({
         studio_id: currentStudio.studio_id,
         calculation_id: calcId,
         car_name: calculation.car_name,
         service_name: 'Продажа (% от чека)',
-        executor_id: adminExecId,
-        executor_name: adminExec?.full_name || '',
+        executor_id: adminExecId || null,
+        executor_name: adminExecName,
         salary: adminSal,
         is_admin_sale: true,
         admin_percent: pct,
@@ -878,24 +1073,39 @@ window.saveAssignments = async function() {
   }
 
   // Work items
+  const newExecutorsToSave = []; // Новые исполнители для справочника
+
   document.querySelectorAll('.work-item').forEach(item => {
     const serviceName = item.dataset.serviceName;
-    const serviceKey = item.dataset.serviceKey;
 
     item.querySelectorAll('.executor-row').forEach(row => {
-      const execId = row.querySelector('select')?.value;
-      const salary = parseFloat(row.querySelector('input[type="number"]')?.value) || 0;
+      const isManualMode = row.querySelector('.executor-manual-wrap')?.style.display !== 'none';
+      let execId = null;
+      let execName = '';
+      let saveToList = false;
 
-      if (!execId || salary <= 0) return;
+      if (isManualMode) {
+        execName = row.querySelector('.manual-name-input')?.value?.trim();
+        saveToList = row.querySelector('.save-to-list')?.checked;
+        if (!execName) return;
+        if (saveToList) newExecutorsToSave.push(execName);
+      } else {
+        execId = row.querySelector('select')?.value;
+        if (!execId) return;
+        const exec = executors.find(e => e.id === execId);
+        execName = exec?.full_name || '';
+      }
 
-      const exec = executors.find(e => e.id === execId);
+      const salary = parseFloat(row.querySelector('.salary-input')?.value) || 0;
+      if (salary <= 0) return;
+
       assignments.push({
         studio_id: currentStudio.studio_id,
         calculation_id: calcId,
         car_name: calculation.car_name,
         service_name: serviceName,
-        executor_id: execId,
-        executor_name: exec?.full_name || '',
+        executor_id: execId || null,
+        executor_name: execName,
         salary,
         is_admin_sale: false,
         status: 'pending',
@@ -910,6 +1120,35 @@ window.saveAssignments = async function() {
   }
 
   try {
+    // Сохраняем новых исполнителей в справочник
+    if (newExecutorsToSave.length > 0) {
+      const uniqueNames = [...new Set(newExecutorsToSave)];
+      const newExecs = uniqueNames.map(name => ({
+        studio_id: currentStudio.studio_id,
+        full_name: name,
+        role: 'universal',
+        is_active: true,
+        is_admin: false
+      }));
+
+      const { data: savedExecs, error: execError } = await sb
+        .from('executors')
+        .insert(newExecs)
+        .select();
+
+      if (!execError && savedExecs) {
+        // Обновляем executor_id в assignments
+        savedExecs.forEach(saved => {
+          assignments.forEach(a => {
+            if (a.executor_name === saved.full_name && !a.executor_id) {
+              a.executor_id = saved.id;
+            }
+          });
+        });
+        // Обновляем локальный список
+        executors.push(...savedExecs);
+      }
+    }
     // Удаляем старые назначения для этого расчёта
     await sb.from('work_assignments').delete().eq('calculation_id', calcId);
 
