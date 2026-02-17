@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Распределение работ</title>
+<script>
+const savedTheme = localStorage.getItem('theme') || 'dark';
+document.documentElement.setAttribute('data-theme', savedTheme);
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-tertiary: #334155;
+  --card: rgba(255, 255, 255, 0.05);
+  --card-hover: rgba(255, 255, 255, 0.08);
+  --text: #f1f5f9;
+  --text-primary: #f1f5f9;
+  --text-muted: #94a3b8;
+  --border: rgba(148, 163, 184, 0.1);
+  --border-hover: rgba(148, 163, 184, 0.2);
+  --primary: #3b82f6;
+  --primary-dark: #2563eb;
+  --success: #10b981;
+  --success-dark: #059669;
+  --danger: #ef4444;
+  --warning: #f59e0b;
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.15);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.2);
+  --shadow-xl: 0 20px 50px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="light"] {
+  --bg-primary: #f8fafc;
+  --bg-secondary: #f1f5f9;
+  --bg-tertiary: #e2e8f0;
+  --card: rgba(255, 255, 255, 0.9);
+  --card-hover: rgba(255, 255, 255, 1);
+  --text: #0f172a;
+  --text-primary: #0f172a;
+  --text-muted: #475569;
+  --border: rgba(15, 23, 42, 0.08);
+  --border-hover: rgba(15, 23, 42, 0.15);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Inter', -apple-system, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(16, 185, 129, 0.15) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 24px;
+  position: relative;
+  z-index: 1;
+}
+
+/* Top Bar */
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+  padding: 20px 28px;
+  background: var(--card);
+  backdrop-filter: blur(20px);
+  border-radius: 16px;
+  border: 1px solid var(--border);
+}
+
+.top-bar-left h1 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--primary), var(--success));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.top-bar-left .car-subtitle {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.top-bar-right {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+/* Buttons */
+.btn {
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+}
+
+.btn:hover {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-success {
+  background: var(--success);
+}
+
+.btn-success:hover {
+  background: var(--success-dark);
+}
+
+.btn-secondary {
+  background: var(--bg-tertiary);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.btn-secondary:hover {
+  background: var(--card-hover);
+  border-color: var(--border-hover);
+}
+
+.btn-danger {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--danger);
+  border: 1px solid var(--danger);
+}
+
+.btn-danger:hover {
+  background: var(--danger);
+  color: #fff;
+}
+
+.btn-sm {
+  padding: 8px 16px;
+  font-size: 0.85rem;
+}
+
+.btn-icon {
+  padding: 8px 12px;
+  font-size: 0.9rem;
+}
+
+.theme-toggle {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 8px 14px;
+  cursor: pointer;
+  font-size: 1.2rem;
+  transition: all 0.3s;
+}
+
+/* Card */
+.card {
+  background: var(--card);
+  backdrop-filter: blur(20px);
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  padding: 28px;
+  margin-bottom: 20px;
+}
+
+.card-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Admin sale block */
+.admin-sale-block {
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.admin-sale-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.toggle-switch {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.toggle-switch input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--warning);
+  cursor: pointer;
+}
+
+.admin-details {
+  display: none;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.admin-details.active {
+  display: flex;
+}
+
+/* Form */
+.form-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.form-group input,
+.form-group select {
+  padding: 10px 14px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 0.95rem;
+  transition: all 0.3s;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--primary);
+  background: var(--card);
+}
+
+/* Work rows */
+.work-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.work-item {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px;
+  transition: all 0.3s;
+}
+
+.work-item:hover {
+  border-color: var(--border-hover);
+}
+
+.work-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.work-service-name {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.work-base-salary {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  background: var(--bg-tertiary);
+  padding: 4px 12px;
+  border-radius: 6px;
+}
+
+.executor-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.executor-row {
+  display: grid;
+  grid-template-columns: 1fr 150px 44px;
+  gap: 10px;
+  align-items: center;
+}
+
+.executor-row select {
+  padding: 10px 14px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 0.9rem;
+  transition: all 0.3s;
+}
+
+.executor-row select:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.executor-row input[type="number"] {
+  padding: 10px 14px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 0.9rem;
+  transition: all 0.3s;
+  width: 100%;
+}
+
+.executor-row input[type="number"]:focus {
+  outline: none;
+  border-color: var(--success);
+}
+
+.btn-remove-exec {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: var(--danger);
+  border-radius: 10px;
+  padding: 10px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-remove-exec:hover {
+  background: var(--danger);
+  color: #fff;
+}
+
+.add-executor-btn {
+  margin-top: 12px;
+  font-size: 0.85rem;
+  padding: 8px 16px;
+  color: var(--primary);
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px dashed rgba(59, 130, 246, 0.4);
+  border-radius: 10px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.3s;
+  font-weight: 500;
+}
+
+.add-executor-btn:hover {
+  background: rgba(59, 130, 246, 0.2);
+  border-color: var(--primary);
+}
+
+/* Add manual work */
+.add-work-row {
+  display: grid;
+  grid-template-columns: 1fr 150px;
+  gap: 12px;
+}
+
+/* Summary */
+.summary-block {
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.summary-row:last-child {
+  border-bottom: none;
+  margin-top: 8px;
+  padding-top: 16px;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.summary-label {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.summary-value {
+  font-weight: 600;
+}
+
+.summary-total-value {
+  color: var(--success);
+  font-size: 1.3rem;
+  font-weight: 800;
+}
+
+.loading { text-align: center; padding: 40px; color: var(--text-muted); }
+
+@media (max-width: 600px) {
+  .executor-row {
+    grid-template-columns: 1fr 120px 40px;
+  }
+
+  .add-work-row {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <div class="top-bar-left">
+      <h1>👥 Распределение работ</h1>
+      <div class="car-subtitle" id="carSubtitle">Загрузка...</div>
+    </div>
+    <div class="top-bar-right">
+      <button class="theme-toggle" id="themeToggle">🌙</button>
+      <button class="btn btn-secondary" onclick="window.location.href='dashboard.html'">← Назад</button>
+    </div>
+  </div>
+
+  <div id="mainContent">
+    <div class="loading">⏳ Загрузка расчёта...</div>
+  </div>
+</div>
+
+<script>
+(function() {
+'use strict';
+
+const SUPABASE_URL = 'https://hdghijgrrnzmntistdvw.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkZ2hpamdycm56bW50aXN0ZHZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMzMyNzksImV4cCI6MjA3NTYwOTI3OX0.D9EDTmVrFRVp0B8_5tCJM29gbFdtadsom0Ihsf4uQ8Q';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let currentUser = null;
+let currentStudio = null;
+let calculation = null;
+let executors = [];
+let calcId = null;
+
+// Названия услуг
+const SERVICE_NAMES = {
+  pkg_wrap: 'Оклейка (Полная защита)',
+  pkg_prep: 'Подготовка (Полная защита)',
+  pkg_arm:  'Армирование (Полная защита)',
+  impact_wrap: 'Оклейка (Ударная часть)',
+  impact_prep: 'Подготовка (Ударная часть)',
+  impact_arm:  'Армирование (Ударная часть)',
+  arm: 'Армирование',
+  wrap: 'Оклейка',
+  det: 'Детейлинг',
+  gl:  'Полировка/Химчистка',
+  ms:  'Прочие услуги'
+};
+
+// Theme
+function initTheme() {
+  const t = localStorage.getItem('theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', t);
+  document.getElementById('themeToggle').textContent = t === 'dark' ? '☀️' : '🌙';
+}
+
+document.getElementById('themeToggle').addEventListener('click', () => {
+  const current = document.documentElement.getAttribute('data-theme');
+  const next = current === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('theme', next);
+  document.getElementById('themeToggle').textContent = next === 'dark' ? '☀️' : '🌙';
+});
+
+// Format
+function fmt(n) {
+  return new Intl.NumberFormat('ru-RU', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(n || 0);
+}
+
+// Auth
+async function checkAuth() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = 'welcome.html'; return false; }
+  currentUser = session.user;
+  return true;
+}
+
+// Get studio
+async function getStudio() {
+  const { data, error } = await sb
+    .from('studio_members')
+    .select('studio_id, role')
+    .eq('user_id', currentUser.id)
+    .eq('is_active', true)
+    .single();
+  if (error || !data) { alert('❌ Студия не найдена'); return false; }
+  currentStudio = data;
+  return true;
+}
+
+// Load executors
+async function loadExecutors() {
+  const { data, error } = await sb
+    .from('executors')
+    .select('id, full_name, role, is_admin')
+    .eq('studio_id', currentStudio.studio_id)
+    .eq('is_active', true)
+    .order('full_name');
+  if (error) { console.error('Executors error:', error); return; }
+  executors = data || [];
+}
+
+// Build executor dropdown
+function executorSelect(selectedId = '') {
+  const opts = executors.map(e =>
+    `<option value="${e.id}" ${e.id === selectedId ? 'selected' : ''}>${e.full_name} (${roleRu(e.role)})</option>`
+  ).join('');
+  return `<select><option value="">— Выбрать исполнителя —</option>${opts}</select>`;
+}
+
+function roleRu(r) {
+  const m = { wrapper: 'Оклейщик', preparer: 'Подготовщик', armature: 'Арматурщик', detailer: 'Детейлер', universal: 'Универсал' };
+  return m[r] || r;
+}
+
+// Admin executor dropdown
+function adminExecutorSelect(selectedId = '') {
+  const admins = executors.filter(e => e.is_admin);
+  if (admins.length === 0) return '<span style="color:var(--text-muted);font-size:0.9rem">Нет продавцов. Добавь в Исполнителях.</span>';
+  const opts = admins.map(e =>
+    `<option value="${e.id}" ${e.id === selectedId ? 'selected' : ''}>${e.full_name}</option>`
+  ).join('');
+  return `<select id="adminExecutorId"><option value="">— Выбрать продавца —</option>${opts}</select>`;
+}
+
+// Extract services from calculation_data
+function extractServices(calcData) {
+  const services = [];
+  const d = calcData;
+
+  function addIfHasMot(key, name, mot) {
+    const m = parseFloat(mot) || 0;
+    if (m > 0) services.push({ key, name, baseSalary: m });
+  }
+
+  // Полная защита вкруг
+  if (d.package) {
+    addIfHasMot('pkg_wrap', SERVICE_NAMES.pkg_wrap, d.package.wrapMot);
+    addIfHasMot('pkg_prep', SERVICE_NAMES.pkg_prep, d.package.prepMot);
+    addIfHasMot('pkg_arm',  SERVICE_NAMES.pkg_arm,  d.package.armMot);
+  }
+
+  // Ударная часть
+  if (d.impact) {
+    addIfHasMot('impact_wrap', SERVICE_NAMES.impact_wrap, d.impact.wrapMot);
+    addIfHasMot('impact_prep', SERVICE_NAMES.impact_prep, d.impact.prepMot);
+    addIfHasMot('impact_arm',  SERVICE_NAMES.impact_arm,  d.impact.armMot);
+  }
+
+  // Прочие услуги (arm, wrap, det, gl, ms)
+  // Ищем в calculation_data поля по шаблону
+  const extras = ['arm', 'wrap', 'det', 'gl', 'ms'];
+  extras.forEach(key => {
+    if (d[key]) {
+      addIfHasMot(key, SERVICE_NAMES[key] || key, d[key].mot || d[key].motivation);
+    }
+  });
+
+  // Услуги из renderServiceList (ppf, pvc, detail...)
+  if (d.services && Array.isArray(d.services)) {
+    d.services.forEach((srv, idx) => {
+      const m = parseFloat(srv.mot || srv.motivation) || 0;
+      if (m > 0) services.push({ key: `service_${idx}`, name: srv.name || `Услуга ${idx + 1}`, baseSalary: m });
+    });
+  }
+
+  return services;
+}
+
+// Render work item
+let workItemCounter = 0;
+
+function renderWorkItem(service, existingAssignments = []) {
+  const id = `work_${workItemCounter++}`;
+  const execRowsHtml = existingAssignments.length > 0
+    ? existingAssignments.map((a, i) => renderExecutorRow(`${id}_exec_${i}`, a.executor_id, a.salary)).join('')
+    : renderExecutorRow(`${id}_exec_0`, '', service.baseSalary);
+
+  return `
+    <div class="work-item" data-service-key="${service.key}" data-service-name="${service.name}">
+      <div class="work-item-header">
+        <span class="work-service-name">${service.name}</span>
+        <span class="work-base-salary">Мотивация: ${fmt(service.baseSalary)} ₽</span>
+      </div>
+      <div class="executor-rows" id="${id}_rows">
+        ${execRowsHtml}
+      </div>
+      <button class="add-executor-btn" onclick="addExecutorRow('${id}_rows', ${service.baseSalary})">
+        ➕ Добавить исполнителя
+      </button>
+    </div>
+  `;
+}
+
+function renderExecutorRow(id, executorId = '', salary = 0) {
+  return `
+    <div class="executor-row" id="${id}">
+      ${executorSelect(executorId)}
+      <input type="number" value="${salary}" placeholder="Сумма ₽" step="1">
+      <button class="btn-remove-exec" onclick="removeExecutorRow('${id}')">✕</button>
+    </div>
+  `;
+}
+
+window.addExecutorRow = function(containerId, defaultSalary = 0) {
+  const id = `exec_${Date.now()}`;
+  const row = document.createElement('div');
+  row.innerHTML = renderExecutorRow(id, '', defaultSalary);
+  document.getElementById(containerId).appendChild(row.firstElementChild);
+  updateSummary();
+};
+
+window.removeExecutorRow = function(rowId) {
+  const el = document.getElementById(rowId);
+  if (el) el.remove();
+  updateSummary();
+};
+
+// Update summary
+function updateSummary() {
+  let total = 0;
+  let count = 0;
+  document.querySelectorAll('.executor-row').forEach(row => {
+    const sal = parseFloat(row.querySelector('input[type="number"]')?.value) || 0;
+    const exec = row.querySelector('select')?.value;
+    if (exec || sal > 0) { total += sal; count++; }
+  });
+
+  document.getElementById('summaryCount').textContent = count;
+  document.getElementById('summaryTotal').textContent = fmt(total) + ' ₽';
+}
+
+// Render main content
+function renderContent(services, existingAssignments = []) {
+  const carName = calculation.car_name || 'Без названия';
+  document.getElementById('carSubtitle').textContent = carName;
+
+  let html = '';
+
+  // Admin sale
+  html += `
+    <div class="admin-sale-block">
+      <div class="admin-sale-row">
+        <label class="toggle-switch">
+          <input type="checkbox" id="isAdminSale" onchange="toggleAdminSale()">
+          <span style="font-weight:600">👔 Продажу сделал администратор</span>
+        </label>
+        <div class="admin-details" id="adminDetails">
+          <div class="form-group">
+            <label>Продавец</label>
+            ${adminExecutorSelect()}
+          </div>
+          <div class="form-group">
+            <label>% от чека</label>
+            <input type="number" id="adminPercent" value="5" min="0" max="100" step="0.5" style="width:100px">
+          </div>
+          <div style="font-size:0.85rem;color:var(--text-muted)">
+            Сумма чека: ${fmt(calculation.total_price)} ₽<br>
+            <strong id="adminSalaryCalc" style="color:var(--warning)"></strong>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Services
+  if (services.length > 0) {
+    html += `
+      <div class="card">
+        <div class="card-title">🔧 Услуги из расчёта</div>
+        <div class="work-list" id="workList">
+          ${services.map(s => renderWorkItem(s, existingAssignments.filter(a => a.service_key === s.key))).join('')}
+        </div>
+      </div>
+    `;
+  } else {
+    html += `
+      <div class="card">
+        <div class="card-title">🔧 Услуги из расчёта</div>
+        <div style="padding:20px;color:var(--text-muted);text-align:center">
+          В расчёте нет услуг с мотивацией. Добавьте услуги вручную ниже.
+        </div>
+      </div>
+    `;
+  }
+
+  // Manual work
+  html += `
+    <div class="card">
+      <div class="card-title">➕ Добавить работу вручную</div>
+      <div class="add-work-row">
+        <input type="text" id="manualServiceName" placeholder="Название работы (напр: Мойка, Полировка)">
+        <input type="number" id="manualSalary" placeholder="Сумма ₽" min="0" step="1">
+      </div>
+      <button class="btn btn-secondary btn-sm" style="margin-top:12px" onclick="addManualWork()">➕ Добавить</button>
+    </div>
+  `;
+
+  // Summary + Save
+  html += `
+    <div class="card">
+      <div class="card-title">📊 Итого к выплате</div>
+      <div class="summary-block">
+        <div class="summary-row">
+          <span class="summary-label">Исполнителей назначено</span>
+          <span class="summary-value" id="summaryCount">0</span>
+        </div>
+        <div class="summary-row">
+          <span class="summary-label">💰 Итого ЗП</span>
+          <span class="summary-total-value" id="summaryTotal">0 ₽</span>
+        </div>
+      </div>
+      <div style="display:flex;gap:12px;margin-top:20px;justify-content:flex-end;flex-wrap:wrap">
+        <button class="btn btn-secondary" onclick="window.location.href='dashboard.html'">← Отмена</button>
+        <button class="btn btn-success" onclick="saveAssignments()">💾 Сохранить распределение</button>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('mainContent').innerHTML = html;
+
+  // Listen for changes to update summary
+  document.querySelectorAll('.executor-row input, .executor-row select').forEach(el => {
+    el.addEventListener('change', updateSummary);
+    el.addEventListener('input', updateSummary);
+  });
+
+  // Admin percent live calc
+  document.getElementById('adminPercent')?.addEventListener('input', calcAdminSalary);
+  calcAdminSalary();
+  updateSummary();
+}
+
+window.toggleAdminSale = function() {
+  const isChecked = document.getElementById('isAdminSale').checked;
+  const details = document.getElementById('adminDetails');
+  details.classList.toggle('active', isChecked);
+  calcAdminSalary();
+};
+
+function calcAdminSalary() {
+  const isChecked = document.getElementById('isAdminSale')?.checked;
+  if (!isChecked) return;
+  const pct = parseFloat(document.getElementById('adminPercent')?.value) || 0;
+  const totalCheck = calculation?.total_price || 0;
+  const adminSal = Math.round(totalCheck * pct / 100);
+  const el = document.getElementById('adminSalaryCalc');
+  if (el) el.textContent = `ЗП продавца: ${fmt(adminSal)} ₽`;
+}
+
+// Add manual work
+window.addManualWork = function() {
+  const name = document.getElementById('manualServiceName').value.trim();
+  const salary = parseFloat(document.getElementById('manualSalary').value) || 0;
+
+  if (!name) { alert('Введите название работы'); return; }
+
+  const service = { key: `manual_${Date.now()}`, name, baseSalary: salary };
+  const item = document.createElement('div');
+  item.innerHTML = renderWorkItem(service);
+
+  const workList = document.getElementById('workList');
+  if (!workList) {
+    // Создаём workList если его нет (нет услуг из расчёта)
+    const card = document.querySelector('.card');
+    const div = document.createElement('div');
+    div.className = 'work-list';
+    div.id = 'workList';
+    card.appendChild(div);
+    div.appendChild(item.firstElementChild);
+  } else {
+    workList.appendChild(item.firstElementChild);
+  }
+
+  // Listen changes
+  item.querySelectorAll('input, select').forEach(el => {
+    el.addEventListener('change', updateSummary);
+    el.addEventListener('input', updateSummary);
+  });
+
+  document.getElementById('manualServiceName').value = '';
+  document.getElementById('manualSalary').value = '';
+  updateSummary();
+};
+
+// Save
+window.saveAssignments = async function() {
+  const assignments = [];
+
+  // Admin sale
+  const isAdminSale = document.getElementById('isAdminSale')?.checked;
+  if (isAdminSale) {
+    const adminExecId = document.getElementById('adminExecutorId')?.value;
+    const adminExec = executors.find(e => e.id === adminExecId);
+    const pct = parseFloat(document.getElementById('adminPercent')?.value) || 0;
+    const adminSal = Math.round((calculation.total_price || 0) * pct / 100);
+
+    if (adminExecId && adminSal > 0) {
+      assignments.push({
+        studio_id: currentStudio.studio_id,
+        calculation_id: calcId,
+        car_name: calculation.car_name,
+        service_name: 'Продажа (% от чека)',
+        executor_id: adminExecId,
+        executor_name: adminExec?.full_name || '',
+        salary: adminSal,
+        is_admin_sale: true,
+        admin_percent: pct,
+        status: 'pending',
+        payment_month: new Date().toISOString().slice(0, 7)
+      });
+    }
+  }
+
+  // Work items
+  document.querySelectorAll('.work-item').forEach(item => {
+    const serviceName = item.dataset.serviceName;
+    const serviceKey = item.dataset.serviceKey;
+
+    item.querySelectorAll('.executor-row').forEach(row => {
+      const execId = row.querySelector('select')?.value;
+      const salary = parseFloat(row.querySelector('input[type="number"]')?.value) || 0;
+
+      if (!execId || salary <= 0) return;
+
+      const exec = executors.find(e => e.id === execId);
+      assignments.push({
+        studio_id: currentStudio.studio_id,
+        calculation_id: calcId,
+        car_name: calculation.car_name,
+        service_name: serviceName,
+        executor_id: execId,
+        executor_name: exec?.full_name || '',
+        salary,
+        is_admin_sale: false,
+        status: 'pending',
+        payment_month: new Date().toISOString().slice(0, 7)
+      });
+    });
+  });
+
+  if (assignments.length === 0) {
+    alert('❌ Не назначено ни одного исполнителя с суммой!');
+    return;
+  }
+
+  try {
+    // Удаляем старые назначения для этого расчёта
+    await sb.from('work_assignments').delete().eq('calculation_id', calcId);
+
+    // Вставляем новые
+    const { error } = await sb.from('work_assignments').insert(assignments);
+
+    if (error) {
+      console.error('Save error:', error);
+      alert('❌ Ошибка сохранения: ' + error.message);
+      return;
+    }
+
+    // Помечаем расчёт как распределённый
+    await sb.from('calculations').update({ work_assigned: true }).eq('id', calcId);
+
+    alert(`✅ Сохранено! Назначено ${assignments.length} записей.`);
+    window.location.href = 'dashboard.html';
+
+  } catch (e) {
+    console.error('Error:', e);
+    alert('❌ Ошибка сохранения');
+  }
+};
+
+// Init
+async function init() {
+  initTheme();
+
+  if (!await checkAuth()) return;
+  if (!await getStudio()) return;
+
+  // Get calc_id from URL
+  const params = new URLSearchParams(window.location.search);
+  calcId = params.get('calc_id');
+
+  if (!calcId) {
+    document.getElementById('mainContent').innerHTML = '<div class="loading">❌ Не указан ID расчёта</div>';
+    return;
+  }
+
+  // Load calculation
+  const { data: calcData, error: calcError } = await sb
+    .from('calculations')
+    .select('*')
+    .eq('id', calcId)
+    .single();
+
+  if (calcError || !calcData) {
+    document.getElementById('mainContent').innerHTML = '<div class="loading">❌ Расчёт не найден</div>';
+    return;
+  }
+
+  calculation = calcData;
+
+  // Load executors
+  await loadExecutors();
+
+  // Load existing assignments (если уже распределяли)
+  const { data: existingData } = await sb
+    .from('work_assignments')
+    .select('*')
+    .eq('calculation_id', calcId);
+
+  // Extract services
+  const services = extractServices(calcData.calculation_data || {});
+
+  // Render
+  renderContent(services, existingData || []);
+}
+
+init();
+
+})();
+</script>
+</body>
+</html>
