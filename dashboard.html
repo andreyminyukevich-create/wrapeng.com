@@ -746,6 +746,7 @@ select option {
     </div>
   </div>
 
+
   <!-- Actions Bar -->
   <div class="actions-bar">
     <div class="actions-left">
@@ -754,26 +755,15 @@ select option {
       <a href="executors.html" class="btn btn-success">👥 Исполнители</a>
       <a href="payouts.html" class="btn btn-success">💰 Подсчет ЗП</a>
     </div>
-
-    <div class="search-filter">
-      <div class="search-box">
-        <input type="text" id="searchInput" placeholder="Поиск по машине...">
-      </div>
-      <select id="periodFilter">
-        <option value="all">Все время</option>
-        <option value="today">Сегодня</option>
-        <option value="week">Неделя</option>
-        <option value="month">Месяц</option>
-        <option value="year">Год</option>
-      </select>
-      <button class="btn btn-secondary" onclick="loadCalculations()">🔄 Обновить</button>
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="🔍 Поиск по машине..." oninput="handleSearch()">
     </div>
   </div>
 
-  <!-- Calculations -->
-  <div class="card">
-    <h2>🚗 Мои расчеты</h2>
-    <div id="calculationsContainer" class="loading">⏳ Загрузка...</div>
+  <!-- Search Results (скрыт по умолчанию) -->
+  <div class="card" id="searchResultsCard" style="display:none">
+    <h2>🔍 Результаты поиска</h2>
+    <div id="searchResults"></div>
   </div>
 </div>
 
@@ -967,210 +957,84 @@ async function loadMiniKanban(studioId) {
   container.innerHTML = html;
 }
 
-// Load calculations
-async function loadCalculations() {
-  const container = document.getElementById('calculationsContainer');
-  const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-  const period = document.getElementById('periodFilter').value;
-  
-  container.innerHTML = '<div class="loading">⏳ Загрузка...</div>';
-  
-  try {
-    // Get studio
-    const { data: memberData, error: memberError } = await sb
-      .from('studio_members')
-      .select('studio_id')
-      .eq('user_id', currentUser.id)
-      .eq('is_active', true)
-      .single();
-    
-    if (memberError || !memberData) {
-      console.error('No studio found:', memberError);
-      container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">⚠️</div><h3>Студия не найдена</h3></div>';
-      return;
-    }
-    
-    const studioId = memberData.studio_id;
-    
-    // Загружаем мини-канбан параллельно
-    loadMiniKanban(studioId);
-    
-    // Load calculations
-    let query = sb
-      .from('calculations')
-      .select('*')
-      .eq('studio_id', studioId)
-      .order('updated_at', { ascending: false })
-      .limit(50);
-    
-    const { data, error } = await query;
-    
-    if (error) {
-      console.error('Error loading calculations:', error);
-      container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">❌</div><h3>Ошибка загрузки</h3></div>';
-      return;
-    }
-    
-    allCalculations = data || [];
-    
-    // Filter by period
-    let filtered = allCalculations;
-    if (period !== 'all') {
-      const now = new Date();
-      let startDate;
-      
-      switch(period) {
-        case 'today':
-          startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-          break;
-        case 'week':
-          startDate = new Date(now - 7 * 24 * 60 * 60 * 1000);
-          break;
-        case 'month':
-          startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-          break;
-        case 'year':
-          startDate = new Date(now.getFullYear(), 0, 1);
-          break;
-      }
-      
-      filtered = filtered.filter(c => new Date(c.created_at) >= startDate);
-    }
-    
-    // Filter by search
-    if (searchTerm) {
-      filtered = filtered.filter(c => 
-        (c.car_name || '').toLowerCase().includes(searchTerm) ||
-        (c.car_brand || '').toLowerCase().includes(searchTerm) ||
-        (c.car_model || '').toLowerCase().includes(searchTerm)
-      );
-    }
-    
-    updateStats(allCalculations);
-    
-    if (filtered.length === 0) {
-      container.innerHTML = `
-        <div class="empty-state">
-          <div class="empty-state-icon">📋</div>
-          <h3>Расчётов не найдено</h3>
-          <p style="margin-top: 8px">Создайте первый расчёт или измените фильтры</p>
-        </div>
-      `;
-      return;
-    }
-    
-    renderCalculations(filtered);
-    
-  } catch (e) {
-    console.error('Error:', e);
-    container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">❌</div><h3>Ошибка</h3></div>';
-  }
-}
+// Поиск по авто
+let allCalcsForSearch = [];
+let searchTimeout;
 
-// Render
-function renderCalculations(calculations) {
-  const container = document.getElementById('calculationsContainer');
-  
-  let html = '<div class="calc-grid">';
-  
-  calculations.forEach(calc => {
-    const price = fmt(calc.total_price || 0);
-    const date = formatDate(calc.updated_at || calc.created_at);
-    const status = calc.work_assigned ? 'assigned' : 'new';
-    const statusText = calc.work_assigned ? 'Распределён' : 'Новый';
-    const statusClass = calc.work_assigned ? 'status-assigned' : 'status-new';
-    
-    html += `
-      <div class="calc-card">
-        <div class="calc-header">
-          <div>
-            <h3>${calc.car_name || 'Без названия'}</h3>
-          </div>
-          <span class="calc-status ${statusClass}">${statusText}</span>
-        </div>
-        
-        <div class="calc-info">
-          <div class="calc-info-item">
-            <span>📅</span>
-            <span>${date}</span>
-          </div>
-        </div>
-        
-        <div class="calc-price">${price} ₽</div>
-        
-        <div class="calc-actions">
-          <button class="btn btn-primary" onclick="openCalculation('${calc.id}')">📂 Открыть</button>
-          <button class="btn btn-success" onclick="assignWork('${calc.id}')">👥 Работы</button>
-          <button class="btn btn-danger btn-icon" onclick="deleteCalculation('${calc.id}', '${calc.car_name || 'этот расчёт'}')">🗑️</button>
-        </div>
-      </div>
-    `;
-  });
-  
-  html += '</div>';
-  container.innerHTML = html;
-}
+window.handleSearch = function() {
+  clearTimeout(searchTimeout);
+  const term = document.getElementById('searchInput').value.trim().toLowerCase();
+  const card = document.getElementById('searchResultsCard');
+  const results = document.getElementById('searchResults');
 
-// Actions
-window.openCalculation = function(calcId) {
-  window.location.href = `calculator.html?load=${calcId}`;
-};
-
-window.assignWork = function(calcId) {
-  window.location.href = `assign-work.html?calc_id=${calcId}`;
-};
-
-window.deleteCalculation = async function(calcId, name) {
-  if (!confirm(`Удалить расчёт "${name}"?`)) {
+  if (!term) {
+    card.style.display = 'none';
     return;
   }
-  
-  try {
-    const { error } = await sb
-      .from('calculations')
-      .delete()
-      .eq('id', calcId);
-    
-    if (error) {
-      console.error('Delete error:', error);
-      alert('❌ Ошибка удаления');
+
+  searchTimeout = setTimeout(() => {
+    const found = allCalcsForSearch.filter(c =>
+      (c.car_name || '').toLowerCase().includes(term)
+    );
+
+    card.style.display = 'block';
+
+    if (found.length === 0) {
+      results.innerHTML = `<div class="empty-state" style="padding:40px"><div class="empty-state-icon">🔍</div><h3>Ничего не найдено</h3></div>`;
       return;
     }
-    
-    loadCalculations();
-  } catch (e) {
-    console.error('Error:', e);
-    alert('❌ Ошибка удаления');
-  }
+
+    const STATUS_LABEL = {
+      new: '📋 Расчёт', scheduled: '📅 Заезд',
+      in_progress: '🔧 В работе', done: '✅ Завершено', delivered: '🚗 Выдано'
+    };
+
+    results.innerHTML = `<div class="calc-grid">` + found.map(c => `
+      <div class="calc-card" onclick="window.location.href='calculator.html?load=${c.id}'" style="cursor:pointer">
+        <div class="calc-header">
+          <h3>${c.car_name || 'Без названия'}</h3>
+          <span class="calc-status status-new">${STATUS_LABEL[c.status || 'new'] || '📋'}</span>
+        </div>
+        <div class="calc-price">${fmt(c.final_price || c.total_price || 0)} ₽</div>
+        <div class="calc-actions">
+          <button class="btn btn-primary" onclick="event.stopPropagation();window.location.href='calculator.html?load=${c.id}'">📂 Открыть</button>
+          <button class="btn btn-success" onclick="event.stopPropagation();window.location.href='assign-work.html?calc_id=${c.id}'">👥 Работы</button>
+        </div>
+      </div>
+    `).join('') + `</div>`;
+  }, 300);
 };
 
-// Search
-let searchTimeout;
-document.getElementById('searchInput').addEventListener('input', () => {
-  clearTimeout(searchTimeout);
-  searchTimeout = setTimeout(() => {
-    const filtered = allCalculations.filter(c => {
-      const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-      return (c.car_name || '').toLowerCase().includes(searchTerm) ||
-             (c.car_brand || '').toLowerCase().includes(searchTerm) ||
-             (c.car_model || '').toLowerCase().includes(searchTerm);
-    });
-    renderCalculations(filtered);
-    updateStats(filtered);
-  }, 300);
-});
-
-document.getElementById('periodFilter').addEventListener('change', loadCalculations);
-
 // Init
-document.addEventListener('DOMContentLoaded', async () => {
+async function init() {
   if (!await checkAuth()) return;
-  
   initTheme();
-  loadCalculations();
-  
   document.getElementById('themeToggle').addEventListener('click', toggleTheme);
-});
+
+  // Получаем студию
+  const { data: memberData } = await sb
+    .from('studio_members')
+    .select('studio_id')
+    .eq('user_id', currentUser.id)
+    .eq('is_active', true)
+    .single();
+
+  if (!memberData) return;
+  const studioId = memberData.studio_id;
+
+  // Загружаем данные для статистики и поиска
+  const { data: calcs } = await sb
+    .from('calculations')
+    .select('id, car_name, total_price, final_price, status, work_assigned, created_at')
+    .eq('studio_id', studioId)
+    .order('created_at', { ascending: false });
+
+  allCalcsForSearch = calcs || [];
+  updateStats(allCalcsForSearch);
+  loadMiniKanban(studioId);
+}
+
+document.addEventListener('DOMContentLoaded', init);
 
 })();
 </script>
