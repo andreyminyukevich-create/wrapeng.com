@@ -13,26 +13,26 @@ document.documentElement.setAttribute('data-theme', savedTheme);
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 :root {
-  --bg-primary: #0b1120;
-  --bg-secondary: #111827;
-  --bg-card: #1a2236;
-  --bg-input: #0f1a2e;
-  --text: #f0f4ff;
-  --text-muted: #7c8fac;
-  --text-label: #a0b0c8;
-  --border: rgba(99, 132, 180, 0.18);
-  --border-focus: rgba(99, 160, 255, 0.5);
-  --primary: #4f8ef7;
+  --bg-primary: #080f1e;
+  --bg-secondary: #0e1829;
+  --bg-card: #131f35;
+  --bg-input: #1a2844;
+  --text: #eef2ff;
+  --text-muted: #8aa0c0;
+  --text-label: #b0c4de;
+  --border: rgba(120, 160, 220, 0.22);
+  --border-focus: rgba(99, 160, 255, 0.6);
+  --primary: #5b9cf6;
   --primary-dark: #2563eb;
   --success: #22d3a0;
   --success-dark: #059669;
-  --success-bg: rgba(34, 211, 160, 0.1);
+  --success-bg: rgba(34, 211, 160, 0.12);
   --danger: #f87171;
-  --danger-bg: rgba(248, 113, 113, 0.12);
+  --danger-bg: rgba(248, 113, 113, 0.14);
   --warning: #fbbf24;
-  --warning-bg: rgba(251, 191, 36, 0.1);
-  --shadow: 0 4px 24px rgba(0,0,0,0.4);
-  --shadow-lg: 0 8px 40px rgba(0,0,0,0.5);
+  --warning-bg: rgba(251, 191, 36, 0.12);
+  --shadow: 0 4px 24px rgba(0,0,0,0.5);
+  --shadow-lg: 0 8px 40px rgba(0,0,0,0.6);
 }
 
 [data-theme="light"] {
@@ -301,8 +301,63 @@ body {
   transition: border-color 0.2s;
 }
 
+[data-theme="dark"] .work-item {
+  background: #0e1829;
+  border-color: rgba(120, 160, 220, 0.28);
+}
+
 .work-item:hover {
   border-color: var(--border-focus);
+}
+
+[data-theme="dark"] .executor-select-wrap select,
+[data-theme="dark"] .executor-manual-wrap .manual-name-input,
+[data-theme="dark"] .salary-input,
+[data-theme="dark"] .add-work-row input {
+  background: #1a2844;
+  border-color: rgba(120, 160, 220, 0.3);
+  color: #eef2ff;
+}
+
+[data-theme="dark"] .executor-select-wrap select:focus,
+[data-theme="dark"] .executor-manual-wrap .manual-name-input:focus,
+[data-theme="dark"] .salary-input:focus,
+[data-theme="dark"] .add-work-row input:focus {
+  background: #1f3055;
+  border-color: rgba(99, 160, 255, 0.7);
+}
+
+[data-theme="dark"] .mode-btn {
+  background: #1a2844;
+  border-color: rgba(120, 160, 220, 0.3);
+  color: #8aa0c0;
+}
+
+[data-theme="dark"] .mode-btn.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+[data-theme="dark"] .work-base-salary {
+  background: rgba(34, 211, 160, 0.15);
+  border-color: rgba(34, 211, 160, 0.3);
+  color: var(--success);
+}
+
+[data-theme="dark"] .card {
+  background: #131f35;
+  border-color: rgba(120, 160, 220, 0.2);
+}
+
+[data-theme="dark"] .admin-sale-block {
+  background: rgba(251, 191, 36, 0.08);
+  border-color: rgba(251, 191, 36, 0.25);
+}
+
+[data-theme="dark"] .summary-block {
+  background: rgba(34, 211, 160, 0.08);
+  border-color: rgba(34, 211, 160, 0.25);
 }
 
 .work-item-header {
@@ -335,14 +390,11 @@ body {
 .executor-rows {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .executor-row {
-  display: grid;
-  grid-template-columns: 1fr 160px 36px;
-  gap: 8px;
-  align-items: start;
+  width: 100%;
 }
 
 .executor-input-group {
@@ -353,26 +405,35 @@ body {
 
 .executor-mode-switcher {
   display: flex;
-  gap: 4px;
-  margin-bottom: 2px;
+  gap: 6px;
 }
 
 .mode-btn {
   background: var(--bg-input);
   border: 1px solid var(--border);
-  border-radius: 7px;
-  padding: 3px 10px;
+  border-radius: 8px;
+  padding: 5px 14px;
   cursor: pointer;
-  font-size: 0.8rem;
+  font-size: 0.82rem;
+  font-weight: 600;
   color: var(--text-muted);
   transition: all 0.2s;
   font-family: 'Inter', sans-serif;
+  white-space: nowrap;
 }
 
 .mode-btn.active {
   background: var(--primary);
   border-color: var(--primary);
   color: #fff;
+}
+
+/* Одна строка: [дропдаун] [сумма] [×] */
+.executor-fields-row {
+  display: grid;
+  grid-template-columns: 1fr 140px 36px;
+  gap: 8px;
+  align-items: center;
 }
 
 .executor-select-wrap select,
@@ -388,11 +449,22 @@ body {
   transition: all 0.2s;
 }
 
+.executor-select-wrap,
+.executor-manual-wrap {
+  min-width: 0;
+}
+
 .executor-select-wrap select:focus,
 .executor-manual-wrap .manual-name-input:focus {
   outline: none;
   border-color: var(--border-focus);
   box-shadow: 0 0 0 3px rgba(79,142,247,0.1);
+}
+
+.executor-manual-save {
+  display: flex;
+  align-items: center;
+  padding-left: 2px;
 }
 
 .save-to-list-label {
@@ -403,7 +475,6 @@ body {
   font-weight: 600;
   color: var(--success);
   cursor: pointer;
-  margin-top: 3px;
   letter-spacing: 0.1px;
 }
 
@@ -438,7 +509,7 @@ body {
   border: 1px solid rgba(248,113,113,0.25);
   color: var(--danger);
   border-radius: 9px;
-  padding: 9px;
+  padding: 0;
   cursor: pointer;
   font-size: 0.8rem;
   transition: all 0.2s;
@@ -447,7 +518,6 @@ body {
   justify-content: center;
   height: 36px;
   width: 36px;
-  margin-top: 30px;
 }
 
 .btn-remove-exec:hover {
@@ -767,22 +837,26 @@ function renderExecutorRow(id, executorId = '', salary = 0, manualName = '') {
     <div class="executor-row" id="${id}">
       <div class="executor-input-group">
         <div class="executor-mode-switcher">
-          <button class="mode-btn ${!isManual ? 'active' : ''}" onclick="setExecutorMode('${id}', 'select')" title="Выбрать из справочника">📋</button>
-          <button class="mode-btn ${isManual ? 'active' : ''}" onclick="setExecutorMode('${id}', 'manual')" title="Ввести вручную">✏️</button>
+          <button class="mode-btn ${!isManual ? 'active' : ''}" onclick="setExecutorMode('${id}', 'select')">📋 Из справочника</button>
+          <button class="mode-btn ${isManual ? 'active' : ''}" onclick="setExecutorMode('${id}', 'manual')">✏️ Вручную</button>
         </div>
-        <div class="executor-select-wrap" style="display:${isManual ? 'none' : 'block'}">
-          ${executorSelect(executorId)}
+        <div class="executor-fields-row">
+          <div class="executor-select-wrap" style="display:${isManual ? 'none' : 'block'}">
+            ${executorSelect(executorId)}
+          </div>
+          <div class="executor-manual-wrap" style="display:${isManual ? 'block' : 'none'}">
+            <input type="text" class="manual-name-input" value="${manualName}" placeholder="ФИО исполнителя">
+          </div>
+          <input type="number" value="${salary}" placeholder="Сумма ₽" step="1" class="salary-input">
+          <button class="btn-remove-exec" onclick="removeExecutorRow('${id}')">✕</button>
         </div>
-        <div class="executor-manual-wrap" style="display:${isManual ? 'block' : 'none'}">
-          <input type="text" class="manual-name-input" value="${manualName}" placeholder="ФИО исполнителя">
+        <div class="executor-manual-save" style="display:${isManual ? 'flex' : 'none'}">
           <label class="save-to-list-label">
             <input type="checkbox" class="save-to-list" checked>
             <span>Сохранить в справочник</span>
           </label>
         </div>
       </div>
-      <input type="number" value="${salary}" placeholder="Сумма ₽" step="1" class="salary-input">
-      <button class="btn-remove-exec" onclick="removeExecutorRow('${id}')">✕</button>
     </div>
   `;
 }
@@ -792,16 +866,19 @@ window.setExecutorMode = function(rowId, mode) {
   if (!row) return;
   const selectWrap = row.querySelector('.executor-select-wrap');
   const manualWrap = row.querySelector('.executor-manual-wrap');
+  const manualSave = row.querySelector('.executor-manual-save');
   const btns = row.querySelectorAll('.mode-btn');
 
   if (mode === 'manual') {
     selectWrap.style.display = 'none';
     manualWrap.style.display = 'block';
+    manualSave.style.display = 'flex';
     btns[0].classList.remove('active');
     btns[1].classList.add('active');
   } else {
     selectWrap.style.display = 'block';
     manualWrap.style.display = 'none';
+    manualSave.style.display = 'none';
     btns[0].classList.add('active');
     btns[1].classList.remove('active');
   }
