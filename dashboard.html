@@ -511,7 +511,118 @@ select option {
   min-width: 110px;
 }
 
-.empty-state {
+.mini-kanban {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+  overflow-x: auto;
+}
+
+.mini-col {
+  min-width: 140px;
+}
+
+.mini-col-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.mini-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.mini-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mini-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.mini-card:hover {
+  border-color: var(--primary);
+  transform: translateY(-1px);
+}
+
+.mini-card-car {
+  font-size: 0.82rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 3px;
+}
+
+.mini-card-price {
+  font-size: 0.78rem;
+  color: var(--success);
+  font-weight: 700;
+}
+
+.mini-col-more {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 6px;
+  cursor: pointer;
+  border-radius: 8px;
+  border: 1px dashed var(--border);
+  margin-top: 4px;
+  transition: all 0.2s;
+}
+
+.mini-col-more:hover {
+  color: var(--primary);
+  border-color: var(--primary);
+}
+
+.mini-col-empty {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 16px 8px;
+  opacity: 0.5;
+}
+
+/* Цвета колонок */
+.mini-col-new .mini-dot { background: #94a3b8; }
+.mini-col-new .mini-col-header { color: #94a3b8; }
+.mini-col-scheduled .mini-dot { background: #fbbf24; }
+.mini-col-scheduled .mini-col-header { color: #fbbf24; }
+.mini-col-in_progress .mini-dot { background: #5b9cf6; }
+.mini-col-in_progress .mini-col-header { color: #5b9cf6; }
+.mini-col-done .mini-dot { background: #a78bfa; }
+.mini-col-done .mini-col-header { color: #a78bfa; }
+.mini-col-delivered .mini-dot { background: #22d3a0; }
+.mini-col-delivered .mini-col-header { color: #22d3a0; }
+
+@media (max-width: 900px) {
+  .mini-kanban {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .mini-kanban {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
   text-align: center;
   padding: 80px 20px;
   color: var(--text-muted);
@@ -624,34 +735,14 @@ select option {
     </div>
   </div>
 
-  <!-- Stats Grid - Аналитика -->
-  <div class="stats-grid">
-    <div class="stat-card">
-      <div class="stat-icon">📅</div>
-      <div class="stat-label">Прошлый месяц</div>
-      <div class="stat-value" id="statPrevMonth">0 ₽</div>
-      <div class="stat-change" id="statPrevMonthCount">↗ 0 расчётов</div>
+  <!-- Mini Kanban -->
+  <div class="card" style="padding: 24px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <h2 style="font-size:1.1rem;margin:0">📋 Доска заказов</h2>
+      <a href="board.html" class="btn btn-secondary" style="font-size:0.85rem;padding:8px 16px">Открыть всё →</a>
     </div>
-
-    <div class="stat-card">
-      <div class="stat-icon">✅</div>
-      <div class="stat-label">Работы прошлого месяца</div>
-      <div class="stat-value" id="statPrevMonthDone">0 ₽</div>
-      <div class="stat-change" id="statPrevMonthDoneCount">↗ 0 машин</div>
-    </div>
-
-    <div class="stat-card">
-      <div class="stat-icon">📈</div>
-      <div class="stat-label">Средний оборот</div>
-      <div class="stat-value" id="statAvgMonth">0 ₽</div>
-      <div class="stat-change">↗ В месяц (за всё время)</div>
-    </div>
-
-    <div class="stat-card">
-      <div class="stat-icon">🎯</div>
-      <div class="stat-label">Цель на месяц</div>
-      <div class="stat-value" id="statGoal">500 000 ₽</div>
-      <div class="stat-change" id="statGoalProgress">↗ Выполнено 0%</div>
+    <div class="mini-kanban" id="miniKanban">
+      <div class="loading" style="padding:20px">⏳ Загрузка...</div>
     </div>
   </div>
 
@@ -659,6 +750,7 @@ select option {
   <div class="actions-bar">
     <div class="actions-left">
       <a href="calculator.html" class="btn btn-primary">➕ Новый расчет</a>
+      <a href="board.html" class="btn btn-primary" style="background:linear-gradient(135deg,#5b9cf6,#a78bfa)">📋 Доска</a>
       <a href="executors.html" class="btn btn-success">👥 Исполнители</a>
       <a href="payouts.html" class="btn btn-success">💰 Подсчет ЗП</a>
     </div>
@@ -822,6 +914,59 @@ function updateStats(calculations) {
 }
 
 
+// Mini Kanban
+const MINI_COLS = [
+  { key: 'new',         label: 'Расчёт',    icon: '📋' },
+  { key: 'scheduled',   label: 'Заезд',     icon: '📅' },
+  { key: 'in_progress', label: 'В работе',  icon: '🔧' },
+  { key: 'done',        label: 'Завершено', icon: '✅' },
+  { key: 'delivered',   label: 'Выдано',    icon: '🚗' },
+];
+
+async function loadMiniKanban(studioId) {
+  const { data, error } = await sb
+    .from('calculations')
+    .select('id, car_name, total_price, final_price, status')
+    .eq('studio_id', studioId)
+    .order('created_at', { ascending: false });
+
+  if (error || !data) return;
+
+  const container = document.getElementById('miniKanban');
+  let html = '';
+
+  MINI_COLS.forEach(col => {
+    const cards = data.filter(c => (c.status || 'new') === col.key);
+    const visible = cards.slice(0, 5);
+    const rest = cards.length - 5;
+
+    html += `<div class="mini-col mini-col-${col.key}">`;
+    html += `<div class="mini-col-header"><div class="mini-dot"></div>${col.icon} ${col.label}</div>`;
+    html += `<div class="mini-cards">`;
+
+    if (cards.length === 0) {
+      html += `<div class="mini-col-empty">Нет</div>`;
+    } else {
+      visible.forEach(c => {
+        const price = new Intl.NumberFormat('ru-RU').format(c.final_price || c.total_price || 0);
+        html += `
+          <div class="mini-card" onclick="window.location.href='board.html'">
+            <div class="mini-card-car">${c.car_name || 'Без названия'}</div>
+            <div class="mini-card-price">${price} ₽</div>
+          </div>
+        `;
+      });
+      if (rest > 0) {
+        html += `<div class="mini-col-more" onclick="window.location.href='board.html'">+ ещё ${rest}</div>`;
+      }
+    }
+
+    html += `</div></div>`;
+  });
+
+  container.innerHTML = html;
+}
+
 // Load calculations
 async function loadCalculations() {
   const container = document.getElementById('calculationsContainer');
@@ -846,6 +991,9 @@ async function loadCalculations() {
     }
     
     const studioId = memberData.studio_id;
+    
+    // Загружаем мини-канбан параллельно
+    loadMiniKanban(studioId);
     
     // Load calculations
     let query = sb
