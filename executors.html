@@ -83,15 +83,14 @@ body::before {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 40px;
-  padding: 20px;
+  margin-bottom: 32px;
+  padding: 24px 32px;
   background: var(--card);
   backdrop-filter: blur(20px);
-  border-radius: 16px;
+  border-radius: 20px;
   border: 1px solid var(--border);
-  position: sticky;
-  top: 0;
-  z-index: 100;
+  box-shadow: var(--shadow-lg);
+  gap: 20px;
 }
 
 .top-bar-left {
@@ -175,6 +174,7 @@ body::before {
   align-items: center;
   gap: 6px;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .action-btn:hover {
