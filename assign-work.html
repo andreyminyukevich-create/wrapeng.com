@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Распределение работ</title>
+<title>Доска заказов</title>
 <script>
 const savedTheme = localStorage.getItem('theme') || 'dark';
 document.documentElement.setAttribute('data-theme', savedTheme);
@@ -26,11 +26,9 @@ document.documentElement.setAttribute('data-theme', savedTheme);
   --primary-dark: #2563eb;
   --success: #22d3a0;
   --success-dark: #059669;
-  --success-bg: rgba(34, 211, 160, 0.12);
   --danger: #f87171;
   --danger-bg: rgba(248, 113, 113, 0.14);
   --warning: #fbbf24;
-  --warning-bg: rgba(251, 191, 36, 0.12);
   --shadow: 0 4px 24px rgba(0,0,0,0.5);
   --shadow-lg: 0 8px 40px rgba(0,0,0,0.6);
 }
@@ -55,57 +53,32 @@ body {
   font-family: 'Inter', -apple-system, sans-serif;
   background: var(--bg-primary);
   color: var(--text);
-  line-height: 1.6;
+  line-height: 1.5;
   min-height: 100vh;
-  font-size: 15px;
+  overflow-x: auto;
 }
 
-[data-theme="dark"] body::before {
-  content: '';
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: 
-    radial-gradient(ellipse at 10% 20%, rgba(79, 142, 247, 0.12) 0%, transparent 55%),
-    radial-gradient(ellipse at 90% 80%, rgba(34, 211, 160, 0.1) 0%, transparent 55%);
-  pointer-events: none;
-  z-index: 0;
-}
-
-.container {
-  max-width: 860px;
-  margin: 0 auto;
-  padding: 28px 20px;
-  position: relative;
-  z-index: 1;
-}
-
-/* ── Top Bar ── */
+/* Top Bar */
 .top-bar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 28px;
-  padding: 20px 28px;
+  padding: 16px 24px;
   background: var(--bg-card);
-  border-radius: 18px;
-  border: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
   box-shadow: var(--shadow);
 }
 
-.top-bar-left h1 {
-  font-size: 1.45rem;
+.top-bar h1 {
+  font-size: 1.3rem;
   font-weight: 800;
   background: linear-gradient(120deg, var(--primary), var(--success));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   letter-spacing: -0.5px;
-}
-
-.top-bar-left .car-subtitle {
-  font-size: 0.9rem;
-  color: var(--text-muted);
-  margin-top: 2px;
-  font-weight: 500;
 }
 
 .top-bar-right {
@@ -114,14 +87,13 @@ body {
   align-items: center;
 }
 
-/* ── Buttons ── */
 .btn {
   background: var(--primary);
   color: #fff;
   border: none;
-  padding: 11px 22px;
-  border-radius: 12px;
-  font-size: 0.9rem;
+  padding: 9px 20px;
+  border-radius: 10px;
+  font-size: 0.88rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
@@ -129,26 +101,13 @@ body {
   align-items: center;
   gap: 7px;
   text-decoration: none;
-  letter-spacing: -0.1px;
+  font-family: 'Inter', sans-serif;
 }
 
 .btn:hover {
   background: var(--primary-dark);
   transform: translateY(-1px);
   box-shadow: var(--shadow);
-}
-
-.btn-success {
-  background: linear-gradient(135deg, var(--success), #0fa882);
-  color: #fff;
-  font-size: 1rem;
-  padding: 13px 28px;
-}
-
-.btn-success:hover {
-  background: linear-gradient(135deg, #1db890, #0d9072);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(34,211,160,0.3);
 }
 
 .btn-secondary {
@@ -163,19 +122,6 @@ body {
   border-color: var(--border-focus);
 }
 
-.btn-danger {
-  background: var(--danger-bg);
-  color: var(--danger);
-  border: 1px solid rgba(248,113,113,0.3);
-}
-
-.btn-danger:hover {
-  background: var(--danger);
-  color: #fff;
-}
-
-.btn-sm { padding: 8px 16px; font-size: 0.85rem; }
-
 .theme-toggle {
   background: var(--bg-input);
   border: 1px solid var(--border);
@@ -186,377 +132,278 @@ body {
   transition: all 0.2s;
 }
 
-/* ── Card ── */
-.card {
-  background: var(--bg-card);
-  border-radius: 18px;
-  border: 1px solid var(--border);
+/* Board */
+.board-wrap {
   padding: 24px;
-  margin-bottom: 16px;
-  box-shadow: var(--shadow);
+  display: flex;
+  gap: 16px;
+  min-height: calc(100vh - 65px);
+  align-items: flex-start;
 }
 
-.card-title {
-  font-size: 1rem;
-  font-weight: 700;
-  margin-bottom: 20px;
-  color: var(--text);
+/* Column */
+.column {
+  flex: 0 0 280px;
+  background: var(--bg-secondary);
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 110px);
+}
+
+[data-theme="dark"] .column {
+  background: #0a1525;
+  border-color: rgba(120,160,220,0.2);
+}
+
+.column-header {
+  padding: 16px 18px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  border-radius: 16px 16px 0 0;
+  background: inherit;
+}
+
+.column-title {
   display: flex;
   align-items: center;
   gap: 8px;
-  letter-spacing: -0.2px;
-}
-
-/* ── Admin Sale ── */
-.admin-sale-block {
-  background: var(--warning-bg);
-  border: 1px solid rgba(251,191,36,0.25);
-  border-radius: 14px;
-  padding: 18px 22px;
-  margin-bottom: 16px;
-}
-
-.admin-sale-row {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
-.toggle-switch {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 0.95rem;
-}
-
-.toggle-switch input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-  accent-color: var(--warning);
-  cursor: pointer;
-}
-
-.admin-details {
-  display: none;
-  align-items: flex-end;
-  gap: 14px;
-  flex-wrap: wrap;
-  margin-top: 14px;
-  padding-top: 14px;
-  border-top: 1px solid rgba(251,191,36,0.2);
-}
-
-.admin-details.active { display: flex; }
-
-/* ── Form ── */
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.form-group label {
-  font-size: 0.78rem;
-  color: var(--text-label);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.form-group input,
-.form-group select {
-  padding: 10px 14px;
-  background: var(--bg-input);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  color: var(--text);
-  font-size: 0.9rem;
-  font-family: 'Inter', sans-serif;
-  transition: all 0.2s;
-}
-
-.form-group input:focus,
-.form-group select:focus {
-  outline: none;
-  border-color: var(--border-focus);
-  background: var(--bg-card);
-  box-shadow: 0 0 0 3px rgba(79,142,247,0.12);
-}
-
-/* ── Work Items ── */
-.work-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.work-item {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 18px 20px;
-  transition: border-color 0.2s;
-}
-
-[data-theme="dark"] .work-item {
-  background: #0e1829;
-  border-color: rgba(120, 160, 220, 0.28);
-}
-
-.work-item:hover {
-  border-color: var(--border-focus);
-}
-
-[data-theme="dark"] .executor-select-wrap select,
-[data-theme="dark"] .executor-manual-wrap .manual-name-input,
-[data-theme="dark"] .salary-input,
-[data-theme="dark"] .add-work-row input {
-  background: #1a2844;
-  border-color: rgba(120, 160, 220, 0.3);
-  color: #eef2ff;
-}
-
-[data-theme="dark"] .executor-select-wrap select:focus,
-[data-theme="dark"] .executor-manual-wrap .manual-name-input:focus,
-[data-theme="dark"] .salary-input:focus,
-[data-theme="dark"] .add-work-row input:focus {
-  background: #1f3055;
-  border-color: rgba(99, 160, 255, 0.7);
-}
-
-[data-theme="dark"] .mode-btn {
-  background: #1a2844;
-  border-color: rgba(120, 160, 220, 0.3);
-  color: #8aa0c0;
-}
-
-[data-theme="dark"] .mode-btn.active {
-  background: var(--primary);
-  border-color: var(--primary);
-  color: #fff;
-}
-
-[data-theme="dark"] .work-base-salary {
-  background: rgba(34, 211, 160, 0.15);
-  border-color: rgba(34, 211, 160, 0.3);
-  color: var(--success);
-}
-
-[data-theme="dark"] .card {
-  background: #131f35;
-  border-color: rgba(120, 160, 220, 0.2);
-}
-
-[data-theme="dark"] .admin-sale-block {
-  background: rgba(251, 191, 36, 0.08);
-  border-color: rgba(251, 191, 36, 0.25);
-}
-
-[data-theme="dark"] .summary-block {
-  background: rgba(34, 211, 160, 0.08);
-  border-color: rgba(34, 211, 160, 0.25);
-}
-
-.work-item-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 14px;
-  gap: 12px;
-}
-
-.work-service-name {
   font-weight: 700;
-  font-size: 0.95rem;
-  color: var(--text);
+  font-size: 0.9rem;
   letter-spacing: -0.1px;
 }
 
-.work-base-salary {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--success);
-  background: var(--success-bg);
-  padding: 4px 12px;
-  border-radius: 20px;
-  white-space: nowrap;
-  border: 1px solid rgba(34,211,160,0.2);
+.column-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 
-/* ── Executor Row ── */
-.executor-rows {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.executor-row {
-  width: 100%;
-}
-
-.executor-input-group {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.executor-mode-switcher {
-  display: flex;
-  gap: 6px;
-}
-
-.mode-btn {
+.column-count {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 10px;
   background: var(--bg-input);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 5px 14px;
-  cursor: pointer;
-  font-size: 0.82rem;
-  font-weight: 600;
   color: var(--text-muted);
+}
+
+.column-cards {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* Card */
+.kanban-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+[data-theme="dark"] .kanban-card {
+  background: #131f35;
+  border-color: rgba(120,160,220,0.2);
+}
+
+.kanban-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+  border-color: var(--border-focus);
+}
+
+.card-car {
+  font-weight: 700;
+  font-size: 0.92rem;
+  margin-bottom: 6px;
+  letter-spacing: -0.2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+.card-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.card-price {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--success);
+  letter-spacing: -0.5px;
+  margin-bottom: 10px;
+}
+
+.card-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.card-btn {
+  flex: 1;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
   transition: all 0.2s;
   font-family: 'Inter', sans-serif;
-  white-space: nowrap;
+  text-align: center;
 }
 
-.mode-btn.active {
+.card-btn-primary {
   background: var(--primary);
-  border-color: var(--primary);
   color: #fff;
 }
 
-/* Одна строка: [дропдаун] [сумма] [×] */
-.executor-fields-row {
-  display: grid;
-  grid-template-columns: 1fr 140px 36px;
-  gap: 8px;
-  align-items: center;
+.card-btn-primary:hover {
+  background: var(--primary-dark);
 }
 
-.executor-select-wrap select,
-.executor-manual-wrap .manual-name-input {
-  width: 100%;
-  padding: 9px 13px;
+.card-btn-secondary {
   background: var(--bg-input);
+  color: var(--text-muted);
   border: 1px solid var(--border);
-  border-radius: 10px;
+}
+
+.card-btn-secondary:hover {
   color: var(--text);
-  font-size: 0.88rem;
-  font-family: 'Inter', sans-serif;
-  transition: all 0.2s;
-}
-
-.executor-select-wrap,
-.executor-manual-wrap {
-  min-width: 0;
-}
-
-.executor-select-wrap select:focus,
-.executor-manual-wrap .manual-name-input:focus {
-  outline: none;
   border-color: var(--border-focus);
-  box-shadow: 0 0 0 3px rgba(79,142,247,0.1);
 }
 
-.executor-manual-save {
-  display: flex;
-  align-items: center;
-  padding-left: 2px;
-}
-
-.save-to-list-label {
+.card-checkin {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  font-size: 0.78rem;
+  gap: 4px;
+  font-size: 0.75rem;
   font-weight: 600;
-  color: var(--success);
-  cursor: pointer;
-  letter-spacing: 0.1px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(251,191,36,0.12);
+  color: var(--warning);
+  border: 1px solid rgba(251,191,36,0.25);
+  margin-bottom: 8px;
 }
 
-.save-to-list-label input[type="checkbox"] {
-  accent-color: var(--success);
-  width: 13px;
-  height: 13px;
-  cursor: pointer;
+.card-note {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+  margin-bottom: 8px;
+  font-style: italic;
 }
 
-.salary-input {
-  padding: 9px 13px;
-  background: var(--bg-input);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  color: var(--text);
-  font-size: 0.88rem;
-  font-family: 'Inter', sans-serif;
-  transition: all 0.2s;
-  width: 100%;
-  font-weight: 600;
+/* Column colors */
+.col-new .column-dot { background: #94a3b8; }
+.col-new .column-title { color: #94a3b8; }
+.col-new .column-count { background: rgba(148,163,184,0.1); }
+
+.col-scheduled .column-dot { background: #fbbf24; }
+.col-scheduled .column-title { color: #fbbf24; }
+.col-scheduled .column-count { background: rgba(251,191,36,0.1); color: #fbbf24; }
+
+.col-in_progress .column-dot { background: #5b9cf6; }
+.col-in_progress .column-title { color: #5b9cf6; }
+.col-in_progress .column-count { background: rgba(91,156,246,0.1); color: #5b9cf6; }
+
+.col-done .column-dot { background: #a78bfa; }
+.col-done .column-title { color: #a78bfa; }
+.col-done .column-count { background: rgba(167,139,250,0.1); color: #a78bfa; }
+
+.col-delivered .column-dot { background: #22d3a0; }
+.col-delivered .column-title { color: #22d3a0; }
+.col-delivered .column-count { background: rgba(34,211,160,0.1); color: #22d3a0; }
+
+.empty-col {
+  text-align: center;
+  padding: 32px 16px;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  opacity: 0.6;
 }
 
-.salary-input:focus {
-  outline: none;
-  border-color: var(--success);
-  box-shadow: 0 0 0 3px rgba(34,211,160,0.1);
-}
-
-.btn-remove-exec {
-  background: var(--danger-bg);
-  border: 1px solid rgba(248,113,113,0.25);
-  color: var(--danger);
-  border-radius: 9px;
-  padding: 0;
-  cursor: pointer;
-  font-size: 0.8rem;
-  transition: all 0.2s;
-  display: flex;
+/* Modal */
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(8px);
+  z-index: 1000;
   align-items: center;
   justify-content: center;
-  height: 36px;
-  width: 36px;
+  padding: 20px;
 }
 
-.btn-remove-exec:hover {
-  background: var(--danger);
-  color: #fff;
-  border-color: var(--danger);
+.modal.active { display: flex; }
+
+.modal-content {
+  background: var(--bg-card);
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  padding: 32px;
+  max-width: 480px;
+  width: 100%;
+  box-shadow: var(--shadow-lg);
 }
 
-.add-executor-btn {
-  margin-top: 10px;
-  font-size: 0.82rem;
-  padding: 7px 14px;
-  color: var(--primary);
-  background: rgba(79,142,247,0.08);
-  border: 1px dashed rgba(79,142,247,0.35);
-  border-radius: 9px;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  transition: all 0.2s;
+.modal-title {
+  font-size: 1.2rem;
+  font-weight: 800;
+  margin-bottom: 8px;
+  letter-spacing: -0.3px;
+}
+
+.modal-car {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-bottom: 24px;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 0.78rem;
   font-weight: 600;
-  font-family: 'Inter', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-label);
+  margin-bottom: 6px;
 }
 
-.add-executor-btn:hover {
-  background: rgba(79,142,247,0.15);
-  border-color: var(--primary);
-}
-
-/* ── Add Manual Work ── */
-.add-work-row {
-  display: grid;
-  grid-template-columns: 1fr 160px;
-  gap: 12px;
-}
-
-.add-work-row input {
-  padding: 10px 14px;
+.form-group input,
+.form-group textarea,
+.form-group select {
+  width: 100%;
+  padding: 11px 14px;
   background: var(--bg-input);
   border: 1px solid var(--border);
   border-radius: 10px;
@@ -566,240 +413,160 @@ body {
   transition: all 0.2s;
 }
 
-.add-work-row input:focus {
+.form-group textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
   outline: none;
   border-color: var(--border-focus);
   box-shadow: 0 0 0 3px rgba(79,142,247,0.1);
 }
 
-/* ── Summary ── */
-.summary-block {
-  background: var(--success-bg);
-  border: 1px solid rgba(34,211,160,0.25);
-  border-radius: 14px;
-  padding: 20px 24px;
-  overflow: hidden;
-}
-
-.summary-row {
+.modal-footer {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 0;
-  gap: 20px;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 24px;
 }
 
-.summary-row + .summary-row {
-  border-top: 1px solid rgba(34,211,160,0.15);
+.loading {
+  text-align: center;
+  padding: 60px;
+  color: var(--text-muted);
+  width: 100%;
 }
 
-.summary-label {
-  color: var(--text-label);
-  font-size: 0.9rem;
-  font-weight: 500;
-  white-space: nowrap;
-}
-
-.summary-value {
-  font-weight: 700;
-  font-size: 1rem;
-  text-align: right;
-}
-
-.summary-total-value {
-  color: var(--success);
-  font-size: 1.8rem;
-  font-weight: 800;
-  letter-spacing: -1px;
-  text-align: right;
-  line-height: 1.1;
-  min-width: 0;
-  word-break: break-word;
-}
-
-.loading { text-align: center; padding: 60px; color: var(--text-muted); font-size: 1rem; }
-
+/* ── MOBILE ── */
 @media (max-width: 768px) {
-  .container {
-    padding: 16px 12px;
-  }
-
   .top-bar {
     flex-direction: column;
     gap: 12px;
     align-items: stretch;
-    padding: 16px;
+    padding: 14px 16px;
   }
 
-  .top-bar-left h1 {
-    font-size: 1.2rem;
+  .top-bar h1 {
+    font-size: 1.15rem;
     text-align: center;
   }
 
   .top-bar-right {
     justify-content: center;
+    flex-wrap: wrap;
   }
 
-  .card {
-    padding: 20px 16px;
+  .board-wrap {
+    padding: 12px 8px;
+    gap: 12px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
-  .card-title {
-    font-size: 0.95rem;
+  .column {
+    flex: 0 0 280px;
+    max-height: calc(100vh - 140px);
   }
 
-  .work-item {
-    padding: 16px;
+  .column-header {
+    padding: 14px 16px 12px;
   }
 
-  .work-item-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
+  .column-title {
+    font-size: 0.85rem;
   }
 
-  .executor-fields-row {
-    grid-template-columns: 1fr 100px 36px;
+  .column-cards {
+    padding: 12px;
   }
 
-  .mode-btn {
-    font-size: 0.75rem;
-    padding: 4px 8px;
+  .kanban-card {
+    padding: 14px 16px;
   }
 
-  .summary-block {
-    padding: 16px;
+  .card-car {
+    font-size: 0.9rem;
   }
 
-  .btn {
-    padding: 10px 18px;
-    font-size: 0.88rem;
+  .card-price {
+    font-size: 1rem;
   }
 
-  .admin-sale-block {
-    padding: 16px;
+  .card-btn {
+    padding: 10px 12px;
+    font-size: 0.8rem;
+    min-height: 36px;
   }
 
-  .admin-details {
-    flex-direction: column;
-    align-items: stretch;
+  .modal {
+    padding: 12px;
   }
 
-  .admin-details .form-group {
-    width: 100%;
-  }
-}
-
-@media (max-width: 600px) {
-  .container {
-    padding: 16px 12px;
+  .modal-content {
+    max-width: 100%;
+    margin: 0;
+    padding: 24px 20px;
+    border-radius: 16px;
   }
 
-  .top-bar {
-    flex-direction: column;
-    gap: 10px;
-    padding: 14px;
-  }
-
-  .top-bar h1 {
+  .modal-title {
     font-size: 1.1rem;
   }
 
-  .top-bar-right {
-    flex-direction: column;
-    width: 100%;
+  .form-group input,
+  .form-group textarea,
+  .form-group select {
+    font-size: 16px; /* Prevent zoom on iOS */
+    padding: 12px 14px;
   }
 
   .btn {
-    width: 100%;
-    min-height: 48px;
-  }
-
-  .card {
-    padding: 18px 14px;
-  }
-
-  .executor-row {
-    grid-template-columns: 1fr;
-    gap: 10px;
-  }
-
-  .executor-fields-row {
-    grid-template-columns: 1fr;
-    gap: 10px;
-  }
-
-  .salary-input {
-    margin-top: 0;
-  }
-
-  .btn-remove-exec {
-    margin-top: 0;
-    width: 100%;
-    height: 44px;
-    max-width: none;
-  }
-
-  .executor-select-wrap select,
-  .executor-manual-wrap .manual-name-input,
-  .salary-input,
-  .form-group input,
-  .form-group select,
-  .add-work-row input {
-    font-size: 16px; /* Prevent iOS zoom */
-    padding: 12px 14px;
-    min-height: 44px;
-  }
-
-  .add-work-row {
-    grid-template-columns: 1fr;
-  }
-
-  .summary-total-value {
-    font-size: 1.6rem;
-  }
-
-  .admin-details {
-    flex-direction: column;
-  }
-
-  .work-item-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
+    padding: 12px 20px;
+    font-size: 0.9rem;
+    min-height: 44px; /* Touch target */
   }
 }
 
 @media (max-width: 480px) {
-  .top-bar h1 {
-    font-size: 1rem;
+  .column {
+    flex: 0 0 260px;
   }
 
-  .work-service-name {
-    font-size: 0.88rem;
-  }
-
-  .card-title {
-    font-size: 0.9rem;
-  }
-
-  .summary-row {
+  .card-actions {
     flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
+    gap: 8px;
   }
 
-  .summary-total-value {
-    font-size: 1.4rem;
-    align-self: flex-end;
+  .card-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .modal-content {
+    padding: 20px 16px;
+  }
+
+  .modal-footer {
+    flex-direction: column-reverse;
+  }
+
+  .modal-footer .btn {
+    width: 100%;
   }
 }
-    align-items: flex-start;
-    gap: 4px;
+    width: 100%;
   }
 
-  .summary-total-value {
-    font-size: 1.3rem;
+  .modal-footer {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .modal-footer .btn {
+    width: 100%;
   }
 }
 
@@ -807,21 +574,85 @@ body {
 </head>
 <body>
 
-<div class="container">
-  <!-- Top Bar -->
-  <div class="top-bar">
-    <div class="top-bar-left">
-      <h1>👥 Распределение работ</h1>
-      <div class="car-subtitle" id="carSubtitle">Загрузка...</div>
+<!-- Top Bar -->
+<div class="top-bar">
+  <h1>📋 Доска заказов</h1>
+  <div class="top-bar-right">
+    <button class="theme-toggle" id="themeToggle">🌙</button>
+    <a href="dashboard.html" class="btn btn-secondary">← Дашборд</a>
+    <a href="calculator.html" class="btn">➕ Новый расчёт</a>
+  </div>
+</div>
+
+<!-- Board -->
+<div class="board-wrap" id="board">
+  <div class="loading">⏳ Загрузка...</div>
+</div>
+
+<!-- Modal: Назначить дату заезда -->
+<div class="modal" id="modalSchedule">
+  <div class="modal-content">
+    <div class="modal-title">📅 Назначить дату заезда</div>
+    <div class="modal-car" id="scheduleCarName"></div>
+    <div class="form-group">
+      <label>Дата заезда</label>
+      <input type="date" id="scheduleDate">
     </div>
-    <div class="top-bar-right">
-      <button class="theme-toggle" id="themeToggle">🌙</button>
-      <button class="btn btn-secondary" onclick="window.location.href='dashboard.html'">← Назад</button>
+    <div class="form-group">
+      <label>Время заезда</label>
+      <input type="time" id="scheduleTime" value="10:00">
+    </div>
+    <div class="form-group">
+      <label>Комментарий (необязательно)</label>
+      <textarea id="scheduleNote" placeholder="Пожелания клиента, особенности..."></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modalSchedule')">Отмена</button>
+      <button class="btn" style="background:var(--warning);color:#000" onclick="saveSchedule()">📅 Назначить</button>
     </div>
   </div>
+</div>
 
-  <div id="mainContent">
-    <div class="loading">⏳ Загрузка расчёта...</div>
+<!-- Modal: Завершить -->
+<div class="modal" id="modalDone">
+  <div class="modal-content">
+    <div class="modal-title">✅ Завершить работу</div>
+    <div class="modal-car" id="doneCarName"></div>
+    <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:24px">
+      Работы выполнены, ОТК проверил. Машина ждёт выдачи клиенту.
+    </p>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modalDone')">Отмена</button>
+      <button class="btn" style="background:#a78bfa" onclick="saveDone()">✅ Завершить</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Выдать -->
+<div class="modal" id="modalDeliver">
+  <div class="modal-content">
+    <div class="modal-title">🚗 Выдать клиенту</div>
+    <div class="modal-car" id="deliverCarName"></div>
+    <div class="form-group">
+      <label>Итоговая сумма</label>
+      <input type="number" id="deliverPrice" placeholder="Из расчёта">
+    </div>
+    <div class="form-group">
+      <label>Форма оплаты</label>
+      <select id="deliverPayment">
+        <option value="cash">💵 Наличные</option>
+        <option value="card">💳 Карта</option>
+        <option value="transfer">🏦 Перевод</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Комментарий</label>
+      <textarea id="deliverNote" placeholder="Пожелания, замечания..."></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modalDeliver')">Отмена</button>
+      <button class="btn" style="background:var(--success);color:#000" onclick="saveDeliver()">🚗 Выдать</button>
+    </div>
   </div>
 </div>
 
@@ -835,24 +666,16 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let currentUser = null;
 let currentStudio = null;
-let calculation = null;
-let executors = [];
-let calcId = null;
+let allCalcs = [];
+let activeCalcId = null;
 
-// Названия услуг
-const SERVICE_NAMES = {
-  pkg_wrap: 'Оклейка (Полная защита)',
-  pkg_prep: 'Подготовка (Полная защита)',
-  pkg_arm:  'Армирование (Полная защита)',
-  impact_wrap: 'Оклейка (Ударная часть)',
-  impact_prep: 'Подготовка (Ударная часть)',
-  impact_arm:  'Армирование (Ударная часть)',
-  arm: 'Армирование',
-  wrap: 'Оклейка',
-  det: 'Детейлинг',
-  gl:  'Полировка/Химчистка',
-  ms:  'Прочие услуги'
-};
+const COLUMNS = [
+  { key: 'new',         label: 'Расчёт',      icon: '📋' },
+  { key: 'scheduled',   label: 'Дата заезда',  icon: '📅' },
+  { key: 'in_progress', label: 'В работе',     icon: '🔧' },
+  { key: 'done',        label: 'Завершено',    icon: '✅' },
+  { key: 'delivered',   label: 'Выдано',       icon: '🚗' },
+];
 
 // Theme
 function initTheme() {
@@ -862,8 +685,8 @@ function initTheme() {
 }
 
 document.getElementById('themeToggle').addEventListener('click', () => {
-  const current = document.documentElement.getAttribute('data-theme');
-  const next = current === 'dark' ? 'light' : 'dark';
+  const cur = document.documentElement.getAttribute('data-theme');
+  const next = cur === 'dark' ? 'light' : 'dark';
   document.documentElement.setAttribute('data-theme', next);
   localStorage.setItem('theme', next);
   document.getElementById('themeToggle').textContent = next === 'dark' ? '☀️' : '🌙';
@@ -874,6 +697,11 @@ function fmt(n) {
   return new Intl.NumberFormat('ru-RU', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(n || 0);
 }
 
+function fmtDate(d) {
+  if (!d) return null;
+  return new Date(d).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
+}
+
 // Auth
 async function checkAuth() {
   const { data: { session } } = await sb.auth.getSession();
@@ -882,7 +710,6 @@ async function checkAuth() {
   return true;
 }
 
-// Get studio
 async function getStudio() {
   const { data, error } = await sb
     .from('studio_members')
@@ -895,573 +722,222 @@ async function getStudio() {
   return true;
 }
 
-// Load executors
-async function loadExecutors() {
+// Load
+async function loadBoard() {
   const { data, error } = await sb
-    .from('executors')
-    .select('id, full_name, role, is_admin')
+    .from('calculations')
+    .select('id, car_name, total_price, final_price, status, checkin_date, checkin_time, schedule_note, work_assigned, created_at')
     .eq('studio_id', currentStudio.studio_id)
-    .eq('is_active', true)
-    .order('full_name');
-  if (error) { console.error('Executors error:', error); return; }
-  executors = data || [];
+    .order('created_at', { ascending: false });
+
+  if (error) { console.error(error); return; }
+  allCalcs = data || [];
+  renderBoard();
 }
 
-// Build executor dropdown
-function executorSelect(selectedId = '') {
-  const opts = executors.map(e =>
-    `<option value="${e.id}" ${e.id === selectedId ? 'selected' : ''}>${e.full_name} (${roleRu(e.role)})</option>`
-  ).join('');
-  return `<select><option value="">— Выбрать исполнителя —</option>${opts}</select>`;
-}
-
-function roleRu(r) {
-  const m = { wrapper: 'Оклейщик', preparer: 'Подготовщик', armature: 'Арматурщик', detailer: 'Детейлер', universal: 'Универсал' };
-  return m[r] || r;
-}
-
-// Admin executor dropdown
-function adminExecutorSelect(selectedId = '') {
-  const admins = executors.filter(e => e.is_admin);
-  if (admins.length === 0) return '<span style="color:var(--text-muted);font-size:0.9rem">Нет продавцов. Добавь в Исполнителях.</span>';
-  const opts = admins.map(e =>
-    `<option value="${e.id}" ${e.id === selectedId ? 'selected' : ''}>${e.full_name}</option>`
-  ).join('');
-  return `<select id="adminExecutorId"><option value="">— Выбрать продавца —</option>${opts}</select>`;
-}
-
-// Extract services from calculation_data
-function extractServices(calcData) {
-  const services = [];
-  const d = calcData;
-
-  function addIfHasMot(key, name, mot) {
-    const m = parseFloat(mot) || 0;
-    if (m > 0) services.push({ key, name, baseSalary: m });
-  }
-
-  // Полная защита вкруг
-  if (d.package) {
-    addIfHasMot('pkg_wrap', SERVICE_NAMES.pkg_wrap, d.package.wrapMot);
-    addIfHasMot('pkg_prep', SERVICE_NAMES.pkg_prep, d.package.prepMot);
-    addIfHasMot('pkg_arm',  SERVICE_NAMES.pkg_arm,  d.package.armMot);
-  }
-
-  // Ударная часть
-  if (d.impact) {
-    addIfHasMot('impact_wrap', SERVICE_NAMES.impact_wrap, d.impact.wrapMot);
-    addIfHasMot('impact_prep', SERVICE_NAMES.impact_prep, d.impact.prepMot);
-    addIfHasMot('impact_arm',  SERVICE_NAMES.impact_arm,  d.impact.armMot);
-  }
-
-  // Прочие услуги (arm, wrap, det, gl, ms)
-  // Ищем в calculation_data поля по шаблону
-  const extras = ['arm', 'wrap', 'det', 'gl', 'ms'];
-  extras.forEach(key => {
-    if (d[key]) {
-      addIfHasMot(key, SERVICE_NAMES[key] || key, d[key].mot || d[key].motivation);
-    }
-  });
-
-  // Услуги из renderServiceList (ppf, pvc, detail...)
-  if (d.services && Array.isArray(d.services)) {
-    d.services.forEach((srv, idx) => {
-      const m = parseFloat(srv.mot || srv.motivation) || 0;
-      if (m > 0) services.push({ key: `service_${idx}`, name: srv.name || `Услуга ${idx + 1}`, baseSalary: m });
-    });
-  }
-
-  return services;
-}
-
-// Render work item
-let workItemCounter = 0;
-
-function renderWorkItem(service, existingAssignments = []) {
-  const id = `work_${workItemCounter++}`;
-  const execRowsHtml = existingAssignments.length > 0
-    ? existingAssignments.map((a, i) => renderExecutorRow(`${id}_exec_${i}`, a.executor_id, a.salary)).join('')
-    : renderExecutorRow(`${id}_exec_0`, '', service.baseSalary);
-
-  return `
-    <div class="work-item" data-service-key="${service.key}" data-service-name="${service.name}">
-      <div class="work-item-header">
-        <span class="work-service-name">${service.name}</span>
-        <span class="work-base-salary">Мотивация: ${fmt(service.baseSalary)} ₽</span>
-      </div>
-      <div class="executor-rows" id="${id}_rows">
-        ${execRowsHtml}
-      </div>
-      <button class="add-executor-btn" onclick="addExecutorRow('${id}_rows', ${service.baseSalary})">
-        ➕ Добавить исполнителя
-      </button>
-    </div>
-  `;
-}
-
-function renderExecutorRow(id, executorId = '', salary = 0, manualName = '') {
-  const isManual = !executorId && manualName;
-  return `
-    <div class="executor-row" id="${id}">
-      <div class="executor-input-group">
-        <div class="executor-mode-switcher">
-          <button class="mode-btn ${!isManual ? 'active' : ''}" onclick="setExecutorMode('${id}', 'select')">📋 Из справочника</button>
-          <button class="mode-btn ${isManual ? 'active' : ''}" onclick="setExecutorMode('${id}', 'manual')">✏️ Вручную</button>
-        </div>
-        <div class="executor-fields-row">
-          <div class="executor-select-wrap" style="display:${isManual ? 'none' : 'block'}">
-            ${executorSelect(executorId)}
-          </div>
-          <div class="executor-manual-wrap" style="display:${isManual ? 'block' : 'none'}">
-            <input type="text" class="manual-name-input" value="${manualName}" placeholder="ФИО исполнителя">
-          </div>
-          <input type="number" value="${salary}" placeholder="Сумма ₽" step="1" class="salary-input">
-          <button class="btn-remove-exec" onclick="removeExecutorRow('${id}')">✕</button>
-        </div>
-        <div class="executor-manual-save" style="display:${isManual ? 'flex' : 'none'}">
-          <label class="save-to-list-label">
-            <input type="checkbox" class="save-to-list" checked>
-            <span>Сохранить в справочник</span>
-          </label>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-window.setExecutorMode = function(rowId, mode) {
-  const row = document.getElementById(rowId);
-  if (!row) return;
-  const selectWrap = row.querySelector('.executor-select-wrap');
-  const manualWrap = row.querySelector('.executor-manual-wrap');
-  const manualSave = row.querySelector('.executor-manual-save');
-  const btns = row.querySelectorAll('.mode-btn');
-
-  if (mode === 'manual') {
-    selectWrap.style.display = 'none';
-    manualWrap.style.display = 'block';
-    manualSave.style.display = 'flex';
-    btns[0].classList.remove('active');
-    btns[1].classList.add('active');
-  } else {
-    selectWrap.style.display = 'block';
-    manualWrap.style.display = 'none';
-    manualSave.style.display = 'none';
-    btns[0].classList.add('active');
-    btns[1].classList.remove('active');
-  }
-};
-
-window.addExecutorRow = function(containerId, defaultSalary = 0) {
-  const id = `exec_${Date.now()}`;
-  const row = document.createElement('div');
-  row.innerHTML = renderExecutorRow(id, '', defaultSalary);
-  document.getElementById(containerId).appendChild(row.firstElementChild);
-  updateSummary();
-};
-
-window.removeExecutorRow = function(rowId) {
-  const el = document.getElementById(rowId);
-  if (el) el.remove();
-  updateSummary();
-};
-
-// Update summary
-function updateSummary() {
-  let total = 0;
-  let count = 0;
-  document.querySelectorAll('.executor-row').forEach(row => {
-    const sal = parseFloat(row.querySelector('input[type="number"]')?.value) || 0;
-    const exec = row.querySelector('select')?.value;
-    if (exec || sal > 0) { total += sal; count++; }
-  });
-
-  document.getElementById('summaryCount').textContent = count;
-  document.getElementById('summaryTotal').textContent = fmt(total) + ' ₽';
-}
-
-// Render main content
-function renderContent(services, existingAssignments = []) {
-  const carName = calculation.car_name || 'Без названия';
-  document.getElementById('carSubtitle').textContent = carName;
+// Render
+function renderBoard() {
+  const board = document.getElementById('board');
 
   let html = '';
-
-  // Admin sale
-  html += `
-    <div class="admin-sale-block">
-      <div class="admin-sale-row">
-        <label class="toggle-switch">
-          <input type="checkbox" id="isAdminSale" onchange="toggleAdminSale()">
-          <span style="font-weight:600">👔 Продажу сделал администратор</span>
-        </label>
-        <div class="admin-details" id="adminDetails">
-          <div class="form-group">
-            <label>Режим</label>
-            <div style="display:flex;gap:6px">
-              <button class="mode-btn active" id="adminModeSelect" onclick="setAdminMode('select')">📋 Из списка</button>
-              <button class="mode-btn" id="adminModeManual" onclick="setAdminMode('manual')">✏️ Вручную</button>
-            </div>
-          </div>
-          <div class="form-group" id="adminSelectWrap">
-            <label>Продавец</label>
-            ${adminExecutorSelect()}
-          </div>
-          <div class="form-group" id="adminManualWrap" style="display:none">
-            <label>ФИО продавца</label>
-            <input type="text" id="adminManualName" placeholder="Иванов Иван Иванович" style="width:220px">
-            <label class="save-to-list-label" style="margin-top:4px">
-              <input type="checkbox" id="adminSaveToList" checked>
-              <span>Сохранить в справочник</span>
-            </label>
-          </div>
-          <div class="form-group">
-            <label>% от чека</label>
-            <input type="number" id="adminPercent" value="3" min="0" max="100" step="0.5" style="width:100px">
-          </div>
-          <div style="font-size:0.85rem;color:var(--text-muted);line-height:1.5">
-            Чек: ${fmt(calculation.total_price)} ₽<br>
-            <strong id="adminSalaryCalc" style="color:var(--warning)"></strong>
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
-
-  // Services
-  if (services.length > 0) {
+  COLUMNS.forEach(col => {
+    const cards = allCalcs.filter(c => (c.status || 'new') === col.key);
     html += `
-      <div class="card">
-        <div class="card-title">🔧 Услуги из расчёта</div>
-        <div class="work-list" id="workList">
-          ${services.map(s => renderWorkItem(s, existingAssignments.filter(a => a.service_key === s.key))).join('')}
+      <div class="column col-${col.key}">
+        <div class="column-header">
+          <div class="column-title">
+            <div class="column-dot"></div>
+            ${col.icon} ${col.label}
+          </div>
+          <div class="column-count">${cards.length}</div>
+        </div>
+        <div class="column-cards">
+          ${cards.length === 0
+            ? `<div class="empty-col">📭 Пока пусто</div>`
+            : cards.map(c => renderCard(c, col.key)).join('')
+          }
         </div>
       </div>
     `;
-  } else {
-    html += `
-      <div class="card">
-        <div class="card-title">🔧 Услуги из расчёта</div>
-        <div style="padding:20px;color:var(--text-muted);text-align:center">
-          В расчёте нет услуг с мотивацией. Добавьте услуги вручную ниже.
-        </div>
-      </div>
+  });
+
+  board.innerHTML = html;
+}
+
+function renderCard(calc, status) {
+  const price = fmt(calc.final_price || calc.total_price);
+  
+  let checkin = '';
+  if (calc.checkin_date) {
+    const dateStr = fmtDate(calc.checkin_date);
+    const timeStr = calc.checkin_time ? calc.checkin_time.slice(0, 5) : '';
+    checkin = `<div class="card-checkin">📅 ${dateStr}${timeStr ? ', ' + timeStr : ''}</div>`;
+  }
+
+  let note = '';
+  if (calc.schedule_note) {
+    note = `<div class="card-note">💬 ${calc.schedule_note}</div>`;
+  }
+
+  let actions = '';
+  if (status === 'new') {
+    actions = `
+      <button class="card-btn card-btn-secondary" onclick="event.stopPropagation();openCalc('${calc.id}')">📂 Открыть</button>
+      <button class="card-btn card-btn-primary" onclick="event.stopPropagation();openModal('modalSchedule','${calc.id}','${escStr(calc.car_name)}')">📅 Заезд</button>
+    `;
+  } else if (status === 'scheduled') {
+    actions = `
+      <button class="card-btn card-btn-secondary" onclick="event.stopPropagation();openModal('modalSchedule','${calc.id}','${escStr(calc.car_name)}')">✏️ Дата</button>
+      <button class="card-btn card-btn-primary" onclick="event.stopPropagation();goAssign('${calc.id}')">🔧 В работу</button>
+    `;
+  } else if (status === 'in_progress') {
+    actions = `
+      <button class="card-btn card-btn-secondary" onclick="event.stopPropagation();goAssign('${calc.id}')">👥 Работы</button>
+      <button class="card-btn card-btn-primary" onclick="event.stopPropagation();openModal('modalDone','${calc.id}','${escStr(calc.car_name)}')" style="background:#a78bfa">✅ Готово</button>
+    `;
+  } else if (status === 'done') {
+    actions = `
+      <button class="card-btn card-btn-primary" onclick="event.stopPropagation();openModalDeliver('${calc.id}','${escStr(calc.car_name)}',${calc.total_price || 0})" style="background:var(--success);color:#000">🚗 Выдать</button>
+    `;
+  } else if (status === 'delivered') {
+    actions = `
+      <button class="card-btn card-btn-secondary" onclick="event.stopPropagation();openCalc('${calc.id}')">📂 Открыть</button>
     `;
   }
 
-  // Manual work
-  html += `
-    <div class="card">
-      <div class="card-title">➕ Добавить работу вручную</div>
-      <div class="add-work-row">
-        <input type="text" id="manualServiceName" placeholder="Название работы (напр: Мойка, Полировка)">
-        <input type="number" id="manualSalary" placeholder="Сумма ₽" min="0" step="1">
-      </div>
-      <button class="btn btn-secondary btn-sm" style="margin-top:12px" onclick="addManualWork()">➕ Добавить</button>
-    </div>
-  `;
-
-  // Summary + Save
-  html += `
-    <div class="card">
-      <div class="card-title">📊 Итого к выплате</div>
-      <div class="summary-block">
-        <div class="summary-row">
-          <span class="summary-label">Исполнителей назначено</span>
-          <span class="summary-value" id="summaryCount">0</span>
-        </div>
-        <div class="summary-row">
-          <span class="summary-label">💰 Итого ЗП</span>
-          <span class="summary-total-value" id="summaryTotal">0 ₽</span>
-        </div>
-      </div>
-      <div style="display:flex;gap:12px;margin-top:20px;justify-content:flex-end;flex-wrap:wrap">
-        <button class="btn btn-secondary" onclick="window.location.href='dashboard.html'">← Отмена</button>
-        <button class="btn btn-success" onclick="saveAssignments()">💾 Сохранить распределение</button>
+  return `
+    <div class="kanban-card" onclick="openCalc('${calc.id}')">
+      <div class="card-car">${calc.car_name || 'Без названия'}</div>
+      ${checkin}
+      ${note}
+      <div class="card-price">${price} ₽</div>
+      <div class="card-actions" onclick="event.stopPropagation()">
+        ${actions}
       </div>
     </div>
   `;
-
-  document.getElementById('mainContent').innerHTML = html;
-
-  // Listen for changes to update summary
-  document.querySelectorAll('.executor-row input, .executor-row select').forEach(el => {
-    el.addEventListener('change', updateSummary);
-    el.addEventListener('input', updateSummary);
-  });
-
-  // Admin percent live calc
-  document.getElementById('adminPercent')?.addEventListener('input', calcAdminSalary);
-  calcAdminSalary();
-  updateSummary();
 }
 
-window.toggleAdminSale = function() {
-  const isChecked = document.getElementById('isAdminSale').checked;
-  const details = document.getElementById('adminDetails');
-  details.classList.toggle('active', isChecked);
-  calcAdminSalary();
-};
-
-window.setAdminMode = function(mode) {
-  const selectWrap = document.getElementById('adminSelectWrap');
-  const manualWrap = document.getElementById('adminManualWrap');
-  const btnSelect = document.getElementById('adminModeSelect');
-  const btnManual = document.getElementById('adminModeManual');
-
-  if (mode === 'manual') {
-    selectWrap.style.display = 'none';
-    manualWrap.style.display = 'block';
-    btnSelect.classList.remove('active');
-    btnManual.classList.add('active');
-  } else {
-    selectWrap.style.display = 'block';
-    manualWrap.style.display = 'none';
-    btnSelect.classList.add('active');
-    btnManual.classList.remove('active');
-  }
-};
-
-function calcAdminSalary() {
-  const isChecked = document.getElementById('isAdminSale')?.checked;
-  if (!isChecked) return;
-  const pct = parseFloat(document.getElementById('adminPercent')?.value) || 0;
-  const totalCheck = calculation?.total_price || 0;
-  const adminSal = Math.round(totalCheck * pct / 100);
-  const el = document.getElementById('adminSalaryCalc');
-  if (el) el.textContent = `ЗП продавца: ${fmt(adminSal)} ₽`;
+function escStr(s) {
+  return (s || '').replace(/'/g, '&#39;').replace(/"/g, '&quot;');
 }
 
-// Add manual work
-window.addManualWork = function() {
-  const name = document.getElementById('manualServiceName').value.trim();
-  const salary = parseFloat(document.getElementById('manualSalary').value) || 0;
+// Modal helpers
+function openModal(modalId, calcId, carName) {
+  activeCalcId = calcId;
+  const nameEl = document.getElementById(modalId.replace('modal', '').toLowerCase() + 'CarName');
+  if (nameEl) nameEl.textContent = carName;
 
-  if (!name) { alert('Введите название работы'); return; }
-
-  const service = { key: `manual_${Date.now()}`, name, baseSalary: salary };
-  const item = document.createElement('div');
-  item.innerHTML = renderWorkItem(service);
-
-  const workList = document.getElementById('workList');
-  if (!workList) {
-    // Создаём workList если его нет (нет услуг из расчёта)
-    const card = document.querySelector('.card');
-    const div = document.createElement('div');
-    div.className = 'work-list';
-    div.id = 'workList';
-    card.appendChild(div);
-    div.appendChild(item.firstElementChild);
-  } else {
-    workList.appendChild(item.firstElementChild);
+  // Для schedule - имена элементов другие
+  if (modalId === 'modalSchedule') {
+    document.getElementById('scheduleCarName').textContent = carName;
+    document.getElementById('scheduleDate').value = '';
+    document.getElementById('scheduleTime').value = '10:00';
+    document.getElementById('scheduleNote').value = '';
+  }
+  if (modalId === 'modalDone') {
+    document.getElementById('doneCarName').textContent = carName;
   }
 
-  // Listen changes
-  item.querySelectorAll('input, select').forEach(el => {
-    el.addEventListener('change', updateSummary);
-    el.addEventListener('input', updateSummary);
-  });
+  document.getElementById(modalId).classList.add('active');
+}
 
-  document.getElementById('manualServiceName').value = '';
-  document.getElementById('manualSalary').value = '';
-  updateSummary();
+function openModalDeliver(calcId, carName, price) {
+  activeCalcId = calcId;
+  document.getElementById('deliverCarName').textContent = carName;
+  document.getElementById('deliverPrice').value = price;
+  document.getElementById('deliverNote').value = '';
+  document.getElementById('modalDeliver').classList.add('active');
+}
+
+window.closeModal = function(modalId) {
+  document.getElementById(modalId).classList.remove('active');
+  activeCalcId = null;
 };
 
-// Save
-window.saveAssignments = async function() {
-  const assignments = [];
+window.openModal = openModal;
+window.openModalDeliver = openModalDeliver;
 
-  // Admin sale
-  const isAdminSale = document.getElementById('isAdminSale')?.checked;
-  if (isAdminSale) {
-    const isManualMode = document.getElementById('adminManualWrap')?.style.display !== 'none';
-    const pct = parseFloat(document.getElementById('adminPercent')?.value) || 0;
-    const adminSal = Math.round((calculation.total_price || 0) * pct / 100);
-    let adminExecId = null;
-    let adminExecName = '';
+// Actions
+window.openCalc = function(calcId) {
+  window.location.href = `calculator.html?load=${calcId}`;
+};
 
-    if (isManualMode) {
-      adminExecName = document.getElementById('adminManualName')?.value?.trim();
-      const saveToList = document.getElementById('adminSaveToList')?.checked;
-      if (adminExecName && saveToList) {
-        // Сохраняем в справочник
-        const { data: savedAdmin } = await sb.from('executors').insert({
-          studio_id: currentStudio.studio_id,
-          full_name: adminExecName,
-          role: 'universal',
-          is_active: true,
-          is_admin: true
-        }).select().single();
-        if (savedAdmin) { adminExecId = savedAdmin.id; executors.push(savedAdmin); }
-      }
-    } else {
-      adminExecId = document.getElementById('adminExecutorId')?.value;
-      const adminExec = executors.find(e => e.id === adminExecId);
-      adminExecName = adminExec?.full_name || '';
-    }
+window.goAssign = function(calcId) {
+  window.location.href = `assign-work.html?calc_id=${calcId}`;
+};
 
-    if ((adminExecId || adminExecName) && adminSal > 0) {
-      assignments.push({
-        studio_id: currentStudio.studio_id,
-        calculation_id: calcId,
-        car_name: calculation.car_name,
-        service_name: 'Продажа (% от чека)',
-        executor_id: adminExecId || null,
-        executor_name: adminExecName,
-        salary: adminSal,
-        is_admin_sale: true,
-        admin_percent: pct,
-        status: 'pending',
-        payment_month: new Date().toISOString().slice(0, 7)
-      });
-    }
+async function updateStatus(calcId, status, extra = {}) {
+  const { error } = await sb
+    .from('calculations')
+    .update({ status, ...extra })
+    .eq('id', calcId);
+
+  if (error) {
+    console.error(error);
+    alert('❌ Ошибка: ' + error.message);
+    return false;
   }
+  return true;
+}
 
-  // Work items
-  const newExecutorsToSave = []; // Новые исполнители для справочника
+window.saveSchedule = async function() {
+  const date = document.getElementById('scheduleDate').value;
+  const time = document.getElementById('scheduleTime').value;
+  const note = document.getElementById('scheduleNote').value.trim();
+  
+  if (!date) { alert('Выберите дату!'); return; }
+  if (!time) { alert('Выберите время!'); return; }
 
-  document.querySelectorAll('.work-item').forEach(item => {
-    const serviceName = item.dataset.serviceName;
-
-    item.querySelectorAll('.executor-row').forEach(row => {
-      const isManualMode = row.querySelector('.executor-manual-wrap')?.style.display !== 'none';
-      let execId = null;
-      let execName = '';
-      let saveToList = false;
-
-      if (isManualMode) {
-        execName = row.querySelector('.manual-name-input')?.value?.trim();
-        saveToList = row.querySelector('.save-to-list')?.checked;
-        if (!execName) return;
-        if (saveToList) newExecutorsToSave.push(execName);
-      } else {
-        execId = row.querySelector('select')?.value;
-        if (!execId) return;
-        const exec = executors.find(e => e.id === execId);
-        execName = exec?.full_name || '';
-      }
-
-      const salary = parseFloat(row.querySelector('.salary-input')?.value) || 0;
-      if (salary <= 0) return;
-
-      assignments.push({
-        studio_id: currentStudio.studio_id,
-        calculation_id: calcId,
-        car_name: calculation.car_name,
-        service_name: serviceName,
-        executor_id: execId || null,
-        executor_name: execName,
-        salary,
-        is_admin_sale: false,
-        status: 'pending',
-        payment_month: new Date().toISOString().slice(0, 7)
-      });
-    });
+  const ok = await updateStatus(activeCalcId, 'scheduled', { 
+    checkin_date: date,
+    checkin_time: time,
+    schedule_note: note || null
   });
-
-  if (assignments.length === 0) {
-    alert('❌ Не назначено ни одного исполнителя с суммой!');
-    return;
-  }
-
-  try {
-    // Сохраняем новых исполнителей в справочник
-    if (newExecutorsToSave.length > 0) {
-      const uniqueNames = [...new Set(newExecutorsToSave)];
-      const newExecs = uniqueNames.map(name => ({
-        studio_id: currentStudio.studio_id,
-        full_name: name,
-        role: 'universal',
-        is_active: true,
-        is_admin: false
-      }));
-
-      const { data: savedExecs, error: execError } = await sb
-        .from('executors')
-        .insert(newExecs)
-        .select();
-
-      if (!execError && savedExecs) {
-        // Обновляем executor_id в assignments
-        savedExecs.forEach(saved => {
-          assignments.forEach(a => {
-            if (a.executor_name === saved.full_name && !a.executor_id) {
-              a.executor_id = saved.id;
-            }
-          });
-        });
-        // Обновляем локальный список
-        executors.push(...savedExecs);
-      }
-    }
-    // Удаляем старые назначения для этого расчёта
-    await sb.from('work_assignments').delete().eq('calculation_id', calcId);
-
-    // Вставляем новые
-    const { error } = await sb.from('work_assignments').insert(assignments);
-
-    if (error) {
-      console.error('Save error:', error);
-      alert('❌ Ошибка сохранения: ' + error.message);
-      return;
-    }
-
-    // Помечаем расчёт как распределённый
-    await sb.from('calculations').update({ work_assigned: true }).eq('id', calcId);
-
-    alert(`✅ Сохранено! Назначено ${assignments.length} записей.`);
-    window.location.href = 'dashboard.html';
-
-  } catch (e) {
-    console.error('Error:', e);
-    alert('❌ Ошибка сохранения');
+  if (ok) {
+    closeModal('modalSchedule');
+    loadBoard();
   }
 };
+
+window.saveDone = async function() {
+  const ok = await updateStatus(activeCalcId, 'done');
+  if (ok) {
+    closeModal('modalDone');
+    loadBoard();
+  }
+};
+
+window.saveDeliver = async function() {
+  const price = parseFloat(document.getElementById('deliverPrice').value) || null;
+  const note = document.getElementById('deliverNote').value.trim();
+
+  const ok = await updateStatus(activeCalcId, 'delivered', {
+    final_price: price,
+    delivery_note: note
+  });
+  if (ok) {
+    closeModal('modalDeliver');
+    loadBoard();
+  }
+};
+
+// Close modal on backdrop
+document.querySelectorAll('.modal').forEach(m => {
+  m.addEventListener('click', e => {
+    if (e.target === m) {
+      m.classList.remove('active');
+      activeCalcId = null;
+    }
+  });
+});
 
 // Init
 async function init() {
   initTheme();
-
   if (!await checkAuth()) return;
   if (!await getStudio()) return;
-
-  // Get calc_id from URL
-  const params = new URLSearchParams(window.location.search);
-  calcId = params.get('calc_id');
-
-  if (!calcId) {
-    document.getElementById('mainContent').innerHTML = '<div class="loading">❌ Не указан ID расчёта</div>';
-    return;
-  }
-
-  // Load calculation
-  const { data: calcData, error: calcError } = await sb
-    .from('calculations')
-    .select('*')
-    .eq('id', calcId)
-    .single();
-
-  if (calcError || !calcData) {
-    document.getElementById('mainContent').innerHTML = '<div class="loading">❌ Расчёт не найден</div>';
-    return;
-  }
-
-  calculation = calcData;
-
-  // Load executors
-  await loadExecutors();
-
-  // Load existing assignments (если уже распределяли)
-  const { data: existingData } = await sb
-    .from('work_assignments')
-    .select('*')
-    .eq('calculation_id', calcId);
-
-  // Extract services
-  const services = extractServices(calcData.calculation_data || {});
-
-  // Render
-  renderContent(services, existingData || []);
+  loadBoard();
 }
 
 init();
