@@ -619,10 +619,82 @@ select option {
 }
 
 @media (max-width: 600px) {
-  .mini-kanban {
+  .container {
+    padding: 16px 12px;
+  }
+
+  .top-bar {
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .top-bar h1 {
+    font-size: 1.3rem;
+  }
+
+  .stats-grid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .stat-card {
+    padding: 14px;
+  }
+
+  .stat-label {
+    font-size: 0.72rem;
+  }
+
+  .stat-value {
+    font-size: 1.3rem;
+  }
+
+  .stat-change {
+    font-size: 0.7rem;
+  }
+
+  .mini-kanban {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .mini-col {
+    min-width: 100%;
+  }
+
+  .mini-col-header {
+    font-size: 0.75rem;
+  }
+
+  .mini-card {
+    padding: 12px;
+  }
+
+  .actions-bar {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .actions-left {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .btn {
+    width: 100%;
+    justify-content: center;
+    padding: 12px;
+    font-size: 0.9rem;
+  }
+
+  .search-box input {
+    font-size: 0.9rem;
+    padding: 11px 14px;
   }
 }
+
+.empty-state {
   text-align: center;
   padding: 80px 20px;
   color: var(--text-muted);
@@ -651,16 +723,28 @@ select option {
   .top-bar {
     flex-direction: column;
     gap: 16px;
-    padding: 20px;
+    padding: 16px;
+  }
+
+  .top-bar-left h1 {
+    font-size: 1.2rem;
+    text-align: center;
   }
 
   .actions-bar {
     flex-direction: column;
     align-items: stretch;
+    gap: 12px;
   }
 
-  .search-filter {
+  .actions-left {
     flex-direction: column;
+    gap: 8px;
+  }
+
+  .actions-left .btn {
+    width: 100%;
+    justify-content: center;
   }
 
   .search-box input {
@@ -672,7 +756,7 @@ select option {
   }
 
   .stats-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .calc-actions {
@@ -682,7 +766,34 @@ select option {
   .calc-actions .btn {
     min-width: 100%;
   }
+
+  .mini-kanban {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .card {
+    padding: 20px;
+  }
 }
+
+@media (max-width: 480px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .mini-kanban {
+    grid-template-columns: 1fr;
+  }
+
+  .stat-card {
+    padding: 16px;
+  }
+
+  .stat-value {
+    font-size: 1.5rem;
+  }
+}
+
 </style>
 </head>
 <body>
