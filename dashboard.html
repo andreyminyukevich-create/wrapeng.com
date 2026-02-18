@@ -1149,7 +1149,7 @@ select option {
       <a href="payouts.html" class="btn btn-success">💰 Подсчет ЗП</a>
     </div>
     <div class="search-box">
-      <input type="text" id="searchInput" placeholder="🔍 Поиск по машине..." oninput="handleSearch()">
+      <input type="text" id="searchInput" placeholder="Поиск по машине..." oninput="handleSearch()">
     </div>
   </div>
 
@@ -1193,7 +1193,7 @@ select option {
       <button id="themeToggle">🌙</button>
     </div>
     <div class="footer-desc">
-      <strong>Дашборд</strong> — центральная страница с ключевой статистикой студии. 
+      <strong>Главная</strong> — центральная страница с ключевой статистикой студии. 
       Здесь отображается сводка за текущий месяц: количество расчётов, общая сумма, завершённые работы и средний чек. 
       Мини-канбан показывает текущие заказы по стадиям воронки. Используйте поиск для быстрого доступа к машинам.
     </div>
@@ -1237,10 +1237,10 @@ function openDrawer() {
   document.getElementById('drawerOverlay').classList.add('active');
 }
 
-function closeDrawer() {
+window.closeDrawer = function() {
   document.getElementById('drawer').classList.remove('active');
   document.getElementById('drawerOverlay').classList.remove('active');
-}
+};
 
 // Auth
 async function checkAuth() {
