@@ -310,6 +310,14 @@ body {
   margin-bottom: 8px;
 }
 
+.card-note {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+  margin-bottom: 8px;
+  font-style: italic;
+}
+
 /* Column colors */
 .col-new .column-dot { background: #94a3b8; }
 .col-new .column-title { color: #94a3b8; }
@@ -591,27 +599,16 @@ body {
       <input type="date" id="scheduleDate">
     </div>
     <div class="form-group">
+      <label>Время заезда</label>
+      <input type="time" id="scheduleTime" value="10:00">
+    </div>
+    <div class="form-group">
       <label>Комментарий (необязательно)</label>
       <textarea id="scheduleNote" placeholder="Пожелания клиента, особенности..."></textarea>
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('modalSchedule')">Отмена</button>
       <button class="btn" style="background:var(--warning);color:#000" onclick="saveSchedule()">📅 Назначить</button>
-    </div>
-  </div>
-</div>
-
-<!-- Modal: Принять в работу -->
-<div class="modal" id="modalInProgress">
-  <div class="modal-content">
-    <div class="modal-title">🔧 Принять в работу</div>
-    <div class="modal-car" id="inProgressCarName"></div>
-    <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:24px">
-      Машина будет переведена в статус "В работе". Убедитесь что исполнители назначены.
-    </p>
-    <div class="modal-footer">
-      <button class="btn btn-secondary" onclick="closeModal('modalInProgress')">Отмена</button>
-      <button class="btn" onclick="saveInProgress()">🔧 Принять в работу</button>
     </div>
   </div>
 </div>
@@ -729,7 +726,7 @@ async function getStudio() {
 async function loadBoard() {
   const { data, error } = await sb
     .from('calculations')
-    .select('id, car_name, total_price, final_price, status, checkin_date, work_assigned, created_at')
+    .select('id, car_name, total_price, final_price, status, checkin_date, checkin_time, schedule_note, work_assigned, created_at')
     .eq('studio_id', currentStudio.studio_id)
     .order('created_at', { ascending: false });
 
@@ -756,7 +753,7 @@ function renderBoard() {
         </div>
         <div class="column-cards">
           ${cards.length === 0
-            ? `<div class="empty-col">Нет заказов</div>`
+            ? `<div class="empty-col">📭 Пока пусто</div>`
             : cards.map(c => renderCard(c, col.key)).join('')
           }
         </div>
@@ -769,7 +766,18 @@ function renderBoard() {
 
 function renderCard(calc, status) {
   const price = fmt(calc.final_price || calc.total_price);
-  const checkin = calc.checkin_date ? `<div class="card-checkin">📅 ${fmtDate(calc.checkin_date)}</div>` : '';
+  
+  let checkin = '';
+  if (calc.checkin_date) {
+    const dateStr = fmtDate(calc.checkin_date);
+    const timeStr = calc.checkin_time ? calc.checkin_time.slice(0, 5) : '';
+    checkin = `<div class="card-checkin">📅 ${dateStr}${timeStr ? ', ' + timeStr : ''}</div>`;
+  }
+
+  let note = '';
+  if (calc.schedule_note) {
+    note = `<div class="card-note">💬 ${calc.schedule_note}</div>`;
+  }
 
   let actions = '';
   if (status === 'new') {
@@ -780,7 +788,7 @@ function renderCard(calc, status) {
   } else if (status === 'scheduled') {
     actions = `
       <button class="card-btn card-btn-secondary" onclick="event.stopPropagation();openModal('modalSchedule','${calc.id}','${escStr(calc.car_name)}')">✏️ Дата</button>
-      <button class="card-btn card-btn-primary" onclick="event.stopPropagation();openModal('modalInProgress','${calc.id}','${escStr(calc.car_name)}')">🔧 В работу</button>
+      <button class="card-btn card-btn-primary" onclick="event.stopPropagation();goAssign('${calc.id}')">🔧 В работу</button>
     `;
   } else if (status === 'in_progress') {
     actions = `
@@ -801,6 +809,7 @@ function renderCard(calc, status) {
     <div class="kanban-card" onclick="openCalc('${calc.id}')">
       <div class="card-car">${calc.car_name || 'Без названия'}</div>
       ${checkin}
+      ${note}
       <div class="card-price">${price} ₽</div>
       <div class="card-actions" onclick="event.stopPropagation()">
         ${actions}
@@ -823,10 +832,8 @@ function openModal(modalId, calcId, carName) {
   if (modalId === 'modalSchedule') {
     document.getElementById('scheduleCarName').textContent = carName;
     document.getElementById('scheduleDate').value = '';
+    document.getElementById('scheduleTime').value = '10:00';
     document.getElementById('scheduleNote').value = '';
-  }
-  if (modalId === 'modalInProgress') {
-    document.getElementById('inProgressCarName').textContent = carName;
   }
   if (modalId === 'modalDone') {
     document.getElementById('doneCarName').textContent = carName;
@@ -876,19 +883,19 @@ async function updateStatus(calcId, status, extra = {}) {
 
 window.saveSchedule = async function() {
   const date = document.getElementById('scheduleDate').value;
+  const time = document.getElementById('scheduleTime').value;
+  const note = document.getElementById('scheduleNote').value.trim();
+  
   if (!date) { alert('Выберите дату!'); return; }
+  if (!time) { alert('Выберите время!'); return; }
 
-  const ok = await updateStatus(activeCalcId, 'scheduled', { checkin_date: date });
+  const ok = await updateStatus(activeCalcId, 'scheduled', { 
+    checkin_date: date,
+    checkin_time: time,
+    schedule_note: note || null
+  });
   if (ok) {
     closeModal('modalSchedule');
-    loadBoard();
-  }
-};
-
-window.saveInProgress = async function() {
-  const ok = await updateStatus(activeCalcId, 'in_progress');
-  if (ok) {
-    closeModal('modalInProgress');
     loadBoard();
   }
 };
