@@ -431,6 +431,137 @@ body {
   color: var(--text-muted);
   width: 100%;
 }
+
+/* ── MOBILE ── */
+@media (max-width: 768px) {
+  .top-bar {
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+    padding: 14px 16px;
+  }
+
+  .top-bar h1 {
+    font-size: 1.15rem;
+    text-align: center;
+  }
+
+  .top-bar-right {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .board-wrap {
+    padding: 12px 8px;
+    gap: 12px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .column {
+    flex: 0 0 280px;
+    max-height: calc(100vh - 140px);
+  }
+
+  .column-header {
+    padding: 14px 16px 12px;
+  }
+
+  .column-title {
+    font-size: 0.85rem;
+  }
+
+  .column-cards {
+    padding: 12px;
+  }
+
+  .kanban-card {
+    padding: 14px 16px;
+  }
+
+  .card-car {
+    font-size: 0.9rem;
+  }
+
+  .card-price {
+    font-size: 1rem;
+  }
+
+  .card-btn {
+    padding: 10px 12px;
+    font-size: 0.8rem;
+    min-height: 36px;
+  }
+
+  .modal {
+    padding: 12px;
+  }
+
+  .modal-content {
+    max-width: 100%;
+    margin: 0;
+    padding: 24px 20px;
+    border-radius: 16px;
+  }
+
+  .modal-title {
+    font-size: 1.1rem;
+  }
+
+  .form-group input,
+  .form-group textarea,
+  .form-group select {
+    font-size: 16px; /* Prevent zoom on iOS */
+    padding: 12px 14px;
+  }
+
+  .btn {
+    padding: 12px 20px;
+    font-size: 0.9rem;
+    min-height: 44px; /* Touch target */
+  }
+}
+
+@media (max-width: 480px) {
+  .column {
+    flex: 0 0 260px;
+  }
+
+  .card-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .card-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .modal-content {
+    padding: 20px 16px;
+  }
+
+  .modal-footer {
+    flex-direction: column-reverse;
+  }
+
+  .modal-footer .btn {
+    width: 100%;
+  }
+}
+    width: 100%;
+  }
+
+  .modal-footer {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .modal-footer .btn {
+    width: 100%;
+  }
+}
+
 </style>
 </head>
 <body>
