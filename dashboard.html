@@ -120,6 +120,35 @@ body::before {
   gap: 16px;
 }
 
+.global-nav {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.nav-link {
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.nav-link:hover {
+  background: var(--bg-input);
+  color: var(--text);
+}
+
+.nav-link.active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
 .user-email {
   font-size: 0.9rem;
   color: var(--text-muted);
@@ -635,6 +664,17 @@ select option {
     text-align: center;
   }
 
+  .global-nav {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 4px;
+  }
+
+  .nav-link {
+    font-size: 0.8rem;
+    padding: 6px 12px;
+  }
+
   .user-info {
     flex-direction: column;
     gap: 10px;
@@ -829,6 +869,12 @@ select option {
   <!-- Top Bar -->
   <div class="top-bar">
     <h1>📊 Дашборд</h1>
+    <nav class="global-nav">
+      <a href="dashboard.html" class="nav-link active">📊 Дашборд</a>
+      <a href="board.html" class="nav-link">📋 Доска</a>
+      <a href="executors.html" class="nav-link">👥 Исполнители</a>
+      <a href="payouts.html" class="nav-link">💰 Зарплаты</a>
+    </nav>
     <div class="user-info">
       <span class="user-email" id="userEmail">
         <span id="userEmailText"></span>
