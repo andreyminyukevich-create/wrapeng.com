@@ -1228,7 +1228,10 @@ function toggleTheme() {
 }
 
 function updateThemeIcon(theme) {
-  document.getElementById('themeToggle').textContent = theme === 'dark' ? '☀️' : '🌙';
+  const toggle = document.getElementById('themeToggle');
+  if (toggle) {
+    toggle.textContent = theme === 'dark' ? '☀️' : '🌙';
+  }
 }
 
 // Drawer Menu
@@ -1411,7 +1414,11 @@ window.handleSearch = function() {
 async function init() {
   if (!await checkAuth()) return;
   initTheme();
-  document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+  
+  const toggle = document.getElementById('themeToggle');
+  if (toggle) {
+    toggle.addEventListener('click', toggleTheme);
+  }
 
   // Получаем студию
   const { data: memberData } = await sb
@@ -1433,13 +1440,18 @@ async function init() {
 
   allCalcsForSearch = calcs || [];
   updateStats(allCalcsForSearch);
-  loadMiniKanban(studioId);
+  await loadMiniKanban(studioId);
 }
 
-document.addEventListener('DOMContentLoaded', init);
-
-// Drawer toggle
-document.getElementById('menuToggle')?.addEventListener('click', openDrawer);
+document.addEventListener('DOMContentLoaded', () => {
+  init();
+  
+  // Drawer toggle
+  const menuBtn = document.getElementById('menuToggle');
+  if (menuBtn) {
+    menuBtn.addEventListener('click', openDrawer);
+  }
+});
 
 })();
 </script>
