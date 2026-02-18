@@ -401,6 +401,227 @@ td {
   height: 18px;
   accent-color: var(--primary);
 }
+
+/* Mobile */
+@media (max-width: 768px) {
+  .container {
+    padding: 16px 12px;
+  }
+
+  .top-bar {
+    flex-direction: column;
+    gap: 12px;
+    padding: 14px 16px;
+  }
+
+  .top-bar h1 {
+    font-size: 1.15rem;
+    text-align: center;
+  }
+
+  .top-bar-right {
+    flex-direction: column;
+    width: 100%;
+    gap: 10px;
+  }
+
+  .global-nav {
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .nav-link {
+    font-size: 0.8rem;
+    padding: 6px 12px;
+  }
+
+  .filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filters select {
+    width: 100%;
+  }
+
+  .summary {
+    grid-template-columns: 1fr;
+  }
+
+  .tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 2px;
+  }
+
+  .tab {
+    padding: 10px 16px;
+    font-size: 0.85rem;
+    white-space: nowrap;
+  }
+
+  .bulk-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  table {
+    min-width: 600px;
+  }
+
+  th, td {
+    padding: 10px 8px;
+    font-size: 0.8rem;
+  }
+
+  .btn-pay {
+    padding: 5px 10px;
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .top-bar h1 {
+    font-size: 1rem;
+  }
+
+  .theme-toggle {
+    padding: 6px 10px;
+    font-size: 1rem;
+  }
+
+  .nav-link {
+    font-size: 0.75rem;
+    padding: 5px 10px;
+  }
+
+  .summary-card {
+    padding: 16px;
+  }
+
+  .summary-label {
+    font-size: 0.75rem;
+  }
+
+  .summary-value {
+    font-size: 1.5rem;
+  }
+
+  .tab {
+    padding: 8px 12px;
+    font-size: 0.8rem;
+  }
+
+  .tab-badge {
+    font-size: 0.7rem;
+    min-width: 20px;
+    height: 18px;
+  }
+
+  table {
+    min-width: 500px;
+  }
+
+  th, td {
+    padding: 8px 6px;
+    font-size: 0.75rem;
+  }
+
+  .month-badge {
+    font-size: 0.7rem;
+    padding: 3px 8px;
+  }
+
+  .salary {
+    font-size: 0.9rem;
+  }
+
+  .btn {
+    font-size: 0.85rem;
+    padding: 8px 16px;
+  }
+
+  .global-nav {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    flex-wrap: nowrap;
+  }
+
+  .global-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .nav-link {
+    flex-shrink: 0;
+  }
+}
+
+/* Footer */
+.page-footer {
+  margin-top: 60px;
+  padding: 32px 24px;
+  background: var(--bg-card);
+  border-top: 1px solid var(--border);
+  text-align: center;
+}
+
+.footer-content {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.footer-theme {
+  margin-bottom: 20px;
+}
+
+.footer-theme button {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 20px;
+  cursor: pointer;
+  font-size: 1.1rem;
+  transition: all 0.2s;
+  font-family: 'Inter', sans-serif;
+  color: var(--text);
+}
+
+.footer-theme button:hover {
+  border-color: var(--border-focus);
+  transform: translateY(-2px);
+}
+
+.footer-desc {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.footer-desc strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+@media (max-width: 600px) {
+  .page-footer {
+    padding: 24px 16px;
+    margin-top: 40px;
+  }
+
+  .footer-desc {
+    font-size: 0.85rem;
+  }
+}
 </style>
 </head>
 <body>
@@ -409,7 +630,7 @@ td {
 <div class="top-bar">
   <h1>💰 Зарплаты</h1>
   <div class="top-bar-right">
-    <button class="theme-toggle" id="themeToggle">🌙</button>
+    
     <nav class="global-nav">
       <a href="dashboard.html" class="nav-link">📊 Дашборд</a>
       <a href="board.html" class="nav-link">📋 Доска</a>
@@ -735,5 +956,19 @@ init();
 
 })();
 </script>
+
+<footer class="page-footer">
+  <div class="footer-content">
+    <div class="footer-theme">
+      <button id="themeToggle">🌙</button>
+    </div>
+    <div class="footer-desc">
+      <strong>Зарплаты</strong> — учёт выплат исполнителям. 
+      Три вкладки: К выплате, Выплачено, Отменено. 
+      Массовая выплата, фильтры по месяцам и сотрудникам, автоматический подсчёт из назначенных работ.
+    </div>
+  </div>
+</footer>
+
 </body>
 </html>
