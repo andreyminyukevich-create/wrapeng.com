@@ -3,279 +3,367 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Выплаты ЗП</title>
+<title>Зарплаты</title>
+<script>
+const savedTheme = localStorage.getItem('theme') || 'dark';
+document.documentElement.setAttribute('data-theme', savedTheme);
+</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 :root {
-  --bg-primary: #0f172a;
-  --bg-secondary: #1e293b;
-  --bg-tertiary: #334155;
-  --card: rgba(255, 255, 255, 0.05);
-  --card-hover: rgba(255, 255, 255, 0.08);
-  --text: #f1f5f9;
-  --text-muted: #94a3b8;
-  --text-dimmed: #64748b;
-  --border: rgba(148, 163, 184, 0.1);
-  --border-hover: rgba(148, 163, 184, 0.2);
-  --primary: #3b82f6;
+  --bg-primary: #080f1e;
+  --bg-secondary: #0e1829;
+  --bg-card: #131f35;
+  --bg-input: #1a2844;
+  --text: #eef2ff;
+  --text-muted: #8aa0c0;
+  --text-label: #b0c4de;
+  --border: rgba(120, 160, 220, 0.22);
+  --border-focus: rgba(99, 160, 255, 0.6);
+  --primary: #5b9cf6;
   --primary-dark: #2563eb;
-  --success: #10b981;
+  --success: #22d3a0;
   --success-dark: #059669;
-  --warning: #f59e0b;
-  --danger: #ef4444;
-  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.15);
-  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.2);
-  --glass: rgba(255, 255, 255, 0.05);
-  --glass-border: rgba(255, 255, 255, 0.1);
+  --success-bg: rgba(34, 211, 160, 0.12);
+  --danger: #f87171;
+  --danger-bg: rgba(248, 113, 113, 0.14);
+  --warning: #fbbf24;
+  --shadow: 0 4px 24px rgba(0,0,0,0.5);
+  --shadow-lg: 0 8px 40px rgba(0,0,0,0.6);
 }
 
 [data-theme="light"] {
-  --bg-primary: #f8fafc;
-  --bg-secondary: #f1f5f9;
-  --bg-tertiary: #e2e8f0;
-  --card: rgba(255, 255, 255, 0.9);
-  --card-hover: rgba(255, 255, 255, 1);
+  --bg-primary: #f0f4fb;
+  --bg-secondary: #ffffff;
+  --bg-card: #ffffff;
+  --bg-input: #f8faff;
   --text: #0f172a;
-  --text-muted: #475569;
-  --text-dimmed: #64748b;
-  --border: rgba(15, 23, 42, 0.08);
-  --border-hover: rgba(15, 23, 42, 0.15);
-  --glass: rgba(255, 255, 255, 0.8);
-  --glass-border: rgba(15, 23, 42, 0.1);
+  --text-muted: #64748b;
+  --text-label: #475569;
+  --border: rgba(15, 23, 42, 0.1);
+  --border-focus: rgba(79, 142, 247, 0.5);
+  --shadow: 0 4px 16px rgba(0,0,0,0.08);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.12);
 }
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Inter', -apple-system, sans-serif;
   background: var(--bg-primary);
   color: var(--text);
-  line-height: 1.6;
+  line-height: 1.5;
   min-height: 100vh;
-  transition: all 0.3s;
-}
-
-.top-bar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 1000;
-  background: var(--glass);
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--glass-border);
-  box-shadow: var(--shadow-md);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 20px;
-}
-
-.top-bar h1 {
-  font-size: 1.3rem;
-  font-weight: 700;
-  background: linear-gradient(135deg, var(--primary), var(--success));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.theme-toggle {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 8px 16px;
-  cursor: pointer;
-  font-size: 0.85rem;
-  font-weight: 600;
-  min-height: 40px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  transition: all 0.3s;
-  color: var(--text);
 }
 
 .container {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 100px 20px 40px;
-}
-
-.card {
-  background: var(--card);
-  backdrop-filter: blur(20px);
-  border-radius: 20px;
-  box-shadow: var(--shadow-md);
   padding: 24px;
-  margin-bottom: 20px;
-  border: 1px solid var(--border);
-  transition: all 0.3s;
 }
 
-.card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
+/* Top Bar */
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: var(--shadow);
+}
+
+.top-bar h1 {
+  font-size: 1.3rem;
+  font-weight: 800;
+  background: linear-gradient(120deg, var(--primary), var(--success));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.5px;
+}
+
+.top-bar-right {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.global-nav {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.nav-link {
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.nav-link:hover {
+  background: var(--bg-input);
+  color: var(--text);
+}
+
+.nav-link.active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
+.theme-toggle {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 1.1rem;
+  transition: all 0.2s;
 }
 
 .btn {
-  padding: 12px 18px;
+  background: var(--primary);
+  color: #fff;
   border: none;
-  border-radius: 12px;
-  font-size: 0.95rem;
+  padding: 9px 20px;
+  border-radius: 10px;
+  font-size: 0.88rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.2s;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
+  gap: 7px;
   font-family: 'Inter', sans-serif;
 }
 
-.btn-primary {
-  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-  color: #fff;
-  box-shadow: var(--shadow-md);
-}
-
-.btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
+.btn:hover {
+  background: var(--primary-dark);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow);
 }
 
 .btn-success {
-  background: linear-gradient(135deg, var(--success), var(--success-dark));
-  color: #fff;
-  box-shadow: var(--shadow-md);
+  background: var(--success);
 }
 
 .btn-success:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
-}
-
-.btn-danger {
-  background: var(--danger);
-  color: #fff;
+  background: var(--success-dark);
 }
 
 .btn-secondary {
-  background: var(--bg-secondary);
-  color: var(--text);
-  border: 2px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
 }
 
-.actions {
+.btn-secondary:hover {
+  background: var(--bg-input);
+  color: var(--text);
+  border-color: var(--border-focus);
+}
+
+/* Filters */
+.filters {
   display: flex;
   gap: 12px;
   margin-bottom: 24px;
   flex-wrap: wrap;
+  align-items: center;
 }
 
-.salary-table {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-  margin-top: 16px;
-}
-
-.salary-table thead th {
-  background: var(--bg-tertiary);
-  padding: 12px;
-  text-align: left;
-  font-weight: 700;
-  font-size: 0.85rem;
-  border-bottom: 2px solid var(--border);
-}
-
-.salary-table tbody tr {
-  transition: all 0.2s;
-}
-
-.salary-table tbody tr:hover {
-  background: var(--card-hover);
-}
-
-.salary-table tbody tr.paid {
-  opacity: 0.5;
-}
-
-.salary-table tbody td {
-  padding: 12px;
-  border-bottom: 1px solid var(--border);
-}
-
-.salary-table input[type="text"],
-.salary-table input[type="number"],
-.salary-table input[type="date"] {
-  padding: 8px 12px;
-  border: 2px solid var(--border);
-  border-radius: 8px;
-  background: var(--bg-secondary);
+.filters select {
+  padding: 10px 14px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 10px;
   color: var(--text);
   font-size: 0.9rem;
   font-family: 'Inter', sans-serif;
+  cursor: pointer;
 }
 
-.salary-table input[type="number"] {
-  width: 120px;
-}
-
-.salary-table input[type="date"] {
-  width: 150px;
-}
-
-.salary-table input:focus {
+.filters select:focus {
   outline: none;
-  border-color: var(--primary);
+  border-color: var(--border-focus);
 }
 
-.salary-table input:required:invalid {
-  border-color: var(--danger);
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  border-bottom: 2px solid var(--border);
+  padding-bottom: 0;
 }
 
-.total-summary {
+.tab {
+  padding: 12px 24px;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Inter', sans-serif;
+  position: relative;
+  margin-bottom: -2px;
+}
+
+.tab:hover {
+  color: var(--text);
+  background: var(--bg-secondary);
+}
+
+.tab.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+
+.tab-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 20px;
+  padding: 0 6px;
+  background: var(--bg-input);
+  border-radius: 10px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-left: 6px;
+}
+
+.tab.active .tab-badge {
+  background: var(--primary);
+  color: #fff;
+}
+
+/* Summary */
+.summary {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 16px;
-  margin-top: 24px;
+  margin-bottom: 24px;
 }
 
-.summary-item {
-  background: var(--bg-secondary);
-  padding: 16px;
-  border-radius: 12px;
+.summary-card {
+  background: var(--bg-card);
   border: 1px solid var(--border);
-  text-align: center;
+  border-radius: 14px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .summary-label {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
   color: var(--text-muted);
-  margin-bottom: 8px;
   font-weight: 600;
 }
 
 .summary-value {
-  font-size: 1.5rem;
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--success);
+  letter-spacing: -0.5px;
+}
+
+/* Table */
+.table-wrap {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+thead {
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+}
+
+th {
+  padding: 14px 16px;
+  text-align: left;
+  font-size: 0.8rem;
   font-weight: 700;
-  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-label);
 }
 
-.summary-item.highlight {
-  background: linear-gradient(135deg, var(--success), var(--success-dark));
-  color: #fff;
+tbody tr {
+  border-bottom: 1px solid var(--border);
+  transition: background 0.2s;
 }
 
-.summary-item.highlight .summary-label,
-.summary-item.highlight .summary-value {
-  color: #fff;
+tbody tr:hover {
+  background: var(--bg-secondary);
+}
+
+tbody tr:last-child {
+  border-bottom: none;
+}
+
+td {
+  padding: 16px;
+  font-size: 0.9rem;
+}
+
+.executor-name {
+  font-weight: 600;
+}
+
+.car-name {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.service-name {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.salary {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--success);
+}
+
+.month-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  background: var(--bg-input);
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.btn-pay {
+  padding: 6px 14px;
+  font-size: 0.85rem;
 }
 
 .empty-state {
@@ -284,111 +372,105 @@ body {
   color: var(--text-muted);
 }
 
-.empty-state h3 {
-  font-size: 1.2rem;
-  margin-bottom: 12px;
+.empty-state-icon {
+  font-size: 3rem;
+  margin-bottom: 16px;
 }
 
 .loading {
   text-align: center;
-  padding: 40px;
+  padding: 60px;
   color: var(--text-muted);
 }
 
-.section-title {
-  font-size: 1.1rem;
-  font-weight: 700;
-  margin: 24px 0 12px;
-  color: var(--text);
+/* Actions */
+.bulk-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.checkbox-cell {
+  width: 40px;
+}
+
+.checkbox-cell input {
+  cursor: pointer;
+  width: 18px;
+  height: 18px;
+  accent-color: var(--primary);
 }
 </style>
-<script>
-(function() {
-  const savedTheme = localStorage.getItem('theme');
-  if (savedTheme === 'light') {
-    document.documentElement.setAttribute('data-theme', 'light');
-  }
-})();
-</script>
 </head>
 <body>
 
+<!-- Top Bar -->
 <div class="top-bar">
-  <h1>💰 Выплаты ЗП</h1>
-  <div style="display:flex;gap:12px;align-items:center">
-    <button class="theme-toggle" onclick="toggleTheme()">
-      <span id="themeIcon">☀️</span>
-    </button>
+  <h1>💰 Зарплаты</h1>
+  <div class="top-bar-right">
+    <button class="theme-toggle" id="themeToggle">🌙</button>
+    <nav class="global-nav">
+      <a href="dashboard.html" class="nav-link">📊 Дашборд</a>
+      <a href="board.html" class="nav-link">📋 Доска</a>
+      <a href="executors.html" class="nav-link">👥 Исполнители</a>
+      <a href="payouts.html" class="nav-link active">💰 Зарплаты</a>
+    </nav>
   </div>
 </div>
 
 <div class="container">
-  <div class="card">
-    <div class="actions">
-      <button class="btn btn-secondary" onclick="window.location.href='dashboard.html'">← Дашборд</button>
-      <button class="btn btn-secondary" onclick="window.location.href='executors.html'">👥 Исполнители</button>
-      <button class="btn btn-success" id="btnSave">💾 Сохранить</button>
-    </div>
-    
-    <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 12px; padding: 16px; margin-bottom: 20px;">
-      <strong>⚠️ Временно недоступно:</strong> Автоматический перенос из расчёта будет доступен после создания страницы "Распределение работ". Пока можно добавлять записи вручную через Supabase.
-    </div>
+  <!-- Filters -->
+  <div class="filters">
+    <select id="monthFilter">
+      <option value="all">Все месяцы</option>
+    </select>
+    <select id="executorFilter">
+      <option value="all">Все исполнители</option>
+    </select>
+  </div>
 
-    <div id="loading" class="loading" style="display:none">
-      ⏳ Загрузка...
+  <!-- Summary -->
+  <div class="summary">
+    <div class="summary-card">
+      <div class="summary-label">К выплате</div>
+      <div class="summary-value" id="summaryPending">0 ₽</div>
     </div>
-
-    <div id="emptyState" class="empty-state">
-      <h3>📋 Список выплат пуст</h3>
-      <p>Добавьте записи через Supabase → таблица salaries</p>
+    <div class="summary-card">
+      <div class="summary-label">Выплачено</div>
+      <div class="summary-value" id="summaryPaid">0 ₽</div>
     </div>
-
-    <div id="salariesContent" style="display:none">
-      <div class="section-title">⏳ К выплате</div>
-      <table class="salary-table">
-        <thead>
-          <tr>
-            <th>Автомобиль</th>
-            <th>Услуга</th>
-            <th>Исполнитель</th>
-            <th>Сумма (₽)</th>
-            <th>Дата выплаты</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody id="unpaidTableBody"></tbody>
-      </table>
-
-      <div class="section-title" style="margin-top:40px">✅ Выплачено</div>
-      <table class="salary-table">
-        <thead>
-          <tr>
-            <th>Автомобиль</th>
-            <th>Услуга</th>
-            <th>Исполнитель</th>
-            <th>Сумма (₽)</th>
-            <th>Дата выплаты</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody id="paidTableBody"></tbody>
-      </table>
-
-      <div class="total-summary">
-        <div class="summary-item">
-          <div class="summary-label">Всего исполнителей</div>
-          <div class="summary-value" id="totalExecutors">0</div>
-        </div>
-        <div class="summary-item">
-          <div class="summary-label">Уже оплачено</div>
-          <div class="summary-value" id="totalPaid">0,00 ₽</div>
-        </div>
-        <div class="summary-item highlight">
-          <div class="summary-label">К ВЫПЛАТЕ</div>
-          <div class="summary-value" id="totalToPay">0,00 ₽</div>
-        </div>
-      </div>
+    <div class="summary-card">
+      <div class="summary-label">Всего работ</div>
+      <div class="summary-value" id="summaryTotal" style="color:var(--text)">0</div>
     </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" data-tab="pending" onclick="switchTab('pending')">
+      ⏳ К выплате
+      <span class="tab-badge" id="badgePending">0</span>
+    </button>
+    <button class="tab" data-tab="paid" onclick="switchTab('paid')">
+      ✅ Выплачено
+      <span class="tab-badge" id="badgePaid">0</span>
+    </button>
+    <button class="tab" data-tab="cancelled" onclick="switchTab('cancelled')">
+      ❌ Отменено
+      <span class="tab-badge" id="badgeCancelled">0</span>
+    </button>
+  </div>
+
+  <!-- Bulk Actions -->
+  <div class="bulk-actions" id="bulkActions" style="display:none">
+    <span id="selectedCount" style="color:var(--text-muted);font-size:0.9rem">Выбрано: 0</span>
+    <button class="btn btn-success" onclick="paySelected()">💰 Выплатить выбранные</button>
+  </div>
+
+  <!-- Content -->
+  <div id="tabContent">
+    <div class="loading">⏳ Загрузка...</div>
   </div>
 </div>
 
@@ -398,310 +480,258 @@ body {
 
 const SUPABASE_URL = 'https://hdghijgrrnzmntistdvw.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkZ2hpamdycm56bW50aXN0ZHZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMzMyNzksImV4cCI6MjA3NTYwOTI3OX0.D9EDTmVrFRVp0B8_5tCJM29gbFdtadsom0Ihsf4uQ8Q';
-
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-  auth: { persistSession: true }
-});
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let currentUser = null;
-let salariesData = [];
+let currentStudio = null;
+let allAssignments = [];
+let currentTab = 'pending';
+let selectedIds = new Set();
 
-const fmt = n => parseFloat((n || 0).toFixed(2)).toLocaleString('ru-RU', {
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2
+// Theme
+function initTheme() {
+  const t = localStorage.getItem('theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', t);
+  document.getElementById('themeToggle').textContent = t === 'dark' ? '☀️' : '🌙';
+}
+
+document.getElementById('themeToggle').addEventListener('click', () => {
+  const cur = document.documentElement.getAttribute('data-theme');
+  const next = cur === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('theme', next);
+  document.getElementById('themeToggle').textContent = next === 'dark' ? '☀️' : '🌙';
 });
 
-window.toggleTheme = function() {
-  const body = document.documentElement;
-  const icon = document.getElementById('themeIcon');
-  const currentTheme = body.getAttribute('data-theme');
-  
-  if (currentTheme === 'light') {
-    body.removeAttribute('data-theme');
-    icon.textContent = '☀️';
-    localStorage.setItem('theme', 'dark');
-  } else {
-    body.setAttribute('data-theme', 'light');
-    icon.textContent = '🌙';
-    localStorage.setItem('theme', 'light');
-  }
-};
+// Format
+function fmt(n) {
+  return new Intl.NumberFormat('ru-RU', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(n || 0);
+}
 
+function fmtMonth(str) {
+  if (!str) return '';
+  const [y, m] = str.split('-');
+  const months = ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
+  return `${months[parseInt(m)-1]} ${y}`;
+}
+
+// Auth
 async function checkAuth() {
   const { data: { session } } = await sb.auth.getSession();
-  if (!session) {
-    window.location.href = 'welcome.html';
-    return false;
-  }
+  if (!session) { window.location.href = 'welcome.html'; return false; }
   currentUser = session.user;
   return true;
 }
 
-async function loadFromCalculation() {
-  const loading = document.getElementById('loading');
-  loading.style.display = 'block';
-  
-  try {
-    // Берём ПОСЛЕДНИЙ расчёт по дате
-    const { data: calculations, error } = await sb
-      .from('calculations')
-      .select('*')
-      .eq('user_id', currentUser.id)
-      .order('updated_at', { ascending: false })
-      .limit(1);
-    
-    if (error || !calculations || calculations.length === 0) {
-      alert('❌ Не найдено ни одного расчёта');
-      loading.style.display = 'none';
-      return;
-    }
-    
-    const calculation = calculations[0];
-    const calcData = calculation.calculation_data;
-    const carName = calculation.car_name || 'Неизвестно';
-    const executors = calcData.executors || [];
-    
-    // Создаём записи из исполнителей
-    salariesData = executors.map((exec, idx) => ({
-      id: Date.now() + idx,
-      car_name: carName,
-      service_name: exec.service || 'Услуга',
-      executor_name: exec.name || '',
-      amount: exec.salary || 0,
-      is_paid: false,
-      payment_date: null
-    }));
-    
-    if (salariesData.length === 0) {
-      alert('❌ В последнем расчёте нет исполнителей с зарплатой');
-      loading.style.display = 'none';
-      return;
-    }
-    
-    renderSalaries();
-    
-  } catch (e) {
-    console.error('Load error:', e);
-    alert('Ошибка загрузки: ' + e.message);
-  } finally {
-    loading.style.display = 'none';
-  }
+async function getStudio() {
+  const { data, error } = await sb
+    .from('studio_members')
+    .select('studio_id, role')
+    .eq('user_id', currentUser.id)
+    .eq('is_active', true)
+    .single();
+  if (error || !data) { alert('❌ Студия не найдена'); return false; }
+  currentStudio = data;
+  return true;
 }
 
-function renderSalaries() {
-  const unpaidTbody = document.getElementById('unpaidTableBody');
-  const paidTbody = document.getElementById('paidTableBody');
-  const emptyState = document.getElementById('emptyState');
-  const content = document.getElementById('salariesContent');
-  
-  if (salariesData.length === 0) {
-    emptyState.style.display = 'block';
-    content.style.display = 'none';
+// Load
+async function loadAssignments() {
+  const { data, error } = await sb
+    .from('work_assignments')
+    .select(`
+      id,
+      calculation_id,
+      executor_id,
+      executor_name,
+      service_name,
+      salary,
+      status,
+      payment_month,
+      is_admin_sale,
+      admin_percent,
+      calculations (
+        car_name
+      ),
+      executors (
+        full_name
+      )
+    `)
+    .eq('studio_id', currentStudio.studio_id)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error(error);
+    document.getElementById('tabContent').innerHTML = '<div class="empty-state">❌ Ошибка загрузки</div>';
     return;
   }
-  
-  emptyState.style.display = 'none';
-  content.style.display = 'block';
-  
-  unpaidTbody.innerHTML = '';
-  paidTbody.innerHTML = '';
-  
-  salariesData.forEach((salary, idx) => {
-    const tr = document.createElement('tr');
-    if (salary.is_paid) tr.classList.add('paid');
-    
-    tr.innerHTML = `
-      <td>${salary.car_name}</td>
-      <td>${salary.service_name}</td>
-      <td>
-        <input type="text" 
-               value="${salary.executor_name || ''}" 
-               placeholder="ФИО исполнителя"
-               onchange="updateExecutorName(${idx}, this.value)"
-               style="width:200px">
-      </td>
-      <td>
-        <input type="number" 
-               value="${salary.amount}" 
-               step="0.01"
-               onchange="updateAmount(${idx}, this.value)">
-      </td>
-      <td>
-        <input type="date" 
-               value="${salary.payment_date || ''}"
-               ${salary.is_paid ? 'required' : ''}
-               onchange="updatePaymentDate(${idx}, this.value)">
-      </td>
-      <td>
-        <button class="btn ${salary.is_paid ? 'btn-secondary' : 'btn-success'}" 
-                onclick="togglePaid(${idx})"
-                style="padding:6px 12px;font-size:0.85rem">
-          ${salary.is_paid ? '↩️ Отменить' : '✅ Выплатить'}
-        </button>
-      </td>
-    `;
-    
-    if (salary.is_paid) {
-      paidTbody.appendChild(tr);
-    } else {
-      unpaidTbody.appendChild(tr);
-    }
+
+  allAssignments = (data || []).map(a => ({
+    ...a,
+    executor_display: a.executors?.full_name || a.executor_name || 'Неизвестно',
+    car_display: a.calculations?.car_name || 'Неизвестно'
+  }));
+
+  populateFilters();
+  updateSummary();
+  renderTab();
+}
+
+// Filters
+function populateFilters() {
+  // Months
+  const months = [...new Set(allAssignments.map(a => a.payment_month).filter(Boolean))].sort().reverse();
+  const monthFilter = document.getElementById('monthFilter');
+  monthFilter.innerHTML = '<option value="all">Все месяцы</option>';
+  months.forEach(m => {
+    monthFilter.innerHTML += `<option value="${m}">${fmtMonth(m)}</option>`;
   });
-  
-  updateSummary();
+
+  // Executors
+  const executors = [...new Set(allAssignments.map(a => a.executor_display))].sort();
+  const execFilter = document.getElementById('executorFilter');
+  execFilter.innerHTML = '<option value="all">Все исполнители</option>';
+  executors.forEach(e => {
+    execFilter.innerHTML += `<option value="${e}">${e}</option>`;
+  });
 }
 
-window.updateExecutorName = function(idx, value) {
-  salariesData[idx].executor_name = value;
-};
+document.getElementById('monthFilter').addEventListener('change', renderTab);
+document.getElementById('executorFilter').addEventListener('change', renderTab);
 
-window.updateAmount = function(idx, value) {
-  salariesData[idx].amount = parseFloat(value) || 0;
-  updateSummary();
-};
-
-window.updatePaymentDate = function(idx, value) {
-  salariesData[idx].payment_date = value;
-};
-
-window.togglePaid = function(idx) {
-  const salary = salariesData[idx];
-  
-  if (!salary.is_paid) {
-    // Выплачиваем - проверяем дату
-    if (!salary.payment_date) {
-      alert('⚠️ Укажите дату выплаты!');
-      return;
-    }
-  }
-  
-  salary.is_paid = !salary.is_paid;
-  if (!salary.is_paid) {
-    salary.payment_date = null;
-  }
-  
-  renderSalaries();
-};
-
+// Summary
 function updateSummary() {
-  const total = salariesData.length;
-  const paidAmount = salariesData
-    .filter(s => s.is_paid)
-    .reduce((sum, s) => sum + (s.amount || 0), 0);
-  const toPayAmount = salariesData
-    .filter(s => !s.is_paid)
-    .reduce((sum, s) => sum + (s.amount || 0), 0);
-  
-  document.getElementById('totalExecutors').textContent = total;
-  document.getElementById('totalPaid').textContent = fmt(paidAmount);
-  document.getElementById('totalToPay').textContent = fmt(toPayAmount);
+  const pending = allAssignments.filter(a => a.status === 'pending').reduce((acc, a) => acc + (a.salary || 0), 0);
+  const paid = allAssignments.filter(a => a.status === 'paid').reduce((acc, a) => acc + (a.salary || 0), 0);
+  const total = allAssignments.length;
+
+  document.getElementById('summaryPending').textContent = fmt(pending) + ' ₽';
+  document.getElementById('summaryPaid').textContent = fmt(paid) + ' ₽';
+  document.getElementById('summaryTotal').textContent = total;
+
+  document.getElementById('badgePending').textContent = allAssignments.filter(a => a.status === 'pending').length;
+  document.getElementById('badgePaid').textContent = allAssignments.filter(a => a.status === 'paid').length;
+  document.getElementById('badgeCancelled').textContent = allAssignments.filter(a => a.status === 'cancelled').length;
 }
 
-async function saveSalaries() {
-  const btn = document.getElementById('btnSave');
-  const originalText = btn.textContent;
-  btn.textContent = '⏳ Сохранение...';
-  btn.disabled = true;
-  
-  try {
-    // Проверяем обязательные даты
-    const invalidPayments = salariesData.filter(s => s.is_paid && !s.payment_date);
-    if (invalidPayments.length > 0) {
-      alert('⚠️ У некоторых выплаченных записей не указана дата выплаты!');
-      btn.textContent = originalText;
-      btn.disabled = false;
-      return;
-    }
-    
-    // Удаляем старые записи
-    await sb.from('salaries').delete().eq('user_id', currentUser.id).eq('is_paid', false);
-    
-    // Вставляем новые (только невыплаченные)
-    const unpaidRecords = salariesData
-      .filter(s => !s.is_paid)
-      .map(s => ({
-        user_id: currentUser.id,
-        car_name: s.car_name,
-        service_name: s.service_name,
-        executor_name: s.executor_name || null,
-        amount: s.amount,
-        is_paid: false,
-        payment_date: null
-      }));
-    
-    if (unpaidRecords.length > 0) {
-      const { error: insertError } = await sb.from('salaries').insert(unpaidRecords);
-      if (insertError) throw insertError;
-    }
-    
-    // Обновляем выплаченные (если статус изменился)
-    for (const salary of salariesData.filter(s => s.is_paid)) {
-      const { error } = await sb
-        .from('salaries')
-        .upsert({
-          user_id: currentUser.id,
-          car_name: salary.car_name,
-          service_name: salary.service_name,
-          executor_name: salary.executor_name,
-          amount: salary.amount,
-          is_paid: true,
-          payment_date: salary.payment_date
-        });
-      
-      if (error) throw error;
-    }
-    
-    btn.textContent = '✅ Сохранено';
-    setTimeout(() => {
-      btn.textContent = originalText;
-      btn.disabled = false;
-    }, 2000);
-    
-  } catch (e) {
-    console.error('Save error:', e);
-    alert('Ошибка сохранения: ' + e.message);
-    btn.textContent = originalText;
-    btn.disabled = false;
+// Tabs
+window.switchTab = function(tab) {
+  currentTab = tab;
+  selectedIds.clear();
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+  renderTab();
+};
+
+// Render
+function renderTab() {
+  const month = document.getElementById('monthFilter').value;
+  const executor = document.getElementById('executorFilter').value;
+
+  let filtered = allAssignments.filter(a => a.status === currentTab);
+  if (month !== 'all') filtered = filtered.filter(a => a.payment_month === month);
+  if (executor !== 'all') filtered = filtered.filter(a => a.executor_display === executor);
+
+  const content = document.getElementById('tabContent');
+
+  if (filtered.length === 0) {
+    content.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-state-icon">📭</div>
+        <h3>Нет записей</h3>
+      </div>
+    `;
+    document.getElementById('bulkActions').style.display = 'none';
+    return;
   }
+
+  // Show bulk actions only for pending
+  document.getElementById('bulkActions').style.display = currentTab === 'pending' ? 'flex' : 'none';
+
+  let html = '<div class="table-wrap"><table><thead><tr>';
+  if (currentTab === 'pending') html += '<th class="checkbox-cell"><input type="checkbox" id="selectAll" onchange="toggleSelectAll()"></th>';
+  html += '<th>Исполнитель</th><th>Машина</th><th>Услуга</th><th>Месяц</th><th>Сумма</th>';
+  if (currentTab === 'pending') html += '<th>Действия</th>';
+  html += '</tr></thead><tbody>';
+
+  filtered.forEach(a => {
+    html += '<tr>';
+    if (currentTab === 'pending') {
+      html += `<td class="checkbox-cell"><input type="checkbox" class="row-checkbox" data-id="${a.id}" onchange="updateSelection()"></td>`;
+    }
+    html += `
+      <td class="executor-name">${a.executor_display}</td>
+      <td class="car-name">${a.car_display}</td>
+      <td class="service-name">${a.service_name || (a.is_admin_sale ? `💰 Продажа (${a.admin_percent}%)` : '-')}</td>
+      <td><span class="month-badge">${fmtMonth(a.payment_month)}</span></td>
+      <td class="salary">${fmt(a.salary)} ₽</td>
+    `;
+    if (currentTab === 'pending') {
+      html += `<td><button class="btn btn-success btn-pay" onclick="paySingle('${a.id}')">💰 Выплатить</button></td>`;
+    }
+    html += '</tr>';
+  });
+
+  html += '</tbody></table></div>';
+  content.innerHTML = html;
 }
 
-document.addEventListener('DOMContentLoaded', async () => {
-  const hasAccess = await checkAuth();
-  if (!hasAccess) return;
-  
-  const savedTheme = localStorage.getItem('theme');
-  const icon = document.getElementById('themeIcon');
-  if (savedTheme === 'light') {
-    icon.textContent = '🌙';
+// Selection
+window.toggleSelectAll = function() {
+  const checked = document.getElementById('selectAll').checked;
+  document.querySelectorAll('.row-checkbox').forEach(cb => {
+    cb.checked = checked;
+    if (checked) selectedIds.add(cb.dataset.id);
+    else selectedIds.delete(cb.dataset.id);
+  });
+  updateSelection();
+};
+
+window.updateSelection = function() {
+  selectedIds.clear();
+  document.querySelectorAll('.row-checkbox:checked').forEach(cb => {
+    selectedIds.add(cb.dataset.id);
+  });
+  document.getElementById('selectedCount').textContent = `Выбрано: ${selectedIds.size}`;
+};
+
+// Actions
+window.paySingle = async function(id) {
+  if (!confirm('Подтвердить выплату?')) return;
+  await markAsPaid([id]);
+};
+
+window.paySelected = async function() {
+  if (selectedIds.size === 0) { alert('Выберите записи'); return; }
+  if (!confirm(`Выплатить ${selectedIds.size} записей?`)) return;
+  await markAsPaid([...selectedIds]);
+};
+
+async function markAsPaid(ids) {
+  const { error } = await sb
+    .from('work_assignments')
+    .update({ status: 'paid' })
+    .in('id', ids);
+
+  if (error) {
+    console.error(error);
+    alert('❌ Ошибка');
+    return;
   }
-  
-  document.getElementById('btnSave').addEventListener('click', saveSalaries);
-  
-  // Загружаем существующие невыплаченные
-  try {
-    const { data: existing } = await sb
-      .from('salaries')
-      .select('*')
-      .eq('user_id', currentUser.id)
-      .eq('is_paid', false)
-      .order('created_at', { ascending: false });
-    
-    if (existing && existing.length > 0) {
-      salariesData = existing.map((s, idx) => ({
-        id: s.id,
-        car_name: s.car_name,
-        service_name: s.service_name,
-        executor_name: s.executor_name,
-        amount: s.amount,
-        is_paid: s.is_paid,
-        payment_date: s.payment_date
-      }));
-      renderSalaries();
-    }
-  } catch (e) {
-    console.error('Load existing error:', e);
-  }
-});
+
+  selectedIds.clear();
+  await loadAssignments();
+}
+
+// Init
+async function init() {
+  if (!await checkAuth()) return;
+  if (!await getStudio()) return;
+  initTheme();
+  await loadAssignments();
+}
+
+init();
 
 })();
 </script>
