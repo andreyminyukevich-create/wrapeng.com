@@ -446,23 +446,138 @@ body::before {
 }
 
 @media (max-width: 768px) {
-  .executors-table {
-    font-size: 0.9rem;
+  .container {
+    padding: 16px;
   }
 
-  .executors-table th,
-  .executors-table td {
-    padding: 10px;
+  .header {
+    flex-direction: column;
+    gap: 12px;
   }
 
-  .row-actions {
+  .header h1 {
+    font-size: 1.3rem;
+    text-align: center;
+  }
+
+  .header-actions {
+    flex-direction: column;
+    width: 100%;
+    gap: 8px;
+  }
+
+  .header-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .filters {
     flex-direction: column;
   }
 
+  .search-box,
+  .filter-group select {
+    width: 100%;
+  }
+
+  .executors-table {
+    font-size: 0.85rem;
+    display: block;
+    overflow-x: auto;
+  }
+
+  .executors-table thead {
+    display: none;
+  }
+
+  .executors-table tbody {
+    display: block;
+  }
+
+  .executors-table tr {
+    display: block;
+    margin-bottom: 16px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px;
+    background: var(--bg-card);
+  }
+
+  .executors-table td {
+    display: block;
+    padding: 8px 0;
+    border: none;
+    text-align: left !important;
+  }
+
+  .executors-table td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    display: inline-block;
+    width: 120px;
+    color: var(--text-muted);
+  }
+
+  .row-actions {
+    flex-direction: row;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
   .modal-content {
-    padding: 24px;
+    padding: 20px;
+    max-width: 95%;
+  }
+
+  .modal-body {
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+  }
+
+  .form-row {
+    flex-direction: column;
+  }
+
+  .form-group {
+    width: 100%;
+  }
+
+  .form-group input,
+  .form-group select,
+  .search-box input {
+    font-size: 16px; /* Prevent iOS zoom */
+    padding: 12px 14px;
+    min-height: 44px;
+  }
+
+  .btn {
+    min-height: 48px;
+    font-size: 0.9rem;
   }
 }
+
+@media (max-width: 480px) {
+  .header h1 {
+    font-size: 1.05rem;
+  }
+
+  .executors-table {
+    font-size: 0.85rem;
+  }
+
+  .executors-table td::before {
+    width: 110px;
+    font-size: 0.78rem;
+  }
+
+  .row-actions .btn {
+    font-size: 0.78rem;
+    padding: 8px 12px;
+    min-height: 40px;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -604,7 +719,7 @@ async function loadExecutors() {
       .from('executors')
       .select('*')
       .eq('studio_id', currentStudio.studio_id)
-      .order('full_name', { ascending: true });
+      .order('name', { ascending: true });
     
     if (!showInactive) {
       query = query.eq('is_active', true);
@@ -664,18 +779,18 @@ function renderExecutorsTable(executors) {
     
     html += `
       <tr>
-        <td>
+        <td data-label="ФИО">
           <div class="executor-name">${exec.full_name}</div>
           ${isAdmin}
         </td>
-        <td>
+        <td data-label="Роль">
           <span class="executor-role">${roleName}</span>
         </td>
-        <td>
+        <td data-label="Телефон">
           <span class="executor-phone">${exec.phone || '—'}</span>
         </td>
-        <td>${statusBadge}</td>
-        <td>
+        <td data-label="Статус">${statusBadge}</td>
+        <td data-label="Действия">
           <div class="row-actions">
             <button class="btn btn-secondary btn-icon" onclick="editExecutor('${exec.id}')">✏️</button>
             ${exec.is_active 
