@@ -596,6 +596,81 @@ body {
   .modal-footer .btn {
     width: 100%;
   }
+
+  .global-nav {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    flex-wrap: nowrap;
+  }
+
+  .global-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .nav-link {
+    flex-shrink: 0;
+  }
+}
+
+/* Footer */
+.page-footer {
+  margin-top: 60px;
+  padding: 32px 24px;
+  background: var(--bg-card);
+  border-top: 1px solid var(--border);
+  text-align: center;
+}
+
+.footer-content {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.footer-theme {
+  margin-bottom: 20px;
+}
+
+.footer-theme button {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 20px;
+  cursor: pointer;
+  font-size: 1.1rem;
+  transition: all 0.2s;
+  font-family: 'Inter', sans-serif;
+  color: var(--text);
+}
+
+.footer-theme button:hover {
+  border-color: var(--border-focus);
+  transform: translateY(-2px);
+}
+
+.footer-desc {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.footer-desc strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+@media (max-width: 600px) {
+  .page-footer {
+    padding: 24px 16px;
+    margin-top: 40px;
+  }
+
+  .footer-desc {
+    font-size: 0.85rem;
+  }
 }
 
 </style>
@@ -606,7 +681,6 @@ body {
 <div class="top-bar">
   <h1>📋 Доска заказов</h1>
   <div class="top-bar-right">
-    <button class="theme-toggle" id="themeToggle">🌙</button>
     <nav class="global-nav">
       <a href="dashboard.html" class="nav-link">📊 Дашборд</a>
       <a href="board.html" class="nav-link active">📋 Доска</a>
@@ -1054,5 +1128,19 @@ init();
 
 })();
 </script>
+
+<footer class="page-footer">
+  <div class="footer-content">
+    <div class="footer-theme">
+      <button id="themeToggle">🌙</button>
+    </div>
+    <div class="footer-desc">
+      <strong>Доска заказов</strong> — канбан-доска для управления воронкой продаж. 
+      5 стадий: Расчёт → Заезд → В работе → Завершено → Выдано. 
+      Перемещайте заказы между стадиями, назначайте даты заезда, отслеживайте прогресс работ.
+    </div>
+  </div>
+</footer>
+
 </body>
 </html>
