@@ -103,6 +103,32 @@ body::before {
   border-radius: 20px;
   border: 1px solid var(--border);
   box-shadow: var(--shadow-lg);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.top-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.menu-toggle {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+  font-size: 1.2rem;
+  transition: all 0.2s;
+  color: var(--text);
+}
+
+.menu-toggle:hover {
+  background: var(--primary);
+  color: #fff;
+  transform: scale(1.05);
 }
 
 .top-bar h1 {
@@ -147,6 +173,136 @@ body::before {
   background: var(--primary);
   color: #fff;
   border-color: var(--primary);
+}
+
+.top-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.action-btn {
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.action-btn:hover {
+  background: var(--primary-dark);
+  transform: translateY(-1px);
+}
+
+/* Drawer Menu */
+.drawer-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+
+.drawer-overlay.active {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.drawer {
+  position: fixed;
+  top: 0;
+  left: -300px;
+  width: 300px;
+  height: 100vh;
+  background: var(--bg-card);
+  box-shadow: var(--shadow-lg);
+  z-index: 1000;
+  transition: left 0.3s;
+  overflow-y: auto;
+}
+
+.drawer.active {
+  left: 0;
+}
+
+.drawer-header {
+  padding: 24px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.drawer-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.drawer-close {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 1.2rem;
+  color: var(--text);
+  transition: all 0.2s;
+}
+
+.drawer-close:hover {
+  background: var(--danger);
+  color: #fff;
+}
+
+.drawer-menu {
+  padding: 20px 0;
+}
+
+.drawer-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 20px;
+  color: var(--text);
+  text-decoration: none;
+  transition: all 0.2s;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.drawer-link:hover {
+  background: var(--bg-input);
+  color: var(--primary);
+}
+
+.drawer-link.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.drawer-badge {
+  margin-left: auto;
+  padding: 2px 8px;
+  background: var(--warning);
+  color: #000;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
 }
 
 .user-email {
@@ -653,27 +809,32 @@ select option {
   }
 
   .top-bar {
-    flex-direction: column;
-    gap: 12px;
+    flex-wrap: wrap;
     padding: 16px;
-    align-items: stretch;
+    gap: 12px;
+  }
+
+  .top-bar-left {
+    width: 100%;
+    justify-content: center;
   }
 
   .top-bar h1 {
-    font-size: 1.3rem;
-    text-align: center;
+    font-size: 1.15rem;
   }
 
   .global-nav {
+    width: 100%;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-    scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none; /* IE */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
     flex-wrap: nowrap;
+    padding: 8px 0;
   }
 
   .global-nav::-webkit-scrollbar {
-    display: none; /* Chrome/Safari */
+    display: none;
   }
 
   .nav-link {
@@ -682,28 +843,13 @@ select option {
     flex-shrink: 0;
   }
 
-  .user-info {
-    flex-direction: column;
-    gap: 10px;
+  .top-bar-right {
     width: 100%;
-  }
-
-  .user-email {
-    font-size: 0.85rem;
     justify-content: center;
   }
 
-  .user-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    justify-content: center;
+  .action-btn {
     width: 100%;
-  }
-
-  .user-actions > * {
-    flex: 1;
-    min-width: 100px;
     justify-content: center;
   }
 
@@ -934,22 +1080,20 @@ select option {
 <div class="container">
   <!-- Top Bar -->
   <div class="top-bar">
-    <h1>📊 Дашборд</h1>
+    <div class="top-bar-left">
+      <button class="menu-toggle" id="menuToggle">☰</button>
+      <h1>🏠 Главная</h1>
+    </div>
     <nav class="global-nav">
-      <a href="dashboard.html" class="nav-link active">📊 Дашборд</a>
-      <a href="board.html" class="nav-link">📋 Доска</a>
+      <a href="dashboard.html" class="nav-link active">🏠 Главная</a>
+      <a href="board.html" class="nav-link">📋 Заказы</a>
       <a href="executors.html" class="nav-link">👥 Исполнители</a>
       <a href="payouts.html" class="nav-link">💰 Зарплаты</a>
+      <a href="inventory.html" class="nav-link">📦 Склад</a>
+      <a href="settlements.html" class="nav-link">💳 Расчёты</a>
     </nav>
-    <div class="user-info">
-      <span class="user-email" id="userEmail">
-        <span id="userEmailText"></span>
-        <span class="status-badge">
-          <span class="status-indicator"></span>
-          Оплачен
-        </span>
-      </span>
-      <button class="btn btn-danger" onclick="logout()">Выход</button>
+    <div class="top-bar-right">
+      <a href="calculator.html" class="action-btn">➕ Новый расчёт</a>
     </div>
   </div>
 
@@ -1016,6 +1160,33 @@ select option {
   </div>
 </div>
 
+<!-- Drawer Menu -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <div class="drawer-title">📁 Меню</div>
+    <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  </div>
+  <nav class="drawer-menu">
+    <a href="analytics.html" class="drawer-link disabled">
+      📊 Аналитика
+      <span class="drawer-badge">Скоро</span>
+    </a>
+    <a href="price-lists.html" class="drawer-link disabled">
+      💵 Прайсы
+      <span class="drawer-badge">Скоро</span>
+    </a>
+    <a href="calendar.html" class="drawer-link disabled">
+      🗓 Календарь
+      <span class="drawer-badge">Скоро</span>
+    </a>
+    <a href="settings.html" class="drawer-link disabled">
+      ⚙️ Настройки
+      <span class="drawer-badge">Скоро</span>
+    </a>
+  </nav>
+</div>
+
 <footer class="page-footer">
   <div class="footer-content">
     <div class="footer-theme">
@@ -1058,6 +1229,17 @@ function toggleTheme() {
 
 function updateThemeIcon(theme) {
   document.getElementById('themeToggle').textContent = theme === 'dark' ? '☀️' : '🌙';
+}
+
+// Drawer Menu
+function openDrawer() {
+  document.getElementById('drawer').classList.add('active');
+  document.getElementById('drawerOverlay').classList.add('active');
+}
+
+function closeDrawer() {
+  document.getElementById('drawer').classList.remove('active');
+  document.getElementById('drawerOverlay').classList.remove('active');
 }
 
 // Auth
@@ -1255,6 +1437,9 @@ async function init() {
 }
 
 document.addEventListener('DOMContentLoaded', init);
+
+// Drawer toggle
+document.getElementById('menuToggle')?.addEventListener('click', openDrawer);
 
 })();
 </script>
