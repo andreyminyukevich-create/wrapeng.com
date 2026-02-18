@@ -753,7 +753,7 @@ async function loadExecutors() {
       .from('executors')
       .select('*')
       .eq('studio_id', currentStudio.studio_id)
-      .order('name', { ascending: true });
+      .order('full_name', { ascending: true });
     
     if (!showInactive) {
       query = query.eq('is_active', true);
@@ -763,7 +763,9 @@ async function loadExecutors() {
     
     if (error) {
       console.error('Error loading executors:', error);
-      container.innerHTML = '<div class="empty-state">❌ Ошибка загрузки</div>';
+      console.error('Studio ID:', currentStudio?.studio_id);
+      console.error('Full error details:', JSON.stringify(error, null, 2));
+      container.innerHTML = '<div class="empty-state">❌ Ошибка загрузки<br><small style="color:var(--text-muted);font-size:0.8rem">Проверьте консоль</small></div>';
       return;
     }
     
@@ -1016,7 +1018,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (!await getStudio()) return;
   
   initTheme();
-  loadExecutors();
+  await loadExecutors();
   
   // Events
   document.getElementById('themeToggle').addEventListener('click', toggleTheme);
