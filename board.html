@@ -1035,16 +1035,11 @@ const COLUMNS = [
 function initTheme() {
   const t = localStorage.getItem('theme') || 'dark';
   document.documentElement.setAttribute('data-theme', t);
-  document.getElementById('themeToggle').textContent = t === 'dark' ? '☀️' : '🌙';
+  const toggle = document.getElementById('themeToggle');
+  if (toggle) {
+    toggle.textContent = t === 'dark' ? '☀️' : '🌙';
+  }
 }
-
-document.getElementById('themeToggle').addEventListener('click', () => {
-  const cur = document.documentElement.getAttribute('data-theme');
-  const next = cur === 'dark' ? 'light' : 'dark';
-  document.documentElement.setAttribute('data-theme', next);
-  localStorage.setItem('theme', next);
-  document.getElementById('themeToggle').textContent = next === 'dark' ? '☀️' : '🌙';
-});
 
 // Drawer Menu
 function openDrawer() {
@@ -1056,8 +1051,6 @@ window.closeDrawer = function() {
   document.getElementById('drawer').classList.remove('active');
   document.getElementById('drawerOverlay').classList.remove('active');
 };
-
-document.getElementById('menuToggle')?.addEventListener('click', openDrawer);
 
 // Format
 function fmt(n) {
@@ -1347,7 +1340,28 @@ async function init() {
   initTheme();
   if (!await checkAuth()) return;
   if (!await getStudio()) return;
-  loadBoard();
+  await loadBoard();
+  
+  // Theme toggle
+  const toggle = document.getElementById('themeToggle');
+  if (toggle) {
+    toggle.addEventListener('click', () => {
+      const cur = document.documentElement.getAttribute('data-theme');
+      const next = cur === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+      const toggleBtn = document.getElementById('themeToggle');
+      if (toggleBtn) {
+        toggleBtn.textContent = next === 'dark' ? '☀️' : '🌙';
+      }
+    });
+  }
+  
+  // Drawer toggle
+  const menuBtn = document.getElementById('menuToggle');
+  if (menuBtn) {
+    menuBtn.addEventListener('click', openDrawer);
+  }
 }
 
 init();
