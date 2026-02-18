@@ -87,6 +87,34 @@ body {
   align-items: center;
 }
 
+.global-nav {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.nav-link {
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+}
+
+.nav-link:hover {
+  background: var(--bg-input);
+  color: var(--text);
+}
+
+.nav-link.active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
 .btn {
   background: var(--primary);
   color: #fff;
@@ -579,7 +607,12 @@ body {
   <h1>📋 Доска заказов</h1>
   <div class="top-bar-right">
     <button class="theme-toggle" id="themeToggle">🌙</button>
-    <a href="dashboard.html" class="btn btn-secondary">← Дашборд</a>
+    <nav class="global-nav">
+      <a href="dashboard.html" class="nav-link">📊 Дашборд</a>
+      <a href="board.html" class="nav-link active">📋 Доска</a>
+      <a href="executors.html" class="nav-link">👥 Исполнители</a>
+      <a href="payouts.html" class="nav-link">💰 Зарплаты</a>
+    </nav>
     <a href="calculator.html" class="btn">➕ Новый расчёт</a>
   </div>
 </div>
@@ -609,6 +642,40 @@ body {
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('modalSchedule')">Отмена</button>
       <button class="btn" style="background:var(--warning);color:#000" onclick="saveSchedule()">📅 Назначить</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Информация о заказе -->
+<div class="modal" id="modalInfo">
+  <div class="modal-content">
+    <div class="modal-title">ℹ️ Информация о заказе</div>
+    <div style="margin-bottom:20px">
+      <div style="font-size:1.2rem;font-weight:700;margin-bottom:16px" id="infoCarName"></div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;justify-content:space-between">
+          <span style="color:var(--text-muted)">Статус:</span>
+          <span id="infoStatus" style="font-weight:600"></span>
+        </div>
+        <div style="display:flex;justify-content:space-between">
+          <span style="color:var(--text-muted)">Сумма:</span>
+          <span id="infoPrice" style="font-weight:700;color:var(--success)"></span>
+        </div>
+        <div id="infoCheckinBlock" style="display:none">
+          <div style="display:flex;justify-content:space-between">
+            <span style="color:var(--text-muted)">Дата заезда:</span>
+            <span id="infoCheckin" style="font-weight:600"></span>
+          </div>
+        </div>
+        <div id="infoNoteBlock" style="display:none;padding:12px;background:var(--bg-secondary);border-radius:8px">
+          <div style="font-size:0.75rem;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px">Комментарий:</div>
+          <div id="infoNote" style="font-style:italic"></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modalInfo')">Закрыть</button>
+      <button class="btn btn-primary" onclick="openCalcFromInfo()">📂 Открыть расчёт</button>
     </div>
   </div>
 </div>
@@ -806,7 +873,7 @@ function renderCard(calc, status) {
   }
 
   return `
-    <div class="kanban-card" onclick="openCalc('${calc.id}')">
+    <div class="kanban-card" onclick="openModalInfo('${calc.id}', '${escStr(calc.car_name)}', '${status}', ${calc.final_price || calc.total_price || 0}, '${calc.checkin_date || ''}', '${calc.checkin_time || ''}', '${escStr(calc.schedule_note || '')}')">
       <div class="card-car">${calc.car_name || 'Без названия'}</div>
       ${checkin}
       ${note}
@@ -849,6 +916,49 @@ function openModalDeliver(calcId, carName, price) {
   document.getElementById('deliverNote').value = '';
   document.getElementById('modalDeliver').classList.add('active');
 }
+
+window.openModalInfo = function(calcId, carName, status, price, checkinDate, checkinTime, note) {
+  activeCalcId = calcId;
+  
+  const STATUS_LABELS = {
+    new: '📋 Расчёт',
+    scheduled: '📅 Дата заезда назначена',
+    in_progress: '🔧 В работе',
+    done: '✅ Завершено',
+    delivered: '🚗 Выдано'
+  };
+  
+  document.getElementById('infoCarName').textContent = carName;
+  document.getElementById('infoStatus').textContent = STATUS_LABELS[status] || status;
+  document.getElementById('infoPrice').textContent = fmt(price) + ' ₽';
+  
+  // Дата и время заезда
+  const checkinBlock = document.getElementById('infoCheckinBlock');
+  if (checkinDate) {
+    const dateStr = fmtDate(checkinDate);
+    const timeStr = checkinTime ? checkinTime.slice(0, 5) : '';
+    document.getElementById('infoCheckin').textContent = dateStr + (timeStr ? ', ' + timeStr : '');
+    checkinBlock.style.display = 'block';
+  } else {
+    checkinBlock.style.display = 'none';
+  }
+  
+  // Комментарий
+  const noteBlock = document.getElementById('infoNoteBlock');
+  if (note) {
+    document.getElementById('infoNote').textContent = note;
+    noteBlock.style.display = 'block';
+  } else {
+    noteBlock.style.display = 'none';
+  }
+  
+  document.getElementById('modalInfo').classList.add('active');
+};
+
+window.openCalcFromInfo = function() {
+  closeModal('modalInfo');
+  window.location.href = `calculator.html?load=${activeCalcId}`;
+};
 
 window.closeModal = function(modalId) {
   document.getElementById(modalId).classList.remove('active');
