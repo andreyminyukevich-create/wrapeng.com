@@ -1052,10 +1052,10 @@ function openDrawer() {
   document.getElementById('drawerOverlay').classList.add('active');
 }
 
-function closeDrawer() {
+window.closeDrawer = function() {
   document.getElementById('drawer').classList.remove('active');
   document.getElementById('drawerOverlay').classList.remove('active');
-}
+};
 
 document.getElementById('menuToggle')?.addEventListener('click', openDrawer);
 
