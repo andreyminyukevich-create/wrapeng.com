@@ -103,9 +103,7 @@ body::before {
   border-radius: 20px;
   border: 1px solid var(--border);
   box-shadow: var(--shadow-lg);
-  position: sticky;
-  top: 0;
-  z-index: 100;
+  gap: 20px;
 }
 
 .top-bar-left {
@@ -196,6 +194,7 @@ body::before {
   align-items: center;
   gap: 6px;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .action-btn:hover {
@@ -1255,7 +1254,10 @@ async function checkAuth() {
   }
   
   currentUser = session.user;
-  document.getElementById('userEmailText').textContent = session.user.email;
+  const emailEl = document.getElementById('userEmailText');
+  if (emailEl) {
+    emailEl.textContent = session.user.email;
+  }
   return true;
 }
 
@@ -1325,9 +1327,21 @@ async function loadMiniKanban(studioId) {
     .eq('studio_id', studioId)
     .order('created_at', { ascending: false });
 
-  if (error || !data) return;
+  if (error) { 
+    console.error('loadMiniKanban error:', error); 
+    return; 
+  }
+  if (!data) {
+    console.log('loadMiniKanban: no data');
+    return;
+  }
 
   const container = document.getElementById('miniKanban');
+  if (!container) {
+    console.error('miniKanban container not found');
+    return;
+  }
+  
   let html = '';
 
   MINI_COLS.forEach(col => {
@@ -1360,6 +1374,7 @@ async function loadMiniKanban(studioId) {
   });
 
   container.innerHTML = html;
+  console.log('miniKanban loaded successfully');
 }
 
 // Поиск по авто
