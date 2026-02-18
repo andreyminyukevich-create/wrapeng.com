@@ -72,6 +72,29 @@ body {
   box-shadow: var(--shadow);
 }
 
+.top-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.menu-toggle {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 1.1rem;
+  transition: all 0.2s;
+  color: var(--text);
+}
+
+.menu-toggle:hover {
+  background: var(--primary);
+  color: #fff;
+  transform: scale(1.05);
+}
+
 .top-bar h1 {
   font-size: 1.3rem;
   font-weight: 800;
@@ -113,6 +136,130 @@ body {
   background: var(--primary);
   color: #fff;
   border-color: var(--primary);
+}
+
+.action-btn {
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  padding: 9px 20px;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.action-btn:hover {
+  background: var(--primary-dark);
+  transform: translateY(-1px);
+}
+
+/* Drawer Menu */
+.drawer-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+
+.drawer-overlay.active {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.drawer {
+  position: fixed;
+  top: 0;
+  left: -300px;
+  width: 300px;
+  height: 100vh;
+  background: var(--bg-card);
+  box-shadow: var(--shadow-lg);
+  z-index: 1000;
+  transition: left 0.3s;
+  overflow-y: auto;
+}
+
+.drawer.active {
+  left: 0;
+}
+
+.drawer-header {
+  padding: 24px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.drawer-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.drawer-close {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 1.2rem;
+  color: var(--text);
+  transition: all 0.2s;
+}
+
+.drawer-close:hover {
+  background: var(--danger);
+  color: #fff;
+}
+
+.drawer-menu {
+  padding: 20px 0;
+}
+
+.drawer-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 20px;
+  color: var(--text);
+  text-decoration: none;
+  transition: all 0.2s;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.drawer-link:hover {
+  background: var(--bg-input);
+  color: var(--primary);
+}
+
+.drawer-link.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.drawer-badge {
+  margin-left: auto;
+  padding: 2px 8px;
+  background: var(--warning);
+  color: #000;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
 }
 
 .btn {
@@ -471,20 +618,43 @@ body {
 /* ── MOBILE ── */
 @media (max-width: 768px) {
   .top-bar {
-    flex-direction: column;
-    gap: 12px;
-    align-items: stretch;
+    flex-wrap: wrap;
     padding: 14px 16px;
+    gap: 12px;
+  }
+
+  .top-bar-left {
+    width: 100%;
+    justify-content: center;
   }
 
   .top-bar h1 {
     font-size: 1.15rem;
-    text-align: center;
   }
 
-  .top-bar-right {
+  .global-nav {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    flex-wrap: nowrap;
+    padding: 8px 0;
+  }
+
+  .global-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .nav-link {
+    font-size: 0.8rem;
+    padding: 6px 12px;
+    flex-shrink: 0;
+  }
+
+  .action-btn {
+    width: 100%;
     justify-content: center;
-    flex-wrap: wrap;
   }
 
   .board-wrap {
@@ -679,16 +849,19 @@ body {
 
 <!-- Top Bar -->
 <div class="top-bar">
-  <h1>📋 Доска заказов</h1>
-  <div class="top-bar-right">
-    <nav class="global-nav">
-      <a href="dashboard.html" class="nav-link">📊 Дашборд</a>
-      <a href="board.html" class="nav-link active">📋 Доска</a>
-      <a href="executors.html" class="nav-link">👥 Исполнители</a>
-      <a href="payouts.html" class="nav-link">💰 Зарплаты</a>
-    </nav>
-    <a href="calculator.html" class="btn">➕ Новый расчёт</a>
+  <div class="top-bar-left">
+    <button class="menu-toggle" id="menuToggle">☰</button>
+    <h1>📋 Заказы</h1>
   </div>
+  <nav class="global-nav">
+    <a href="dashboard.html" class="nav-link">🏠 Главная</a>
+    <a href="board.html" class="nav-link active">📋 Заказы</a>
+    <a href="executors.html" class="nav-link">👥 Исполнители</a>
+    <a href="payouts.html" class="nav-link">💰 Зарплаты</a>
+    <a href="inventory.html" class="nav-link">📦 Склад</a>
+    <a href="settlements.html" class="nav-link">💳 Расчёты</a>
+  </nav>
+  <a href="calculator.html" class="action-btn">➕ Новый расчёт</a>
 </div>
 
 <!-- Board -->
@@ -797,13 +970,40 @@ body {
   </div>
 </div>
 
+<!-- Drawer Menu -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <div class="drawer-title">📁 Меню</div>
+    <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  </div>
+  <nav class="drawer-menu">
+    <a href="analytics.html" class="drawer-link disabled">
+      📊 Аналитика
+      <span class="drawer-badge">Скоро</span>
+    </a>
+    <a href="price-lists.html" class="drawer-link disabled">
+      💵 Прайсы
+      <span class="drawer-badge">Скоро</span>
+    </a>
+    <a href="calendar.html" class="drawer-link disabled">
+      🗓 Календарь
+      <span class="drawer-badge">Скоро</span>
+    </a>
+    <a href="settings.html" class="drawer-link disabled">
+      ⚙️ Настройки
+      <span class="drawer-badge">Скоро</span>
+    </a>
+  </nav>
+</div>
+
 <footer class="page-footer">
   <div class="footer-content">
     <div class="footer-theme">
       <button id="themeToggle">🌙</button>
     </div>
     <div class="footer-desc">
-      <strong>Доска заказов</strong> — канбан-доска для управления воронкой продаж. 
+      <strong>Заказы</strong> — канбан-доска для управления воронкой продаж. 
       5 стадий: Расчёт → Заезд → В работе → Завершено → Выдано. 
       Перемещайте заказы между стадиями, назначайте даты заезда, отслеживайте прогресс работ.
     </div>
@@ -845,6 +1045,19 @@ document.getElementById('themeToggle').addEventListener('click', () => {
   localStorage.setItem('theme', next);
   document.getElementById('themeToggle').textContent = next === 'dark' ? '☀️' : '🌙';
 });
+
+// Drawer Menu
+function openDrawer() {
+  document.getElementById('drawer').classList.add('active');
+  document.getElementById('drawerOverlay').classList.add('active');
+}
+
+function closeDrawer() {
+  document.getElementById('drawer').classList.remove('active');
+  document.getElementById('drawerOverlay').classList.remove('active');
+}
+
+document.getElementById('menuToggle')?.addEventListener('click', openDrawer);
 
 // Format
 function fmt(n) {
