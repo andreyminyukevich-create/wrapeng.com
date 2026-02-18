@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Зарплаты</title>
+<title>Доска заказов</title>
 <script>
 const savedTheme = localStorage.getItem('theme') || 'dark';
 document.documentElement.setAttribute('data-theme', savedTheme);
@@ -26,7 +26,6 @@ document.documentElement.setAttribute('data-theme', savedTheme);
   --primary-dark: #2563eb;
   --success: #22d3a0;
   --success-dark: #059669;
-  --success-bg: rgba(34, 211, 160, 0.12);
   --danger: #f87171;
   --danger-bg: rgba(248, 113, 113, 0.14);
   --warning: #fbbf24;
@@ -56,12 +55,7 @@ body {
   color: var(--text);
   line-height: 1.5;
   min-height: 100vh;
-}
-
-.container {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 24px;
+  overflow-x: auto;
 }
 
 /* Top Bar */
@@ -108,7 +102,6 @@ body {
   text-decoration: none;
   transition: all 0.2s;
   border: 1px solid transparent;
-  white-space: nowrap;
 }
 
 .nav-link:hover {
@@ -120,16 +113,6 @@ body {
   background: var(--primary);
   color: #fff;
   border-color: var(--primary);
-}
-
-.theme-toggle {
-  background: var(--bg-input);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 8px 12px;
-  cursor: pointer;
-  font-size: 1.1rem;
-  transition: all 0.2s;
 }
 
 .btn {
@@ -145,6 +128,7 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 7px;
+  text-decoration: none;
   font-family: 'Inter', sans-serif;
 }
 
@@ -152,14 +136,6 @@ body {
   background: var(--primary-dark);
   transform: translateY(-1px);
   box-shadow: var(--shadow);
-}
-
-.btn-success {
-  background: var(--success);
-}
-
-.btn-success:hover {
-  background: var(--success-dark);
 }
 
 .btn-secondary {
@@ -174,243 +150,330 @@ body {
   border-color: var(--border-focus);
 }
 
-/* Filters */
-.filters {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 24px;
-  flex-wrap: wrap;
-  align-items: center;
-}
-
-.filters select {
-  padding: 10px 14px;
+.theme-toggle {
   background: var(--bg-input);
   border: 1px solid var(--border);
   border-radius: 10px;
-  color: var(--text);
-  font-size: 0.9rem;
-  font-family: 'Inter', sans-serif;
+  padding: 8px 12px;
   cursor: pointer;
+  font-size: 1.1rem;
+  transition: all 0.2s;
 }
 
-.filters select:focus {
-  outline: none;
+/* Board */
+.board-wrap {
+  padding: 24px;
+  display: flex;
+  gap: 16px;
+  min-height: calc(100vh - 65px);
+  align-items: flex-start;
+}
+
+/* Column */
+.column {
+  flex: 0 0 280px;
+  background: var(--bg-secondary);
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 110px);
+}
+
+[data-theme="dark"] .column {
+  background: #0a1525;
+  border-color: rgba(120,160,220,0.2);
+}
+
+.column-header {
+  padding: 16px 18px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  border-radius: 16px 16px 0 0;
+  background: inherit;
+}
+
+.column-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  letter-spacing: -0.1px;
+}
+
+.column-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.column-count {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: var(--bg-input);
+  color: var(--text-muted);
+}
+
+.column-cards {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* Card */
+.kanban-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+[data-theme="dark"] .kanban-card {
+  background: #131f35;
+  border-color: rgba(120,160,220,0.2);
+}
+
+.kanban-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
   border-color: var(--border-focus);
 }
 
-/* Tabs */
-.tabs {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 24px;
-  border-bottom: 2px solid var(--border);
-  padding-bottom: 0;
+.card-car {
+  font-weight: 700;
+  font-size: 0.92rem;
+  margin-bottom: 6px;
+  letter-spacing: -0.2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.tab {
-  padding: 12px 24px;
-  background: transparent;
-  border: none;
-  border-bottom: 3px solid transparent;
+.card-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 0.78rem;
   color: var(--text-muted);
-  font-size: 0.95rem;
+  margin-bottom: 10px;
+}
+
+.card-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.card-price {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--success);
+  letter-spacing: -0.5px;
+  margin-bottom: 10px;
+}
+
+.card-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.card-btn {
+  flex: 1;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
+  border: none;
   transition: all 0.2s;
   font-family: 'Inter', sans-serif;
-  position: relative;
-  margin-bottom: -2px;
+  text-align: center;
 }
 
-.tab:hover {
-  color: var(--text);
-  background: var(--bg-secondary);
-}
-
-.tab.active {
-  color: var(--primary);
-  border-bottom-color: var(--primary);
-}
-
-.tab-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 24px;
-  height: 20px;
-  padding: 0 6px;
-  background: var(--bg-input);
-  border-radius: 10px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  margin-left: 6px;
-}
-
-.tab.active .tab-badge {
+.card-btn-primary {
   background: var(--primary);
   color: #fff;
 }
 
-/* Summary */
-.summary {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
+.card-btn-primary:hover {
+  background: var(--primary-dark);
+}
+
+.card-btn-secondary {
+  background: var(--bg-input);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+
+.card-btn-secondary:hover {
+  color: var(--text);
+  border-color: var(--border-focus);
+}
+
+.card-checkin {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(251,191,36,0.12);
+  color: var(--warning);
+  border: 1px solid rgba(251,191,36,0.25);
+  margin-bottom: 8px;
+}
+
+.card-note {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+  margin-bottom: 8px;
+  font-style: italic;
+}
+
+/* Column colors */
+.col-new .column-dot { background: #94a3b8; }
+.col-new .column-title { color: #94a3b8; }
+.col-new .column-count { background: rgba(148,163,184,0.1); }
+
+.col-scheduled .column-dot { background: #fbbf24; }
+.col-scheduled .column-title { color: #fbbf24; }
+.col-scheduled .column-count { background: rgba(251,191,36,0.1); color: #fbbf24; }
+
+.col-in_progress .column-dot { background: #5b9cf6; }
+.col-in_progress .column-title { color: #5b9cf6; }
+.col-in_progress .column-count { background: rgba(91,156,246,0.1); color: #5b9cf6; }
+
+.col-done .column-dot { background: #a78bfa; }
+.col-done .column-title { color: #a78bfa; }
+.col-done .column-count { background: rgba(167,139,250,0.1); color: #a78bfa; }
+
+.col-delivered .column-dot { background: #22d3a0; }
+.col-delivered .column-title { color: #22d3a0; }
+.col-delivered .column-count { background: rgba(34,211,160,0.1); color: #22d3a0; }
+
+.empty-col {
+  text-align: center;
+  padding: 32px 16px;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  opacity: 0.6;
+}
+
+/* Modal */
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(8px);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.modal.active { display: flex; }
+
+.modal-content {
+  background: var(--bg-card);
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  padding: 32px;
+  max-width: 480px;
+  width: 100%;
+  box-shadow: var(--shadow-lg);
+}
+
+.modal-title {
+  font-size: 1.2rem;
+  font-weight: 800;
+  margin-bottom: 8px;
+  letter-spacing: -0.3px;
+}
+
+.modal-car {
+  font-size: 0.9rem;
+  color: var(--text-muted);
   margin-bottom: 24px;
 }
 
-.summary-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+.form-group {
+  margin-bottom: 16px;
 }
 
-.summary-label {
-  font-size: 0.8rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--text-muted);
+.form-group label {
+  display: block;
+  font-size: 0.78rem;
   font-weight: 600;
-}
-
-.summary-value {
-  font-size: 1.8rem;
-  font-weight: 800;
-  color: var(--success);
-  letter-spacing: -0.5px;
-}
-
-/* Table */
-.table-wrap {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  overflow: hidden;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-thead {
-  background: var(--bg-secondary);
-  border-bottom: 1px solid var(--border);
-}
-
-th {
-  padding: 14px 16px;
-  text-align: left;
-  font-size: 0.8rem;
-  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   color: var(--text-label);
+  margin-bottom: 6px;
 }
 
-tbody tr {
-  border-bottom: 1px solid var(--border);
-  transition: background 0.2s;
-}
-
-tbody tr:hover {
-  background: var(--bg-secondary);
-}
-
-tbody tr:last-child {
-  border-bottom: none;
-}
-
-td {
-  padding: 16px;
-  font-size: 0.9rem;
-}
-
-.executor-name {
-  font-weight: 600;
-}
-
-.car-name {
-  color: var(--text-muted);
-  font-size: 0.85rem;
-}
-
-.service-name {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-}
-
-.salary {
-  font-weight: 700;
-  font-size: 1rem;
-  color: var(--success);
-}
-
-.month-badge {
-  display: inline-block;
-  padding: 4px 10px;
+.form-group input,
+.form-group textarea,
+.form-group select {
+  width: 100%;
+  padding: 11px 14px;
   background: var(--bg-input);
-  border-radius: 6px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 0.9rem;
+  font-family: 'Inter', sans-serif;
+  transition: all 0.2s;
 }
 
-.btn-pay {
-  padding: 6px 14px;
-  font-size: 0.85rem;
+.form-group textarea {
+  resize: vertical;
+  min-height: 80px;
 }
 
-.empty-state {
-  text-align: center;
-  padding: 60px 20px;
-  color: var(--text-muted);
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px rgba(79,142,247,0.1);
 }
 
-.empty-state-icon {
-  font-size: 3rem;
-  margin-bottom: 16px;
+.modal-footer {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 24px;
 }
 
 .loading {
   text-align: center;
   padding: 60px;
   color: var(--text-muted);
+  width: 100%;
 }
 
-/* Actions */
-.bulk-actions {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  margin-bottom: 16px;
-}
-
-.checkbox-cell {
-  width: 40px;
-}
-
-.checkbox-cell input {
-  cursor: pointer;
-  width: 18px;
-  height: 18px;
-  accent-color: var(--primary);
-}
-
-/* Mobile */
+/* ── MOBILE ── */
 @media (max-width: 768px) {
-  .container {
-    padding: 16px 12px;
-  }
-
   .top-bar {
     flex-direction: column;
     gap: 12px;
+    align-items: stretch;
     padding: 14px 16px;
   }
 
@@ -420,131 +483,118 @@ td {
   }
 
   .top-bar-right {
-    flex-direction: column;
-    width: 100%;
-    gap: 10px;
-  }
-
-  .global-nav {
-    width: 100%;
     justify-content: center;
     flex-wrap: wrap;
   }
 
-  .nav-link {
-    font-size: 0.8rem;
-    padding: 6px 12px;
-  }
-
-  .filters {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .filters select {
-    width: 100%;
-  }
-
-  .summary {
-    grid-template-columns: 1fr;
-  }
-
-  .tabs {
+  .board-wrap {
+    padding: 12px 8px;
+    gap: 12px;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-    padding-bottom: 2px;
   }
 
-  .tab {
-    padding: 10px 16px;
+  .column {
+    flex: 0 0 280px;
+    max-height: calc(100vh - 140px);
+  }
+
+  .column-header {
+    padding: 14px 16px 12px;
+  }
+
+  .column-title {
     font-size: 0.85rem;
-    white-space: nowrap;
   }
 
-  .bulk-actions {
-    flex-direction: column;
-    align-items: stretch;
+  .column-cards {
+    padding: 12px;
   }
 
-  .table-wrap {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+  .kanban-card {
+    padding: 14px 16px;
   }
 
-  table {
-    min-width: 600px;
+  .card-car {
+    font-size: 0.9rem;
   }
 
-  th, td {
-    padding: 10px 8px;
+  .card-price {
+    font-size: 1rem;
+  }
+
+  .card-btn {
+    padding: 10px 12px;
     font-size: 0.8rem;
+    min-height: 36px;
   }
 
-  .btn-pay {
-    padding: 5px 10px;
-    font-size: 0.75rem;
+  .modal {
+    padding: 12px;
+  }
+
+  .modal-content {
+    max-width: 100%;
+    margin: 0;
+    padding: 24px 20px;
+    border-radius: 16px;
+  }
+
+  .modal-title {
+    font-size: 1.1rem;
+  }
+
+  .form-group input,
+  .form-group textarea,
+  .form-group select {
+    font-size: 16px; /* Prevent zoom on iOS */
+    padding: 12px 14px;
+  }
+
+  .btn {
+    padding: 12px 20px;
+    font-size: 0.9rem;
+    min-height: 44px; /* Touch target */
   }
 }
 
 @media (max-width: 480px) {
-  .top-bar h1 {
-    font-size: 1rem;
+  .column {
+    flex: 0 0 260px;
   }
 
-  .theme-toggle {
-    padding: 6px 10px;
-    font-size: 1rem;
+  .card-actions {
+    flex-direction: column;
+    gap: 8px;
   }
 
-  .nav-link {
-    font-size: 0.75rem;
-    padding: 5px 10px;
+  .card-btn {
+    width: 100%;
+    justify-content: center;
   }
 
-  .summary-card {
-    padding: 16px;
+  .modal-content {
+    padding: 20px 16px;
   }
 
-  .summary-label {
-    font-size: 0.75rem;
+  .modal-footer {
+    flex-direction: column-reverse;
   }
 
-  .summary-value {
-    font-size: 1.5rem;
+  .modal-footer .btn {
+    width: 100%;
+  }
+}
+    width: 100%;
   }
 
-  .tab {
-    padding: 8px 12px;
-    font-size: 0.8rem;
+  .modal-footer {
+    flex-direction: column;
+    gap: 8px;
   }
 
-  .tab-badge {
-    font-size: 0.7rem;
-    min-width: 20px;
-    height: 18px;
-  }
-
-  table {
-    min-width: 500px;
-  }
-
-  th, td {
-    padding: 8px 6px;
-    font-size: 0.75rem;
-  }
-
-  .month-badge {
-    font-size: 0.7rem;
-    padding: 3px 8px;
-  }
-
-  .salary {
-    font-size: 0.9rem;
-  }
-
-  .btn {
-    font-size: 0.85rem;
-    padding: 8px 16px;
+  .modal-footer .btn {
+    width: 100%;
   }
 
   .global-nav {
@@ -622,78 +672,143 @@ td {
     font-size: 0.85rem;
   }
 }
+
 </style>
 </head>
 <body>
 
 <!-- Top Bar -->
 <div class="top-bar">
-  <h1>💰 Зарплаты</h1>
+  <h1>📋 Доска заказов</h1>
   <div class="top-bar-right">
-    
     <nav class="global-nav">
       <a href="dashboard.html" class="nav-link">📊 Дашборд</a>
-      <a href="board.html" class="nav-link">📋 Доска</a>
+      <a href="board.html" class="nav-link active">📋 Доска</a>
       <a href="executors.html" class="nav-link">👥 Исполнители</a>
-      <a href="payouts.html" class="nav-link active">💰 Зарплаты</a>
+      <a href="payouts.html" class="nav-link">💰 Зарплаты</a>
     </nav>
+    <a href="calculator.html" class="btn">➕ Новый расчёт</a>
   </div>
 </div>
 
-<div class="container">
-  <!-- Filters -->
-  <div class="filters">
-    <select id="monthFilter">
-      <option value="all">Все месяцы</option>
-    </select>
-    <select id="executorFilter">
-      <option value="all">Все исполнители</option>
-    </select>
-  </div>
+<!-- Board -->
+<div class="board-wrap" id="board">
+  <div class="loading">⏳ Загрузка...</div>
+</div>
 
-  <!-- Summary -->
-  <div class="summary">
-    <div class="summary-card">
-      <div class="summary-label">К выплате</div>
-      <div class="summary-value" id="summaryPending">0 ₽</div>
+<!-- Modal: Назначить дату заезда -->
+<div class="modal" id="modalSchedule">
+  <div class="modal-content">
+    <div class="modal-title">📅 Назначить дату заезда</div>
+    <div class="modal-car" id="scheduleCarName"></div>
+    <div class="form-group">
+      <label>Дата заезда</label>
+      <input type="date" id="scheduleDate">
     </div>
-    <div class="summary-card">
-      <div class="summary-label">Выплачено</div>
-      <div class="summary-value" id="summaryPaid">0 ₽</div>
+    <div class="form-group">
+      <label>Время заезда</label>
+      <input type="time" id="scheduleTime" value="10:00">
     </div>
-    <div class="summary-card">
-      <div class="summary-label">Всего работ</div>
-      <div class="summary-value" id="summaryTotal" style="color:var(--text)">0</div>
+    <div class="form-group">
+      <label>Комментарий (необязательно)</label>
+      <textarea id="scheduleNote" placeholder="Пожелания клиента, особенности..."></textarea>
     </div>
-  </div>
-
-  <!-- Tabs -->
-  <div class="tabs">
-    <button class="tab active" data-tab="pending" onclick="switchTab('pending')">
-      ⏳ К выплате
-      <span class="tab-badge" id="badgePending">0</span>
-    </button>
-    <button class="tab" data-tab="paid" onclick="switchTab('paid')">
-      ✅ Выплачено
-      <span class="tab-badge" id="badgePaid">0</span>
-    </button>
-    <button class="tab" data-tab="cancelled" onclick="switchTab('cancelled')">
-      ❌ Отменено
-      <span class="tab-badge" id="badgeCancelled">0</span>
-    </button>
-  </div>
-
-  <!-- Bulk Actions -->
-  <div class="bulk-actions" id="bulkActions" style="display:none">
-    <span id="selectedCount" style="color:var(--text-muted);font-size:0.9rem">Выбрано: 0</span>
-    <button class="btn btn-success" onclick="paySelected()">💰 Выплатить выбранные</button>
-  </div>
-
-  <!-- Content -->
-  <div id="tabContent">
-    <div class="loading">⏳ Загрузка...</div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modalSchedule')">Отмена</button>
+      <button class="btn" style="background:var(--warning);color:#000" onclick="saveSchedule()">📅 Назначить</button>
+    </div>
   </div>
 </div>
+
+<!-- Modal: Информация о заказе -->
+<div class="modal" id="modalInfo">
+  <div class="modal-content">
+    <div class="modal-title">ℹ️ Информация о заказе</div>
+    <div style="margin-bottom:20px">
+      <div style="font-size:1.2rem;font-weight:700;margin-bottom:16px" id="infoCarName"></div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;justify-content:space-between">
+          <span style="color:var(--text-muted)">Статус:</span>
+          <span id="infoStatus" style="font-weight:600"></span>
+        </div>
+        <div style="display:flex;justify-content:space-between">
+          <span style="color:var(--text-muted)">Сумма:</span>
+          <span id="infoPrice" style="font-weight:700;color:var(--success)"></span>
+        </div>
+        <div id="infoCheckinBlock" style="display:none">
+          <div style="display:flex;justify-content:space-between">
+            <span style="color:var(--text-muted)">Дата заезда:</span>
+            <span id="infoCheckin" style="font-weight:600"></span>
+          </div>
+        </div>
+        <div id="infoNoteBlock" style="display:none;padding:12px;background:var(--bg-secondary);border-radius:8px">
+          <div style="font-size:0.75rem;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px">Комментарий:</div>
+          <div id="infoNote" style="font-style:italic"></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modalInfo')">Закрыть</button>
+      <button class="btn btn-primary" onclick="openCalcFromInfo()">📂 Открыть расчёт</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Завершить -->
+<div class="modal" id="modalDone">
+  <div class="modal-content">
+    <div class="modal-title">✅ Завершить работу</div>
+    <div class="modal-car" id="doneCarName"></div>
+    <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:24px">
+      Работы выполнены, ОТК проверил. Машина ждёт выдачи клиенту.
+    </p>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modalDone')">Отмена</button>
+      <button class="btn" style="background:#a78bfa" onclick="saveDone()">✅ Завершить</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Выдать -->
+<div class="modal" id="modalDeliver">
+  <div class="modal-content">
+    <div class="modal-title">🚗 Выдать клиенту</div>
+    <div class="modal-car" id="deliverCarName"></div>
+    <div class="form-group">
+      <label>Итоговая сумма</label>
+      <input type="number" id="deliverPrice" placeholder="Из расчёта">
+    </div>
+    <div class="form-group">
+      <label>Форма оплаты</label>
+      <select id="deliverPayment">
+        <option value="cash">💵 Наличные</option>
+        <option value="card">💳 Карта</option>
+        <option value="transfer">🏦 Перевод</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Комментарий</label>
+      <textarea id="deliverNote" placeholder="Пожелания, замечания..."></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modalDeliver')">Отмена</button>
+      <button class="btn" style="background:var(--success);color:#000" onclick="saveDeliver()">🚗 Выдать</button>
+    </div>
+  </div>
+</div>
+
+<footer class="page-footer">
+  <div class="footer-content">
+    <div class="footer-theme">
+      <button id="themeToggle">🌙</button>
+    </div>
+    <div class="footer-desc">
+      <strong>Доска заказов</strong> — канбан-доска для управления воронкой продаж. 
+      5 стадий: Расчёт → Заезд → В работе → Завершено → Выдано. 
+      Перемещайте заказы между стадиями, назначайте даты заезда, отслеживайте прогресс работ.
+    </div>
+  </div>
+</footer>
 
 <script>
 (function() {
@@ -705,9 +820,16 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let currentUser = null;
 let currentStudio = null;
-let allAssignments = [];
-let currentTab = 'pending';
-let selectedIds = new Set();
+let allCalcs = [];
+let activeCalcId = null;
+
+const COLUMNS = [
+  { key: 'new',         label: 'Расчёт',      icon: '📋' },
+  { key: 'scheduled',   label: 'Дата заезда',  icon: '📅' },
+  { key: 'in_progress', label: 'В работе',     icon: '🔧' },
+  { key: 'done',        label: 'Завершено',    icon: '✅' },
+  { key: 'delivered',   label: 'Выдано',       icon: '🚗' },
+];
 
 // Theme
 function initTheme() {
@@ -729,11 +851,9 @@ function fmt(n) {
   return new Intl.NumberFormat('ru-RU', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(n || 0);
 }
 
-function fmtMonth(str) {
-  if (!str) return '';
-  const [y, m] = str.split('-');
-  const months = ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
-  return `${months[parseInt(m)-1]} ${y}`;
+function fmtDate(d) {
+  if (!d) return null;
+  return new Date(d).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
 }
 
 // Auth
@@ -757,218 +877,270 @@ async function getStudio() {
 }
 
 // Load
-async function loadAssignments() {
+async function loadBoard() {
   const { data, error } = await sb
-    .from('work_assignments')
-    .select(`
-      id,
-      calculation_id,
-      executor_id,
-      executor_name,
-      service_name,
-      salary,
-      status,
-      payment_month,
-      is_admin_sale,
-      admin_percent,
-      calculations (
-        car_name
-      ),
-      executors (
-        full_name
-      )
-    `)
+    .from('calculations')
+    .select('id, car_name, total_price, final_price, status, checkin_date, checkin_time, schedule_note, work_assigned, created_at')
     .eq('studio_id', currentStudio.studio_id)
     .order('created_at', { ascending: false });
 
-  if (error) {
-    console.error(error);
-    document.getElementById('tabContent').innerHTML = '<div class="empty-state">❌ Ошибка загрузки</div>';
-    return;
-  }
-
-  allAssignments = (data || []).map(a => ({
-    ...a,
-    executor_display: a.executors?.full_name || a.executor_name || 'Неизвестно',
-    car_display: a.calculations?.car_name || 'Неизвестно'
-  }));
-
-  populateFilters();
-  updateSummary();
-  renderTab();
+  if (error) { console.error(error); return; }
+  allCalcs = data || [];
+  renderBoard();
 }
-
-// Filters
-function populateFilters() {
-  // Months
-  const months = [...new Set(allAssignments.map(a => a.payment_month).filter(Boolean))].sort().reverse();
-  const monthFilter = document.getElementById('monthFilter');
-  monthFilter.innerHTML = '<option value="all">Все месяцы</option>';
-  months.forEach(m => {
-    monthFilter.innerHTML += `<option value="${m}">${fmtMonth(m)}</option>`;
-  });
-
-  // Executors
-  const executors = [...new Set(allAssignments.map(a => a.executor_display))].sort();
-  const execFilter = document.getElementById('executorFilter');
-  execFilter.innerHTML = '<option value="all">Все исполнители</option>';
-  executors.forEach(e => {
-    execFilter.innerHTML += `<option value="${e}">${e}</option>`;
-  });
-}
-
-document.getElementById('monthFilter').addEventListener('change', renderTab);
-document.getElementById('executorFilter').addEventListener('change', renderTab);
-
-// Summary
-function updateSummary() {
-  const pending = allAssignments.filter(a => a.status === 'pending').reduce((acc, a) => acc + (a.salary || 0), 0);
-  const paid = allAssignments.filter(a => a.status === 'paid').reduce((acc, a) => acc + (a.salary || 0), 0);
-  const total = allAssignments.length;
-
-  document.getElementById('summaryPending').textContent = fmt(pending) + ' ₽';
-  document.getElementById('summaryPaid').textContent = fmt(paid) + ' ₽';
-  document.getElementById('summaryTotal').textContent = total;
-
-  document.getElementById('badgePending').textContent = allAssignments.filter(a => a.status === 'pending').length;
-  document.getElementById('badgePaid').textContent = allAssignments.filter(a => a.status === 'paid').length;
-  document.getElementById('badgeCancelled').textContent = allAssignments.filter(a => a.status === 'cancelled').length;
-}
-
-// Tabs
-window.switchTab = function(tab) {
-  currentTab = tab;
-  selectedIds.clear();
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
-  renderTab();
-};
 
 // Render
-function renderTab() {
-  const month = document.getElementById('monthFilter').value;
-  const executor = document.getElementById('executorFilter').value;
+function renderBoard() {
+  const board = document.getElementById('board');
 
-  let filtered = allAssignments.filter(a => a.status === currentTab);
-  if (month !== 'all') filtered = filtered.filter(a => a.payment_month === month);
-  if (executor !== 'all') filtered = filtered.filter(a => a.executor_display === executor);
-
-  const content = document.getElementById('tabContent');
-
-  if (filtered.length === 0) {
-    content.innerHTML = `
-      <div class="empty-state">
-        <div class="empty-state-icon">📭</div>
-        <h3>Нет записей</h3>
+  let html = '';
+  COLUMNS.forEach(col => {
+    const cards = allCalcs.filter(c => (c.status || 'new') === col.key);
+    html += `
+      <div class="column col-${col.key}">
+        <div class="column-header">
+          <div class="column-title">
+            <div class="column-dot"></div>
+            ${col.icon} ${col.label}
+          </div>
+          <div class="column-count">${cards.length}</div>
+        </div>
+        <div class="column-cards">
+          ${cards.length === 0
+            ? `<div class="empty-col">📭 Пока пусто</div>`
+            : cards.map(c => renderCard(c, col.key)).join('')
+          }
+        </div>
       </div>
     `;
-    document.getElementById('bulkActions').style.display = 'none';
-    return;
-  }
-
-  // Show bulk actions only for pending
-  document.getElementById('bulkActions').style.display = currentTab === 'pending' ? 'flex' : 'none';
-
-  let html = '<div class="table-wrap"><table><thead><tr>';
-  if (currentTab === 'pending') html += '<th class="checkbox-cell"><input type="checkbox" id="selectAll" onchange="toggleSelectAll()"></th>';
-  html += '<th>Исполнитель</th><th>Машина</th><th>Услуга</th><th>Месяц</th><th>Сумма</th>';
-  if (currentTab === 'pending') html += '<th>Действия</th>';
-  html += '</tr></thead><tbody>';
-
-  filtered.forEach(a => {
-    html += '<tr>';
-    if (currentTab === 'pending') {
-      html += `<td class="checkbox-cell"><input type="checkbox" class="row-checkbox" data-id="${a.id}" onchange="updateSelection()"></td>`;
-    }
-    html += `
-      <td class="executor-name">${a.executor_display}</td>
-      <td class="car-name">${a.car_display}</td>
-      <td class="service-name">${a.service_name || (a.is_admin_sale ? `💰 Продажа (${a.admin_percent}%)` : '-')}</td>
-      <td><span class="month-badge">${fmtMonth(a.payment_month)}</span></td>
-      <td class="salary">${fmt(a.salary)} ₽</td>
-    `;
-    if (currentTab === 'pending') {
-      html += `<td><button class="btn btn-success btn-pay" onclick="paySingle('${a.id}')">💰 Выплатить</button></td>`;
-    }
-    html += '</tr>';
   });
 
-  html += '</tbody></table></div>';
-  content.innerHTML = html;
+  board.innerHTML = html;
 }
 
-// Selection
-window.toggleSelectAll = function() {
-  const checked = document.getElementById('selectAll').checked;
-  document.querySelectorAll('.row-checkbox').forEach(cb => {
-    cb.checked = checked;
-    if (checked) selectedIds.add(cb.dataset.id);
-    else selectedIds.delete(cb.dataset.id);
-  });
-  updateSelection();
+function renderCard(calc, status) {
+  const price = fmt(calc.final_price || calc.total_price);
+  
+  let checkin = '';
+  if (calc.checkin_date) {
+    const dateStr = fmtDate(calc.checkin_date);
+    const timeStr = calc.checkin_time ? calc.checkin_time.slice(0, 5) : '';
+    checkin = `<div class="card-checkin">📅 ${dateStr}${timeStr ? ', ' + timeStr : ''}</div>`;
+  }
+
+  let note = '';
+  if (calc.schedule_note) {
+    note = `<div class="card-note">💬 ${calc.schedule_note}</div>`;
+  }
+
+  let actions = '';
+  if (status === 'new') {
+    actions = `
+      <button class="card-btn card-btn-secondary" onclick="event.stopPropagation();openCalc('${calc.id}')">📂 Открыть</button>
+      <button class="card-btn card-btn-primary" onclick="event.stopPropagation();openModal('modalSchedule','${calc.id}','${escStr(calc.car_name)}')">📅 Заезд</button>
+    `;
+  } else if (status === 'scheduled') {
+    actions = `
+      <button class="card-btn card-btn-secondary" onclick="event.stopPropagation();openModal('modalSchedule','${calc.id}','${escStr(calc.car_name)}')">✏️ Дата</button>
+      <button class="card-btn card-btn-primary" onclick="event.stopPropagation();goAssign('${calc.id}')">🔧 В работу</button>
+    `;
+  } else if (status === 'in_progress') {
+    actions = `
+      <button class="card-btn card-btn-secondary" onclick="event.stopPropagation();goAssign('${calc.id}')">👥 Работы</button>
+      <button class="card-btn card-btn-primary" onclick="event.stopPropagation();openModal('modalDone','${calc.id}','${escStr(calc.car_name)}')" style="background:#a78bfa">✅ Готово</button>
+    `;
+  } else if (status === 'done') {
+    actions = `
+      <button class="card-btn card-btn-primary" onclick="event.stopPropagation();openModalDeliver('${calc.id}','${escStr(calc.car_name)}',${calc.total_price || 0})" style="background:var(--success);color:#000">🚗 Выдать</button>
+    `;
+  } else if (status === 'delivered') {
+    actions = `
+      <button class="card-btn card-btn-secondary" onclick="event.stopPropagation();openCalc('${calc.id}')">📂 Открыть</button>
+    `;
+  }
+
+  return `
+    <div class="kanban-card" onclick="openModalInfo('${calc.id}', '${escStr(calc.car_name)}', '${status}', ${calc.final_price || calc.total_price || 0}, '${calc.checkin_date || ''}', '${calc.checkin_time || ''}', '${escStr(calc.schedule_note || '')}')">
+      <div class="card-car">${calc.car_name || 'Без названия'}</div>
+      ${checkin}
+      ${note}
+      <div class="card-price">${price} ₽</div>
+      <div class="card-actions" onclick="event.stopPropagation()">
+        ${actions}
+      </div>
+    </div>
+  `;
+}
+
+function escStr(s) {
+  return (s || '').replace(/'/g, '&#39;').replace(/"/g, '&quot;');
+}
+
+// Modal helpers
+function openModal(modalId, calcId, carName) {
+  activeCalcId = calcId;
+  const nameEl = document.getElementById(modalId.replace('modal', '').toLowerCase() + 'CarName');
+  if (nameEl) nameEl.textContent = carName;
+
+  // Для schedule - имена элементов другие
+  if (modalId === 'modalSchedule') {
+    document.getElementById('scheduleCarName').textContent = carName;
+    document.getElementById('scheduleDate').value = '';
+    document.getElementById('scheduleTime').value = '10:00';
+    document.getElementById('scheduleNote').value = '';
+  }
+  if (modalId === 'modalDone') {
+    document.getElementById('doneCarName').textContent = carName;
+  }
+
+  document.getElementById(modalId).classList.add('active');
+}
+
+function openModalDeliver(calcId, carName, price) {
+  activeCalcId = calcId;
+  document.getElementById('deliverCarName').textContent = carName;
+  document.getElementById('deliverPrice').value = price;
+  document.getElementById('deliverNote').value = '';
+  document.getElementById('modalDeliver').classList.add('active');
+}
+
+window.openModalInfo = function(calcId, carName, status, price, checkinDate, checkinTime, note) {
+  activeCalcId = calcId;
+  
+  const STATUS_LABELS = {
+    new: '📋 Расчёт',
+    scheduled: '📅 Дата заезда назначена',
+    in_progress: '🔧 В работе',
+    done: '✅ Завершено',
+    delivered: '🚗 Выдано'
+  };
+  
+  document.getElementById('infoCarName').textContent = carName;
+  document.getElementById('infoStatus').textContent = STATUS_LABELS[status] || status;
+  document.getElementById('infoPrice').textContent = fmt(price) + ' ₽';
+  
+  // Дата и время заезда
+  const checkinBlock = document.getElementById('infoCheckinBlock');
+  if (checkinDate) {
+    const dateStr = fmtDate(checkinDate);
+    const timeStr = checkinTime ? checkinTime.slice(0, 5) : '';
+    document.getElementById('infoCheckin').textContent = dateStr + (timeStr ? ', ' + timeStr : '');
+    checkinBlock.style.display = 'block';
+  } else {
+    checkinBlock.style.display = 'none';
+  }
+  
+  // Комментарий
+  const noteBlock = document.getElementById('infoNoteBlock');
+  if (note) {
+    document.getElementById('infoNote').textContent = note;
+    noteBlock.style.display = 'block';
+  } else {
+    noteBlock.style.display = 'none';
+  }
+  
+  document.getElementById('modalInfo').classList.add('active');
 };
 
-window.updateSelection = function() {
-  selectedIds.clear();
-  document.querySelectorAll('.row-checkbox:checked').forEach(cb => {
-    selectedIds.add(cb.dataset.id);
-  });
-  document.getElementById('selectedCount').textContent = `Выбрано: ${selectedIds.size}`;
+window.openCalcFromInfo = function() {
+  closeModal('modalInfo');
+  window.location.href = `calculator.html?load=${activeCalcId}`;
 };
+
+window.closeModal = function(modalId) {
+  document.getElementById(modalId).classList.remove('active');
+  activeCalcId = null;
+};
+
+window.openModal = openModal;
+window.openModalDeliver = openModalDeliver;
 
 // Actions
-window.paySingle = async function(id) {
-  if (!confirm('Подтвердить выплату?')) return;
-  await markAsPaid([id]);
+window.openCalc = function(calcId) {
+  window.location.href = `calculator.html?load=${calcId}`;
 };
 
-window.paySelected = async function() {
-  if (selectedIds.size === 0) { alert('Выберите записи'); return; }
-  if (!confirm(`Выплатить ${selectedIds.size} записей?`)) return;
-  await markAsPaid([...selectedIds]);
+window.goAssign = function(calcId) {
+  window.location.href = `assign-work.html?calc_id=${calcId}`;
 };
 
-async function markAsPaid(ids) {
+async function updateStatus(calcId, status, extra = {}) {
   const { error } = await sb
-    .from('work_assignments')
-    .update({ status: 'paid' })
-    .in('id', ids);
+    .from('calculations')
+    .update({ status, ...extra })
+    .eq('id', calcId);
 
   if (error) {
     console.error(error);
-    alert('❌ Ошибка');
-    return;
+    alert('❌ Ошибка: ' + error.message);
+    return false;
   }
-
-  selectedIds.clear();
-  await loadAssignments();
+  return true;
 }
+
+window.saveSchedule = async function() {
+  const date = document.getElementById('scheduleDate').value;
+  const time = document.getElementById('scheduleTime').value;
+  const note = document.getElementById('scheduleNote').value.trim();
+  
+  if (!date) { alert('Выберите дату!'); return; }
+  if (!time) { alert('Выберите время!'); return; }
+
+  const ok = await updateStatus(activeCalcId, 'scheduled', { 
+    checkin_date: date,
+    checkin_time: time,
+    schedule_note: note || null
+  });
+  if (ok) {
+    closeModal('modalSchedule');
+    loadBoard();
+  }
+};
+
+window.saveDone = async function() {
+  const ok = await updateStatus(activeCalcId, 'done');
+  if (ok) {
+    closeModal('modalDone');
+    loadBoard();
+  }
+};
+
+window.saveDeliver = async function() {
+  const price = parseFloat(document.getElementById('deliverPrice').value) || null;
+  const note = document.getElementById('deliverNote').value.trim();
+
+  const ok = await updateStatus(activeCalcId, 'delivered', {
+    final_price: price,
+    delivery_note: note
+  });
+  if (ok) {
+    closeModal('modalDeliver');
+    loadBoard();
+  }
+};
+
+// Close modal on backdrop
+document.querySelectorAll('.modal').forEach(m => {
+  m.addEventListener('click', e => {
+    if (e.target === m) {
+      m.classList.remove('active');
+      activeCalcId = null;
+    }
+  });
+});
 
 // Init
 async function init() {
+  initTheme();
   if (!await checkAuth()) return;
   if (!await getStudio()) return;
-  initTheme();
-  await loadAssignments();
+  loadBoard();
 }
 
 init();
 
 })();
 </script>
-
-<footer class="page-footer">
-  <div class="footer-content">
-    <div class="footer-theme">
-      <button id="themeToggle">🌙</button>
-    </div>
-    <div class="footer-desc">
-      <strong>Зарплаты</strong> — учёт выплат исполнителям. 
-      Три вкладки: К выплате, Выплачено, Отменено. 
-      Массовая выплата, фильтры по месяцам и сотрудникам, автоматический подсчёт из назначенных работ.
-    </div>
-  </div>
-</footer>
 
 </body>
 </html>
