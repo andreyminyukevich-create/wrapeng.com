@@ -627,10 +627,37 @@ select option {
     flex-direction: column;
     gap: 12px;
     padding: 16px;
+    align-items: stretch;
   }
 
   .top-bar h1 {
     font-size: 1.3rem;
+    text-align: center;
+  }
+
+  .user-info {
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .user-email {
+    font-size: 0.85rem;
+    justify-content: center;
+  }
+
+  .user-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .user-actions > * {
+    flex: 1;
+    min-width: 100px;
+    justify-content: center;
   }
 
   .stats-grid {
@@ -923,10 +950,10 @@ async function checkAuth() {
   return true;
 }
 
-async function logout() {
+window.logout = async function() {
   await sb.auth.signOut();
   window.location.href = 'welcome.html';
-}
+};
 
 // Format
 function fmt(n) {
