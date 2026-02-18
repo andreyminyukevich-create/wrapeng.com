@@ -1854,7 +1854,8 @@ tfoot th:first-child {
         </div>
         <div class="export-buttons">
           <button type="button" class="btn btn-primary" id="btnSaveCalc" style="margin-bottom:12px">💾 Сохранить расчет</button>
-          <button type="button" class="btn btn-success" id="btnExportKP">📄 КП (PDF)</button>
+          <button type="button" class="btn btn-success" id="btnDownloadKP">📥 Скачать КП</button>
+          <button type="button" class="btn btn-success" id="btnShareKP" style="display:none">📤 Поделиться КП</button>
           <button type="button" class="btn btn-success" id="btnExportCost">💰 Себес (PDF)</button>
         </div>
       </div>
@@ -4107,10 +4108,63 @@ qa('.chip').forEach(ch => {
     }
   });
 });
+
+  // Проверяем поддержку Share API
+  if (navigator.share && navigator.canShare) {
+    q('#btnShareKP').style.display = 'inline-block';
+  }
   
-  q('#btnExportKP')?.addEventListener('click', () => {
+  // Скачать КП
+  q('#btnDownloadKP')?.addEventListener('click', () => {
     prepKP();
     setTimeout(() => exportPDF('#pdfKP', 'Коммерческое_предложение.pdf'), 100);
+  });
+  
+  // Поделиться КП (Share API)
+  q('#btnShareKP')?.addEventListener('click', async () => {
+    try {
+      prepKP();
+      
+      // Генерируем PDF как Blob
+      await new Promise(resolve => setTimeout(resolve, 300)); // Ждём рендер
+      
+      const { jsPDF } = window.jspdf || {};
+      const block = q('#pdfKP');
+      
+      const canvas = await html2canvas(block, { scale: 2, useCORS: true, backgroundColor: '#fff' });
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
+      
+      const pw = pdf.internal.pageSize.getWidth();
+      const ph = pdf.internal.pageSize.getHeight();
+      const iw = canvas.width;
+      const ih = canvas.height;
+      const ratio = Math.min(pw / iw, ph / ih);
+      const sw = iw * ratio;
+      const sh = ih * ratio;
+      
+      pdf.addImage(canvas.toDataURL('image/png'), 'PNG', (pw - sw) / 2, 20, sw, Math.min(sh, ph - 40));
+      
+      // Получаем Blob
+      const pdfBlob = pdf.output('blob');
+      const pdfFile = new File([pdfBlob], 'Коммерческое_предложение.pdf', { type: 'application/pdf' });
+      
+      // Проверяем поддержку Share с файлами
+      if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
+        await navigator.share({
+          title: 'Коммерческое предложение',
+          text: 'КП на оклейку автомобиля',
+          files: [pdfFile]
+        });
+      } else {
+        alert('Поделиться не поддерживается на этом устройстве');
+      }
+      
+    } catch (err) {
+      if (err.name !== 'AbortError') { // Пользователь отменил
+        console.error('Ошибка Share:', err);
+        alert('Не удалось поделиться КП');
+      }
+    }
   });
   
   q('#btnExportCost')?.addEventListener('click', () => {
