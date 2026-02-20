@@ -4,7 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Исполнители</title>
+<script>document.documentElement.setAttribute('data-theme', localStorage.getItem('theme') || 'dark');</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="stylesheet" href="nav.css">
+<script src="nav.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
@@ -79,209 +82,10 @@ body::before {
   z-index: 1;
 }
 
-.top-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 32px;
-  padding: 24px 32px;
-  background: var(--card);
-  backdrop-filter: blur(20px);
-  border-radius: 20px;
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-lg);
-  gap: 20px;
-}
-
-.top-bar-left {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.menu-toggle {
-  background: var(--bg-input);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 10px 14px;
-  cursor: pointer;
-  font-size: 1.2rem;
-  transition: all 0.2s;
-  color: var(--text);
-}
-
-.menu-toggle:hover {
-  background: var(--primary);
-  color: #fff;
-  transform: scale(1.05);
-}
-
-.top-bar h1 {
-  font-size: 1.5rem;
-  font-weight: 700;
-  background: linear-gradient(135deg, var(--primary), var(--success));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
 .actions {
   display: flex;
   gap: 12px;
   align-items: center;
-}
-
-.global-nav {
-  display: flex;
-  gap: 6px;
-  align-items: center;
-}
-
-.nav-link {
-  padding: 8px 16px;
-  border-radius: 8px;
-  font-size: 0.88rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  text-decoration: none;
-  transition: all 0.2s;
-  border: 1px solid transparent;
-  white-space: nowrap;
-}
-
-.nav-link:hover {
-  background: var(--bg-input);
-  color: var(--text);
-}
-
-.nav-link.active {
-  background: var(--primary);
-  color: #fff;
-  border-color: var(--primary);
-}
-
-.action-btn {
-  background: var(--primary);
-  color: #fff;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 10px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.action-btn:hover {
-  background: var(--primary-dark);
-  transform: translateY(-1px);
-}
-
-/* Drawer Menu */
-.drawer-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 999;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s;
-}
-
-.drawer-overlay.active {
-  opacity: 1;
-  pointer-events: all;
-}
-
-.drawer {
-  position: fixed;
-  top: 0;
-  left: -300px;
-  width: 300px;
-  height: 100vh;
-  background: var(--bg-card);
-  box-shadow: var(--shadow-lg);
-  z-index: 1000;
-  transition: left 0.3s;
-  overflow-y: auto;
-}
-
-.drawer.active {
-  left: 0;
-}
-
-.drawer-header {
-  padding: 24px 20px;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.drawer-title {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--text);
-}
-
-.drawer-close {
-  background: var(--bg-input);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 6px 10px;
-  cursor: pointer;
-  font-size: 1.2rem;
-  color: var(--text);
-  transition: all 0.2s;
-}
-
-.drawer-close:hover {
-  background: var(--danger);
-  color: #fff;
-}
-
-.drawer-menu {
-  padding: 20px 0;
-}
-
-.drawer-link {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 14px 20px;
-  color: var(--text);
-  text-decoration: none;
-  transition: all 0.2s;
-  font-size: 0.95rem;
-  font-weight: 500;
-}
-
-.drawer-link:hover {
-  background: var(--bg-input);
-  color: var(--primary);
-}
-
-.drawer-link.disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.drawer-badge {
-  margin-left: auto;
-  padding: 2px 8px;
-  background: var(--warning);
-  color: #000;
-  border-radius: 6px;
-  font-size: 0.7rem;
-  font-weight: 700;
 }
 
 .btn {
@@ -341,20 +145,6 @@ body::before {
 .btn-icon {
   padding: 8px 12px;
   font-size: 0.9rem;
-}
-
-.theme-toggle {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 8px 16px;
-  cursor: pointer;
-  font-size: 1.2rem;
-  transition: all 0.3s;
-}
-
-.theme-toggle:hover {
-  transform: scale(1.1);
 }
 
 .card {
@@ -629,45 +419,19 @@ body::before {
     padding: 16px;
   }
 
-  .top-bar {
-    flex-wrap: wrap;
-    padding: 14px 16px;
-    gap: 12px;
-  }
+  
 
-  .top-bar-left {
-    width: 100%;
-    justify-content: center;
-  }
+  
 
-  .top-bar h1 {
-    font-size: 1.15rem;
-  }
+  
 
-  .global-nav {
-    width: 100%;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    flex-wrap: nowrap;
-    padding: 8px 0;
-  }
+  
 
-  .global-nav::-webkit-scrollbar {
-    display: none;
-  }
+  
 
-  .nav-link {
-    font-size: 0.8rem;
-    padding: 6px 12px;
-    flex-shrink: 0;
-  }
+  
 
-  .action-btn {
-    width: 100%;
-    justify-content: center;
-  }
+  
 
   .header {
     flex-direction: column;
@@ -861,20 +625,9 @@ body::before {
 <body>
 
 <div class="container">
-  <div class="top-bar">
-    <div class="top-bar-left">
-      <button class="menu-toggle" id="menuToggle">☰</button>
-      <h1>👥 Исполнители</h1>
-    </div>
-    <nav class="global-nav">
-      <a href="dashboard.html" class="nav-link">🏠 Главная</a>
-      <a href="board.html" class="nav-link">📋 Заказы</a>
-      <a href="executors.html" class="nav-link active">👥 Исполнители</a>
-      <a href="payouts.html" class="nav-link">💰 Зарплаты</a>
-      <a href="inventory.html" class="nav-link">📦 Склад</a>
-      <a href="settlements.html" class="nav-link">💳 Расчёты</a>
-    </nav>
-    <button class="action-btn" id="btnAddExecutor">➕ Добавить исполнителя</button>
+  <!-- nav.js рендерит top-bar автоматически -->
+  <div style="display:flex;justify-content:flex-end;padding:16px 0 0">
+    <button class="btn" id="btnAddExecutor">➕ Добавить исполнителя</button>
   </div>
 
   <div class="card">
@@ -944,10 +697,7 @@ body::before {
 
 <footer class="page-footer">
   <div class="footer-content">
-    <div class="footer-theme">
-      <button id="themeToggle">🌙</button>
-    </div>
-    <div class="footer-desc">
+        <div class="footer-desc">
       <strong>Исполнители</strong> — управление командой студии. 
       Добавляйте сотрудников, назначайте роли, отслеживайте активность. 
       Исполнители получают работы через распределение на доске заказов.
@@ -955,42 +705,13 @@ body::before {
   </div>
 </footer>
 
-<!-- Drawer Menu -->
-<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
-<div class="drawer" id="drawer">
-  <div class="drawer-header">
-    <div class="drawer-title">📁 Меню</div>
-    <button class="drawer-close" onclick="closeDrawer()">✕</button>
-  </div>
-  <nav class="drawer-menu">
-    <a href="analytics.html" class="drawer-link disabled">
-      📊 Аналитика
-      <span class="drawer-badge">Скоро</span>
-    </a>
-    <a href="price-lists.html" class="drawer-link disabled">
-      💵 Прайсы
-      <span class="drawer-badge">Скоро</span>
-    </a>
-    <a href="calendar.html" class="drawer-link disabled">
-      🗓 Календарь
-      <span class="drawer-badge">Скоро</span>
-    </a>
-    <a href="settings.html" class="drawer-link disabled">
-      ⚙️ Настройки
-      <span class="drawer-badge">Скоро</span>
-    </a>
-  </nav>
-</div>
+
 
 <script>
 (function() {
 'use strict';
 
-const SUPABASE_URL = 'https://hdghijgrrnzmntistdvw.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkZ2hpamdycm56bW50aXN0ZHZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMzMyNzksImV4cCI6MjA3NTYwOTI3OX0.D9EDTmVrFRVp0B8_5tCJM29gbFdtadsom0Ihsf4uQ8Q';
-
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
+const sb = getDB();
 let currentUser = null;
 let currentStudio = null;
 let editingExecutorId = null;
@@ -1004,16 +725,6 @@ const roleNames = {
 };
 
 // Auth check
-async function checkAuth() {
-  const { data: { session } } = await sb.auth.getSession();
-  if (!session) {
-    window.location.href = 'welcome.html';
-    return false;
-  }
-  currentUser = session.user;
-  return true;
-}
-
 // Get studio
 async function getStudio() {
   const { data, error } = await sb
@@ -1284,48 +995,16 @@ async function saveExecutor(e) {
   }
 }
 
-// Drawer Menu
-function openDrawer() {
-  document.getElementById('drawer').classList.add('active');
-  document.getElementById('drawerOverlay').classList.add('active');
-}
-
-window.closeDrawer = function() {
-  document.getElementById('drawer').classList.remove('active');
-  document.getElementById('drawerOverlay').classList.remove('active');
-};
-
-document.getElementById('menuToggle')?.addEventListener('click', openDrawer);
-
-// Theme
-function initTheme() {
-  const savedTheme = localStorage.getItem('theme') || 'dark';
-  document.documentElement.setAttribute('data-theme', savedTheme);
-  updateThemeIcon(savedTheme);
-}
-
-function toggleTheme() {
-  const current = document.documentElement.getAttribute('data-theme');
-  const next = current === 'dark' ? 'light' : 'dark';
-  document.documentElement.setAttribute('data-theme', next);
-  localStorage.setItem('theme', next);
-  updateThemeIcon(next);
-}
-
-function updateThemeIcon(theme) {
-  document.getElementById('themeToggle').textContent = theme === 'dark' ? '☀️' : '🌙';
-}
-
 // Init
 document.addEventListener('DOMContentLoaded', async () => {
-  if (!await checkAuth()) return;
+  await initNav();
+  const user = await checkAuth();
+  if (!user) return;
   if (!await getStudio()) return;
   
-  initTheme();
   await loadExecutors();
   
   // Events
-  document.getElementById('themeToggle').addEventListener('click', toggleTheme);
   document.getElementById('btnAddExecutor').addEventListener('click', () => openModal());
   document.getElementById('modalClose').addEventListener('click', closeModal);
   document.getElementById('btnCancel').addEventListener('click', closeModal);
