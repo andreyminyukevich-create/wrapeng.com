@@ -4,11 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Зарплаты</title>
-<script>
-const savedTheme = localStorage.getItem('theme') || 'dark';
-document.documentElement.setAttribute('data-theme', savedTheme);
-</script>
+<script>document.documentElement.setAttribute('data-theme', localStorage.getItem('theme') || 'dark');</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="stylesheet" href="nav.css">
+<script src="nav.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
@@ -62,74 +61,6 @@ body {
   max-width: 1400px;
   margin: 0 auto;
   padding: 24px;
-}
-
-/* Top Bar */
-.top-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 24px;
-  background: var(--bg-card);
-  border-bottom: 1px solid var(--border);
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  box-shadow: var(--shadow);
-}
-
-.top-bar h1 {
-  font-size: 1.3rem;
-  font-weight: 800;
-  background: linear-gradient(120deg, var(--primary), var(--success));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  letter-spacing: -0.5px;
-}
-
-.top-bar-right {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
-.global-nav {
-  display: flex;
-  gap: 6px;
-  align-items: center;
-}
-
-.nav-link {
-  padding: 8px 16px;
-  border-radius: 8px;
-  font-size: 0.88rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  text-decoration: none;
-  transition: all 0.2s;
-  border: 1px solid transparent;
-  white-space: nowrap;
-}
-
-.nav-link:hover {
-  background: var(--bg-input);
-  color: var(--text);
-}
-
-.nav-link.active {
-  background: var(--primary);
-  color: #fff;
-  border-color: var(--primary);
-}
-
-.theme-toggle {
-  background: var(--bg-input);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 8px 12px;
-  cursor: pointer;
-  font-size: 1.1rem;
-  transition: all 0.2s;
 }
 
 .btn {
@@ -408,33 +339,15 @@ td {
     padding: 16px 12px;
   }
 
-  .top-bar {
-    flex-direction: column;
-    gap: 12px;
-    padding: 14px 16px;
-  }
+  
 
-  .top-bar h1 {
-    font-size: 1.15rem;
-    text-align: center;
-  }
+  
 
-  .top-bar-right {
-    flex-direction: column;
-    width: 100%;
-    gap: 10px;
-  }
+  
 
-  .global-nav {
-    width: 100%;
-    justify-content: center;
-    flex-wrap: wrap;
-  }
+  
 
-  .nav-link {
-    font-size: 0.8rem;
-    padding: 6px 12px;
-  }
+  
 
   .filters {
     flex-direction: column;
@@ -487,19 +400,11 @@ td {
 }
 
 @media (max-width: 480px) {
-  .top-bar h1 {
-    font-size: 1rem;
-  }
+  
 
-  .theme-toggle {
-    padding: 6px 10px;
-    font-size: 1rem;
-  }
+  
 
-  .nav-link {
-    font-size: 0.75rem;
-    padding: 5px 10px;
-  }
+  
 
   .summary-card {
     padding: 16px;
@@ -547,21 +452,11 @@ td {
     padding: 8px 16px;
   }
 
-  .global-nav {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    flex-wrap: nowrap;
-  }
+  
 
-  .global-nav::-webkit-scrollbar {
-    display: none;
-  }
+  
 
-  .nav-link {
-    flex-shrink: 0;
-  }
+  
 }
 
 /* Footer */
@@ -626,18 +521,7 @@ td {
 </head>
 <body>
 
-<!-- Top Bar -->
-<div class="top-bar">
-  <h1>💰 Зарплаты</h1>
-  <div class="top-bar-right">
-    
-    <nav class="global-nav">
-      <a href="dashboard.html" class="nav-link">📊 Дашборд</a>
-      <a href="board.html" class="nav-link">📋 Доска</a>
-      <a href="executors.html" class="nav-link">👥 Исполнители</a>
-      <a href="payouts.html" class="nav-link active">💰 Зарплаты</a>
-    </nav>
-  </div>
+<!-- top-bar рендерится через nav.js -->
 </div>
 
 <div class="container">
@@ -697,10 +581,7 @@ td {
 
 <footer class="page-footer">
   <div class="footer-content">
-    <div class="footer-theme">
-      <button id="themeToggle">🌙</button>
-    </div>
-    <div class="footer-desc">
+        <div class="footer-desc">
       <strong>Зарплаты</strong> — учёт выплат исполнителям. 
       Три вкладки: К выплате, Выплачено, Отменено. 
       Массовая выплата, фильтры по месяцам и сотрудникам, автоматический подсчёт из назначенных работ.
@@ -708,14 +589,10 @@ td {
   </div>
 </footer>
 
-<script>
 (function() {
 'use strict';
 
-const SUPABASE_URL = 'https://hdghijgrrnzmntistdvw.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkZ2hpamdycm56bW50aXN0ZHZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMzMyNzksImV4cCI6MjA3NTYwOTI3OX0.D9EDTmVrFRVp0B8_5tCJM29gbFdtadsom0Ihsf4uQ8Q';
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
+const sb = getDB();
 let currentUser = null;
 let currentStudio = null;
 let allAssignments = [];
@@ -723,18 +600,9 @@ let currentTab = 'pending';
 let selectedIds = new Set();
 
 // Theme
-function initTheme() {
-  const t = localStorage.getItem('theme') || 'dark';
-  document.documentElement.setAttribute('data-theme', t);
-  document.getElementById('themeToggle').textContent = t === 'dark' ? '☀️' : '🌙';
-}
-
 document.getElementById('themeToggle').addEventListener('click', () => {
-  const cur = document.documentElement.getAttribute('data-theme');
   const next = cur === 'dark' ? 'light' : 'dark';
-  document.documentElement.setAttribute('data-theme', next);
   localStorage.setItem('theme', next);
-  document.getElementById('themeToggle').textContent = next === 'dark' ? '☀️' : '🌙';
 });
 
 // Format
@@ -750,13 +618,6 @@ function fmtMonth(str) {
 }
 
 // Auth
-async function checkAuth() {
-  const { data: { session } } = await sb.auth.getSession();
-  if (!session) { window.location.href = 'welcome.html'; return false; }
-  currentUser = session.user;
-  return true;
-}
-
 async function getStudio() {
   const { data, error } = await sb
     .from('studio_members')
@@ -959,16 +820,17 @@ async function markAsPaid(ids) {
 
 // Init
 async function init() {
-  if (!await checkAuth()) return;
+  await initNav();
+  const user = await checkAuth();
+  if (!user) return;
+  currentUser = user;
   if (!await getStudio()) return;
-  initTheme();
   await loadAssignments();
 }
 
 init();
 
 })();
-</script>
 
 </body>
 </html>
