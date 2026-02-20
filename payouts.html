@@ -63,73 +63,6 @@ body {
   padding: 24px;
 }
 
-.btn {
-  background: var(--primary);
-  color: #fff;
-  border: none;
-  padding: 9px 20px;
-  border-radius: 10px;
-  font-size: 0.88rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  font-family: 'Inter', sans-serif;
-}
-
-.btn:hover {
-  background: var(--primary-dark);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow);
-}
-
-.btn-success {
-  background: var(--success);
-}
-
-.btn-success:hover {
-  background: var(--success-dark);
-}
-
-.btn-secondary {
-  background: transparent;
-  color: var(--text-muted);
-  border: 1px solid var(--border);
-}
-
-.btn-secondary:hover {
-  background: var(--bg-input);
-  color: var(--text);
-  border-color: var(--border-focus);
-}
-
-/* Filters */
-.filters {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 24px;
-  flex-wrap: wrap;
-  align-items: center;
-}
-
-.filters select {
-  padding: 10px 14px;
-  background: var(--bg-input);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  color: var(--text);
-  font-size: 0.9rem;
-  font-family: 'Inter', sans-serif;
-  cursor: pointer;
-}
-
-.filters select:focus {
-  outline: none;
-  border-color: var(--border-focus);
-}
-
 /* Tabs */
 .tabs {
   display: flex;
@@ -339,15 +272,33 @@ td {
     padding: 16px 12px;
   }
 
-  
+  .top-bar {
+    flex-direction: column;
+    gap: 12px;
+    padding: 14px 16px;
+  }
 
-  
+  .top-bar h1 {
+    font-size: 1.15rem;
+    text-align: center;
+  }
 
-  
+  .top-bar-right {
+    flex-direction: column;
+    width: 100%;
+    gap: 10px;
+  }
 
-  
+  .global-nav {
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
 
-  
+  .nav-link {
+    font-size: 0.8rem;
+    padding: 6px 12px;
+  }
 
   .filters {
     flex-direction: column;
@@ -400,11 +351,19 @@ td {
 }
 
 @media (max-width: 480px) {
-  
+  .top-bar h1 {
+    font-size: 1rem;
+  }
 
-  
+  .theme-toggle {
+    padding: 6px 10px;
+    font-size: 1rem;
+  }
 
-  
+  .nav-link {
+    font-size: 0.75rem;
+    padding: 5px 10px;
+  }
 
   .summary-card {
     padding: 16px;
@@ -452,11 +411,21 @@ td {
     padding: 8px 16px;
   }
 
-  
+  .global-nav {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    flex-wrap: nowrap;
+  }
 
-  
+  .global-nav::-webkit-scrollbar {
+    display: none;
+  }
 
-  
+  .nav-link {
+    flex-shrink: 0;
+  }
 }
 
 /* Footer */
@@ -521,7 +490,18 @@ td {
 </head>
 <body>
 
-<!-- top-bar рендерится через nav.js -->
+<!-- Top Bar -->
+<div class="top-bar">
+  <h1>💰 Зарплаты</h1>
+  <div class="top-bar-right">
+    
+    <nav class="global-nav">
+      <a href="dashboard.html" class="nav-link">📊 Дашборд</a>
+      <a href="board.html" class="nav-link">📋 Доска</a>
+      <a href="executors.html" class="nav-link">👥 Исполнители</a>
+      <a href="payouts.html" class="nav-link active">💰 Зарплаты</a>
+    </nav>
+  </div>
 </div>
 
 <div class="container">
@@ -581,7 +561,10 @@ td {
 
 <footer class="page-footer">
   <div class="footer-content">
-        <div class="footer-desc">
+    <div class="footer-theme">
+      <button id="themeToggle">🌙</button>
+    </div>
+    <div class="footer-desc">
       <strong>Зарплаты</strong> — учёт выплат исполнителям. 
       Три вкладки: К выплате, Выплачено, Отменено. 
       Массовая выплата, фильтры по месяцам и сотрудникам, автоматический подсчёт из назначенных работ.
@@ -589,20 +572,24 @@ td {
   </div>
 </footer>
 
+<script>
 (function() {
 'use strict';
 
 const sb = getDB();
+
 let currentUser = null;
 let currentStudio = null;
 let allAssignments = [];
 let currentTab = 'pending';
 let selectedIds = new Set();
 
-// Theme
 document.getElementById('themeToggle').addEventListener('click', () => {
+  const cur = document.documentElement.getAttribute('data-theme');
   const next = cur === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
   localStorage.setItem('theme', next);
+  document.getElementById('themeToggle').textContent = next === 'dark' ? '☀️' : '🌙';
 });
 
 // Format
@@ -617,7 +604,6 @@ function fmtMonth(str) {
   return `${months[parseInt(m)-1]} ${y}`;
 }
 
-// Auth
 async function getStudio() {
   const { data, error } = await sb
     .from('studio_members')
@@ -823,7 +809,6 @@ async function init() {
   await initNav();
   const user = await checkAuth();
   if (!user) return;
-  currentUser = user;
   if (!await getStudio()) return;
   await loadAssignments();
 }
@@ -831,6 +816,7 @@ async function init() {
 init();
 
 })();
+</script>
 
 </body>
 </html>
