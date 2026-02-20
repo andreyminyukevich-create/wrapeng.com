@@ -82,71 +82,6 @@ body::before {
   z-index: 1;
 }
 
-.actions {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-
-.btn {
-  background: var(--primary);
-  color: #fff;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 10px;
-  font-size: 0.95rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.btn:hover {
-  background: var(--primary-dark);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-}
-
-.btn-success {
-  background: var(--success);
-}
-
-.btn-success:hover {
-  background: var(--success-dark);
-}
-
-.btn-danger {
-  background: rgba(239, 68, 68, 0.15);
-  color: var(--danger);
-  border: 1px solid var(--danger);
-  padding: 8px 16px;
-  font-size: 0.85rem;
-}
-
-.btn-danger:hover {
-  background: var(--danger);
-  color: #fff;
-  transform: translateY(-2px);
-}
-
-.btn-secondary {
-  background: var(--bg-tertiary);
-  color: var(--text);
-  border: 1px solid var(--border);
-}
-
-.btn-secondary:hover {
-  background: var(--card-hover);
-  border-color: var(--border-hover);
-}
-
-.btn-icon {
-  padding: 8px 12px;
-  font-size: 0.9rem;
-}
-
 .card {
   background: var(--card);
   backdrop-filter: blur(20px);
@@ -419,19 +354,41 @@ body::before {
     padding: 16px;
   }
 
-  
+  .top-bar {
+    flex-wrap: wrap;
+    padding: 14px 16px;
+    gap: 12px;
+  }
 
-  
+  .top-bar-left {
+    width: 100%;
+    justify-content: center;
+  }
 
-  
+  .top-bar h1 {
+    font-size: 1.15rem;
+  }
 
-  
+  .global-nav {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    flex-wrap: nowrap;
+    padding: 8px 0;
+  }
 
-  
+  .global-nav::-webkit-scrollbar {
+    display: none;
+  }
 
-  
+  .nav-link {
+    font-size: 0.8rem;
+    padding: 6px 12px;
+    flex-shrink: 0;
+  }
 
-  
 
   .header {
     flex-direction: column;
@@ -627,7 +584,7 @@ body::before {
 <div class="container">
   <!-- nav.js рендерит top-bar автоматически -->
   <div style="display:flex;justify-content:flex-end;padding:16px 0 0">
-    <button class="btn" id="btnAddExecutor">➕ Добавить исполнителя</button>
+    <button class="btn-nav-action" id="btnAddExecutor">➕ Добавить исполнителя</button>
   </div>
 
   <div class="card">
@@ -697,7 +654,10 @@ body::before {
 
 <footer class="page-footer">
   <div class="footer-content">
-        <div class="footer-desc">
+    <div class="footer-theme">
+      <button id="themeToggle">🌙</button>
+    </div>
+    <div class="footer-desc">
       <strong>Исполнители</strong> — управление командой студии. 
       Добавляйте сотрудников, назначайте роли, отслеживайте активность. 
       Исполнители получают работы через распределение на доске заказов.
@@ -705,13 +665,12 @@ body::before {
   </div>
 </footer>
 
-
-
 <script>
 (function() {
 'use strict';
 
 const sb = getDB();
+
 let currentUser = null;
 let currentStudio = null;
 let editingExecutorId = null;
@@ -725,6 +684,16 @@ const roleNames = {
 };
 
 // Auth check
+async function checkAuth() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) {
+    window.location.href = 'welcome.html';
+    return false;
+  }
+  currentUser = session.user;
+  return true;
+}
+
 // Get studio
 async function getStudio() {
   const { data, error } = await sb
@@ -995,16 +964,31 @@ async function saveExecutor(e) {
   }
 }
 
+// Drawer Menu
+
+// Theme
+function toggleTheme() {
+  const current = document.documentElement.getAttribute('data-theme');
+  const next = current === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('theme', next);
+  updateThemeIcon(next);
+}
+
+function updateThemeIcon(theme) {
+  document.getElementById('themeToggle').textContent = theme === 'dark' ? '☀️' : '🌙';
+}
+
 // Init
 document.addEventListener('DOMContentLoaded', async () => {
   await initNav();
-  const user = await checkAuth();
-  if (!user) return;
+  if (!await checkAuth()) return;
   if (!await getStudio()) return;
   
-  await loadExecutors();
+    await loadExecutors();
   
   // Events
+  document.getElementById('themeToggle').addEventListener('click', toggleTheme);
   document.getElementById('btnAddExecutor').addEventListener('click', () => openModal());
   document.getElementById('modalClose').addEventListener('click', closeModal);
   document.getElementById('btnCancel').addEventListener('click', closeModal);
