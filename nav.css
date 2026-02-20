@@ -5,8 +5,9 @@
    с .top-bar на отдельных страницах.
 ═══════════════════════════════════════════ */
 
-/* Светлая тема по умолчанию для всех страниц */
+/* Системный шрифт Apple — SF Pro на Mac/iOS, лучший на каждой платформе */
 :root {
+  --font: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
   --bg-primary:    #f0f4fb;
   --bg-card:       #ffffff;
   --bg-input:      #f1f5ff;
@@ -55,7 +56,7 @@
   font-weight: 800;
   color: var(--primary);
   white-space: nowrap;
-  font-family: 'Inter', -apple-system, sans-serif;
+  font-family: var(--font);
   text-decoration: none;
 }
 
@@ -86,7 +87,7 @@
   transition: all 0.15s;
   flex-shrink: 0;
   cursor: pointer;
-  font-family: 'Inter', -apple-system, sans-serif;
+  font-family: var(--font);
   text-decoration: none !important;
 }
 #navTopBar .nav-link:hover:not(.nav-soon) {
@@ -137,7 +138,7 @@
   border: none;
   cursor: pointer;
   transition: all 0.15s;
-  font-family: 'Inter', -apple-system, sans-serif;
+  font-family: var(--font);
   text-decoration: none !important;
   box-shadow: 0 2px 8px rgba(37,99,235,0.25);
 }
@@ -162,4 +163,11 @@
   #navTopBar .nav-links { order: 3; width: 100%; padding-bottom: 2px; }
   #navTopBar .nav-right  { margin-left: auto; }
   #navTopBar .nav-brand  { font-size: 0.88rem; }
+}
+
+/* Глобальный шрифт — применяется ко всем страницам через nav.css */
+body {
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
