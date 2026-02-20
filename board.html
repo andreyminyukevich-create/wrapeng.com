@@ -3,17 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Доска заказов</title>
-<script>
-const savedTheme = localStorage.getItem('theme') || 'dark';
-document.documentElement.setAttribute('data-theme', savedTheme);
-</script>
+<title>В работе — CRM</title>
+<script>document.documentElement.setAttribute('data-theme', 'light');</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="stylesheet" href="nav.css">
 <script src="nav.js"></script>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-
 :root {
   --bg-primary: #080f1e;
   --bg-secondary: #0e1829;
@@ -52,7 +47,8 @@ document.documentElement.setAttribute('data-theme', savedTheme);
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-  font-family: 'Inter', -apple-system, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
   background: var(--bg-primary);
   color: var(--text);
   line-height: 1.5;
@@ -325,7 +321,7 @@ body {
 
 /* Column */
 .column {
-  flex: 0 0 240px;
+  flex: 0 0 280px;
   background: var(--bg-secondary);
   border-radius: 16px;
   border: 1px solid var(--border);
@@ -442,19 +438,20 @@ body {
 
 .card-actions {
   display: flex;
-  gap: 6px;
+  flex-direction: column;
+  gap: 5px;
 }
 
 .card-btn {
-  flex: 1;
-  padding: 6px 10px;
+  width: 100%;
+  padding: 7px 12px;
   border-radius: 8px;
-  font-size: 0.75rem;
+  font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
   border: none;
   transition: all 0.2s;
-  font-family: 'Inter', sans-serif;
+  font-family: inherit;
   text-align: center;
 }
 
@@ -854,7 +851,7 @@ body {
 </head>
 <body>
 
-<!-- nav.js рендерит top-bar -->
+
 
 <!-- Board -->
 <div class="board-wrap" id="board">
@@ -962,16 +959,10 @@ body {
   </div>
 </div>
 
-
 <footer class="page-footer">
   <div class="footer-content">
-    <div class="footer-theme">
-      <button id="themeToggle">🌙</button>
-    </div>
     <div class="footer-desc">
-      <strong>Заказы</strong> — канбан-доска для управления воронкой продаж. 
-      5 стадий: Расчёт → Заезд → В работе → Завершено → Выдано. 
-      Перемещайте заказы между стадиями, назначайте даты заезда, отслеживайте прогресс работ.
+      <strong>В работе</strong> — канбан-доска. 5 стадий: Расчёт → Заезд → В работе → Завершено → Выдано.
     </div>
   </div>
 </footer>
@@ -998,25 +989,10 @@ const COLUMNS = [
 ];
 
 // Theme
-function initTheme() {
-  const t = localStorage.getItem('theme') || 'dark';
-  document.documentElement.setAttribute('data-theme', t);
-  const toggle = document.getElementById('themeToggle');
-  if (toggle) {
-    toggle.textContent = t === 'dark' ? '☀️' : '🌙';
-  }
 }
 
 // Drawer Menu
-function openDrawer() {
-  document.getElementById('drawer').classList.add('active');
-  document.getElementById('drawerOverlay').classList.add('active');
-}
 
-window.closeDrawer = function() {
-  document.getElementById('drawer').classList.remove('active');
-  document.getElementById('drawerOverlay').classList.remove('active');
-};
 
 // Format
 function fmt(n) {
@@ -1304,7 +1280,6 @@ document.querySelectorAll('.modal').forEach(m => {
 // Init
 async function init() {
   initNav();
-  initTheme();
   if (!await checkAuth()) return;
   if (!await getStudio()) return;
   await loadBoard();
