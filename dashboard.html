@@ -1122,14 +1122,8 @@ select option {
   </div>
 
 
-  <!-- Actions Bar -->
-  <div class="actions-bar">
-    <div class="actions-left">
-      <a href="calculator.html" class="btn btn-primary">➕ Новый расчет</a>
-      <a href="board.html" class="btn btn-primary" style="background:linear-gradient(135deg,#5b9cf6,#a78bfa)">📋 Доска</a>
-      <a href="executors.html" class="btn btn-success">👥 Исполнители</a>
-      <a href="payouts.html" class="btn btn-success">💰 Подсчет ЗП</a>
-    </div>
+  <!-- Поиск -->
+  <div style="margin-bottom: 20px;">
     <div class="search-box">
       <input type="text" id="searchInput" placeholder="Поиск по машине..." oninput="handleSearch()">
     </div>
@@ -1284,11 +1278,12 @@ async function loadMiniKanban(studioId) {
     .order('created_at', { ascending: false });
 
   if (error) { 
-    console.error('loadMiniKanban error:', error); 
+    console.error('loadMiniKanban error:', error);
+    document.getElementById('miniKanban').innerHTML = '<div style="padding:20px;color:#f87171">❌ Ошибка загрузки: ' + (error.message || error) + '</div>';
     return; 
   }
   if (!data) {
-    console.log('loadMiniKanban: no data');
+    document.getElementById('miniKanban').innerHTML = '<div style="padding:20px;color:var(--text-muted)">📭 Нет заказов</div>';
     return;
   }
 
@@ -1400,7 +1395,10 @@ async function init() {
     .eq('is_active', true)
     .single();
 
-  if (!memberData) return;
+  if (!memberData) {
+    document.getElementById('miniKanban').innerHTML = '<div style="padding:20px;color:var(--text-muted)">⚠️ Студия не настроена</div>';
+    return;
+  }
   const studioId = memberData.studio_id;
 
   // Загружаем данные для статистики и поиска
