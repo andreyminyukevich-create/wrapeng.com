@@ -1,23 +1,29 @@
-/* nav.css — только top-bar компонент, без :root переменных */
-/* Все цветовые переменные берутся из каждой страницы */
+/* nav.css — использует #navTopBar чтобы не конфликтовать с .top-bar страниц */
 
-.top-bar {
-  display: flex;
-  align-items: center;
-  padding: 0 24px;
-  height: 52px;
-  background: var(--bg-card, var(--card, #131f35));
-  border-bottom: 1px solid var(--border);
-  position: sticky;
-  top: 0;
-  z-index: 300;
-  box-shadow: var(--shadow, 0 4px 24px rgba(0,0,0,0.4));
-  gap: 12px;
+#navTopBar {
+  display: flex !important;
+  align-items: center !important;
+  padding: 0 24px !important;
+  height: 52px !important;
+  min-height: 52px !important;
+  max-height: 52px !important;
+  background: var(--bg-card, var(--card, #131f35)) !important;
+  border-bottom: 1px solid var(--border) !important;
+  border-radius: 0 !important;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 500 !important;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.3) !important;
+  gap: 12px !important;
+  margin: 0 !important;
+  margin-bottom: 0 !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
 }
 
-.top-bar-left { flex-shrink: 0; }
+#navTopBar .top-bar-left { flex-shrink: 0; }
 
-.top-bar-title {
+#navTopBar .top-bar-title {
   font-size: 1rem;
   font-weight: 800;
   background: linear-gradient(135deg, var(--primary, #5b9cf6), var(--success, #22d3a0));
@@ -27,7 +33,7 @@
   font-family: 'Inter', -apple-system, sans-serif;
 }
 
-.global-nav {
+#navTopBar .global-nav {
   display: flex;
   align-items: center;
   gap: 2px;
@@ -36,9 +42,9 @@
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
-.global-nav::-webkit-scrollbar { display: none; }
+#navTopBar .global-nav::-webkit-scrollbar { display: none; }
 
-.nav-link {
+#navTopBar .nav-link {
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -53,18 +59,18 @@
   flex-shrink: 0;
   cursor: pointer;
   font-family: 'Inter', -apple-system, sans-serif;
-  text-decoration: none;
+  text-decoration: none !important;
 }
-.nav-link:hover:not(.nav-soon) {
+#navTopBar .nav-link:hover:not(.nav-soon) {
   background: var(--bg-input);
   color: var(--text);
 }
-.nav-link.active {
+#navTopBar .nav-link.active {
   background: var(--primary);
-  color: #fff;
+  color: #fff !important;
   border-color: var(--primary);
 }
-.nav-link.nav-soon {
+#navTopBar .nav-link.nav-soon {
   opacity: 0.4;
   cursor: default;
   pointer-events: none;
@@ -79,14 +85,14 @@
   flex-shrink: 0;
 }
 
-.top-bar-right {
+#navTopBar .top-bar-right {
   display: flex;
   align-items: center;
   gap: 8px;
   flex-shrink: 0;
 }
 
-.theme-toggle {
+#navTopBar .theme-toggle {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -100,15 +106,15 @@
   transition: all 0.15s;
   font-family: inherit;
 }
-.theme-toggle:hover { transform: rotate(20deg); }
+#navTopBar .theme-toggle:hover { transform: rotate(20deg); }
 
-.btn-nav-action {
+#navTopBar .btn-nav-action {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   padding: 8px 16px;
   background: var(--primary);
-  color: #fff;
+  color: #fff !important;
   border-radius: 8px;
   font-size: 0.85rem;
   font-weight: 600;
@@ -117,19 +123,25 @@
   cursor: pointer;
   transition: all 0.15s;
   font-family: 'Inter', -apple-system, sans-serif;
-  text-decoration: none;
+  text-decoration: none !important;
 }
-.btn-nav-action:hover {
+#navTopBar .btn-nav-action:hover {
   background: var(--primary-dark, #2563eb);
   transform: translateY(-1px);
 }
 
 @media (max-width: 900px) {
-  .top-bar { padding: 0 14px; }
-  .nav-link { font-size: 0.78rem; padding: 5px 9px; }
+  #navTopBar { padding: 0 14px !important; }
+  #navTopBar .nav-link { font-size: 0.78rem; padding: 5px 9px; }
 }
 @media (max-width: 600px) {
-  .top-bar { flex-wrap: wrap; height: auto; padding: 10px 12px; gap: 8px; }
-  .global-nav { order: 3; width: 100%; }
-  .top-bar-right { margin-left: auto; }
+  #navTopBar {
+    flex-wrap: wrap !important;
+    height: auto !important;
+    max-height: none !important;
+    padding: 10px 12px !important;
+    gap: 8px !important;
+  }
+  #navTopBar .global-nav { order: 3; width: 100%; }
+  #navTopBar .top-bar-right { margin-left: auto; }
 }
