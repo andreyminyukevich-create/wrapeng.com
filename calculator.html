@@ -1387,6 +1387,85 @@ tfoot th:first-child {
   color: #0f172a !important;
 }
 
+
+
+/* ── Keep1R брендинг на странице калькулятора ── */
+#keep1r-bar {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: #0f172a;
+  color: #94a3b8;
+  font-size: 0.78rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 8px 20px;
+  z-index: 100;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  flex-wrap: wrap;
+}
+#keep1r-bar .k-logo {
+  font-weight: 800;
+  color: #fff;
+  font-size: 0.88rem;
+  letter-spacing: -0.3px;
+}
+#keep1r-bar .k-logo span { color: #3b82f6; }
+#keep1r-bar a {
+  color: #94a3b8;
+  text-decoration: none;
+  transition: color 0.15s;
+}
+#keep1r-bar a:hover { color: #fff; }
+#keep1r-bar .k-sep { color: #334155; }
+/* ── Keep1R брендинг в PDF ── */
+#pdfTemplates .kp-brand-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #e2e8f0;
+}
+#pdfTemplates .kp-brand-logo {
+  font-size: 22px;
+  font-weight: 900;
+  color: #0f172a;
+  letter-spacing: -1px;
+}
+#pdfTemplates .kp-brand-logo span {
+  color: #2563eb;
+}
+#pdfTemplates .kp-brand-contacts {
+  text-align: right;
+  font-size: 8px;
+  color: #64748b;
+  line-height: 1.8;
+}
+#pdfTemplates .kp-brand-contacts a {
+  color: #2563eb;
+  text-decoration: none;
+}
+#pdfTemplates .kp-brand-footer {
+  margin-top: 28px;
+  padding-top: 12px;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 7.5px;
+  color: #94a3b8;
+}
+#pdfTemplates .kp-brand-footer-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+#pdfTemplates .kp-brand-footer strong {
+  color: #475569;
+}
+
 #telegramWarning {
   display: none;
   background: rgba(245, 158, 11, 0.1);
@@ -1861,12 +1940,61 @@ tfoot th:first-child {
     </div>
 
   </div>
+
+<!-- Keep1R Brand Footer -->
+<div id="keeperBrand" style="
+  background: #0f172a;
+  color: #fff;
+  padding: 24px 32px;
+  margin-top: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+">
+  <div>
+    <div style="font-size:1.3rem;font-weight:900;letter-spacing:-0.5px">KEEP<span style="color:#3b82f6">1</span>R</div>
+    <div style="font-size:0.75rem;color:#94a3b8;margin-top:3px">Профессиональные плёнки PPF и винил для авто</div>
+  </div>
+  <div style="display:flex;gap:24px;flex-wrap:wrap;font-size:0.82rem">
+    <a href="https://keep1r.ru" target="_blank" style="color:#94a3b8;text-decoration:none;display:flex;align-items:center;gap:6px;transition:color 0.15s" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#94a3b8'">
+      🌐 keep1r.ru
+    </a>
+    <a href="https://t.me/PPFKeep1R" target="_blank" style="color:#94a3b8;text-decoration:none;display:flex;align-items:center;gap:6px" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#94a3b8'">
+      ✈️ @PPFKeep1R
+    </a>
+    <a href="tel:+79303371008" style="color:#94a3b8;text-decoration:none;display:flex;align-items:center;gap:6px" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#94a3b8'">
+      📞 +7 930 337 1008
+    </a>
+  </div>
+  <div style="font-size:0.75rem;color:#475569;text-align:right">
+    Калькулятор предоставлен бесплатно<br>
+    <span style="color:#3b82f6">Используете плёнку Keep1R?</span>
+  </div>
+</div>
+
 </div>
 
 <div id="pdfTemplates">
   <!-- КП -->
   <div id="pdfKP" class="pdf-block">
     <div class="trial-watermark" id="watermarkKP" style="display:none"></div>
+
+    <!-- Хедер КП — брендинг Keep1R -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;padding-bottom:14px;border-bottom:2px solid #e2e8f0">
+      <div>
+        <div style="font-size:22px;font-weight:900;letter-spacing:-1px;color:#0f172a">KEEP<span style="color:#2563eb">1</span>R</div>
+        <div style="font-size:8px;color:#64748b;font-weight:600;letter-spacing:0.15em;text-transform:uppercase;margin-top:2px">Профессиональная плёнка для авто</div>
+      </div>
+      <div style="text-align:right;font-size:8px;color:#475569;line-height:1.8">
+        <div>🌐 keep1r.ru</div>
+        <div>✈️ @PPFKeep1R</div>
+        <div>📞 +7 930 337 1008</div>
+      </div>
+    </div>
+
     <h1>КОММЕРЧЕСКОЕ ПРЕДЛОЖЕНИЕ</h1>
     <p id="pdfKPMeta" style="text-align:center;margin-bottom:20px;font-weight:600"></p>
     <table>
@@ -1875,6 +2003,20 @@ tfoot th:first-child {
       <tfoot><tr><th colspan="2">ИТОГО:</th><th id="pdfKPTotal"></th></tr></tfoot>
     </table>
     <p style="text-align:center;margin-top:24px;font-style:italic;color:#64748b;font-size:10px">Коммерческое предложение актуально в течение 3х дней</p>
+
+    <!-- Футер КП — брендинг Keep1R -->
+    <div style="position:absolute;bottom:20mm;left:20mm;right:20mm;border-top:1px solid #e2e8f0;padding-top:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;font-size:7.5px;color:#94a3b8">
+        <div>
+          <span style="font-weight:800;color:#0f172a">KEEP1R</span> — поставщик защитных плёнок PPF и винила для профессиональных студий
+        </div>
+        <div style="display:flex;gap:14px;white-space:nowrap">
+          <span>keep1r.ru</span>
+          <span>@PPFKeep1R</span>
+          <span>+7 930 337 1008</span>
+        </div>
+      </div>
+    </div>
   </div>
   
   <!-- СЕБЕСТОИМОСТЬ -->
