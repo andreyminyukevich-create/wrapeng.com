@@ -4097,19 +4097,36 @@ qa('.chip').forEach(ch => {
     const origText = btn.textContent;
     btn.textContent = '⏳ Генерация...';
     btn.disabled = true;
+
+    const fallbackDownload = () => {
+      prepKP();
+      setTimeout(() => exportPDF('#pdfKP', 'КП_оклейка.pdf'), 100);
+    };
+
     try {
       prepKP();
       await new Promise(resolve => setTimeout(resolve, 400));
 
       const { jsPDF } = window.jspdf || {};
       if (!jsPDF || !window.html2canvas) {
-        // Библиотеки не загружены — просто скачиваем
-        exportPDF('#pdfKP', 'КП_оклейка.pdf');
+        fallbackDownload();
         return;
       }
 
       const block = q('#pdfKP');
-      const canvas = await window.html2canvas(block, { scale: 2, useCORS: true, backgroundColor: '#fff', logging: false });
+      let canvas;
+      try {
+        canvas = await window.html2canvas(block, {
+          scale: 2, useCORS: true, allowTaint: true,
+          backgroundColor: '#fff', logging: false
+        });
+      } catch (canvasErr) {
+        // html2canvas не смог — тихо скачиваем
+        console.warn('html2canvas failed, falling back to download:', canvasErr);
+        fallbackDownload();
+        return;
+      }
+
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
       const pw = pdf.internal.pageSize.getWidth();
       const ph = pdf.internal.pageSize.getHeight();
@@ -4121,11 +4138,11 @@ qa('.chip').forEach(ch => {
       const pdfBlob = pdf.output('blob');
       const pdfFile = new File([pdfBlob], 'КП_оклейка.pdf', { type: 'application/pdf' });
 
-      // Пробуем Share API (работает на мобильных)
+      // Пробуем Share API с файлом (работает на iOS/Android)
       if (navigator.share && navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
         await navigator.share({ title: 'Коммерческое предложение', files: [pdfFile] });
       } else {
-        // Desktop или Telegram — скачиваем файл
+        // Desktop или Telegram — скачиваем
         const url = URL.createObjectURL(pdfBlob);
         const a = document.createElement('a');
         a.href = url; a.download = 'КП_оклейка.pdf'; a.click();
@@ -4133,8 +4150,8 @@ qa('.chip').forEach(ch => {
       }
     } catch (err) {
       if (err.name !== 'AbortError') {
-        console.error('Share error:', err);
-        alert('Не удалось поделиться. Используйте кнопку "Скачать КП".');
+        console.warn('Share error, falling back to download:', err);
+        fallbackDownload(); // тихо скачиваем вместо алерта
       }
     } finally {
       btn.textContent = origText;
