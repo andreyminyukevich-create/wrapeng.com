@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Главная — CRM</title>
+<title>Keep1R CRM — Главная</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="stylesheet" href="nav.css">
@@ -345,6 +345,7 @@ body {
 const SUPABASE_URL     = 'https://hdghijgrrnzmntistdvw.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkZ2hpamdycm56bW50aXN0ZHZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMzMyNzksImV4cCI6MjA3NTYwOTI3OX0.D9EDTmVrFRVp0B8_5tCJM29gbFdtadsom0Ihsf4uQ8Q';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+window._crmSb = sb; // для nav.js checkSubscription
 
 let currentUser        = null;
 let allCalcsForSearch  = [];
@@ -476,6 +477,45 @@ window.handleSearch = function() {
   }, 300);
 };
 
+
+// ── Дашборд-дразнилка для неоплативших ────────────────────────
+function showLockedDashboard() {
+  // Стат карточки — замазываем цифры
+  const fakeStats = [
+    { icon: '🧮', label: 'Расчётов за месяц', value: '██', change: '+██%', color: '#2563eb' },
+    { icon: '💰', label: 'Выручка за месяц',  value: '███ ███ ₽', change: '+██%', color: '#059669' },
+    { icon: '🔧', label: 'В работе сейчас',   value: '██', change: '', color: '#d97706' },
+    { icon: '✅', label: 'Выдано за месяц',   value: '██', change: '+██%', color: '#7c3aed' },
+  ];
+
+  const grid = document.getElementById('statsGrid');
+  if (grid) {
+    grid.innerHTML = fakeStats.map(s => `
+      <div class="stat-card" style="cursor:default" title="Оформите подписку для просмотра">
+        <div class="stat-icon" style="color:${s.color}">${s.icon}</div>
+        <div class="stat-label">${s.label}</div>
+        <div class="stat-value" style="filter:blur(4px);user-select:none">${s.value}</div>
+        ${s.change ? `<div class="stat-change" style="filter:blur(4px);user-select:none">${s.change}</div>` : ''}
+      </div>
+    `).join('');
+  }
+
+  // Канбан — заглушка
+  const kanban = document.getElementById('miniKanban');
+  if (kanban) {
+    kanban.innerHTML = `
+      <div style="text-align:center;padding:32px 16px;color:#94a3b8">
+        <div style="font-size:2rem;margin-bottom:10px">📋</div>
+        <div style="font-size:0.9rem;font-weight:600;color:#64748b;margin-bottom:4px">Здесь будут ваши заказы</div>
+        <div style="font-size:0.8rem">Оформите подписку, чтобы увидеть доску</div>
+      </div>`;
+  }
+
+  // Поиск — отключаем
+  const search = document.getElementById('searchInput');
+  if (search) { search.disabled = true; search.placeholder = '🔒 Доступно после оплаты'; }
+}
+
 // ── Init ──────────────────────────────────────
 async function init() {
   initNav();
@@ -496,6 +536,15 @@ async function init() {
 
   const studioId = member.studio_id;
 
+  // Проверка подписки
+  const subStatus = await checkSubscription(studioId);
+  if (subStatus === 'expired' || subStatus === 'none') {
+    showPaywall(subStatus === 'expired');
+    showLockedDashboard();
+    return;
+  }
+
+  // Активна или триал — грузим данные
   const { data: calcs } = await sb
     .from('calculations')
     .select('id, car_name, total_price, final_price, status, work_assigned, created_at')
@@ -512,5 +561,6 @@ document.addEventListener('DOMContentLoaded', init);
 })();
 </script>
 
+<script src="footer.js"></script>
 </body>
 </html>
