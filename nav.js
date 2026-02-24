@@ -8,6 +8,8 @@
 
   document.documentElement.setAttribute('data-theme', 'light');
 
+  var ADMIN_ID = 'c5db87ec-8e4a-4c48-bad3-5747513224d9';
+
   var PAGES = [
     { href: 'dashboard.html',   icon: '🏠', label: 'Главная' },
     { href: 'board.html',       icon: '🔧', label: 'В работе' },
@@ -40,6 +42,23 @@
 
     var actionBtn = hideAction ? '' :
       '<a href="' + actionHref + '" class="btn-nav-action">' + actionLabel + '</a>';
+
+    // Проверяем текущего пользователя для показа пункта Админ
+    var SUPABASE_URL = 'https://hdghijgrrnzmntistdvw.supabase.co';
+    var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkZ2hpamdycm56bW50aXN0ZHZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMzMyNzksImV4cCI6MjA3NTYwOTI3OX0.D9EDTmVrFRVp0B8_5tCJM29gbFdtadsom0Ihsf4uQ8Q';
+    var _sb = window._crmSb || window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    _sb.auth.getSession().then(function(res) {
+      var session = res.data && res.data.session;
+      if (session && session.user && session.user.id === ADMIN_ID) {
+        var adminLink = document.createElement('a');
+        adminLink.href = 'admin.html';
+        adminLink.className = 'nav-link' + (page === 'admin.html' ? ' active' : '');
+        adminLink.textContent = '⚙️ Админ';
+        adminLink.style.color = '#7c3aed';
+        var navLinks = document.querySelector('#navTopBar .nav-links');
+        if (navLinks) navLinks.appendChild(adminLink);
+      }
+    });
 
     var html =
       '<div id="navTopBar">' +
