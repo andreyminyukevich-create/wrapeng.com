@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Администрирование — CRM</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="stylesheet" href="nav.css">
+<script src="nav.js"></script>
+<style>
+:root {
+  --bg: #f0f4fb;
+  --card: #ffffff;
+  --border: rgba(15,23,42,0.09);
+  --text: #0f172a;
+  --muted: #64748b;
+  --primary: #2563eb;
+  --success: #059669;
+  --warning: #d97706;
+  --danger: #dc2626;
+  --purple: #7c3aed;
+  --radius: 12px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: inherit; }
+
+.page { max-width: 1100px; margin: 0 auto; padding: 28px 20px; }
+
+/* ── Заголовок страницы ── */
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.page-title {
+  font-size: 1.4rem;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+}
+.page-title span { color: var(--primary); }
+
+/* ── Табы ── */
+.tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 4px;
+  margin-bottom: 24px;
+  width: fit-content;
+}
+.tab-btn {
+  padding: 7px 18px;
+  border-radius: 7px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-family: inherit;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.tab-btn.active {
+  background: var(--primary);
+  color: #fff;
+}
+
+/* ── Карточка ── */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+}
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.card-head h2 { font-size: 0.95rem; font-weight: 700; }
+
+/* ── Таблица ── */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+thead th {
+  background: #f8faff;
+  padding: 10px 16px;
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+tbody td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+tbody tr:last-child td { border-bottom: none; }
+tbody tr:hover { background: #f8faff; }
+
+.studio-name { font-weight: 700; font-size: 0.88rem; }
+.studio-email { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+
+/* ── Бейджи подписки ── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.badge-active  { background: rgba(5,150,105,0.1);  color: var(--success); }
+.badge-trial   { background: rgba(37,99,235,0.1);   color: var(--primary); }
+.badge-expired { background: rgba(220,38,38,0.1);   color: var(--danger);  }
+.badge-ref     { background: rgba(124,58,237,0.1);  color: var(--purple);  }
+.badge-pending { background: rgba(217,119,6,0.1);   color: var(--warning); }
+.badge-paid    { background: rgba(5,150,105,0.1);   color: var(--success); }
+
+/* ── Кнопки действий ── */
+.actions { display: flex; gap: 5px; flex-wrap: wrap; }
+.btn {
+  padding: 5px 12px;
+  border-radius: 7px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.btn-primary  { background: var(--primary); color: #fff; }
+.btn-primary:hover { background: #1d4ed8; }
+.btn-success  { background: var(--success); color: #fff; }
+.btn-success:hover { background: #047857; }
+.btn-warning  { background: rgba(217,119,6,0.12); color: var(--warning); border: 1px solid rgba(217,119,6,0.25); }
+.btn-warning:hover { background: var(--warning); color: #fff; }
+.btn-danger   { background: rgba(220,38,38,0.08); color: var(--danger); border: 1px solid rgba(220,38,38,0.2); }
+.btn-danger:hover { background: var(--danger); color: #fff; }
+.btn-ghost    { background: #f1f5ff; color: var(--primary); border: 1px solid rgba(37,99,235,0.15); }
+.btn-ghost:hover { background: var(--primary); color: #fff; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── Stat карточки ── */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 14px;
+  margin-bottom: 24px;
+}
+.stat-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+.stat-label { font-size: 0.75rem; color: var(--muted); font-weight: 600; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+.stat-value { font-size: 1.8rem; font-weight: 800; letter-spacing: -1px; }
+.stat-sub   { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+
+/* ── Реферальный код ── */
+.ref-code {
+  font-family: monospace;
+  font-size: 0.85rem;
+  font-weight: 700;
+  background: #f1f5ff;
+  color: var(--primary);
+  padding: 3px 8px;
+  border-radius: 6px;
+  letter-spacing: 0.1em;
+}
+
+.expires-text { font-size: 0.8rem; color: var(--muted); }
+.expires-soon { color: var(--warning); font-weight: 600; }
+
+/* ── Пустое состояние ── */
+.empty { text-align: center; padding: 40px; color: var(--muted); }
+.empty-icon { font-size: 2.5rem; margin-bottom: 10px; }
+
+/* ── Модалка ── */
+.modal-overlay {
+  display: none;
+  position: fixed; inset: 0; z-index: 1000;
+  background: rgba(15,23,42,0.4);
+  backdrop-filter: blur(4px);
+  align-items: center; justify-content: center;
+  padding: 20px;
+}
+.modal-overlay.active { display: flex; }
+.modal {
+  background: #fff;
+  border-radius: 16px;
+  padding: 28px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+}
+.modal h3 { font-size: 1.1rem; font-weight: 800; margin-bottom: 16px; }
+.modal-actions { display: flex; gap: 8px; margin-top: 20px; }
+.modal-actions .btn { flex: 1; padding: 10px; font-size: 0.85rem; }
+
+/* ── Форма в модалке ── */
+.form-group { margin-bottom: 14px; }
+.form-group label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--muted); margin-bottom: 5px; }
+.form-group select, .form-group input {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-family: inherit;
+  color: var(--text);
+  outline: none;
+}
+.form-group select:focus, .form-group input:focus { border-color: var(--primary); }
+
+@media (max-width: 640px) {
+  .page { padding: 16px 14px; }
+  .actions { flex-direction: column; }
+  .btn { width: 100%; text-align: center; }
+}
+</style>
+</head>
+<body>
+
+<div class="page">
+  <div class="page-header">
+    <div class="page-title">⚙️ <span>Администрирование</span></div>
+    <div id="adminBadge" style="font-size:0.8rem;color:var(--muted)">Загрузка...</div>
+  </div>
+
+  <div class="stats-row" id="statsRow">
+    <div class="stat-card"><div class="stat-label">Студий всего</div><div class="stat-value" id="sTotal">—</div></div>
+    <div class="stat-card"><div class="stat-label">Активных</div><div class="stat-value" id="sActive" style="color:var(--success)">—</div></div>
+    <div class="stat-card"><div class="stat-label">На триале</div><div class="stat-value" id="sTrial" style="color:var(--primary)">—</div></div>
+    <div class="stat-card"><div class="stat-label">Истёк доступ</div><div class="stat-value" id="sExpired" style="color:var(--danger)">—</div></div>
+    <div class="stat-card"><div class="stat-label">Комиссий к выплате</div><div class="stat-value" id="sCommission" style="color:var(--purple)">—</div><div class="stat-sub">₽</div></div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('studios')">🏢 Студии</button>
+    <button class="tab-btn" onclick="switchTab('referrals')">🔗 Рефералы</button>
+    <button class="tab-btn" onclick="switchTab('commissions')">💰 Комиссии</button>
+  </div>
+
+  <!-- Таб: Студии -->
+  <div id="tab-studios">
+    <div class="card">
+      <div class="card-head">
+        <h2>Список студий</h2>
+        <button class="btn btn-primary" onclick="openAddModal()">➕ Добавить студию</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Студия</th>
+              <th>Реф. код</th>
+              <th>Подписка</th>
+              <th>Истекает</th>
+              <th>Действия</th>
+            </tr>
+          </thead>
+          <tbody id="studiosBody">
+            <tr><td colspan="5"><div class="empty"><div class="empty-icon">⏳</div>Загрузка...</div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Таб: Рефералы -->
+  <div id="tab-referrals" style="display:none">
+    <div class="card">
+      <div class="card-head"><h2>Реферальные связи</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Кто пригласил</th>
+              <th>Приглашённая студия</th>
+              <th>Реф. код</th>
+              <th>Дата регистрации</th>
+              <th>Статус подписки</th>
+            </tr>
+          </thead>
+          <tbody id="referralsBody">
+            <tr><td colspan="5"><div class="empty"><div class="empty-icon">⏳</div>Загрузка...</div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Таб: Комиссии -->
+  <div id="tab-commissions" style="display:none">
+    <div class="card">
+      <div class="card-head">
+        <h2>Комиссии к выплате</h2>
+        <button class="btn btn-success" onclick="markAllPaid()">✅ Отметить все выплаченными</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Реферрер</th>
+              <th>За студию</th>
+              <th>Сумма платежа</th>
+              <th>Комиссия 20%</th>
+              <th>Дата</th>
+              <th>Статус</th>
+              <th>Действие</th>
+            </tr>
+          </thead>
+          <tbody id="commissionsBody">
+            <tr><td colspan="7"><div class="empty"><div class="empty-icon">⏳</div>Загрузка...</div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Модалка: управление подпиской -->
+<div class="modal-overlay" id="subModal">
+  <div class="modal">
+    <h3 id="subModalTitle">Управление подпиской</h3>
+    <div style="font-size:0.85rem;color:var(--muted);margin-bottom:16px" id="subModalStudio"></div>
+    <div class="form-group">
+      <label>Действие</label>
+      <select id="subAction">
+        <option value="trial">⏰ Продлить триал +72 часа</option>
+        <option value="month">📅 Оплата месяц (+30 дней) — 4 900 ₽</option>
+        <option value="year">🗓 Оплата год (+365 дней) — 51 900 ₽</option>
+        <option value="custom">✏️ Произвольный срок</option>
+        <option value="block">🚫 Заблокировать</option>
+      </select>
+    </div>
+    <div class="form-group" id="customDaysGroup" style="display:none">
+      <label>Количество дней</label>
+      <input type="number" id="customDays" placeholder="30" min="1" max="3650">
+    </div>
+    <div id="subModalPayment" style="font-size:0.83rem;color:var(--muted);margin-bottom:4px"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('subModal')">Отмена</button>
+      <button class="btn btn-primary" id="subSaveBtn" onclick="saveSubscription()">Применить</button>
+    </div>
+  </div>
+</div>
+
+<!-- Модалка: добавить студию -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal">
+    <h3>Добавить студию</h3>
+    <div class="form-group">
+      <label>Название студии</label>
+      <input type="text" id="newStudioName" placeholder="Студия оклейки">
+    </div>
+    <div class="form-group">
+      <label>Email владельца</label>
+      <input type="email" id="newStudioEmail" placeholder="owner@studio.ru">
+    </div>
+    <div class="form-group">
+      <label>Тариф</label>
+      <select id="newStudioTier">
+        <option value="trial">Триал 72ч</option>
+        <option value="active_month">Активный (1 месяц)</option>
+        <option value="active_year">Активный (1 год)</option>
+      </select>
+    </div>
+    <div id="addError" style="color:var(--danger);font-size:0.82rem;margin-top:8px;display:none"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('addModal')">Отмена</button>
+      <button class="btn btn-primary" id="addSaveBtn" onclick="saveNewStudio()">Создать</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+'use strict';
+
+const ADMIN_USER_ID   = 'c5db87ec-8e4a-4c48-bad3-5747513224d9';
+const SUPABASE_URL    = 'https://hdghijgrrnzmntistdvw.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkZ2hpamdycm56bW50aXN0ZHZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMzMyNzksImV4cCI6MjA3NTYwOTI3OX0.D9EDTmVrFRVp0B8_5tCJM29gbFdtadsom0Ihsf4uQ8Q';
+
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+window._crmSb = sb;
+
+let allStudios = [];
+let activeStudioId = null;
+
+// ── Auth + доступ только для админа ──────────────────────────
+async function checkAdminAuth() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = 'welcome.html'; return false; }
+  if (session.user.id !== ADMIN_USER_ID) {
+    document.body.innerHTML = '<div style="text-align:center;padding:60px;font-family:sans-serif"><h2>🚫 Доступ запрещён</h2><p style="color:#64748b;margin-top:8px">Эта страница только для администратора</p><a href="dashboard.html" style="color:#2563eb">← Вернуться</a></div>';
+    return false;
+  }
+  document.getElementById('adminBadge').textContent = '👑 ' + session.user.email;
+  return true;
+}
+
+// ── Форматирование ────────────────────────────────────────────
+function fmt(n) {
+  return new Intl.NumberFormat('ru-RU').format(n || 0);
+}
+function fmtDate(d) {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+function subStatus(studio) {
+  const tier    = studio.subscription_tier;
+  const expires = studio.subscription_expires_at;
+  const now     = new Date();
+  if (tier === 'active') {
+    return (!expires || new Date(expires) > now) ? 'active' : 'expired';
+  }
+  if (tier === 'trial') {
+    return (expires && new Date(expires) > now) ? 'trial' : 'expired';
+  }
+  return 'expired';
+}
+function subBadge(studio) {
+  const s = subStatus(studio);
+  const labels = { active: '✅ Активна', trial: '⏰ Триал', expired: '❌ Истекла' };
+  const cls    = { active: 'badge-active', trial: 'badge-trial', expired: 'badge-expired' };
+  return `<span class="badge ${cls[s]}">${labels[s]}</span>`;
+}
+function expireText(studio) {
+  if (!studio.subscription_expires_at) return '—';
+  const d    = new Date(studio.subscription_expires_at);
+  const days = Math.ceil((d - new Date()) / 86400000);
+  const txt  = fmtDate(studio.subscription_expires_at);
+  if (days <= 7 && days > 0) return `<span class="expires-soon">⚠️ ${txt} (${days}д)</span>`;
+  if (days <= 0) return `<span style="color:var(--danger)">${txt}</span>`;
+  return `<span class="expires-text">${txt}</span>`;
+}
+
+// ── Загрузка данных ───────────────────────────────────────────
+async function loadAll() {
+  await Promise.all([loadStudios(), loadCommissions()]);
+}
+
+async function loadStudios() {
+  const { data, error } = await sb
+    .from('studios')
+    .select('id, name, owner_id, subscription_tier, subscription_expires_at, referral_code, referred_by_studio_id, created_at, settings')
+    .order('created_at', { ascending: false });
+
+  if (error) { console.error(error); return; }
+  allStudios = data || [];
+
+  // Считаем статы
+  let active = 0, trial = 0, expired = 0;
+  allStudios.forEach(s => {
+    const st = subStatus(s);
+    if (st === 'active') active++;
+    else if (st === 'trial') trial++;
+    else expired++;
+  });
+
+  document.getElementById('sTotal').textContent   = allStudios.length;
+  document.getElementById('sActive').textContent  = active;
+  document.getElementById('sTrial').textContent   = trial;
+  document.getElementById('sExpired').textContent = expired;
+
+  renderStudios();
+  renderReferrals();
+}
+
+async function loadCommissions() {
+  const { data, error } = await sb
+    .from('referral_commissions')
+    .select('*, referrer:referrer_studio_id(name), referred:referred_studio_id(name)')
+    .order('created_at', { ascending: false });
+
+  if (error) { console.error(error); return; }
+  const comms = data || [];
+
+  const pending = comms.filter(c => !c.paid_to_referrer).reduce((s, c) => s + Number(c.amount), 0);
+  document.getElementById('sCommission').textContent = fmt(pending);
+
+  renderCommissions(comms);
+}
+
+// ── Рендер студий ─────────────────────────────────────────────
+function renderStudios() {
+  const tbody = document.getElementById('studiosBody');
+
+  if (!allStudios.length) {
+    tbody.innerHTML = '<tr><td colspan="5"><div class="empty"><div class="empty-icon">🏢</div>Нет студий</div></td></tr>';
+    return;
+  }
+
+  // Получаем email владельцев через studio_members
+  tbody.innerHTML = allStudios.map(s => `
+    <tr>
+      <td>
+        <div class="studio-name">${s.name}</div>
+        <div class="studio-email" id="email-${s.id}">загрузка...</div>
+      </td>
+      <td>
+        ${s.referral_code
+          ? `<span class="ref-code">${s.referral_code}</span>`
+          : `<button class="btn btn-ghost" style="font-size:0.72rem" onclick="genRefCode('${s.id}')">Создать</button>`
+        }
+      </td>
+      <td>${subBadge(s)}</td>
+      <td>${expireText(s)}</td>
+      <td>
+        <div class="actions">
+          <button class="btn btn-primary" onclick="openSubModal('${s.id}')">⚙️ Подписка</button>
+          <button class="btn btn-danger" onclick="blockStudio('${s.id}', '${s.name}')">🚫</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+
+  // Подгружаем email для каждой студии
+  allStudios.forEach(async s => {
+    const { data } = await sb
+      .from('studio_members')
+      .select('user_id, role')
+      .eq('studio_id', s.id)
+      .eq('role', 'owner')
+      .single();
+
+    const el = document.getElementById(`email-${s.id}`);
+    if (!el) return;
+
+    if (data) {
+      const { data: userData } = await sb.auth.admin?.getUserById(data.user_id).catch(() => ({ data: null })) || { data: null };
+      // Fallback — показываем user_id сокращённо
+      el.textContent = data.user_id.slice(0, 8) + '...';
+    } else {
+      el.textContent = 'нет владельца';
+    }
+  });
+}
+
+// ── Рендер рефералов ──────────────────────────────────────────
+function renderReferrals() {
+  const tbody = document.getElementById('referralsBody');
+  const referred = allStudios.filter(s => s.referred_by_studio_id);
+
+  if (!referred.length) {
+    tbody.innerHTML = '<tr><td colspan="5"><div class="empty"><div class="empty-icon">🔗</div>Реферальных регистраций пока нет</div></td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = referred.map(s => {
+    const referrer = allStudios.find(r => r.id === s.referred_by_studio_id);
+    return `
+      <tr>
+        <td><div class="studio-name">${referrer ? referrer.name : '—'}</div></td>
+        <td><div class="studio-name">${s.name}</div></td>
+        <td>${referrer ? `<span class="ref-code">${referrer.referral_code || '—'}</span>` : '—'}</td>
+        <td>${fmtDate(s.created_at)}</td>
+        <td>${subBadge(s)}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+// ── Рендер комиссий ───────────────────────────────────────────
+function renderCommissions(comms) {
+  const tbody = document.getElementById('commissionsBody');
+
+  if (!comms.length) {
+    tbody.innerHTML = '<tr><td colspan="7"><div class="empty"><div class="empty-icon">💰</div>Комиссий нет</div></td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = comms.map(c => `
+    <tr>
+      <td><div class="studio-name">${c.referrer?.name || '—'}</div></td>
+      <td><div class="studio-name">${c.referred?.name || '—'}</div></td>
+      <td>${fmt(c.payment_amount)} ₽</td>
+      <td><strong>${fmt(c.amount)} ₽</strong></td>
+      <td>${fmtDate(c.payment_date)}</td>
+      <td>
+        ${c.paid_to_referrer
+          ? `<span class="badge badge-paid">✅ Выплачено ${fmtDate(c.paid_date)}</span>`
+          : `<span class="badge badge-pending">⏳ Ожидает</span>`
+        }
+      </td>
+      <td>
+        ${!c.paid_to_referrer
+          ? `<button class="btn btn-success" onclick="markCommissionPaid('${c.id}')">Выплатить</button>`
+          : '—'
+        }
+      </td>
+    </tr>
+  `).join('');
+}
+
+// ── Табы ─────────────────────────────────────────────────────
+window.switchTab = function(tab) {
+  ['studios', 'referrals', 'commissions'].forEach(t => {
+    document.getElementById(`tab-${t}`).style.display = t === tab ? 'block' : 'none';
+  });
+  document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+    btn.classList.toggle('active', ['studios','referrals','commissions'][i] === tab);
+  });
+};
+
+// ── Подписка: модалка ─────────────────────────────────────────
+window.openSubModal = function(studioId) {
+  activeStudioId = studioId;
+  const studio = allStudios.find(s => s.id === studioId);
+  document.getElementById('subModalTitle').textContent = 'Подписка: ' + studio.name;
+  document.getElementById('subModalStudio').textContent =
+    'Текущий статус: ' + subStatus(studio).toUpperCase() + ' · ' + expireText(studio).replace(/<[^>]+>/g, '');
+  document.getElementById('subAction').value = 'month';
+  updatePaymentHint();
+  document.getElementById('subModal').classList.add('active');
+};
+
+document.getElementById('subAction').addEventListener('change', updatePaymentHint);
+
+function updatePaymentHint() {
+  const action = document.getElementById('subAction').value;
+  const hint   = document.getElementById('subModalPayment');
+  const customGroup = document.getElementById('customDaysGroup');
+  customGroup.style.display = action === 'custom' ? 'block' : 'none';
+  const hints = {
+    trial: '72 часа бесплатного доступа',
+    month: 'Оплата 4 900 ₽ — создаст запись комиссии для реферрера',
+    year:  'Оплата 51 900 ₽ — создаст запись комиссии для реферрера',
+    custom: 'Произвольный срок без создания комиссии',
+    block: 'Немедленно заблокирует доступ к CRM',
+  };
+  hint.textContent = hints[action] || '';
+}
+
+window.saveSubscription = async function() {
+  const action = document.getElementById('subAction').value;
+  const btn    = document.getElementById('subSaveBtn');
+  btn.disabled = true; btn.textContent = 'Сохраняем...';
+
+  try {
+    const studio = allStudios.find(s => s.id === activeStudioId);
+    const now    = new Date();
+    // Берём максимум из текущей даты истечения и сейчас (чтобы не потерять остаток)
+    const base   = studio.subscription_expires_at && new Date(studio.subscription_expires_at) > now
+      ? new Date(studio.subscription_expires_at)
+      : now;
+
+    let tier, expires, paymentAmount = 0;
+
+    if (action === 'trial') {
+      tier    = 'trial';
+      expires = new Date(now.getTime() + 72 * 3600 * 1000).toISOString();
+    } else if (action === 'month') {
+      tier    = 'active';
+      expires = new Date(base.getTime() + 30 * 86400000).toISOString();
+      paymentAmount = 4900;
+    } else if (action === 'year') {
+      tier    = 'active';
+      expires = new Date(base.getTime() + 365 * 86400000).toISOString();
+      paymentAmount = 51900;
+    } else if (action === 'custom') {
+      const days = parseInt(document.getElementById('customDays').value);
+      if (!days || days < 1) { alert('Укажите количество дней'); btn.disabled = false; btn.textContent = 'Применить'; return; }
+      tier    = 'active';
+      expires = new Date(base.getTime() + days * 86400000).toISOString();
+    } else if (action === 'block') {
+      if (!confirm(`Заблокировать студию "${studio.name}"?`)) { btn.disabled = false; btn.textContent = 'Применить'; return; }
+      tier    = 'expired';
+      expires = now.toISOString();
+    }
+
+    // Обновляем подписку
+    const { error } = await sb
+      .from('studios')
+      .update({ subscription_tier: tier, subscription_expires_at: expires })
+      .eq('id', activeStudioId);
+
+    if (error) throw error;
+
+    // Создаём комиссию если реферрер есть и это оплата
+    if (paymentAmount > 0 && studio.referred_by_studio_id) {
+      await sb.from('referral_commissions').insert({
+        referrer_studio_id: studio.referred_by_studio_id,
+        referred_studio_id: activeStudioId,
+        amount: Math.round(paymentAmount * 0.2),
+        payment_amount: paymentAmount,
+        payment_date: new Date().toISOString().split('T')[0],
+        paid_to_referrer: false
+      });
+    }
+
+    closeModal('subModal');
+    await loadAll();
+  } catch (e) {
+    alert('Ошибка: ' + e.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Применить';
+  }
+};
+
+// ── Блокировка ────────────────────────────────────────────────
+window.blockStudio = async function(studioId, name) {
+  if (!confirm(`Заблокировать студию "${name}"?\nДоступ будет немедленно закрыт.`)) return;
+  await sb.from('studios').update({
+    subscription_tier: 'expired',
+    subscription_expires_at: new Date().toISOString()
+  }).eq('id', studioId);
+  await loadStudios();
+};
+
+// ── Генерация реф. кода ───────────────────────────────────────
+window.genRefCode = async function(studioId) {
+  const code = Math.random().toString(36).substring(2, 10).toUpperCase();
+  await sb.from('studios').update({ referral_code: code }).eq('id', studioId);
+  await loadStudios();
+};
+
+// ── Добавить студию ───────────────────────────────────────────
+window.openAddModal = function() {
+  document.getElementById('newStudioName').value = '';
+  document.getElementById('newStudioEmail').value = '';
+  document.getElementById('newStudioTier').value = 'trial';
+  document.getElementById('addError').style.display = 'none';
+  document.getElementById('addModal').classList.add('active');
+};
+
+window.saveNewStudio = async function() {
+  const name  = document.getElementById('newStudioName').value.trim();
+  const email = document.getElementById('newStudioEmail').value.trim();
+  const tier  = document.getElementById('newStudioTier').value;
+  const btn   = document.getElementById('addSaveBtn');
+  const errEl = document.getElementById('addError');
+
+  if (!name || !email) { errEl.textContent = 'Заполните все поля'; errEl.style.display = 'block'; return; }
+
+  btn.disabled = true; btn.textContent = 'Создаём...';
+  errEl.style.display = 'none';
+
+  try {
+    const now = new Date();
+    let expiresAt, subTier;
+
+    if (tier === 'trial') {
+      subTier   = 'trial';
+      expiresAt = new Date(now.getTime() + 72 * 3600 * 1000).toISOString();
+    } else if (tier === 'active_month') {
+      subTier   = 'active';
+      expiresAt = new Date(now.getTime() + 30 * 86400000).toISOString();
+    } else {
+      subTier   = 'active';
+      expiresAt = new Date(now.getTime() + 365 * 86400000).toISOString();
+    }
+
+    const refCode = Math.random().toString(36).substring(2, 10).toUpperCase();
+
+    // Создаём студию (без владельца — они сами зарегаются)
+    const { data: studio, error: studioErr } = await sb
+      .from('studios')
+      .insert({
+        name,
+        subscription_tier: subTier,
+        subscription_expires_at: expiresAt,
+        referral_code: refCode,
+        settings: { contact_email: email }
+      })
+      .select('id')
+      .single();
+
+    if (studioErr) throw studioErr;
+
+    // Генерируем пригласительную ссылку
+    const inviteLink = `${window.location.origin}/welcome.html?studio=${studio.id}`;
+    alert(`✅ Студия "${name}" создана!\n\nОтправь клиенту ссылку для регистрации:\n${inviteLink}\n\nЛибо они могут зарегаться сами — потом привяжи их вручную.`);
+
+    closeModal('addModal');
+    await loadStudios();
+  } catch (e) {
+    errEl.textContent = 'Ошибка: ' + e.message;
+    errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Создать';
+  }
+};
+
+// ── Комиссии ─────────────────────────────────────────────────
+window.markCommissionPaid = async function(id) {
+  await sb.from('referral_commissions').update({
+    paid_to_referrer: true,
+    paid_date: new Date().toISOString().split('T')[0]
+  }).eq('id', id);
+  await loadCommissions();
+};
+
+window.markAllPaid = async function() {
+  if (!confirm('Отметить все неоплаченные комиссии как выплаченные?')) return;
+  await sb.from('referral_commissions').update({
+    paid_to_referrer: true,
+    paid_date: new Date().toISOString().split('T')[0]
+  }).eq('paid_to_referrer', false);
+  await loadCommissions();
+};
+
+// ── Утилиты ───────────────────────────────────────────────────
+window.closeModal = function(id) {
+  document.getElementById(id).classList.remove('active');
+};
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('active'); });
+});
+
+// ── Init ──────────────────────────────────────────────────────
+async function init() {
+  initNav({ hideAction: true });
+  const ok = await checkAdminAuth();
+  if (!ok) return;
+  await loadAll();
+}
+
+init();
+})();
+</script>
+</body>
+</html>
