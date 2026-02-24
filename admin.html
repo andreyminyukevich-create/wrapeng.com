@@ -443,6 +443,9 @@ function subStatus(studio) {
   return 'expired';
 }
 function subBadge(studio) {
+  if (studio.subscription_tier === 'pending') {
+    return '<span class="badge badge-pending">📋 Заявка</span>';
+  }
   const s = subStatus(studio);
   const labels = { active: '✅ Активна', trial: '⏰ Триал', expired: '❌ Истекла' };
   const cls    = { active: 'badge-active', trial: 'badge-trial', expired: 'badge-expired' };
@@ -482,6 +485,10 @@ async function loadStudios() {
   });
 
   document.getElementById('sTotal').textContent   = allStudios.length;
+  const pending = allStudios.filter(s => s.subscription_tier === 'pending').length;
+  if (pending > 0) {
+    document.getElementById('sTotal').textContent = allStudios.length + ' (' + pending + ' 📋)';
+  }
   document.getElementById('sActive').textContent  = active;
   document.getElementById('sTrial').textContent   = trial;
   document.getElementById('sExpired').textContent = expired;
@@ -520,6 +527,8 @@ function renderStudios() {
       <td>
         <div class="studio-name">${s.name}</div>
         <div class="studio-email" id="email-${s.id}">загрузка...</div>
+        ${s.settings?.phone ? `<div style="font-size:0.75rem;color:#2563eb;margin-top:1px">${s.settings.phone}</div>` : `<div style="font-size:0.75rem;color:#94a3b8;margin-top:1px" id="phone-${s.id}"></div>`}
+        ${s.settings?.city ? `<div style="font-size:0.75rem;color:#64748b">${s.settings.city}</div>` : ''}
       </td>
       <td>
         ${s.referral_code
@@ -531,6 +540,7 @@ function renderStudios() {
       <td>${expireText(s)}</td>
       <td>
         <div class="actions">
+          ${s.subscription_tier === 'pending' ? `<button class="btn btn-success" onclick="approveStudio('${s.id}', '${s.name}')">✅ Одобрить</button>` : ''}
           <button class="btn btn-primary" onclick="openSubModal('${s.id}')">⚙️ Подписка</button>
           <button class="btn btn-danger" onclick="blockStudio('${s.id}', '${s.name}')">🚫</button>
         </div>
@@ -554,6 +564,12 @@ function renderStudios() {
       const { data: userData } = await sb.auth.admin?.getUserById(data.user_id).catch(() => ({ data: null })) || { data: null };
       // Fallback — показываем user_id сокращённо
       el.textContent = data.user_id.slice(0, 8) + '...';
+    // Телефон из settings
+    const phone = s.settings?.phone;
+    if (phone) {
+      const phoneEl = document.getElementById('phone-' + s.id);
+      if (phoneEl) phoneEl.textContent = phone;
+    }
     } else {
       el.textContent = 'нет владельца';
     }
@@ -722,6 +738,17 @@ window.saveSubscription = async function() {
 };
 
 // ── Блокировка ────────────────────────────────────────────────
+window.approveStudio = async function(studioId, name) {
+  if (!confirm(`Одобрить заявку студии "${name}" и дать пробный доступ на 72 часа?`)) return;
+  const trialEnds = new Date(Date.now() + 72 * 3600 * 1000).toISOString();
+  await sb.from('studios').update({
+    subscription_tier: 'trial',
+    subscription_expires_at: trialEnds
+  }).eq('id', studioId);
+  alert(`✅ Студия "${name}" одобрена! Триал активирован на 72 часа.`);
+  await loadStudios();
+};
+
 window.blockStudio = async function(studioId, name) {
   if (!confirm(`Заблокировать студию "${name}"?\nДоступ будет немедленно закрыт.`)) return;
   await sb.from('studios').update({
