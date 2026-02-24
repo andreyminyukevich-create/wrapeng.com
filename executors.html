@@ -946,6 +946,7 @@ const SUPABASE_URL = 'https://hdghijgrrnzmntistdvw.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkZ2hpamdycm56bW50aXN0ZHZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMzMyNzksImV4cCI6MjA3NTYwOTI3OX0.D9EDTmVrFRVp0B8_5tCJM29gbFdtadsom0Ihsf4uQ8Q';
 
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+window._crmSb = sb;
 
 let currentUser = null;
 let currentStudio = null;
@@ -1273,5 +1274,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 })();
 </script>
+<script src="footer.js"></script>
 </body>
 </html>
