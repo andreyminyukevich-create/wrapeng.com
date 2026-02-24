@@ -3,17 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Зарплаты</title>
-<script>
-const savedTheme = localStorage.getItem('theme') || 'dark';
-document.documentElement.setAttribute('data-theme', savedTheme);
-</script>
+<title>Зарплаты — CRM</title>
+<script>document.documentElement.setAttribute('data-theme', 'light');</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="stylesheet" href="nav.css">
 <script src="nav.js"></script>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-
 :root {
   --bg-primary: #080f1e;
   --bg-secondary: #0e1829;
@@ -363,6 +358,24 @@ td {
   color: var(--text-muted);
 }
 
+.btn-unpay {
+  padding: 5px 12px;
+  border-radius: 7px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid rgba(220,38,38,0.25);
+  background: rgba(220,38,38,0.07);
+  color: #dc2626;
+  transition: all 0.15s;
+  font-family: inherit;
+}
+.btn-unpay:hover {
+  background: #dc2626;
+  color: #fff;
+  border-color: #dc2626;
+}
+
 .btn-pay {
   padding: 6px 14px;
   font-size: 0.85rem;
@@ -482,7 +495,25 @@ td {
     font-size: 0.8rem;
   }
 
-  .btn-pay {
+  .btn-unpay {
+  padding: 5px 12px;
+  border-radius: 7px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid rgba(220,38,38,0.25);
+  background: rgba(220,38,38,0.07);
+  color: #dc2626;
+  transition: all 0.15s;
+  font-family: inherit;
+}
+.btn-unpay:hover {
+  background: #dc2626;
+  color: #fff;
+  border-color: #dc2626;
+}
+
+.btn-pay {
     padding: 5px 10px;
     font-size: 0.75rem;
   }
@@ -685,13 +716,8 @@ td {
 
 <footer class="page-footer">
   <div class="footer-content">
-    <div class="footer-theme">
-      <button id="themeToggle">🌙</button>
-    </div>
     <div class="footer-desc">
-      <strong>Зарплаты</strong> — учёт выплат исполнителям. 
-      Три вкладки: К выплате, Выплачено, Отменено. 
-      Массовая выплата, фильтры по месяцам и сотрудникам, автоматический подсчёт из назначенных работ.
+      <strong>Зарплаты</strong> — учёт выплат сотрудникам. Вкладки: К выплате и Выплачено. Выплату можно отменить и вернуть в очередь.
     </div>
   </div>
 </footer>
@@ -711,19 +737,7 @@ let currentTab = 'pending';
 let selectedIds = new Set();
 
 // Theme
-function initTheme() {
-  const t = localStorage.getItem('theme') || 'dark';
-  document.documentElement.setAttribute('data-theme', t);
-  document.getElementById('themeToggle').textContent = t === 'dark' ? '☀️' : '🌙';
-}
 
-document.getElementById('themeToggle').addEventListener('click', () => {
-  const cur = document.documentElement.getAttribute('data-theme');
-  const next = cur === 'dark' ? 'light' : 'dark';
-  document.documentElement.setAttribute('data-theme', next);
-  localStorage.setItem('theme', next);
-  document.getElementById('themeToggle').textContent = next === 'dark' ? '☀️' : '🌙';
-});
 
 // Format
 function fmt(n) {
@@ -873,7 +887,7 @@ function renderTab() {
   let html = '<div class="table-wrap"><table><thead><tr>';
   if (currentTab === 'pending') html += '<th class="checkbox-cell"><input type="checkbox" id="selectAll" onchange="toggleSelectAll()"></th>';
   html += '<th>Исполнитель</th><th>Машина</th><th>Услуга</th><th>Месяц</th><th>Сумма</th>';
-  if (currentTab === 'pending') html += '<th>Действия</th>';
+  if (currentTab === 'pending' || currentTab === 'paid') html += '<th>Действия</th>';
   html += '</tr></thead><tbody>';
 
   filtered.forEach(a => {
@@ -890,6 +904,9 @@ function renderTab() {
     `;
     if (currentTab === 'pending') {
       html += `<td><button class="btn btn-success btn-pay" onclick="paySingle('${a.id}')">💰 Выплатить</button></td>`;
+    }
+    if (currentTab === 'paid') {
+      html += `<td><button class="btn btn-unpay" onclick="unpaySingle('${a.id}')">↩ Отменить</button></td>`;
     }
     html += '</tr>';
   });
@@ -929,6 +946,13 @@ window.paySelected = async function() {
   await markAsPaid([...selectedIds]);
 };
 
+window.unpaySingle = async function(id) {
+  if (!confirm('Отменить выплату? Запись вернётся в "К выплате".')) return;
+  const { error } = await sb.from('work_assignments').update({ status: 'pending' }).eq('id', id);
+  if (error) { alert('Ошибка: ' + error.message); return; }
+  await loadAssignments();
+};
+
 async function markAsPaid(ids) {
   const { error } = await sb
     .from('work_assignments')
@@ -950,7 +974,6 @@ async function init() {
   initNav();
   if (!await checkAuth()) return;
   if (!await getStudio()) return;
-  initTheme();
   await loadAssignments();
 }
 
