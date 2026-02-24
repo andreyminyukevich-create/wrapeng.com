@@ -551,7 +551,7 @@ async function init() {
   const { data: studioInfo } = await sb.from('studios').select('name').eq('id', studioId).single();
   if (studioInfo) {
     document.getElementById('studioNameHeader').textContent = studioInfo.name;
-    document.getElementById('studioSubheader').textContent = 'Keep1R CRM · ' + currentUser.email;
+    document.getElementById('studioSubheader').textContent = 'Keep1R CRM';
   }
 
   // Проверка подписки
