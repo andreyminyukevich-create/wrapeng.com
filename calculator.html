@@ -4,13 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Калькулятор оклейки</title>
+<script>document.documentElement.setAttribute('data-theme', 'light'); document.body && document.body.setAttribute('data-theme', 'light');</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="stylesheet" href="nav.css">
+<script src="nav.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
 :root {
   --bg-primary: #0f172a;
   --bg-secondary: #1e293b;
@@ -67,7 +68,8 @@ html {
 }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
   background: var(--bg-primary);
   color: var(--text);
   line-height: 1.6;
@@ -1589,10 +1591,7 @@ tfoot th:first-child {
   <h1>Калькулятор</h1>
   <div style="display:flex;align-items:center;gap:12px">
     <div id="user-info" style="display:none;font-size:0.85rem;color:var(--text-muted)"></div>
-    <button id="btn-dashboard" class="theme-toggle" style="padding:8px 12px">← Дашборд</button>
-    <div class="theme-toggle" onclick="toggleTheme()">
-      <span id="themeIcon">☀️</span>
-    </div>
+
   </div>
 </div>
 
@@ -2549,21 +2548,6 @@ const miscServices = [
   'Реставрация ЛКП', 'Шумоизоляция'
 ];
 
-window.toggleTheme = function() {
-  const body = document.body;
-  const icon = q('#themeIcon');
-  const currentTheme = body.getAttribute('data-theme');
-  
-  if (currentTheme === 'light') {
-    body.removeAttribute('data-theme');
-    icon.textContent = '☀️';
-    localStorage.setItem('theme', 'dark');
-  } else {
-    body.setAttribute('data-theme', 'light');
-    icon.textContent = '🌙';
-    localStorage.setItem('theme', 'light');
-  }
-};
 
 function fillBrands() {
   const s = q('#brand');
@@ -3644,17 +3628,9 @@ function highlightMarkupFields(s, mu) {
 }
 
 function initTheme() {
-  const sv = localStorage.getItem('theme');
-  const icon = q('#themeIcon');
-  const body = document.body;
-  
-  if (sv === 'light') {
-    body.setAttribute('data-theme', 'light');
-    icon.textContent = '🌙';
-  } else {
-    icon.textContent = '☀️';
-  }
-  
+  // Принудительно светлая тема
+  document.body.setAttribute('data-theme', 'light');
+
   qa('.toggle-btn').forEach(b => {
     b.addEventListener('click', () => {
       const r = b.querySelector('input[type=radio]');
@@ -3666,7 +3642,7 @@ function initTheme() {
       }
     });
   });
-  
+
   qa('.card h2.collapsible').forEach(h => {
     h.addEventListener('click', () => {
       h.classList.toggle('collapsed');
@@ -3977,13 +3953,10 @@ function formatNumberInput(input) {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
+  initNav({ actionHref: 'dashboard.html', actionLabel: '← Главная' });
   const hasAccess = await checkAuth();
   if (!hasAccess) return;
   
-  const dashboardBtn = q('#btn-dashboard');
-  if (dashboardBtn) {
-    dashboardBtn.addEventListener('click', goToDashboard);
-  }
   
   const isTelegram = window.TelegramWebviewProxy !== undefined || navigator.userAgent.includes('Telegram');
   if (isTelegram) {
@@ -4109,10 +4082,8 @@ qa('.chip').forEach(ch => {
   });
 });
 
-  // Проверяем поддержку Share API
-  if (navigator.share && navigator.canShare) {
-    q('#btnShareKP').style.display = 'inline-block';
-  }
+  // Кнопка Share всегда видима
+  if (q('#btnShareKP')) q('#btnShareKP').style.display = 'inline-block';
   
   // Скачать КП
   q('#btnDownloadKP')?.addEventListener('click', () => {
@@ -4122,48 +4093,52 @@ qa('.chip').forEach(ch => {
   
   // Поделиться КП (Share API)
   q('#btnShareKP')?.addEventListener('click', async () => {
+    const btn = q('#btnShareKP');
+    const origText = btn.textContent;
+    btn.textContent = '⏳ Генерация...';
+    btn.disabled = true;
     try {
       prepKP();
-      
-      // Генерируем PDF как Blob
-      await new Promise(resolve => setTimeout(resolve, 300)); // Ждём рендер
-      
+      await new Promise(resolve => setTimeout(resolve, 400));
+
       const { jsPDF } = window.jspdf || {};
+      if (!jsPDF || !window.html2canvas) {
+        // Библиотеки не загружены — просто скачиваем
+        exportPDF('#pdfKP', 'КП_оклейка.pdf');
+        return;
+      }
+
       const block = q('#pdfKP');
-      
-      const canvas = await html2canvas(block, { scale: 2, useCORS: true, backgroundColor: '#fff' });
+      const canvas = await window.html2canvas(block, { scale: 2, useCORS: true, backgroundColor: '#fff', logging: false });
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
-      
       const pw = pdf.internal.pageSize.getWidth();
       const ph = pdf.internal.pageSize.getHeight();
-      const iw = canvas.width;
-      const ih = canvas.height;
-      const ratio = Math.min(pw / iw, ph / ih);
-      const sw = iw * ratio;
-      const sh = ih * ratio;
-      
-      pdf.addImage(canvas.toDataURL('image/png'), 'PNG', (pw - sw) / 2, 20, sw, Math.min(sh, ph - 40));
-      
-      // Получаем Blob
+      const ratio = Math.min(pw / canvas.width, ph / canvas.height);
+      pdf.addImage(canvas.toDataURL('image/png'), 'PNG',
+        (pw - canvas.width * ratio) / 2, 20,
+        canvas.width * ratio, Math.min(canvas.height * ratio, ph - 40));
+
       const pdfBlob = pdf.output('blob');
-      const pdfFile = new File([pdfBlob], 'Коммерческое_предложение.pdf', { type: 'application/pdf' });
-      
-      // Проверяем поддержку Share с файлами
-      if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
-        await navigator.share({
-          title: 'Коммерческое предложение',
-          text: 'КП на оклейку автомобиля',
-          files: [pdfFile]
-        });
+      const pdfFile = new File([pdfBlob], 'КП_оклейка.pdf', { type: 'application/pdf' });
+
+      // Пробуем Share API (работает на мобильных)
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
+        await navigator.share({ title: 'Коммерческое предложение', files: [pdfFile] });
       } else {
-        alert('Поделиться не поддерживается на этом устройстве');
+        // Desktop или Telegram — скачиваем файл
+        const url = URL.createObjectURL(pdfBlob);
+        const a = document.createElement('a');
+        a.href = url; a.download = 'КП_оклейка.pdf'; a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
       }
-      
     } catch (err) {
-      if (err.name !== 'AbortError') { // Пользователь отменил
-        console.error('Ошибка Share:', err);
-        alert('Не удалось поделиться КП');
+      if (err.name !== 'AbortError') {
+        console.error('Share error:', err);
+        alert('Не удалось поделиться. Используйте кнопку "Скачать КП".');
       }
+    } finally {
+      btn.textContent = origText;
+      btn.disabled = false;
     }
   });
   
