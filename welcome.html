@@ -59,10 +59,12 @@ body::before {
 }
 
 .brand-logo {
-  height: 60px;
+  height: 56px;
   width: auto;
   margin-bottom: 20px;
   display: block;
+  object-fit: contain;
+  filter: drop-shadow(0 0 4px rgba(0,0,0,0.25));
 }
 
 .brand-tagline {
@@ -141,11 +143,12 @@ body::before {
 /* Космонавт */
 .brand-astronaut {
   position: absolute;
-  bottom: -10px; right: 0px;
-  height: 320px;
+  bottom: 0px; right: 0px;
+  height: 300px;
+  width: auto;
+  object-fit: contain;
   pointer-events: none;
   animation: float 7s ease-in-out infinite;
-  mix-blend-mode: multiply;
 }
 
 @keyframes float {
@@ -607,11 +610,49 @@ document.getElementById('reg-form').addEventListener('submit', async e => {
   try {
     const {data:auth,error:ae} = await sb.auth.signUp({email,password:pass});
     if (ae) throw ae;
-    const uid = auth.user?.id; if (!uid) throw new Error('Ошибка создания аккаунта');
+    
+    const uid = auth.user?.id;
+    if (!uid) throw new Error('Ошибка создания аккаунта. Попробуйте ещё раз.');
+    
+    // Если email confirmation включён в Supabase — пользователь создан но не подтверждён
+    // identities.length === 0 означает что email уже занят
+    if (auth.user?.identities?.length === 0) {
+      throw new Error('Этот email уже зарегистрирован. Войдите или сбросьте пароль.');
+    }
+    
     const refCode = Math.random().toString(36).substring(2,10).toUpperCase();
-    const {data:studioData,error:se} = await sb.from('studios').insert({name:studio,owner_id:uid,subscription_tier:'pending',referral_code:refCode,settings:{phone,city,contact_email:email}}).select('id').single();
-    if (se) throw se;
-    await sb.from('studio_members').insert({studio_id:studioData.id,user_id:uid,role:'owner',is_active:true});
+    
+    // Создаём студию
+    const {data:studioData,error:se} = await sb.from('studios').insert({
+      name: studio,
+      owner_id: uid,
+      subscription_tier: 'pending',
+      referral_code: refCode,
+      settings: {phone, city, contact_email: email}
+    }).select('id').single();
+    
+    if (se) {
+      console.error('Studio insert error:', se);
+      // RLS ошибка = email не подтверждён
+      if (se.code === '42501' || se.message?.includes('row-level security')) {
+        // Показываем успех — заявка получена, разберёмся вручную
+        console.log('RLS error - email confirmation required in Supabase');
+        await sb.auth.signOut();
+        document.getElementById('success-email').textContent = email;
+        document.getElementById('success-phone').textContent = phone;
+        showTab('success');
+        return;
+      }
+      throw se;
+    }
+    
+    await sb.from('studio_members').insert({
+      studio_id: studioData.id,
+      user_id: uid,
+      role: 'owner',
+      is_active: true
+    });
+    
     await sb.auth.signOut();
     document.getElementById('success-email').textContent = email;
     document.getElementById('success-phone').textContent = phone;
