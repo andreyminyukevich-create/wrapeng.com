@@ -1958,53 +1958,18 @@ async function checkAccess(user) {
 }
 
 async function checkAuth() {
+  // Калькулятор бесплатный — авторизация необязательна
+  // Если пользователь вошёл — показываем его инфо и даём сохранять
   try {
-    const { data: { session }, error } = await sb.auth.getSession();
-    
-    if (error || !session) {
-      window.location.href = 'welcome.html';
-      return false;
+    const { data: { session } } = await sb.auth.getSession();
+    if (session) {
+      currentUser = session.user;
+      displayUserInfo();
     }
-
-    currentUser = session.user;
-    
-    const { data: profile, error: profileError } = await sb
-      .from('profiles')
-      .select('*')
-      .eq('id', currentUser.id)
-      .single();
-    
-    if (profileError || !profile) {
-      console.error('Profile error:', profileError);
-      await sb.auth.signOut();
-      localStorage.clear();
-      sessionStorage.clear();
-      window.location.href = 'welcome.html';
-      return false;
-    }
-
-    currentProfile = profile;
-
-    if (!profile.is_paid) {
-      const now = new Date();
-      const trialEnds = profile.trial_ends_at ? new Date(profile.trial_ends_at) : null;
-      
-      if (!trialEnds || trialEnds <= now) {
-        alert('⚠️ Пробный период истёк. Оплатите доступ.');
-        await sb.auth.signOut();
-        localStorage.clear();
-        sessionStorage.clear();
-        window.location.href = 'welcome.html';
-        return false;
-      }
-    }
-
-    displayUserInfo();
-    return true;
+    return true; // всегда разрешаем доступ
   } catch (e) {
     console.error('Auth check error:', e);
-    window.location.href = 'welcome.html';
-    return false;
+    return true; // даже при ошибке — калькулятор работает
   }
 }
 
