@@ -2362,6 +2362,7 @@ async function saveCalculation() {
       car_year: formData.car.year || null,
       total_price: finalTotal,
       calculation_data: formData,
+      status: 'draft',
       updated_at: new Date().toISOString()
     };
     
@@ -2398,7 +2399,7 @@ async function saveCalculation() {
     }
     
     if (error) {
-      console.error('Save error:', error);
+      console.error('Save error details:', JSON.stringify(error));
       return;
     }
     
