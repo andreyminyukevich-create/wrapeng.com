@@ -3,15 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Распределение работ</title>
-<script>
-const savedTheme = localStorage.getItem('theme') || 'dark';
-document.documentElement.setAttribute('data-theme', savedTheme);
-</script>
+<title>Распределение работ — CRM</title>
+<script>document.documentElement.setAttribute('data-theme', 'light');</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="stylesheet" href="nav.css">
+<script src="nav.js"></script>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-
 :root {
   --bg-primary: #080f1e;
   --bg-secondary: #0e1829;
@@ -71,6 +68,52 @@ body {
   z-index: 0;
 }
 
+.page-subheader {
+  display: flex;
+  align-items: center;
+  padding: 12px 24px;
+  background: #fff;
+  border-bottom: 1px solid rgba(15,23,42,0.08);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.page-subheader-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: 1;
+}
+.page-subheader-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+.btn-back {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #2563eb;
+  background: rgba(37,99,235,0.08);
+  border: 1px solid rgba(37,99,235,0.2);
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.btn-back:hover {
+  background: #2563eb;
+  color: #fff;
+  border-color: #2563eb;
+}
+.car-subtitle {
+  font-size: 0.85rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
 .container {
   max-width: 860px;
   margin: 0 auto;
@@ -80,40 +123,6 @@ body {
 }
 
 /* ── Top Bar ── */
-.top-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 28px;
-  padding: 20px 28px;
-  background: var(--bg-card);
-  border-radius: 18px;
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow);
-}
-
-.top-bar-left h1 {
-  font-size: 1.45rem;
-  font-weight: 800;
-  background: linear-gradient(120deg, var(--primary), var(--success));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  letter-spacing: -0.5px;
-}
-
-.top-bar-left .car-subtitle {
-  font-size: 0.9rem;
-  color: var(--text-muted);
-  margin-top: 2px;
-  font-weight: 500;
-}
-
-.top-bar-right {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
 .global-nav {
   display: flex;
   gap: 6px;
@@ -204,16 +213,6 @@ body {
 }
 
 .btn-sm { padding: 8px 16px; font-size: 0.85rem; }
-
-.theme-toggle {
-  background: var(--bg-input);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 8px 12px;
-  cursor: pointer;
-  font-size: 1.1rem;
-  transition: all 0.2s;
-}
 
 /* ── Card ── */
 .card {
@@ -653,23 +652,7 @@ body {
     padding: 16px 12px;
   }
 
-  .top-bar {
-    flex-direction: column;
-    gap: 12px;
-    align-items: stretch;
-    padding: 16px;
-  }
-
-  .top-bar-left h1 {
-    font-size: 1.2rem;
-    text-align: center;
-  }
-
-  .top-bar-right {
-    justify-content: center;
-  }
-
-  .card {
+        .card {
     padding: 20px 16px;
   }
 
@@ -724,22 +707,11 @@ body {
     padding: 16px 12px;
   }
 
-  .top-bar {
-    flex-direction: column;
-    gap: 10px;
-    padding: 14px;
-  }
-
-  .top-bar h1 {
+    .top-bar h1 {
     font-size: 1.1rem;
   }
 
-  .top-bar-right {
-    flex-direction: column;
-    width: 100%;
-  }
-
-  .btn {
+    .btn {
     width: 100%;
     min-height: 48px;
   }
@@ -837,21 +809,11 @@ body {
 <body>
 
 <div class="container">
-  <!-- Top Bar -->
-  <div class="top-bar">
-    <div class="top-bar-left">
-      <h1>👥 Распределение работ</h1>
+  <div class="page-subheader">
+    <div class="page-subheader-left">
+      <button class="btn-back" onclick="goBack()">← В работе</button>
+      <div class="page-subheader-title">👥 Распределение работ</div>
       <div class="car-subtitle" id="carSubtitle">Загрузка...</div>
-    </div>
-    <div class="top-bar-right">
-      <button class="theme-toggle" id="themeToggle">🌙</button>
-      <nav class="global-nav">
-        <a href="dashboard.html" class="nav-link">📊 Дашборд</a>
-        <a href="board.html" class="nav-link">📋 Доска</a>
-        <a href="executors.html" class="nav-link">👥 Исполнители</a>
-        <a href="payouts.html" class="nav-link">💰 Зарплаты</a>
-      </nav>
-      <button class="btn btn-secondary" onclick="goBack()">← Назад</button>
     </div>
   </div>
 
@@ -888,11 +850,11 @@ let calcId = null;
 const SERVICE_NAMES = {
   pkg_wrap: 'Оклейка (Полная защита)',
   pkg_prep: 'Подготовка (Полная защита)',
-  pkg_arm:  'Армирование (Полная защита)',
+  pkg_arm:  'Арматурные работы (Полная защита)',
   impact_wrap: 'Оклейка (Ударная часть)',
   impact_prep: 'Подготовка (Ударная часть)',
-  impact_arm:  'Армирование (Ударная часть)',
-  arm: 'Армирование',
+  impact_arm:  'Арматурные работы (Ударная часть)',
+  arm: 'Арматурные работы',
   wrap: 'Оклейка',
   det: 'Детейлинг',
   gl:  'Полировка/Химчистка',
@@ -900,19 +862,7 @@ const SERVICE_NAMES = {
 };
 
 // Theme
-function initTheme() {
-  const t = localStorage.getItem('theme') || 'dark';
-  document.documentElement.setAttribute('data-theme', t);
-  document.getElementById('themeToggle').textContent = t === 'dark' ? '☀️' : '🌙';
-}
 
-document.getElementById('themeToggle').addEventListener('click', () => {
-  const current = document.documentElement.getAttribute('data-theme');
-  const next = current === 'dark' ? 'light' : 'dark';
-  document.documentElement.setAttribute('data-theme', next);
-  localStorage.setItem('theme', next);
-  document.getElementById('themeToggle').textContent = next === 'dark' ? '☀️' : '🌙';
-});
 
 // Format
 function fmt(n) {
@@ -961,7 +911,7 @@ function executorSelect(selectedId = '') {
 }
 
 function roleRu(r) {
-  const m = { wrapper: 'Оклейщик', preparer: 'Подготовщик', armature: 'Арматурщик', detailer: 'Детейлер', universal: 'Универсал' };
+  const m = { wrapper: 'Оклейщик', preparer: 'Детейлер', armature: 'Арматурщик', detailer: 'Детейлер', universal: 'Универсал' };
   return m[r] || r;
 }
 
@@ -1060,7 +1010,7 @@ function renderExecutorRow(id, executorId = '', salary = 0, manualName = '') {
           <div class="executor-manual-wrap" style="display:${isManual ? 'block' : 'none'}">
             <input type="text" class="manual-name-input" value="${manualName}" placeholder="ФИО исполнителя">
           </div>
-          <input type="number" value="${salary}" placeholder="Сумма ₽" step="1" class="salary-input">
+          <input type="number" value="${salary ? Math.round(salary) : ''}" placeholder="Сумма ₽" step="1" class="salary-input">
           <button class="btn-remove-exec" onclick="removeExecutorRow('${id}')">✕</button>
         </div>
         <div class="executor-manual-save" style="display:${isManual ? 'flex' : 'none'}">
@@ -1452,7 +1402,7 @@ window.saveAssignments = async function() {
     }
 
     // Помечаем расчёт как распределённый
-    await sb.from('calculations').update({ work_assigned: true }).eq('id', calcId);
+    await sb.from('calculations').update({ work_assigned: true, status: 'in_progress' }).eq('id', calcId);
 
     alert(`✅ Сохранено! Назначено ${assignments.length} записей.`);
     goBack();
@@ -1465,8 +1415,7 @@ window.saveAssignments = async function() {
 
 // Init
 async function init() {
-  initTheme();
-
+  initNav({ actionHref: 'board.html', actionLabel: '← В работе' });
   if (!await checkAuth()) return;
   if (!await getStudio()) return;
 
