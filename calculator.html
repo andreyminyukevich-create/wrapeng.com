@@ -2108,18 +2108,35 @@ async function checkAccess(user) {
 }
 
 async function checkAuth() {
-  // Калькулятор бесплатный — авторизация необязательна
-  // Если пользователь вошёл — показываем его инфо и даём сохранять
   try {
     const { data: { session } } = await sb.auth.getSession();
     if (session) {
       currentUser = session.user;
+      // Загружаем профиль студии чтобы сохранение работало
+      const { data: member } = await sb
+        .from('studio_members')
+        .select('studio_id, studios(name, subscription_tier, subscription_expires_at)')
+        .eq('user_id', session.user.id)
+        .eq('is_active', true)
+        .single();
+      if (member) {
+        currentProfile = {
+          id: session.user.id,
+          studio_name: member.studios?.name || 'Студия',
+          studio_id: member.studio_id,
+          is_paid: ['active','trial'].includes(member.studios?.subscription_tier),
+          trial_ends_at: member.studios?.subscription_expires_at,
+        };
+      } else {
+        // Нет студии — разрешаем пользоваться, но без сохранения
+        currentProfile = null;
+      }
       displayUserInfo();
     }
-    return true; // всегда разрешаем доступ
+    return true;
   } catch (e) {
     console.error('Auth check error:', e);
-    return true; // даже при ошибке — калькулятор работает
+    return true;
   }
 }
 
@@ -2271,7 +2288,7 @@ function collectFormData() {
 }
 
 async function saveCalculation() {
-  if (!currentUser || !currentProfile) {
+  if (!currentUser) {
     console.log('No user - skip save');
     return;
   }
