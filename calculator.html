@@ -2272,7 +2272,6 @@ tfoot th:first-child {
           <button type="button" class="btn btn-primary" id="btnSaveCalc" style="margin-bottom:12px">💾 Сохранить расчет</button>
           <button type="button" class="btn btn-success" id="btnDownloadKP">📥 Скачать КП</button>
           <button type="button" class="btn btn-success" id="btnShareKP" style="display:none">📤 Поделиться КП</button>
-          <button type="button" class="btn btn-success" id="btnExportCost">💰 Себес (PDF)</button>
         </div>
       </div>
     </div>
@@ -2287,16 +2286,31 @@ tfoot th:first-child {
   <div id="pdfKP" class="pdf-block">
     <div class="trial-watermark" id="watermarkKP" style="display:none"></div>
 
-    <!-- Хедер КП — брендинг Keep1R -->
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;padding-bottom:14px;border-bottom:2px solid #e2e8f0">
-      <div>
-        <div style="font-size:22px;font-weight:900;letter-spacing:-1px;color:#0f172a">KEEP<span style="color:#2563eb">1</span>R</div>
-        <div style="font-size:8px;color:#64748b;font-weight:600;letter-spacing:0.15em;text-transform:uppercase;margin-top:2px">Профессиональная плёнка для авто</div>
+    <!-- Хедер КП — платная версия -->
+    <div id="kpHeaderPaid" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;padding-bottom:14px;border-bottom:2px solid #e2e8f0">
+      <div style="display:flex;align-items:center;gap:10px">
+        <img src="logo.png" alt="Логотип" style="height:40px;width:auto;object-fit:contain;" onerror="this.style.display='none'">
+        <div>
+          <div style="font-size:13px;font-weight:800;color:#0f172a;letter-spacing:-0.3px" id="kpStudioName">Студия оклейки</div>
+          <div style="font-size:8px;color:#64748b;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;margin-top:1px">CRM для студии детейлинга</div>
+        </div>
       </div>
-      <div style="text-align:right;font-size:8px;color:#475569;line-height:1.8">
-        <div>🌐 keep1r.ru</div>
-        <div>✈️ @PPFKeep1R</div>
-        <div>📞 +7 930 337 1008</div>
+      <div style="text-align:right;font-size:8px;color:#475569;line-height:2">
+        <div>🌐 wrapeng.com</div>
+      </div>
+    </div>
+    <!-- Хедер КП — триал версия -->
+    <div id="kpHeaderTrial" style="display:none;flex-direction:column;margin-bottom:18px;padding-bottom:14px;border-bottom:2px solid #e2e8f0">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-size:22px;font-weight:900;letter-spacing:-1px;color:#0f172a">KEEP<span style="color:#2563eb">1</span>R</div>
+          <div style="font-size:8px;color:#64748b;font-weight:600;letter-spacing:0.15em;text-transform:uppercase;margin-top:2px">Профессиональная плёнка для авто</div>
+        </div>
+        <div style="text-align:right;font-size:8px;color:#475569;line-height:1.8">
+          <div>🌐 keep1r.ru</div>
+          <div>✈️ @PPFKeep1R</div>
+          <div>📞 +7 930 337 1008</div>
+        </div>
       </div>
     </div>
 
@@ -2309,8 +2323,8 @@ tfoot th:first-child {
     </table>
     <p style="text-align:center;margin-top:24px;font-style:italic;color:#64748b;font-size:10px">Коммерческое предложение актуально в течение 3х дней</p>
 
-    <!-- Футер КП — брендинг Keep1R -->
-    <div style="position:absolute;bottom:20mm;left:20mm;right:20mm;border-top:1px solid #e2e8f0;padding-top:10px">
+    <!-- Футер КП — только для триала -->
+    <div id="kpFooterTrial" style="display:none;position:absolute;bottom:20mm;left:20mm;right:20mm;border-top:1px solid #e2e8f0;padding-top:10px">
       <div style="display:flex;justify-content:space-between;align-items:center;font-size:7.5px;color:#94a3b8">
         <div>
           <span style="font-weight:800;color:#0f172a">KEEP1R</span> — поставщик защитных плёнок PPF и винила для профессиональных студий
@@ -2366,6 +2380,59 @@ tfoot th:first-child {
 <script src="calculator-persistence.js"></script>
 <script src="calculator-pdf.js"></script>
 <script src="calculator-ui.js"></script>
+
+<!-- Кнопка «наверх» -->
+<button id="btnScrollTop" title="Наверх" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+<style>
+#btnScrollTop {
+  position: fixed;
+  bottom: 52px;
+  right: 20px;
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255,255,255,0.92);
+  color: #0f172a;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  transition: opacity 0.2s, transform 0.2s;
+}
+#btnScrollTop:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.16); }
+</style>
+<script>
+(function(){
+  const btn = document.getElementById('btnScrollTop');
+  window.addEventListener('scroll', function(){
+    if (window.scrollY > 300) { btn.style.display='flex'; }
+    else { btn.style.display='none'; }
+  }, {passive:true});
+
+  // КП: переключение шапки/футера платная vs триал
+  // Вызывается из calculator-persistence.js после проверки профиля
+  window.applyKPBranding = function(isTrial) {
+    const paid   = document.getElementById('kpHeaderPaid');
+    const trial  = document.getElementById('kpHeaderTrial');
+    const footer = document.getElementById('kpFooterTrial');
+    if (isTrial) {
+      if (paid)   paid.style.display   = 'none';
+      if (trial)  trial.style.display  = 'flex';
+      if (footer) footer.style.display = 'block';
+    } else {
+      if (paid)   paid.style.display   = 'flex';
+      if (trial)  trial.style.display  = 'none';
+      if (footer) footer.style.display = 'none';
+    }
+  };
+})();
+</script>
 
 </body>
 </html>
