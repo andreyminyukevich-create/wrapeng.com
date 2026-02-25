@@ -297,6 +297,7 @@ tbody tr:hover { background: #f8faff; }
     <button class="tab-btn" onclick="switchTab('referrals')">🔗 Рефералы</button>
     <button class="tab-btn" onclick="switchTab('commissions')">💰 Комиссии</button>
     <button class="tab-btn" onclick="switchTab('calcs')">📊 Расчёты</button>
+    <button class="tab-btn" onclick="switchTab('blacklist')">🚫 Блок-лист</button>
   </div>
 
   <!-- Таб: Студии -->
@@ -372,6 +373,18 @@ tbody tr:hover { background: #f8faff; }
       <th>Студия</th><th>Авто</th><th>Сумма</th><th>Итог</th><th>Статус</th><th>Дата</th><th></th>
     </tr></thead>
     <tbody id="calcsBody"><tr><td colspan="6" style="text-align:center;color:#94a3b8">Загрузка...</td></tr></tbody>
+  </table>
+</div>
+
+<div id="tab-blacklist" style="display:none">
+  <div style="margin-bottom:16px;color:#64748b;font-size:0.9rem">
+    Заблокированные студии. Можно вернуть в заявки кнопкой "Разблокировать".
+  </div>
+  <table class="table">
+    <thead><tr>
+      <th>Студия</th><th>Причина</th><th>Заблокирована</th><th>Действия</th>
+    </tr></thead>
+    <tbody id="blacklistBody"><tr><td colspan="4" style="text-align:center;color:#94a3b8">Загрузка...</td></tr></tbody>
   </table>
 </div>
 
@@ -550,6 +563,43 @@ function expireText(studio) {
 
 
 
+
+async function loadBlacklist() {
+  const tbody = document.getElementById('blacklistBody');
+  if (tbody) tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#94a3b8">Загрузка...</td></tr>';
+
+  const { data, error } = await sb.from('studios')
+    .select('id, name, settings, subscription_expires_at, created_at')
+    .eq('subscription_tier', 'blocked')
+    .order('subscription_expires_at', { ascending: false });
+
+  if (error || !data || !data.length) {
+    if (tbody) tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#94a3b8">Блок-лист пуст</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = data.map(function(s) {
+    return '<tr>'
+      + '<td><strong>'+(s.name||'—')+'</strong><br><small style="color:#94a3b8">'+(s.settings&&s.settings.contact_email||'')+'</small></td>'
+      + '<td style="color:#94a3b8;font-size:0.85rem">Заблокирован вручную</td>'
+      + '<td style="font-size:0.85rem">'+new Date(s.subscription_expires_at).toLocaleDateString('ru')+'</td>'
+      + '<td><button class="btn btn-sm" style="background:#fef3c7;color:#92400e" onclick="unblockStudio(this)" data-id="'+s.id+'" data-name="'+encodeURIComponent(s.name||'')+'">↩ Разблокировать</button></td>'
+      + '</tr>';
+  }).join('');
+}
+
+window.unblockStudio = async function(btn) { var studioId = btn.getAttribute('data-id'); var name = decodeURIComponent(btn.getAttribute('data-name')||'');
+  if (!confirm('Разблокировать "'+name+'" и вернуть в заявки?')) return;
+  var { error } = await sb.from('studios').update({
+    subscription_tier: 'pending',
+    subscription_expires_at: null
+  }).eq('id', studioId);
+  if (error) { alert('❌ ' + error.message); return; }
+  await loadStudios();
+  await loadRequests();
+  loadBlacklist();
+};
+
 window.openCalcView = async function(calcId) {
   var modal = document.getElementById('calcViewModal');
   var content = document.getElementById('calcViewContent');
@@ -700,7 +750,7 @@ async function loadRequests() {
   try {
     const [r1, r2] = await Promise.all([
       sb.from('access_requests').select('*').order('created_at', { ascending: false }),
-      sb.from('studios').select('*').eq('subscription_tier', 'pending').order('created_at', { ascending: false })
+      sb.from('studios').select('*').in('subscription_tier', ['pending']).order('created_at', { ascending: false })
     ]);
     accessReqs = r1.data || [];
     pendingStudios = r2.data || [];
@@ -708,7 +758,7 @@ async function loadRequests() {
     console.error('loadRequests error:', e);
     // access_requests может не существовать — используем только pending студии
     try {
-      const { data } = await sb.from('studios').select('*').eq('subscription_tier', 'pending').order('created_at', { ascending: false });
+      const { data } = await sb.from('studios').select('*').in('subscription_tier', ['pending']).order('created_at', { ascending: false });
       pendingStudios = data || [];
     } catch(e2) { console.error(e2); }
   }
@@ -716,10 +766,12 @@ async function loadRequests() {
   const reqs = accessReqs;
   const pending = pendingStudios;
 
-  // Бейдж
+  // Бейдж и стат
   const totalNew = reqs.filter(r => r.status === 'new').length + pending.length;
   const badge = document.getElementById('badgeRequests');
-  if (badge) badge.textContent = totalNew > 0 ? `(${totalNew})` : '';
+  if (badge) badge.textContent = totalNew > 0 ? '('+totalNew+')' : '';
+  const sNew = document.getElementById('sNewRequests');
+  if (sNew) sNew.textContent = totalNew;
 
   const tbody = document.getElementById('requestsBody');
   if (!tbody) return;
@@ -738,7 +790,7 @@ async function loadRequests() {
       <td>${new Date(s.created_at).toLocaleDateString('ru')}</td>
       <td style="display:flex;gap:6px">
         <button class="btn btn-success btn-sm" onclick="approveStudio('${s.id}','${s.name || s.id}')">✅ Одобрить</button>
-        <button class="btn btn-sm" style="background:#ef4444;color:#fff" onclick="blockStudio('${s.id}','${s.name}')">❌</button>
+        <button class="btn btn-sm" style="background:#fca5a5;color:#7f1d1d" onclick="blockStudio('${s.id}','${s.name}')">❌</button>
       </td>
     </tr>
   `).join('');
@@ -753,7 +805,7 @@ async function loadRequests() {
       <td>
         ${r.status === 'new' ? `
           <button class="btn btn-success btn-sm" onclick="approveRequest('${r.id}','${(r.studio_name||'').replace(/'/g,'')}',' ${r.email}')">✅ Одобрить</button>
-          <button class="btn btn-sm" style="background:#ef4444;color:#fff" onclick="rejectRequest('${r.id}')">❌</button>
+          <button class="btn btn-sm" style="background:#fca5a5;color:#7f1d1d" onclick="rejectRequest('${r.id}')">❌</button>
         ` : `<span style="color:#64748b;font-size:0.8rem">${r.status === 'approved' ? '✅ Одобрена' : '❌ Отклонена'}</span>`}
       </td>
     </tr>
@@ -874,7 +926,7 @@ function renderTrialStudios() {
       <td style="display:flex;gap:6px;flex-wrap:wrap">
         <button class="btn btn-success btn-sm" onclick="extendTrial('${s.id}','${s.name}')">+72ч</button>
         <button class="btn btn-sm" style="background:#7c3aed;color:#fff" onclick="openSubModal('${s.id}')">💳 Подписка</button>
-        <button class="btn btn-sm" style="background:#ef4444;color:#fff" onclick="blockStudio('${s.id}','${s.name}')">🚫</button>
+        <button class="btn btn-sm" style="background:#fca5a5;color:#7f1d1d" onclick="blockStudio('${s.id}','${s.name}')">🚫</button>
       </td>
     </tr>`;
   }).join('');
@@ -1013,7 +1065,7 @@ function renderCommissions(comms) {
 
 // ── Табы ─────────────────────────────────────────────────────
 window.switchTab = function(tab) {
-  ['requests', 'trial', 'studios', 'referrals', 'commissions', 'calcs'].forEach(t => {
+  ['requests', 'trial', 'studios', 'referrals', 'commissions', 'calcs', 'blacklist'].forEach(t => {
     const el = document.getElementById('tab-' + t);
     if (el) el.style.display = t === tab ? 'block' : 'none';
   });
@@ -1025,6 +1077,7 @@ window.switchTab = function(tab) {
     window._calcsLoaded = true;
     loadCalcs();
   }
+  if (tab === 'blacklist') loadBlacklist();
 };
 
 // ── Подписка: модалка ─────────────────────────────────────────
@@ -1149,12 +1202,14 @@ window.approveStudio = async function(studioId, name) {
 };
 
 window.blockStudio = async function(studioId, name) {
-  if (!confirm(`Заблокировать студию "${name}"?\nДоступ будет немедленно закрыт.`)) return;
-  await sb.from('studios').update({
-    subscription_tier: 'expired',
+  if (!confirm('Заблокировать студию "'+name+'" и добавить в блок-лист?')) return;
+  var { error } = await sb.from('studios').update({
+    subscription_tier: 'blocked',
     subscription_expires_at: new Date().toISOString()
   }).eq('id', studioId);
+  if (error) { alert('❌ ' + error.message); return; }
   await loadStudios();
+  await loadRequests();
 };
 
 // ── Генерация реф. кода ───────────────────────────────────────
@@ -1263,7 +1318,7 @@ async function init() {
   const ok = await checkAdminAuth();
   if (!ok) return;
   await loadAll();
-  switchTab('studios'); // активируем дефолтный таб после загрузки
+  switchTab('requests'); // открываем на Заявках
 }
 
 init();
