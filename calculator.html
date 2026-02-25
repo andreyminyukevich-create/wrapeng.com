@@ -2355,9 +2355,9 @@ async function saveCalculation() {
     const calcData = {
       user_id: currentUser.id,
       car_name: car_name || 'Без названия',
-      car_brand: formData.car.brand || null,
-      car_model: formData.car.model || null,
-      car_year: formData.car.year || null,
+      brand: formData.car.brand || null,
+      model: formData.car.model || null,
+      year: formData.car.year || null,
       total_price: finalTotal,
       calculation_data: formData,
       status: 'draft',
@@ -2398,6 +2398,14 @@ async function saveCalculation() {
     
     if (error) {
       console.error('Save error details:', JSON.stringify(error));
+      // Показываем пользователю ошибку
+      const btn2 = q('#btnSaveCalc');
+      if (btn2) {
+        const orig = btn2.textContent;
+        btn2.textContent = '❌ Ошибка сохранения';
+        btn2.style.background = '#ef4444';
+        setTimeout(() => { btn2.textContent = orig; btn2.style.background = ''; }, 3000);
+      }
       return;
     }
     
