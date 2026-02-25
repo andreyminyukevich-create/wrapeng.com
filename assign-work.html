@@ -930,40 +930,68 @@ function adminExecutorSelect(selectedId = '') {
 function extractServices(calcData) {
   const services = [];
   const d = calcData;
+  const seen = new Set();
 
   function addIfHasMot(key, name, mot) {
     const m = parseFloat(mot) || 0;
-    if (m > 0) services.push({ key, name, baseSalary: m });
-  }
-
-  // Полная защита вкруг
-  if (d.package) {
-    addIfHasMot('pkg_wrap', SERVICE_NAMES.pkg_wrap, d.package.wrapMot);
-    addIfHasMot('pkg_prep', SERVICE_NAMES.pkg_prep, d.package.prepMot);
-    addIfHasMot('pkg_arm',  SERVICE_NAMES.pkg_arm,  d.package.armMot);
-  }
-
-  // Ударная часть
-  if (d.impact) {
-    addIfHasMot('impact_wrap', SERVICE_NAMES.impact_wrap, d.impact.wrapMot);
-    addIfHasMot('impact_prep', SERVICE_NAMES.impact_prep, d.impact.prepMot);
-    addIfHasMot('impact_arm',  SERVICE_NAMES.impact_arm,  d.impact.armMot);
-  }
-
-  // Прочие услуги (arm, wrap, det, gl, ms)
-  // Ищем в calculation_data поля по шаблону
-  const extras = ['arm', 'wrap', 'det', 'gl', 'ms'];
-  extras.forEach(key => {
-    if (d[key]) {
-      addIfHasMot(key, SERVICE_NAMES[key] || key, d[key].mot || d[key].motivation);
+    if (m > 0 && !seen.has(key)) {
+      seen.add(key);
+      services.push({ key, name, baseSalary: m });
     }
-  });
+  }
 
-  // Услуги из renderServiceList (ppf, pvc, detail...)
+  // 1. Полная защита вкруг (package)
+  if (d.package) {
+    addIfHasMot('pkg_wrap', SERVICE_NAMES.pkg_wrap || 'Оклейка PPF', d.package.wrapMot);
+    addIfHasMot('pkg_prep', SERVICE_NAMES.pkg_prep || 'Подготовка', d.package.prepMot);
+    addIfHasMot('pkg_arm',  SERVICE_NAMES.pkg_arm  || 'Бронирование', d.package.armMot);
+  }
+
+  // 2. Ударная часть (impact)
+  if (d.impact) {
+    addIfHasMot('impact_wrap', SERVICE_NAMES.impact_wrap || 'Оклейка ударки', d.impact.wrapMot);
+    addIfHasMot('impact_prep', SERVICE_NAMES.impact_prep || 'Подготовка ударки', d.impact.prepMot);
+    addIfHasMot('impact_arm',  SERVICE_NAMES.impact_arm  || 'Бронирование ударки', d.impact.armMot);
+  }
+
+  // 3. Детали услуг из нового формата (services_detail)
+  if (d.services_detail) {
+    const groups = {
+      arm:  'Бронирование',
+      det:  'Детейлинг',
+      gl:   'Стёкла',
+      ms:   'Доп. услуги',
+      wrap: 'Оклейка',
+    };
+    Object.entries(groups).forEach(([key, groupName]) => {
+      const items = d.services_detail[key] || [];
+      items.forEach((item, idx) => {
+        const m = parseFloat(item.mot) || 0;
+        if (m > 0) {
+          const k = `${key}_${idx}`;
+          if (!seen.has(k)) {
+            seen.add(k);
+            services.push({ key: k, name: item.name || groupName, baseSalary: m });
+          }
+        }
+      });
+    });
+  }
+
+  // 4. Старый формат — суммарная мотивация по категории (fallback)
+  if (!d.services_detail) {
+    ['arm', 'wrap', 'det', 'gl', 'ms'].forEach(key => {
+      if (d[key]) {
+        addIfHasMot(key, SERVICE_NAMES[key] || key, d[key].mot || d[key].motivation);
+      }
+    });
+  }
+
+  // 5. Массив услуг (если был)
   if (d.services && Array.isArray(d.services)) {
     d.services.forEach((srv, idx) => {
       const m = parseFloat(srv.mot || srv.motivation) || 0;
-      if (m > 0) services.push({ key: `service_${idx}`, name: srv.name || `Услуга ${idx + 1}`, baseSalary: m });
+      if (m > 0) addIfHasMot(`service_${idx}`, srv.name || `Услуга ${idx + 1}`, m);
     });
   }
 
