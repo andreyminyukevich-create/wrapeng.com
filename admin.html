@@ -595,13 +595,25 @@ async function loadAll() {
 
 async function loadRequests() {
   // Берём заявки из двух источников: access_requests + pending студии
-  const [{ data: accessReqs }, { data: pendingStudios }] = await Promise.all([
-    sb.from('access_requests').select('*').order('created_at', { ascending: false }),
-    sb.from('studios').select('*').eq('subscription_tier', 'pending').order('created_at', { ascending: false })
-  ]);
+  let accessReqs = [], pendingStudios = [];
+  try {
+    const [r1, r2] = await Promise.all([
+      sb.from('access_requests').select('*').order('created_at', { ascending: false }),
+      sb.from('studios').select('*').eq('subscription_tier', 'pending').order('created_at', { ascending: false })
+    ]);
+    accessReqs = r1.data || [];
+    pendingStudios = r2.data || [];
+  } catch(e) {
+    console.error('loadRequests error:', e);
+    // access_requests может не существовать — используем только pending студии
+    try {
+      const { data } = await sb.from('studios').select('*').eq('subscription_tier', 'pending').order('created_at', { ascending: false });
+      pendingStudios = data || [];
+    } catch(e2) { console.error(e2); }
+  }
 
-  const reqs = accessReqs || [];
-  const pending = pendingStudios || [];
+  const reqs = accessReqs;
+  const pending = pendingStudios;
 
   // Бейдж
   const totalNew = reqs.filter(r => r.status === 'new').length + pending.length;
