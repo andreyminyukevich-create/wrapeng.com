@@ -1022,6 +1022,13 @@ async function getStudio() {
   return true;
 }
 
+
+// Нормализация статуса (draft/null → new)
+function normalizeStatus(status) {
+  if (!status || status === '' || status === 'draft' || status === 'pending') return 'new';
+  return status;
+}
+
 // Load
 async function loadBoard() {
   const { data, error } = await sb
@@ -1041,7 +1048,7 @@ function renderBoard() {
 
   let html = '';
   COLUMNS.forEach(col => {
-    const cards = allCalcs.filter(c => (c.status || 'new') === col.key);
+    const cards = allCalcs.filter(c => normalizeStatus(c.status) === col.key);
     html += `
       <div class="column col-${col.key}">
         <div class="column-header">
