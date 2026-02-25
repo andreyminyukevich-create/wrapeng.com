@@ -4264,7 +4264,7 @@ function formatNumberInput(input) {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-  initNav({ actionHref: 'dashboard.html', actionLabel: '← Главная' });
+  if (typeof initNav === 'function') initNav({ actionHref: 'dashboard.html', actionLabel: '← Главная' });
   const hasAccess = await checkAuth();
   if (!hasAccess) return;
   
