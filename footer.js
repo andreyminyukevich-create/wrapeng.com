@@ -1,12 +1,25 @@
-// footer.js — единый футер Keep1R CRM, подключается на каждой странице
+// footer.js — единый футер Keep1R CRM
 (function() {
+  // Прижимаем футер к низу: body должен быть flex-колонкой
+  const bodyStyle = document.body.style;
+  if (!bodyStyle.display || bodyStyle.display !== 'flex') {
+    document.body.style.minHeight = '100dvh';
+    document.body.style.display = 'flex';
+    document.body.style.flexDirection = 'column';
+  }
+  // Главный контент тянется, футер прибит к низу
+  // Ищем первый дочерний не-script элемент и даём ему flex:1
+  const children = Array.from(document.body.children);
+  const main = children.find(el => !['SCRIPT','FOOTER','STYLE'].includes(el.tagName));
+  if (main && !main.style.flex) main.style.flex = '1';
+
   const style = document.createElement('style');
   style.textContent = `
     #crm-footer {
       width: 100%;
       background: #f8fafc;
       border-top: 1px solid rgba(15,23,42,0.08);
-      padding: 14px 24px;
+      padding: 12px 24px;
       font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
       -webkit-font-smoothing: antialiased;
       flex-shrink: 0;
