@@ -262,6 +262,7 @@ tbody tr:hover { background: #f8faff; }
     <button class="tab-btn active" onclick="switchTab('studios')">🏢 Студии</button>
     <button class="tab-btn" onclick="switchTab('referrals')">🔗 Рефералы</button>
     <button class="tab-btn" onclick="switchTab('commissions')">💰 Комиссии</button>
+    <button class="tab-btn" onclick="switchTab('calcs')">📊 Расчёты</button>
   </div>
 
   <!-- Таб: Студии -->
@@ -301,7 +302,37 @@ tbody tr:hover { background: #f8faff; }
   </div>
 
   <!-- Таб: Рефералы -->
-  <div id="tab-referrals" style="display:none">
+  <div id="tab-calcs" style="display:none">
+  <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
+    <select id="calcsStudioFilter" style="padding:8px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:0.9rem">
+      <option value="">Все студии</option>
+    </select>
+    <input type="text" id="calcsSearch" placeholder="🔍 Поиск по авто..." style="padding:8px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:0.9rem;min-width:200px">
+    <span id="calcsCount" style="color:#64748b;font-size:0.85rem"></span>
+    <div style="margin-left:auto;display:flex;gap:8px">
+      <div style="background:#f1f5f9;border-radius:8px;padding:8px 16px;text-align:center">
+        <div style="font-size:0.75rem;color:#64748b;text-transform:uppercase">Расчётов</div>
+        <div id="calcsStatTotal" style="font-weight:800;font-size:1.1rem">—</div>
+      </div>
+      <div style="background:#f1f5f9;border-radius:8px;padding:8px 16px;text-align:center">
+        <div style="font-size:0.75rem;color:#64748b;text-transform:uppercase">Сумма</div>
+        <div id="calcsStatSum" style="font-weight:800;font-size:1.1rem;color:#7c3aed">—</div>
+      </div>
+      <div style="background:#f1f5f9;border-radius:8px;padding:8px 16px;text-align:center">
+        <div style="font-size:0.75rem;color:#64748b;text-transform:uppercase">Средний чек</div>
+        <div id="calcsStatAvg" style="font-weight:800;font-size:1.1rem">—</div>
+      </div>
+    </div>
+  </div>
+  <table class="table">
+    <thead><tr>
+      <th>Студия</th><th>Авто</th><th>Сумма</th><th>Итог со скидкой</th><th>Статус</th><th>Дата</th>
+    </tr></thead>
+    <tbody id="calcsBody"><tr><td colspan="6" style="text-align:center;color:#94a3b8">Загрузка...</td></tr></tbody>
+  </table>
+</div>
+
+<div id="tab-referrals" style="display:none">
     <div class="card">
       <div class="card-head"><h2>Реферальные связи</h2></div>
       <div class="table-wrap">
@@ -473,6 +504,79 @@ function expireText(studio) {
 }
 
 // ── Загрузка данных ───────────────────────────────────────────
+
+// ── Расчёты всех студий ───────────────────────────────────────
+let allCalcs = [];
+
+async function loadCalcs() {
+  const tbody = document.getElementById('calcsBody');
+  if (tbody) tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#94a3b8">Загрузка...</td></tr>';
+
+  const { data, error } = await sb
+    .from('calculations')
+    .select('id, car_name, total_price, final_price, status, created_at, studio_id, studios(name)')
+    .order('created_at', { ascending: false })
+    .limit(500);
+
+  if (error) { console.error('loadCalcs error:', error); return; }
+  allCalcs = data || [];
+
+  // Заполняем фильтр студий
+  const filter = document.getElementById('calcsStudioFilter');
+  if (filter) {
+    const studios = [...new Map(allCalcs.map(c => [c.studio_id, c.studios?.name || c.studio_id])).entries()];
+    studios.forEach(([id, name]) => {
+      const o = document.createElement('option');
+      o.value = id; o.textContent = name;
+      filter.appendChild(o);
+    });
+    filter.addEventListener('change', renderCalcs);
+  }
+  const search = document.getElementById('calcsSearch');
+  if (search) search.addEventListener('input', renderCalcs);
+
+  renderCalcs();
+}
+
+function renderCalcs() {
+  const studioFilter = document.getElementById('calcsStudioFilter')?.value || '';
+  const searchVal = (document.getElementById('calcsSearch')?.value || '').toLowerCase();
+
+  let filtered = allCalcs.filter(c => {
+    if (studioFilter && c.studio_id !== studioFilter) return false;
+    if (searchVal && !(c.car_name || '').toLowerCase().includes(searchVal)) return false;
+    return true;
+  });
+
+  const total = filtered.length;
+  const sum = filtered.reduce((a, c) => a + (c.final_price || c.total_price || 0), 0);
+  const avg = total > 0 ? sum / total : 0;
+
+  document.getElementById('calcsStatTotal').textContent = total;
+  document.getElementById('calcsStatSum').textContent = fmt(sum) + ' ₽';
+  document.getElementById('calcsStatAvg').textContent = fmt(avg) + ' ₽';
+  document.getElementById('calcsCount').textContent = `Показано: ${total}`;
+
+  const statusLabel = { new:'🆕 Новый', scheduled:'📅 Запись', in_progress:'🔧 В работе', done:'✅ Готово', delivered:'🚗 Выдано', draft:'📝 Черновик' };
+
+  const tbody = document.getElementById('calcsBody');
+  if (!tbody) return;
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#94a3b8">Расчётов нет</td></tr>';
+    return;
+  }
+  tbody.innerHTML = filtered.map(c => `
+    <tr>
+      <td><strong>${c.studios?.name || '—'}</strong></td>
+      <td>${c.car_name || '—'}</td>
+      <td style="color:#475569">${fmt(c.total_price || 0)} ₽</td>
+      <td style="color:#7c3aed;font-weight:700">${fmt(c.final_price || c.total_price || 0)} ₽</td>
+      <td><span style="font-size:0.8rem">${statusLabel[c.status] || c.status || '—'}</span></td>
+      <td style="color:#94a3b8;font-size:0.8rem">${new Date(c.created_at).toLocaleDateString('ru')}</td>
+    </tr>
+  `).join('');
+}
+
 async function loadAll() {
   await Promise.all([loadStudios(), loadCommissions(), loadRequests()]);
 }
@@ -718,7 +822,7 @@ function renderCommissions(comms) {
 
 // ── Табы ─────────────────────────────────────────────────────
 window.switchTab = function(tab) {
-  ['requests', 'studios', 'referrals', 'commissions'].forEach(t => {
+  ['requests', 'studios', 'referrals', 'commissions', 'calcs'].forEach(t => {
     const el = document.getElementById('tab-' + t);
     if (el) el.style.display = t === tab ? 'block' : 'none';
   });
@@ -726,6 +830,10 @@ window.switchTab = function(tab) {
     const onclick = btn.getAttribute('onclick') || '';
     btn.classList.toggle('active', onclick.includes("'" + tab + "'"));
   });
+  if (tab === 'calcs' && !window._calcsLoaded) {
+    window._calcsLoaded = true;
+    loadCalcs();
+  }
 };
 
 // ── Подписка: модалка ─────────────────────────────────────────
@@ -827,10 +935,15 @@ window.saveSubscription = async function() {
 window.approveStudio = async function(studioId, name) {
   if (!confirm(`Одобрить заявку студии "${name}" и дать пробный доступ на 72 часа?`)) return;
   const trialEnds = new Date(Date.now() + 72 * 3600 * 1000).toISOString();
-  await sb.from('studios').update({
+  const { error } = await sb.from('studios').update({
     subscription_tier: 'trial',
     subscription_expires_at: trialEnds
   }).eq('id', studioId);
+  if (error) {
+    alert('❌ Ошибка: ' + error.message + '\nКод: ' + error.code);
+    console.error('approveStudio error:', error);
+    return;
+  }
   alert(`✅ Студия "${name}" одобрена! Триал активирован на 72 часа.`);
   await loadStudios();
 };
