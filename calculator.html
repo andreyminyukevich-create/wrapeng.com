@@ -1722,7 +1722,7 @@ tfoot th:first-child {
       <div class="card-content">
         <div class="form-group">
           <label>Бренд:</label>
-          <select id="brand" onchange="fillModels(this.value);renderAll()">
+          <select id="brand" onchange="window.onBrandChange()">
             <option value="">Выберите бренд</option>
             <option value="manual">Ввести вручную</option>
             <option value="Audi">Audi</option>
@@ -1765,7 +1765,7 @@ tfoot th:first-child {
         </div>
         <div class="form-group">
           <label>Модель:</label>
-          <select id="model" onchange="var m=this.value,mm=document.getElementById('modelManual');if(mm){if(m==='manual')mm.classList.remove('invis');else mm.classList.add('invis')}renderAll()">
+          <select id="model" onchange="window.onModelChange()">
             <option value="">Сначала выберите бренд</option>
             <option value="manual">Ввести вручную</option>
           </select>
@@ -1779,7 +1779,7 @@ tfoot th:first-child {
     </div>
 
     <div class="card">
-      <h2 class="collapsible collapsed" onclick="this.classList.toggle('collapsed');var cc=this.parentElement.querySelector('.card-content');if(cc)cc.classList.toggle('collapsed')">📦 Полная защита вкруг</h2>
+      <h2 class="collapsible collapsed" onclick="this.classList.toggle('collapsed');var p=this.parentElement.querySelector('.card-content');if(p)p.classList.toggle('collapsed')">📦 Полная защита вкруг</h2>
       <div class="card-content collapsed">
         <div class="package-grid">
           <div><label>Стоимость пленки:</label><input type="number" id="pkgWrapMat" placeholder="0" step="0.01"></div>
@@ -1831,7 +1831,7 @@ tfoot th:first-child {
     </div>
 
     <div class="card">
-      <h2 class="collapsible collapsed" onclick="this.classList.toggle('collapsed');var cc=this.parentElement.querySelector('.card-content');if(cc)cc.classList.toggle('collapsed')">🛡️ Защита ударной части</h2>
+      <h2 class="collapsible collapsed" onclick="this.classList.toggle('collapsed');var p=this.parentElement.querySelector('.card-content');if(p)p.classList.toggle('collapsed')">🛡️ Защита ударной части</h2>
       <div class="card-content collapsed">
         <div class="package-grid">
           <div><label>Стоимость пленки:</label><input type="number" id="impactWrapMat" placeholder="0" step="0.01"></div>
@@ -1903,7 +1903,7 @@ tfoot th:first-child {
 </div>
 
     <div class="card">
-      <h2 class="collapsible collapsed" onclick="this.classList.toggle('collapsed');var cc=this.parentElement.querySelector('.card-content');if(cc)cc.classList.toggle('collapsed')">🔧 Арматурные работы</h2>
+      <h2 class="collapsible collapsed" onclick="this.classList.toggle('collapsed');var p=this.parentElement.querySelector('.card-content');if(p)p.classList.toggle('collapsed')">🔧 Арматурные работы</h2>
       <div class="card-content collapsed" id="armContent"></div>
       <div class="block-summary" id="armSummary" style="display:none">
         <div class="block-summary-item"><span class="block-summary-label">Себестоимость</span><span class="block-summary-value" id="armSumBase">0 ₽</span></div>
@@ -1913,7 +1913,7 @@ tfoot th:first-child {
     </div>
 
     <div class="card">
-      <h2 class="collapsible collapsed" onclick="this.classList.toggle('collapsed');var cc=this.parentElement.querySelector('.card-content');if(cc)cc.classList.toggle('collapsed')">🎨 Оклейка автомобиля</h2>
+      <h2 class="collapsible collapsed" onclick="this.classList.toggle('collapsed');var p=this.parentElement.querySelector('.card-content');if(p)p.classList.toggle('collapsed')">🎨 Оклейка автомобиля</h2>
       <div class="card-content collapsed" id="wrapContent"></div>
       <div class="block-summary" id="wrapSummary" style="display:none">
         <div class="block-summary-item"><span class="block-summary-label">Себестоимость</span><span class="block-summary-value" id="wrapSumBase">0 ₽</span></div>
@@ -1923,7 +1923,7 @@ tfoot th:first-child {
     </div>
 
     <div class="card">
-      <h2 class="collapsible collapsed" onclick="this.classList.toggle('collapsed');var cc=this.parentElement.querySelector('.card-content');if(cc)cc.classList.toggle('collapsed')">✨ Детейлинг</h2>
+      <h2 class="collapsible collapsed" onclick="this.classList.toggle('collapsed');var p=this.parentElement.querySelector('.card-content');if(p)p.classList.toggle('collapsed')">✨ Детейлинг</h2>
       <div class="card-content collapsed" id="detContent"></div>
       <div class="block-summary" id="detSummary" style="display:none">
         <div class="block-summary-item"><span class="block-summary-label">Себестоимость</span><span class="block-summary-value" id="detSumBase">0 ₽</span></div>
@@ -1933,7 +1933,7 @@ tfoot th:first-child {
     </div>
 
     <div class="card">
-      <h2 class="collapsible collapsed" onclick="this.classList.toggle('collapsed');var cc=this.parentElement.querySelector('.card-content');if(cc)cc.classList.toggle('collapsed')">🪟 Стёкла</h2>
+      <h2 class="collapsible collapsed" onclick="this.classList.toggle('collapsed');var p=this.parentElement.querySelector('.card-content');if(p)p.classList.toggle('collapsed')">🪟 Стёкла</h2>
       <div class="card-content collapsed" id="glContent"></div>
       <div class="block-summary" id="glSummary" style="display:none">
         <div class="block-summary-item"><span class="block-summary-label">Себестоимость</span><span class="block-summary-value" id="glSumBase">0 ₽</span></div>
@@ -1943,7 +1943,7 @@ tfoot th:first-child {
     </div>
 
     <div class="card">
-      <h2 class="collapsible collapsed" onclick="this.classList.toggle('collapsed');var cc=this.parentElement.querySelector('.card-content');if(cc)cc.classList.toggle('collapsed')">🛠️ Прочие работы</h2>
+      <h2 class="collapsible collapsed" onclick="this.classList.toggle('collapsed');var p=this.parentElement.querySelector('.card-content');if(p)p.classList.toggle('collapsed')">🛠️ Прочие работы</h2>
       <div class="card-content collapsed" id="miscContent"></div>
       <div class="block-summary" id="miscSummary" style="display:none">
         <div class="block-summary-item"><span class="block-summary-label">Себестоимость</span><span class="block-summary-value" id="miscSumBase">0 ₽</span></div>
@@ -4490,6 +4490,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   
   renderAll();
 });
+
+// Экспортируем функции в глобальный scope для inline handlers
+window.fillModels = fillModels;
+window.onBrandChange = onBrandChange;
+window.onModelChange = onModelChange;
+window.renderAll = renderAll;
 
 })();
 </script>
