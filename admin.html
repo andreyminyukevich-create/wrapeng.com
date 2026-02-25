@@ -258,13 +258,24 @@ tbody tr:hover { background: #f8faff; }
   </div>
 
   <div class="tabs">
+    <button class="tab-btn" onclick="switchTab('requests')">📋 Заявки</button>
     <button class="tab-btn active" onclick="switchTab('studios')">🏢 Студии</button>
     <button class="tab-btn" onclick="switchTab('referrals')">🔗 Рефералы</button>
     <button class="tab-btn" onclick="switchTab('commissions')">💰 Комиссии</button>
   </div>
 
   <!-- Таб: Студии -->
-  <div id="tab-studios">
+  <div id="tab-requests" style="display:none">
+  <table class="table">
+    <thead><tr>
+      <th>Студия</th><th>Город</th><th>Телефон</th><th>Email</th>
+      <th>Дата</th><th>Статус</th><th>Действие</th>
+    </tr></thead>
+    <tbody id="requestsBody"><tr><td colspan="7" style="text-align:center;color:#94a3b8">Загрузка...</td></tr></tbody>
+  </table>
+</div>
+
+<div id="tab-studios">
     <div class="card">
       <div class="card-head">
         <h2>Список студий</h2>
@@ -463,8 +474,81 @@ function expireText(studio) {
 
 // ── Загрузка данных ───────────────────────────────────────────
 async function loadAll() {
-  await Promise.all([loadStudios(), loadCommissions()]);
+  await Promise.all([loadStudios(), loadCommissions(), loadRequests()]);
 }
+
+
+async function loadRequests() {
+  const { data, error } = await sb
+    .from('access_requests')
+    .select('*')
+    .order('created_at', { ascending: false });
+  if (error) { console.error(error); return; }
+  const reqs = data || [];
+  // Обновляем бейдж на вкладке
+  const btn = document.querySelector('[onclick="switchTab('requests')"]');
+  if (btn && reqs.filter(r => r.status === 'new').length > 0) {
+    btn.textContent = '📋 Заявки (' + reqs.filter(r => r.status === 'new').length + ')';
+  }
+  const tbody = document.getElementById('requestsBody');
+  if (!tbody) return;
+  if (!reqs.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#94a3b8">Заявок нет</td></tr>';
+    return;
+  }
+  tbody.innerHTML = reqs.map(r => `
+    <tr>
+      <td><strong>${r.studio_name || '—'}</strong></td>
+      <td>${r.city || '—'}</td>
+      <td><a href="tel:${r.phone}">${r.phone || '—'}</a></td>
+      <td>${r.email || '—'}</td>
+      <td>${new Date(r.created_at).toLocaleDateString('ru')}</td>
+      <td><span class="badge ${r.status === 'new' ? 'badge-pending' : 'badge-active'}">${
+        r.status === 'new' ? '🆕 Новая' : r.status === 'approved' ? '✅ Одобрена' : '❌ Отклонена'
+      }</span></td>
+      <td>
+        ${r.status === 'new' ? `
+          <button class="btn btn-success btn-sm" onclick="approveRequest('${r.id}', '${r.studio_name}', '${r.email}')">✅ Одобрить</button>
+          <button class="btn btn-sm" style="background:#ef4444;color:#fff" onclick="rejectRequest('${r.id}')">❌</button>
+        ` : '—'}
+      </td>
+    </tr>
+  `).join('');
+}
+
+window.approveRequest = async function(id, studioName, email) {
+  if (!confirm('Одобрить заявку от ' + studioName + '?')) return;
+  // Обновляем статус заявки
+  await sb.from('access_requests').update({ status: 'approved' }).eq('id', id);
+  // Если есть supabase_user — создаём студию
+  const { data: req } = await sb.from('access_requests').select('*').eq('id', id).single();
+  if (req?.supabase_user_id) {
+    const refCode = Math.random().toString(36).substring(2,10).toUpperCase();
+    const trialEnds = new Date(Date.now() + 72 * 3600 * 1000).toISOString();
+    const { data: studio } = await sb.from('studios').insert({
+      name: req.studio_name,
+      owner_id: req.supabase_user_id,
+      subscription_tier: 'trial',
+      subscription_expires_at: trialEnds,
+      referral_code: refCode,
+      settings: { phone: req.phone, city: req.city, contact_email: req.email }
+    }).select('id').single();
+    if (studio) {
+      await sb.from('studio_members').insert({
+        studio_id: studio.id, user_id: req.supabase_user_id, role: 'owner', is_active: true
+      });
+    }
+  }
+  alert('✅ Заявка одобрена! Студия создана, триал 72 часа.');
+  loadRequests();
+  loadStudios();
+};
+
+window.rejectRequest = async function(id) {
+  if (!confirm('Отклонить заявку?')) return;
+  await sb.from('access_requests').update({ status: 'rejected' }).eq('id', id);
+  loadRequests();
+};
 
 async function loadStudios() {
   const { data, error } = await sb
@@ -634,11 +718,11 @@ function renderCommissions(comms) {
 
 // ── Табы ─────────────────────────────────────────────────────
 window.switchTab = function(tab) {
-  ['studios', 'referrals', 'commissions'].forEach(t => {
+  ['requests', 'studios', 'referrals', 'commissions'].forEach(t => {
     document.getElementById(`tab-${t}`).style.display = t === tab ? 'block' : 'none';
   });
   document.querySelectorAll('.tab-btn').forEach((btn, i) => {
-    btn.classList.toggle('active', ['studios','referrals','commissions'][i] === tab);
+    btn.classList.toggle('active', ['requests','studios','referrals','commissions'][i] === tab);
   });
 };
 
