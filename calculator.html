@@ -2233,6 +2233,18 @@ function collectFormData() {
     });
   });
   
+  // Добавляем детали по услугам из collectAll (для assign-work)
+  try {
+    const sums = collectAll();
+    data.services_detail = {
+      arm: sums.arm.details.map(d => ({ name: d[0], mat: d[1], mot: d[2] })),
+      det: sums.det.details.map(d => ({ name: d[0], mat: d[1], mot: d[2] })),
+      gl:  sums.gl.details.map(d => ({ name: d[0], mat: d[1], mot: d[2] })),
+      ms:  sums.ms.details.map(d => ({ name: d[0], mat: d[1], mot: d[2] })),
+      wrap: sums.wrap.details.map(d => ({ name: d[0], mat: d[3], mot: d[4] })),
+    };
+  } catch(e) { /* collectAll может не быть при загрузке */ }
+
   // Собираем исполнителей
   data.executors = [];
   qa('#executorsContent .executor-row').forEach(row => {
