@@ -42,6 +42,7 @@
 
     var actionBtn = hideAction ? '' :
       '<a href="' + actionHref + '" class="btn-nav-action">' + actionLabel + '</a>';
+    var logoutBtn = '<button class="btn-nav-logout" onclick="(async()=>{const s=window._crmSb||window.supabase.createClient(\'https://hdghijgrrnzmntistdvw.supabase.co\',\'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkZ2hpamdycm56bW50aXN0ZHZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMzMyNzksImV4cCI6MjA3NTYwOTI3OX0.D9EDTmVrFRVp0B8_5tCJM29gbFdtadsom0Ihsf4uQ8Q\');await s.auth.signOut();window.location.href=\'welcome.html\';})()" style="background:transparent;border:1.5px solid rgba(124,58,237,0.3);color:#7c6fa0;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:0.82rem;font-weight:700;font-family:inherit;transition:all 0.2s" onmouseover="this.style.borderColor=\'#7c3aed\';this.style.color=\'#7c3aed\'" onmouseout="this.style.borderColor=\'rgba(124,58,237,0.3)\';this.style.color=\'#7c6fa0\'">Выйти →</button>';
 
     // Проверяем текущего пользователя для показа пункта Админ
     var SUPABASE_URL = 'https://hdghijgrrnzmntistdvw.supabase.co';
@@ -64,7 +65,7 @@
       '<div id="navTopBar">' +
         '<a href="dashboard.html" class="nav-brand">Keep1R CRM</a>' +
         '<nav class="nav-links">' + links + '</nav>' +
-        '<div class="nav-right">' + actionBtn + '</div>' +
+        '<div class="nav-right">' + actionBtn + logoutBtn + '</div>' +
       '</div>';
 
     var wrap = document.createElement('div');
