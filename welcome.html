@@ -632,18 +632,26 @@ document.getElementById('reg-form').addEventListener('submit', async e => {
     }).select('id').single();
     
     if (se) {
-      console.error('Studio insert error:', se);
-      // RLS ошибка = email не подтверждён
-      if (se.code === '42501' || se.message?.includes('row-level security')) {
-        // Показываем успех — заявка получена, разберёмся вручную
-        console.log('RLS error - email confirmation required in Supabase');
+      console.error('Studio insert error:', JSON.stringify(se));
+      // Fallback: пишем в access_requests (отдельная таблица без RLS)
+      const { error: reqErr } = await sb.from('access_requests').insert({
+        studio_name: studio, city, phone, email,
+        supabase_user_id: uid,
+        status: 'new'
+      });
+      if (reqErr) {
+        console.error('access_requests insert error:', JSON.stringify(reqErr));
+        err('reg-error', 'Ошибка сохранения заявки: ' + (se.message || 'попробуйте ещё раз'));
         await sb.auth.signOut();
-        document.getElementById('success-email').textContent = email;
-        document.getElementById('success-phone').textContent = phone;
-        showTab('success');
+        btn.disabled = false; btn.textContent = 'Отправить заявку →';
         return;
       }
-      throw se;
+      // Заявка в access_requests сохранена
+      await sb.auth.signOut();
+      document.getElementById('success-email').textContent = email;
+      document.getElementById('success-phone').textContent = phone;
+      showTab('success');
+      return;
     }
     
     await sb.from('studio_members').insert({
