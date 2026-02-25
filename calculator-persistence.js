@@ -79,6 +79,13 @@ function displayUserInfo() {
 
   userInfo.innerHTML  = `<div>${currentProfile.studio_name || 'Студия'}</div><div style="font-size:0.75rem">${statusText}</div>`;
   userInfo.style.display = 'block';
+
+  // Применяем брендинг КП в зависимости от тарифа
+  const isTrial = !currentProfile.is_paid;
+  if (typeof window.applyKPBranding === 'function') window.applyKPBranding(isTrial);
+  // Имя студии в КП-шапке
+  const studioNameEl = document.getElementById('kpStudioName');
+  if (studioNameEl && currentProfile.studio_name) studioNameEl.textContent = currentProfile.studio_name;
 }
 
 function goToDashboard() {
