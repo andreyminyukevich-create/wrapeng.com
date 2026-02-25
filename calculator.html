@@ -6,7 +6,182 @@
 <title>Keep1R CRM — Расчёт оклейки</title>
 <script>document.documentElement.setAttribute('data-theme', 'light'); document.body && document.body.setAttribute('data-theme', 'light');</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<link rel="stylesheet" href="nav.css">
+<style id="nav-css-inline">
+/* ═══════════════════════════════════════════
+   nav.css — Единая навигация CRM
+   Светлая тема, без переключателя.
+   Использует #navTopBar чтобы не конфликтовать
+   с .top-bar на отдельных страницах.
+═══════════════════════════════════════════ */
+
+/* Системный шрифт Apple — SF Pro на Mac/iOS, лучший на каждой платформе */
+:root {
+  --font: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
+  --bg-primary:    #f0f4fb;
+  --bg-card:       #ffffff;
+  --bg-input:      #f1f5ff;
+  --text:          #0f172a;
+  --text-muted:    #64748b;
+  --border:        rgba(15,23,42,0.10);
+  --primary:       #2563eb;
+  --primary-dark:  #1d4ed8;
+  --primary-light: rgba(37,99,235,0.10);
+  --success:       #059669;
+  --success-bg:    rgba(5,150,105,0.10);
+  --danger:        #dc2626;
+  --danger-bg:     rgba(220,38,38,0.10);
+  --warning:       #d97706;
+  --warning-bg:    rgba(217,119,6,0.12);
+  --shadow:        0 1px 6px rgba(0,0,0,0.08);
+  --shadow-md:     0 4px 16px rgba(0,0,0,0.10);
+  --shadow-lg:     0 8px 32px rgba(0,0,0,0.12);
+  --radius:        12px;
+  --radius-sm:     8px;
+}
+
+/* ── Top Bar ─────────────────────────────── */
+#navTopBar {
+  display: flex !important;
+  align-items: center !important;
+  padding: 0 24px !important;
+  height: 54px !important;
+  min-height: 54px !important;
+  background: #ffffff !important;
+  border-bottom: 1px solid var(--border) !important;
+  border-radius: 0 !important;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 500 !important;
+  box-shadow: 0 1px 8px rgba(0,0,0,0.07) !important;
+  gap: 10px !important;
+  margin: 0 !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+#navTopBar .nav-brand {
+  flex-shrink: 0;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--primary);
+  white-space: nowrap;
+  font-family: var(--font);
+  text-decoration: none;
+}
+
+/* ── Nav Links ───────────────────────────── */
+#navTopBar .nav-links {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex: 1;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+#navTopBar .nav-links::-webkit-scrollbar { display: none; }
+
+#navTopBar .nav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: 7px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  white-space: nowrap;
+  border: none;
+  background: transparent;
+  transition: all 0.15s;
+  flex-shrink: 0;
+  cursor: pointer;
+  font-family: var(--font);
+  text-decoration: none !important;
+}
+#navTopBar .nav-link:hover:not(.nav-soon) {
+  background: var(--bg-input);
+  color: var(--text);
+}
+#navTopBar .nav-link.active {
+  background: var(--primary-light);
+  color: var(--primary) !important;
+  font-weight: 700;
+}
+#navTopBar .nav-link.nav-soon {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.nav-soon-badge {
+  font-size: 0.6rem;
+  background: var(--warning-bg);
+  color: var(--warning);
+  border-radius: 4px;
+  padding: 1px 4px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  flex-shrink: 0;
+}
+
+/* ── Right Side ──────────────────────────── */
+#navTopBar .nav-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+#navTopBar .btn-nav-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 16px;
+  background: var(--primary);
+  color: #fff !important;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  white-space: nowrap;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: var(--font);
+  text-decoration: none !important;
+  box-shadow: 0 2px 8px rgba(37,99,235,0.25);
+}
+#navTopBar .btn-nav-action:hover {
+  background: var(--primary-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37,99,235,0.35);
+}
+
+/* ── Responsive ──────────────────────────── */
+@media (max-width: 1024px) {
+  #navTopBar { padding: 0 16px !important; }
+  #navTopBar .nav-link { font-size: 0.78rem; padding: 5px 9px; }
+}
+@media (max-width: 640px) {
+  #navTopBar {
+    flex-wrap: wrap !important;
+    height: auto !important;
+    padding: 8px 14px !important;
+    gap: 6px !important;
+  }
+  #navTopBar .nav-links { order: 3; width: 100%; padding-bottom: 2px; }
+  #navTopBar .nav-right  { margin-left: auto; }
+  #navTopBar .nav-brand  { font-size: 0.88rem; }
+}
+
+/* Глобальный шрифт — применяется ко всем страницам через nav.css */
+body {
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+</style>
 <script src="nav.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
