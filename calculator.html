@@ -75,7 +75,7 @@ body {
   line-height: 1.6;
   transition: background-color 0.3s ease, color 0.3s ease;
   -webkit-tap-highlight-color: transparent;
-  /* overflow-x убран — иначе ломается sticky */
+  overflow-x: hidden;
   position: relative;
 }
 
@@ -1865,6 +1865,20 @@ tfoot th:first-child {
             <span class="chip" data-markup-target="#impactMarkup">100</span>
           </div>
         </div>
+        <div class="block-summary" id="impactSummary" style="display:none">
+          <div class="block-summary-item">
+            <span class="block-summary-label">Себестоимость</span>
+            <span class="block-summary-value" id="impactSumBase">0 ₽</span>
+          </div>
+          <div class="block-summary-item">
+            <span class="block-summary-label">Наценка</span>
+            <span class="block-summary-value markup" id="impactSumMarkup">0 ₽</span>
+          </div>
+          <div class="block-summary-item">
+            <span class="block-summary-label">Итого</span>
+            <span class="block-summary-value" id="impactSumTotal">0 ₽</span>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -1891,26 +1905,51 @@ tfoot th:first-child {
     <div class="card">
       <h2 class="collapsible collapsed">🔧 Арматурные работы</h2>
       <div class="card-content collapsed" id="armContent"></div>
+      <div class="block-summary" id="armSummary" style="display:none">
+        <div class="block-summary-item"><span class="block-summary-label">Себестоимость</span><span class="block-summary-value" id="armSumBase">0 ₽</span></div>
+        <div class="block-summary-item"><span class="block-summary-label">Наценка</span><span class="block-summary-value markup" id="armSumMarkup">0 ₽</span></div>
+        <div class="block-summary-item"><span class="block-summary-label">Итого</span><span class="block-summary-value" id="armSumTotal">0 ₽</span></div>
+      </div>
     </div>
 
     <div class="card">
       <h2 class="collapsible collapsed">🎨 Оклейка автомобиля</h2>
       <div class="card-content collapsed" id="wrapContent"></div>
+      <div class="block-summary" id="wrapSummary" style="display:none">
+        <div class="block-summary-item"><span class="block-summary-label">Себестоимость</span><span class="block-summary-value" id="wrapSumBase">0 ₽</span></div>
+        <div class="block-summary-item"><span class="block-summary-label">Наценка</span><span class="block-summary-value markup" id="wrapSumMarkup">0 ₽</span></div>
+        <div class="block-summary-item"><span class="block-summary-label">Итого</span><span class="block-summary-value" id="wrapSumTotal">0 ₽</span></div>
+      </div>
     </div>
 
     <div class="card">
       <h2 class="collapsible collapsed">✨ Детейлинг</h2>
       <div class="card-content collapsed" id="detContent"></div>
+      <div class="block-summary" id="detSummary" style="display:none">
+        <div class="block-summary-item"><span class="block-summary-label">Себестоимость</span><span class="block-summary-value" id="detSumBase">0 ₽</span></div>
+        <div class="block-summary-item"><span class="block-summary-label">Наценка</span><span class="block-summary-value markup" id="detSumMarkup">0 ₽</span></div>
+        <div class="block-summary-item"><span class="block-summary-label">Итого</span><span class="block-summary-value" id="detSumTotal">0 ₽</span></div>
+      </div>
     </div>
 
     <div class="card">
       <h2 class="collapsible collapsed">🪟 Стёкла</h2>
       <div class="card-content collapsed" id="glContent"></div>
+      <div class="block-summary" id="glSummary" style="display:none">
+        <div class="block-summary-item"><span class="block-summary-label">Себестоимость</span><span class="block-summary-value" id="glSumBase">0 ₽</span></div>
+        <div class="block-summary-item"><span class="block-summary-label">Наценка</span><span class="block-summary-value markup" id="glSumMarkup">0 ₽</span></div>
+        <div class="block-summary-item"><span class="block-summary-label">Итого</span><span class="block-summary-value" id="glSumTotal">0 ₽</span></div>
+      </div>
     </div>
 
     <div class="card">
       <h2 class="collapsible collapsed">🛠️ Прочие работы</h2>
       <div class="card-content collapsed" id="miscContent"></div>
+      <div class="block-summary" id="miscSummary" style="display:none">
+        <div class="block-summary-item"><span class="block-summary-label">Себестоимость</span><span class="block-summary-value" id="miscSumBase">0 ₽</span></div>
+        <div class="block-summary-item"><span class="block-summary-label">Наценка</span><span class="block-summary-value markup" id="miscSumMarkup">0 ₽</span></div>
+        <div class="block-summary-item"><span class="block-summary-label">Итого</span><span class="block-summary-value" id="miscSumTotal">0 ₽</span></div>
+      </div>
     </div>
 
     <div class="card">
@@ -2831,20 +2870,7 @@ function renderServiceList(containerId, services, classPrefix) {
         <span class="chip" data-markup-target="#${classPrefix}Markup">100</span>
       </div>
     </div>
-    <div class="block-summary" id="${classPrefix}Summary" style="display:none">
-      <div class="block-summary-item">
-        <span class="block-summary-label">Себестоимость</span>
-        <span class="block-summary-value" id="${classPrefix}SumBase">0 ₽</span>
-      </div>
-      <div class="block-summary-item">
-        <span class="block-summary-label">Наценка</span>
-        <span class="block-summary-value markup" id="${classPrefix}SumMarkup">0 ₽</span>
-      </div>
-      <div class="block-summary-item">
-        <span class="block-summary-label">Итого</span>
-        <span class="block-summary-value" id="${classPrefix}SumTotal">0 ₽</span>
-      </div>
-    </div>\`;
+`;
   
   container.innerHTML = html;
 }
@@ -2931,20 +2957,8 @@ function renderWrapContent() {
         <span class="chip" data-markup-target="#wrapMarkup">100</span>
       </div>
     </div>
-    <div class="block-summary" id="wrapSummary" style="display:none">
-      <div class="block-summary-item">
-        <span class="block-summary-label">Себестоимость</span>
-        <span class="block-summary-value" id="wrapSumBase">0 ₽</span>
-      </div>
-      <div class="block-summary-item">
-        <span class="block-summary-label">Наценка</span>
-        <span class="block-summary-value markup" id="wrapSumMarkup">0 ₽</span>
-      </div>
-      <div class="block-summary-item">
-        <span class="block-summary-label">Итого</span>
-        <span class="block-summary-value" id="wrapSumTotal">0 ₽</span>
-      </div>
-    </div>\`;
+`;
+  // wrapSummary — статичный div в HTML
   
   container.innerHTML = html;
 }
@@ -3937,7 +3951,9 @@ function initTheme() {
   qa('.card h2.collapsible').forEach(h => {
     h.addEventListener('click', () => {
       h.classList.toggle('collapsed');
-      h.nextElementSibling.classList.toggle('collapsed');
+      // Ищем card-content явно — nextElementSibling надёжнее
+      const content = h.parentElement.querySelector('.card-content');
+      if (content) content.classList.toggle('collapsed');
     });
   });
 }
@@ -4310,7 +4326,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
   
-document.addEventListener('input', e => {
+  document.addEventListener('input', e => {
     if (e.target.id === 'year') {
       formatYearInput(e.target);
       renderAll();
@@ -4343,7 +4359,7 @@ document.addEventListener('input', e => {
     }
   }, true);
   
-qa('.chip').forEach(ch => {
+  qa('.chip').forEach(ch => {
   ch.addEventListener('click', () => {
     const sel = ch.getAttribute('data-markup-target');
     const ppfIdx = ch.getAttribute('data-ppf-markup');
@@ -4455,7 +4471,7 @@ qa('.chip').forEach(ch => {
     setTimeout(() => exportPDF('#pdfCost', 'Себестоимость.pdf'), 100);
   });
   
-q('#btnExportExecutors')?.addEventListener('click', () => {
+  q('#btnExportExecutors')?.addEventListener('click', () => {
     prepExecutors();
     setTimeout(() => exportPDF('#pdfExecutors', 'Список_исполнителей.pdf'), 100);
   });
