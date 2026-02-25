@@ -549,101 +549,70 @@ function expireText(studio) {
 // ── Загрузка данных ───────────────────────────────────────────
 
 
+
 window.openCalcView = async function(calcId) {
-  const modal = document.getElementById('calcViewModal');
-  const content = document.getElementById('calcViewContent');
-  const title = document.getElementById('calcViewTitle');
-  
+  var modal = document.getElementById('calcViewModal');
+  var content = document.getElementById('calcViewContent');
+  var title = document.getElementById('calcViewTitle');
   modal.classList.add('active');
-  content.innerHTML = '<div style="text-align:center;padding:40px;color:#94a3b8">⏳ Загрузка...</div>';
-  
-  const { data, error } = await sb
-    .from('calculations')
-    .select('*, studios(name)')
-    .eq('id', calcId)
-    .single();
-  
-  if (error || !data) {
-    content.innerHTML = '<p style="color:#ef4444">Ошибка загрузки расчёта</p>';
+  content.innerHTML = '<div style="text-align:center;padding:40px;color:#94a3b8">Загрузка...</div>';
+
+  var res = await sb.from('calculations').select('*, studios(name)').eq('id', calcId).single();
+  if (res.error || !res.data) {
+    content.innerHTML = '<p style="color:#ef4444">Ошибка загрузки</p>';
     return;
   }
-  
-  const cd = data.calculation_data || {};
-  const sd = data.services_detail || cd.services_detail || {};
-  
-  title.textContent = (data.car_name || 'Расчёт') + ' — ' + (data.studios?.name || '');
-  
-  const statusMap = { new:'🆕 Новый', scheduled:'📅 Запись', in_progress:'🔧 В работе', done:'✅ Готово', delivered:'🚗 Выдано' };
-  
-  // Собираем услуги из services_detail
-  let servicesRows = '';
-  const sectionNames = { arm:'Бронирование', det:'Детейлинг', gl:'Стёкла', ms:'Доп.услуги', wrap:'Оклейка' };
-  Object.entries(sd).forEach(([key, items]) => {
+  var data = res.data;
+  var cd = data.calculation_data || {};
+  var sd = data.services_detail || cd.services_detail || {};
+  var statusMap = { new:'🆕 Новый', scheduled:'📅 Запись', in_progress:'🔧 В работе', done:'✅ Готово', delivered:'🚗 Выдано' };
+  var sectionNames = { arm:'Бронирование', det:'Детейлинг', gl:'Стёкла', ms:'Доп.услуги', wrap:'Оклейка' };
+
+  title.textContent = (data.car_name || 'Расчёт') + ' — ' + (data.studios ? data.studios.name : '');
+
+  var servicesRows = '';
+  if (cd.package) {
+    var b = ['wrapMat','wrapMot','prepMat','prepMot','armMat','armMot'].reduce(function(a,k){ return a+(parseFloat(cd.package[k])||0); }, 0);
+    if (b > 0) servicesRows += '<tr><td>Полная защита</td><td>Пакет вкруг</td><td colspan="2">—</td><td><b>'+fmt(b)+' ₽</b></td></tr>';
+  }
+  if (cd.impact) {
+    var bi = ['wrapMat','wrapMot','prepMat','prepMot','armMat','armMot'].reduce(function(a,k){ return a+(parseFloat(cd.impact[k])||0); }, 0);
+    if (bi > 0) servicesRows += '<tr><td>Ударная часть</td><td>Защита</td><td colspan="2">—</td><td><b>'+fmt(bi)+' ₽</b></td></tr>';
+  }
+  Object.keys(sd).forEach(function(key) {
+    var items = sd[key];
     if (!items || !items.length) return;
-    items.forEach(item => {
-      const base = (item.mat||0) + (item.mot||0);
+    items.forEach(function(item) {
+      var base = (item.mat||0) + (item.mot||0);
       if (base > 0) {
-        servicesRows += `<tr>
-          <td>${sectionNames[key]||key}</td>
-          <td>${item.name||'—'}</td>
-          <td>${fmt(item.mat||0)} ₽</td>
-          <td>${fmt(item.mot||0)} ₽</td>
-          <td style="font-weight:700">${fmt(base)} ₽</td>
-        </tr>`;
+        servicesRows += '<tr><td>'+(sectionNames[key]||key)+'</td><td>'+(item.name||'—')+'</td><td>'+fmt(item.mat||0)+' ₽</td><td>'+fmt(item.mot||0)+' ₽</td><td><b>'+fmt(base)+' ₽</b></td></tr>';
       }
     });
   });
-  
-  // Пакет и ударная часть
-  if (cd.package) {
-    const pkgBase = [cd.package.wrapMat, cd.package.wrapMot, cd.package.prepMat, cd.package.prepMot, cd.package.armMat, cd.package.armMot]
-      .reduce((a,v) => a + (parseFloat(v)||0), 0);
-    if (pkgBase > 0) servicesRows = `<tr><td>Полная защита</td><td>Пакет вкруг</td><td colspan="2">—</td><td style="font-weight:700">${fmt(pkgBase)} ₽</td></tr>` + servicesRows;
-  }
-  if (cd.impact) {
-    const impBase = [cd.impact.wrapMat, cd.impact.wrapMot, cd.impact.prepMat, cd.impact.prepMot, cd.impact.armMat, cd.impact.armMot]
-      .reduce((a,v) => a + (parseFloat(v)||0), 0);
-    if (impBase > 0) servicesRows = `<tr><td>Ударная часть</td><td>Защита</td><td colspan="2">—</td><td style="font-weight:700">${fmt(impBase)} ₽</td></tr>` + servicesRows;
-  }
-  
-  content.innerHTML = \`
-    <div class="calc-detail-grid">
-      <div class="calc-detail-item">
-        <div class="calc-detail-label">Автомобиль</div>
-        <div class="calc-detail-value">\${data.car_name || '—'}</div>
-      </div>
-      <div class="calc-detail-item">
-        <div class="calc-detail-label">Статус</div>
-        <div class="calc-detail-value">\${statusMap[data.status] || data.status || '—'}</div>
-      </div>
-      <div class="calc-detail-item">
-        <div class="calc-detail-label">Студия</div>
-        <div class="calc-detail-value">\${data.studios?.name || '—'}</div>
-      </div>
-      <div class="calc-detail-item">
-        <div class="calc-detail-label">Дата</div>
-        <div class="calc-detail-value">\${new Date(data.created_at).toLocaleDateString('ru')}</div>
-      </div>
-      <div class="calc-detail-item">
-        <div class="calc-detail-label">Себестоимость</div>
-        <div class="calc-detail-value">\${fmt(data.total_price||0)} ₽</div>
-      </div>
-      <div class="calc-detail-item">
-        <div class="calc-detail-label">Итоговая сумма</div>
-        <div class="calc-detail-value accent">\${fmt(data.final_price||data.total_price||0)} ₽</div>
-      </div>
-    </div>
-    \${servicesRows ? \`
-    <div class="calc-services-list">
-      <table>
-        <thead><tr><th>Блок</th><th>Услуга</th><th>Материалы</th><th>Мотивация</th><th>Итого</th></tr></thead>
-        <tbody>\${servicesRows}</tbody>
-      </table>
-    </div>\` : '<p style="color:#94a3b8;font-size:0.9rem">Детализация услуг недоступна (расчёт создан до обновления)</p>'}
-    <div style="display:flex;justify-content:flex-end;margin-top:8px">
-      <button onclick="document.getElementById('calcViewModal').classList.remove('active')" class="btn">Закрыть</button>
-    </div>
-  \`;
+
+  var grid = '<div class="calc-detail-grid">'
+    + '<div class="calc-detail-item"><div class="calc-detail-label">Автомобиль</div><div class="calc-detail-value">'+(data.car_name||'—')+'</div></div>'
+    + '<div class="calc-detail-item"><div class="calc-detail-label">Статус</div><div class="calc-detail-value">'+(statusMap[data.status]||data.status||'—')+'</div></div>'
+    + '<div class="calc-detail-item"><div class="calc-detail-label">Студия</div><div class="calc-detail-value">'+(data.studios ? data.studios.name : '—')+'</div></div>'
+    + '<div class="calc-detail-item"><div class="calc-detail-label">Дата</div><div class="calc-detail-value">'+new Date(data.created_at).toLocaleDateString('ru')+'</div></div>'
+    + '<div class="calc-detail-item"><div class="calc-detail-label">Себестоимость</div><div class="calc-detail-value">'+fmt(data.total_price||0)+' ₽</div></div>'
+    + '<div class="calc-detail-item"><div class="calc-detail-label">Итоговая сумма</div><div class="calc-detail-value accent">'+fmt(data.final_price||data.total_price||0)+' ₽</div></div>'
+    + '</div>';
+
+  var table = servicesRows
+    ? '<div class="calc-services-list"><table><thead><tr><th>Блок</th><th>Услуга</th><th>Материалы</th><th>Мотивация</th><th>Итого</th></tr></thead><tbody>'+servicesRows+'</tbody></table></div>'
+    : '<p style="color:#94a3b8;font-size:0.9rem">Детализация недоступна</p>';
+
+  content.innerHTML = grid + table;
+
+  var closeDiv = document.createElement('div');
+  closeDiv.style.cssText = 'display:flex;justify-content:flex-end;margin-top:16px';
+  var closeBtn = document.createElement('button');
+  closeBtn.className = 'btn';
+  closeBtn.textContent = 'Закрыть';
+  closeBtn.onclick = function() { modal.classList.remove('active'); };
+  closeDiv.appendChild(closeBtn);
+  content.appendChild(closeDiv);
 };
 
 // ── Расчёты всех студий ───────────────────────────────────────
