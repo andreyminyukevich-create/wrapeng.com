@@ -258,7 +258,8 @@ tbody tr:hover { background: #f8faff; }
   </div>
 
   <div class="tabs">
-    <button class="tab-btn" onclick="switchTab('requests')">📋 Заявки</button>
+    <button class="tab-btn" onclick="switchTab('requests')">📋 Заявки <span id="badgeRequests"></span></button>
+    <button class="tab-btn" onclick="switchTab('trial')">🧪 На тесте <span id="badgeTrial"></span></button>
     <button class="tab-btn active" onclick="switchTab('studios')">🏢 Студии</button>
     <button class="tab-btn" onclick="switchTab('referrals')">🔗 Рефералы</button>
     <button class="tab-btn" onclick="switchTab('commissions')">💰 Комиссии</button>
@@ -269,10 +270,19 @@ tbody tr:hover { background: #f8faff; }
   <div id="tab-requests" style="display:none">
   <table class="table">
     <thead><tr>
-      <th>Студия</th><th>Город</th><th>Телефон</th><th>Email</th>
-      <th>Дата</th><th>Статус</th><th>Действие</th>
+      <th>Студия</th><th>Город / Телефон</th><th>Email</th>
+      <th>Дата заявки</th><th>Действие</th>
     </tr></thead>
-    <tbody id="requestsBody"><tr><td colspan="7" style="text-align:center;color:#94a3b8">Загрузка...</td></tr></tbody>
+    <tbody id="requestsBody"><tr><td colspan="5" style="text-align:center;color:#94a3b8">Загрузка...</td></tr></tbody>
+  </table>
+</div>
+
+<div id="tab-trial" style="display:none">
+  <table class="table">
+    <thead><tr>
+      <th>Студия</th><th>Владелец</th><th>Реф. код</th><th>Триал истекает</th><th>Действия</th>
+    </tr></thead>
+    <tbody id="trialBody"><tr><td colspan="5" style="text-align:center;color:#94a3b8">Загрузка...</td></tr></tbody>
   </table>
 </div>
 
@@ -578,46 +588,65 @@ function renderCalcs() {
 }
 
 async function loadAll() {
-  await Promise.all([loadStudios(), loadCommissions(), loadRequests()]);
+  await Promise.all([loadStudios(), loadCommissions()]);
+  await loadRequests(); // после loadStudios т.к. использует allStudios
 }
 
 
 async function loadRequests() {
-  const { data, error } = await sb
-    .from('access_requests')
-    .select('*')
-    .order('created_at', { ascending: false });
-  if (error) { console.error(error); return; }
-  const reqs = data || [];
-  // Обновляем бейдж на вкладке
-  const btn = Array.from(document.querySelectorAll(".tab-btn")).find(b => b.textContent.includes("Заявки"));
-  if (btn && reqs.filter(r => r.status === 'new').length > 0) {
-    btn.textContent = '📋 Заявки (' + reqs.filter(r => r.status === 'new').length + ')';
-  }
+  // Берём заявки из двух источников: access_requests + pending студии
+  const [{ data: accessReqs }, { data: pendingStudios }] = await Promise.all([
+    sb.from('access_requests').select('*').order('created_at', { ascending: false }),
+    sb.from('studios').select('*').eq('subscription_tier', 'pending').order('created_at', { ascending: false })
+  ]);
+
+  const reqs = accessReqs || [];
+  const pending = pendingStudios || [];
+
+  // Бейдж
+  const totalNew = reqs.filter(r => r.status === 'new').length + pending.length;
+  const badge = document.getElementById('badgeRequests');
+  if (badge) badge.textContent = totalNew > 0 ? `(${totalNew})` : '';
+
   const tbody = document.getElementById('requestsBody');
   if (!tbody) return;
-  if (!reqs.length) {
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#94a3b8">Заявок нет</td></tr>';
+
+  if (!reqs.length && !pending.length) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#94a3b8">Заявок нет</td></tr>';
     return;
   }
-  tbody.innerHTML = reqs.map(r => `
-    <tr>
-      <td><strong>${r.studio_name || '—'}</strong></td>
-      <td>${r.city || '—'}</td>
-      <td><a href="tel:${r.phone}">${r.phone || '—'}</a></td>
-      <td>${r.email || '—'}</td>
-      <td>${new Date(r.created_at).toLocaleDateString('ru')}</td>
-      <td><span class="badge ${r.status === 'new' ? 'badge-pending' : 'badge-active'}">${
-        r.status === 'new' ? '🆕 Новая' : r.status === 'approved' ? '✅ Одобрена' : '❌ Отклонена'
-      }</span></td>
-      <td>
-        ${r.status === 'new' ? `
-          <button class="btn btn-success btn-sm" onclick="approveRequest('${r.id}', '${r.studio_name}', '${r.email}')">✅ Одобрить</button>
-          <button class="btn btn-sm" style="background:#ef4444;color:#fff" onclick="rejectRequest('${r.id}')">❌</button>
-        ` : '—'}
+
+  // Рендерим pending студии
+  const pendingRows = pending.map(s => `
+    <tr style="background:rgba(245,158,11,0.05)">
+      <td><strong>${s.name || '—'}</strong><br><small style="color:#94a3b8">ID: ${s.id.substring(0,8)}...</small></td>
+      <td>${s.settings?.city || '—'}<br><small>${s.settings?.phone || '—'}</small></td>
+      <td>${s.settings?.contact_email || '—'}</td>
+      <td>${new Date(s.created_at).toLocaleDateString('ru')}</td>
+      <td style="display:flex;gap:6px">
+        <button class="btn btn-success btn-sm" onclick="approveStudio('${s.id}','${s.name || s.id}')">✅ Одобрить</button>
+        <button class="btn btn-sm" style="background:#ef4444;color:#fff" onclick="blockStudio('${s.id}','${s.name}')">❌</button>
       </td>
     </tr>
   `).join('');
+
+  // Рендерим access_requests
+  const reqRows = reqs.map(r => `
+    <tr>
+      <td><strong>${r.studio_name || '—'}</strong></td>
+      <td>${r.city || '—'}<br><small>${r.phone || '—'}</small></td>
+      <td>${r.email || '—'}</td>
+      <td>${new Date(r.created_at).toLocaleDateString('ru')}</td>
+      <td>
+        ${r.status === 'new' ? `
+          <button class="btn btn-success btn-sm" onclick="approveRequest('${r.id}','${(r.studio_name||'').replace(/'/g,'')}',' ${r.email}')">✅ Одобрить</button>
+          <button class="btn btn-sm" style="background:#ef4444;color:#fff" onclick="rejectRequest('${r.id}')">❌</button>
+        ` : `<span style="color:#64748b;font-size:0.8rem">${r.status === 'approved' ? '✅ Одобрена' : '❌ Отклонена'}</span>`}
+      </td>
+    </tr>
+  `).join('');
+
+  tbody.innerHTML = pendingRows + reqRows;
 }
 
 window.approveRequest = async function(id, studioName, email) {
@@ -665,7 +694,7 @@ async function loadStudios() {
 
   // Считаем статы
   let active = 0, trial = 0, expired = 0;
-  allStudios.forEach(s => {
+  visibleStudios.forEach(s => {
     const st = subStatus(s);
     if (st === 'active') active++;
     else if (st === 'trial') trial++;
@@ -682,6 +711,7 @@ async function loadStudios() {
   document.getElementById('sExpired').textContent = expired;
 
   renderStudios();
+  renderTrialStudios();
   renderReferrals();
 }
 
@@ -701,7 +731,55 @@ async function loadCommissions() {
 }
 
 // ── Рендер студий ─────────────────────────────────────────────
+function renderTrialStudios() {
+  const trial = allStudios.filter(s => s.subscription_tier === 'trial');
+  // Обновляем бейдж
+  const badge = document.getElementById('badgeTrial');
+  if (badge) badge.textContent = trial.length > 0 ? `(${trial.length})` : '';
+  
+  const tbody = document.getElementById('trialBody');
+  if (!tbody) return;
+  if (!trial.length) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#94a3b8">Нет студий на тесте</td></tr>';
+    return;
+  }
+  tbody.innerHTML = trial.map(s => {
+    const exp = s.subscription_expires_at ? new Date(s.subscription_expires_at) : null;
+    const now = new Date();
+    const hoursLeft = exp ? Math.round((exp - now) / 3600000) : null;
+    const expText = exp 
+      ? (hoursLeft > 0 
+          ? `<span style="color:${hoursLeft < 12 ? '#ef4444' : '#f59e0b'}">⏰ ${hoursLeft}ч осталось</span>`
+          : `<span style="color:#ef4444">⚠️ Истёк</span>`)
+      : '—';
+    const owner = s.owner_id ? s.owner_id.substring(0,8)+'...' : 'нет владельца';
+    return `<tr>
+      <td><strong>${s.name || '—'}</strong><br><small style="color:#94a3b8">${s.settings?.phone || ''} ${s.settings?.city || ''}</small></td>
+      <td style="font-size:0.8rem">${s.settings?.contact_email || owner}</td>
+      <td><span class="ref-code">${s.referral_code || '—'}</span></td>
+      <td>${expText}</td>
+      <td style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn btn-success btn-sm" onclick="extendTrial('${s.id}','${s.name}')">+72ч</button>
+        <button class="btn btn-sm" style="background:#7c3aed;color:#fff" onclick="openSubModal('${s.id}')">💳 Подписка</button>
+        <button class="btn btn-sm" style="background:#ef4444;color:#fff" onclick="blockStudio('${s.id}','${s.name}')">🚫</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+window.extendTrial = async function(studioId, name) {
+  const trialEnds = new Date(Date.now() + 72 * 3600 * 1000).toISOString();
+  const { error } = await sb.from('studios').update({
+    subscription_expires_at: trialEnds
+  }).eq('id', studioId);
+  if (error) { alert('❌ ' + error.message); return; }
+  alert('✅ Триал продлён на 72 часа');
+  await loadStudios();
+};
+
 function renderStudios() {
+  // Показываем только active/expired/blocked
+  const visibleStudios = allStudios.filter(s => !['pending','trial'].includes(s.subscription_tier));
   const tbody = document.getElementById('studiosBody');
 
   if (!allStudios.length) {
@@ -728,7 +806,7 @@ function renderStudios() {
       <td>${expireText(s)}</td>
       <td>
         <div class="actions">
-          ${s.subscription_tier === 'pending' ? `<button class="btn btn-success" onclick="approveStudio('${s.id}', '${s.name}')">✅ Одобрить</button>` : ''}
+          <!-- pending студии в табе Заявки -->
           <button class="btn btn-primary" onclick="openSubModal('${s.id}')">⚙️ Подписка</button>
           <button class="btn btn-danger" onclick="blockStudio('${s.id}', '${s.name}')">🚫</button>
         </div>
@@ -822,7 +900,7 @@ function renderCommissions(comms) {
 
 // ── Табы ─────────────────────────────────────────────────────
 window.switchTab = function(tab) {
-  ['requests', 'studios', 'referrals', 'commissions', 'calcs'].forEach(t => {
+  ['requests', 'trial', 'studios', 'referrals', 'commissions', 'calcs'].forEach(t => {
     const el = document.getElementById('tab-' + t);
     if (el) el.style.display = t === tab ? 'block' : 'none';
   });
@@ -935,17 +1013,26 @@ window.saveSubscription = async function() {
 window.approveStudio = async function(studioId, name) {
   if (!confirm(`Одобрить заявку студии "${name}" и дать пробный доступ на 72 часа?`)) return;
   const trialEnds = new Date(Date.now() + 72 * 3600 * 1000).toISOString();
-  const { error } = await sb.from('studios').update({
-    subscription_tier: 'trial',
-    subscription_expires_at: trialEnds
-  }).eq('id', studioId);
+  
+  const { data, error } = await sb.from('studios')
+    .update({ subscription_tier: 'trial', subscription_expires_at: trialEnds })
+    .eq('id', studioId)
+    .select('id, subscription_tier, subscription_expires_at');
+  
   if (error) {
-    alert('❌ Ошибка: ' + error.message + '\nКод: ' + error.code);
+    alert('❌ Ошибка RLS/DB: ' + error.message + '\nКод: ' + error.code + '\n\nВыполни в SQL Editor:\nUPDATE studios SET subscription_tier=\'trial\', subscription_expires_at=\'' + trialEnds + '\' WHERE id=\'' + studioId + '\';');
     console.error('approveStudio error:', error);
     return;
   }
-  alert(`✅ Студия "${name}" одобрена! Триал активирован на 72 часа.`);
+  
+  if (!data || data.length === 0) {
+    alert('⚠️ RLS заблокировал обновление (нет ошибки но и данные не вернулись).\n\nВыполни вручную в SQL Editor:\nUPDATE studios SET subscription_tier=\'trial\', subscription_expires_at=\'' + trialEnds + '\' WHERE id=\'' + studioId + '\';');
+    return;
+  }
+  
+  alert(`✅ Студия "${name}" одобрена!\nТриал до: ${new Date(trialEnds).toLocaleString('ru')}`);
   await loadStudios();
+  switchTab('trial');
 };
 
 window.blockStudio = async function(studioId, name) {
