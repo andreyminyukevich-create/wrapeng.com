@@ -1899,6 +1899,18 @@ window.addEventListener('unhandledrejection', function(e) {
   </div>
 </div>
 
+<!-- Навигация (инлайн, без nav.js) -->
+<div id="navTopBar">
+  <a href="dashboard.html" class="nav-brand">Keep1R CRM</a>
+  <div class="nav-links">
+    <a href="dashboard.html" class="nav-link">← Главная</a>
+    <a href="calculator.html" class="nav-link active">🧮 Калькулятор</a>
+  </div>
+  <div class="nav-right">
+    <div id="user-info" style="display:none;font-size:0.8rem;color:var(--text-muted);text-align:right"></div>
+  </div>
+</div>
+
 <div id="calc-wrapper">
 <div id="app">
 
@@ -4150,14 +4162,6 @@ function initTheme() {
     });
   });
 
-  qa('.card h2.collapsible').forEach(h => {
-    h.addEventListener('click', () => {
-      h.classList.toggle('collapsed');
-      // Ищем card-content явно — nextElementSibling надёжнее
-      const content = h.parentElement.querySelector('.card-content');
-      if (content) content.classList.toggle('collapsed');
-    });
-  });
 }
 
 function initDiscounts() {
@@ -4461,22 +4465,35 @@ function formatNumberInput(input) {
   }
 }
 
-document.addEventListener('DOMContentLoaded', async () => {
-  if (typeof initNav === 'function') initNav({ actionHref: 'dashboard.html', actionLabel: '← Главная' });
+// ══════════════════════════════════════════
+// ИНИЦИАЛИЗАЦИЯ — разбита по зонам ответственности
+// ══════════════════════════════════════════
+
+async function initAuthAndAccess() {
   const hasAccess = await checkAuth();
-  if (!hasAccess) return;
-  
-  
+  return hasAccess;
+}
+
+function initPageState() {
   const isTelegram = window.TelegramWebviewProxy !== undefined || navigator.userAgent.includes('Telegram');
   if (isTelegram) {
     const warning = q('#telegramWarning');
     if (warning) warning.style.display = 'block';
   }
-  
+}
+
+function initUI() {
   initTheme();
   initDiscounts();
+}
+
+function initDataSources() {
   fillBrands();
-  
+  q('#brand')?.addEventListener('change', onBrandChange);
+  q('#model')?.addEventListener('change', onModelChange);
+}
+
+function initRender() {
   renderServiceList('#armContent', armServices, 'arm');
   renderWrapContent();
   renderPartialLists();
@@ -4485,210 +4502,150 @@ document.addEventListener('DOMContentLoaded', async () => {
   renderServiceList('#miscContent', miscServices, 'misc');
   initServiceToggles();
   setDefaultMarkups();
-  
-  q('#brand')?.addEventListener('change', onBrandChange);
-  q('#model')?.addEventListener('change', onModelChange);
-  
-  q('#btnAddPkgCost')?.addEventListener('click', () => addCostRow('pkg'));
-  q('#btnAddImpactCost')?.addEventListener('click', () => addCostRow('impact'));
-  q('#btnAddArm')?.addEventListener('click', () => { addDynRow('#armDyn', 'arm'); initServiceToggles(); });
-  q('#btnAddArmCost')?.addEventListener('click', () => addCostRow('arm'));
-  q('#btnAddWrap')?.addEventListener('click', () => { addDynRow('#wrapDyn', 'wrap'); initServiceToggles(); });
-  q('#btnAddWrapCost')?.addEventListener('click', () => addCostRow('wrap'));
-  q('#btnAddDet')?.addEventListener('click', () => { addDynRow('#detDyn', 'det'); initServiceToggles(); });
-  q('#btnAddDetCost')?.addEventListener('click', () => addCostRow('det'));
-  q('#btnAddGl')?.addEventListener('click', () => { addDynRow('#glDyn', 'gl'); initServiceToggles(); });
-  q('#btnAddGlCost')?.addEventListener('click', () => addCostRow('gl'));
-  q('#btnAddMisc')?.addEventListener('click', () => { addDynRow('#miscDyn', 'misc'); initServiceToggles(); });
-  q('#btnAddMiscCost')?.addEventListener('click', () => addCostRow('misc'));
-  
+  renderAll();
+}
+
+function initBindings() {
+  // Добавление строк — конфиг-массив вместо дублирования
+  const addRowBindings = [
+    { sel: '#btnAddPkgCost',    action: () => addCostRow('pkg') },
+    { sel: '#btnAddImpactCost', action: () => addCostRow('impact') },
+    { sel: '#btnAddArm',        action: () => { addDynRow('#armDyn',  'arm');  initServiceToggles(); } },
+    { sel: '#btnAddArmCost',    action: () => addCostRow('arm') },
+    { sel: '#btnAddWrap',       action: () => { addDynRow('#wrapDyn', 'wrap'); initServiceToggles(); } },
+    { sel: '#btnAddWrapCost',   action: () => addCostRow('wrap') },
+    { sel: '#btnAddDet',        action: () => { addDynRow('#detDyn',  'det');  initServiceToggles(); } },
+    { sel: '#btnAddDetCost',    action: () => addCostRow('det') },
+    { sel: '#btnAddGl',         action: () => { addDynRow('#glDyn',   'gl');   initServiceToggles(); } },
+    { sel: '#btnAddGlCost',     action: () => addCostRow('gl') },
+    { sel: '#btnAddMisc',       action: () => { addDynRow('#miscDyn', 'misc'); initServiceToggles(); } },
+    { sel: '#btnAddMiscCost',   action: () => addCostRow('misc') },
+  ];
+  addRowBindings.forEach(({ sel, action }) => q(sel)?.addEventListener('click', action));
+
+  // Форма оплаты
   qa('input[name=payMode]').forEach(r => r.addEventListener('change', () => {
     renderAll();
     scheduleSave();
   }));
-  
+
+  // Управляющие кнопки
   q('#btnRecalc')?.addEventListener('click', renderAll);
   q('#btnReset')?.addEventListener('click', () => {
     if (confirm('Вы уверены, что хотите сбросить все данные?')) location.reload();
   });
-  
   q('#btnSaveCalc')?.addEventListener('click', async () => {
     const btn = q('#btnSaveCalc');
     const originalText = btn?.textContent;
-    if (btn) {
-      btn.textContent = '⏳ Сохранение...';
-      btn.disabled = true;
-    }
-    
+    if (btn) { btn.textContent = '⏳ Сохранение...'; btn.disabled = true; }
     await saveCalculation();
-    
-    if (btn) {
-      btn.textContent = originalText;
-      btn.disabled = false;
-    }
+    if (btn) { btn.textContent = originalText; btn.disabled = false; }
   });
-  
-  document.addEventListener('input', e => {
-    if (e.target.id === 'year') {
-      formatYearInput(e.target);
-      renderAll();
-      scheduleSave();
-      return;
-    }
-    
-    // Если редактируют зарплату исполнителя - помечаем что было ручное изменение
-    if (e.target.id && e.target.id.includes('salary')) {
-      e.target.dataset.manuallySet = 'true';
-    }
-    
-    if (e.target.matches('input[type="number"]')) {
-      let val = parseFloat(e.target.value);
-      if (!isNaN(val) && val < 0) {
-        e.target.value = '';
-      }
-    }
-    if (e.target.matches('input, select')) {
-      renderAll();
-      scheduleSave();
-    }
-  });
-  
-  document.addEventListener('blur', e => {
-    if (e.target.matches('input[type="number"]') && e.target.value !== '') {
-      formatNumberInput(e.target);
-      renderAll();
-      scheduleSave();
-    }
-  }, true);
-  
-  qa('.chip').forEach(ch => {
-  ch.addEventListener('click', () => {
-    const sel = ch.getAttribute('data-markup-target');
-    const ppfIdx = ch.getAttribute('data-ppf-markup');
-    const pvcIdx = ch.getAttribute('data-pvc-markup');
-    
-    if (sel) {
-      const tgt = q(sel);
-      if (tgt) {
-        tgt.value = ch.textContent.trim();
-        renderAll();
-      }
-    } else if (ppfIdx !== null) {
-      const item = ch.closest('.service-item');
-      const inp = item.querySelector('.ppf-part-markup');
-      if (inp) {
-        inp.value = ch.textContent.trim();
-        renderAll();
-      }
-    } else if (pvcIdx !== null) {
-      const item = ch.closest('.service-item');
-      const inp = item.querySelector('.pvc-part-markup');
-      if (inp) {
-        inp.value = ch.textContent.trim();
-        renderAll();
-      }
-    }
-  });
-});
 
-  // Кнопка Share всегда видима
+  // Экспорт PDF
   if (q('#btnShareKP')) q('#btnShareKP').style.display = 'inline-block';
-  
-  // Скачать КП
   q('#btnDownloadKP')?.addEventListener('click', () => {
     prepKP();
     setTimeout(() => exportPDF('#pdfKP', 'Коммерческое_предложение.pdf'), 100);
   });
-  
-  // Поделиться КП (Share API)
   q('#btnShareKP')?.addEventListener('click', async () => {
     const btn = q('#btnShareKP');
     const origText = btn.textContent;
-    btn.textContent = '⏳ Генерация...';
-    btn.disabled = true;
-
-    const fallbackDownload = () => {
-      prepKP();
-      setTimeout(() => exportPDF('#pdfKP', 'КП_оклейка.pdf'), 100);
-    };
-
+    btn.textContent = '⏳ Генерация...'; btn.disabled = true;
+    const fallbackDownload = () => { prepKP(); setTimeout(() => exportPDF('#pdfKP', 'КП_оклейка.pdf'), 100); };
     try {
       prepKP();
       await new Promise(resolve => setTimeout(resolve, 400));
-
       const { jsPDF } = window.jspdf || {};
-      if (!jsPDF || !window.html2canvas) {
-        fallbackDownload();
-        return;
-      }
-
+      if (!jsPDF || !window.html2canvas) { fallbackDownload(); return; }
       const block = q('#pdfKP');
       let canvas;
       try {
-        canvas = await window.html2canvas(block, {
-          scale: 2, useCORS: true, allowTaint: true,
-          backgroundColor: '#fff', logging: false
-        });
-      } catch (canvasErr) {
-        // html2canvas не смог — тихо скачиваем
-        console.warn('html2canvas failed, falling back to download:', canvasErr);
-        fallbackDownload();
-        return;
-      }
-
+        canvas = await window.html2canvas(block, { scale: 2, useCORS: true, allowTaint: true, backgroundColor: '#fff', logging: false });
+      } catch(canvasErr) { fallbackDownload(); return; }
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
-      const pw = pdf.internal.pageSize.getWidth();
-      const ph = pdf.internal.pageSize.getHeight();
+      const pw = pdf.internal.pageSize.getWidth(), ph = pdf.internal.pageSize.getHeight();
       const ratio = Math.min(pw / canvas.width, ph / canvas.height);
-      pdf.addImage(canvas.toDataURL('image/png'), 'PNG',
-        (pw - canvas.width * ratio) / 2, 20,
-        canvas.width * ratio, Math.min(canvas.height * ratio, ph - 40));
-
+      pdf.addImage(canvas.toDataURL('image/png'), 'PNG', (pw - canvas.width * ratio) / 2, 20, canvas.width * ratio, Math.min(canvas.height * ratio, ph - 40));
       const pdfBlob = pdf.output('blob');
       const pdfFile = new File([pdfBlob], 'КП_оклейка.pdf', { type: 'application/pdf' });
-
-      // Пробуем Share API с файлом (работает на iOS/Android)
       if (navigator.share && navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
         await navigator.share({ title: 'Коммерческое предложение', files: [pdfFile] });
       } else {
-        // Desktop или Telegram — скачиваем
         const url = URL.createObjectURL(pdfBlob);
         const a = document.createElement('a');
         a.href = url; a.download = 'КП_оклейка.pdf'; a.click();
         setTimeout(() => URL.revokeObjectURL(url), 1000);
       }
-    } catch (err) {
-      if (err.name !== 'AbortError') {
-        console.warn('Share error, falling back to download:', err);
-        fallbackDownload(); // тихо скачиваем вместо алерта
-      }
-    } finally {
-      btn.textContent = origText;
-      btn.disabled = false;
-    }
+    } catch(err) {
+      if (err.name !== 'AbortError') fallbackDownload();
+    } finally { btn.textContent = origText; btn.disabled = false; }
   });
-  
   q('#btnExportCost')?.addEventListener('click', () => {
     prepCost();
     setTimeout(() => exportPDF('#pdfCost', 'Себестоимость.pdf'), 100);
   });
-  
   q('#btnExportExecutors')?.addEventListener('click', () => {
     prepExecutors();
     setTimeout(() => exportPDF('#pdfExecutors', 'Список_исполнителей.pdf'), 100);
   });
-  
   q('#btnExportExecutorsWithSalary')?.addEventListener('click', () => {
     prepExecutorsWithSalary();
     setTimeout(() => exportPDF('#pdfExecutorsWithSalary', 'Список_исполнителей_ЗП.pdf'), 100);
   });
-  
-  // Загружаем расчёт если есть ?load= в URL
+
+  // Chips (наценки)
+  qa('.chip').forEach(ch => {
+    ch.addEventListener('click', () => {
+      const sel = ch.getAttribute('data-markup-target');
+      const ppfIdx = ch.getAttribute('data-ppf-markup');
+      const pvcIdx = ch.getAttribute('data-pvc-markup');
+      if (sel) {
+        const tgt = q(sel);
+        if (tgt) { tgt.value = ch.textContent.trim(); renderAll(); }
+      } else if (ppfIdx !== null) {
+        const inp = ch.closest('.service-item')?.querySelector('.ppf-part-markup');
+        if (inp) { inp.value = ch.textContent.trim(); renderAll(); }
+      } else if (pvcIdx !== null) {
+        const inp = ch.closest('.service-item')?.querySelector('.pvc-part-markup');
+        if (inp) { inp.value = ch.textContent.trim(); renderAll(); }
+      }
+    });
+  });
+
+  // Глобальные input-события
+  document.addEventListener('input', e => {
+    if (e.target.id === 'year') { formatYearInput(e.target); renderAll(); scheduleSave(); return; }
+    if (e.target.id && e.target.id.includes('salary')) e.target.dataset.manuallySet = 'true';
+    if (e.target.matches('input[type="number"]')) {
+      const val = parseFloat(e.target.value);
+      if (!isNaN(val) && val < 0) e.target.value = '';
+    }
+    if (e.target.matches('input, select')) { renderAll(); scheduleSave(); }
+  });
+
+  document.addEventListener('blur', e => {
+    if (e.target.matches('input[type="number"]') && e.target.value !== '') {
+      formatNumberInput(e.target); renderAll(); scheduleSave();
+    }
+  }, true);
+}
+
+// ── Точка входа ──────────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
+  const hasAccess = await initAuthAndAccess();
+  if (!hasAccess) return;
+
+  initPageState();
+  initUI();
+  initDataSources();
+  initRender();
+  initBindings();
+
   await loadCalculationFromUrl();
-  
-  renderAll();
 });
 
+  
 // Экспортируем функции в глобальный scope для inline handlers
 window.fillModels = fillModels;
 window.onBrandChange = onBrandChange;
