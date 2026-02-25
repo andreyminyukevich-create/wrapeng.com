@@ -182,7 +182,6 @@ body {
 }
 
 </style>
-<script src="nav.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -1423,6 +1422,7 @@ tfoot th:first-child {
   box-shadow: var(--shadow-lg), 0 0 40px rgba(16, 185, 129, 0.5);
 }
 
+.export-buttons {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
@@ -1868,6 +1868,20 @@ tfoot th:first-child {
 </style>
 </head>
 <body>
+<script>
+// Диагностика — показываем ошибки прямо на странице
+window.onerror = function(msg, src, line, col, err) {
+  var d = document.getElementById('_dbg');
+  if (!d) { d = document.createElement('div'); d.id='_dbg'; d.style.cssText='position:fixed;top:0;left:0;right:0;background:#fee2e2;color:#7f1d1d;padding:10px;font-size:12px;z-index:99999;font-family:monospace;white-space:pre-wrap;max-height:200px;overflow:auto'; document.body.appendChild(d); }
+  d.textContent += '❌ ' + msg + '\n   файл: ' + (src||'').split('/').pop() + ' строка ' + line + '\n';
+};
+window.addEventListener('unhandledrejection', function(e) {
+  var d = document.getElementById('_dbg');
+  if (!d) { d = document.createElement('div'); d.id='_dbg'; d.style.cssText='position:fixed;top:0;left:0;right:0;background:#fee2e2;color:#7f1d1d;padding:10px;font-size:12px;z-index:99999;font-family:monospace;white-space:pre-wrap;max-height:200px;overflow:auto'; document.body.appendChild(d); }
+  d.textContent += '❌ Promise: ' + (e.reason && e.reason.message || e.reason) + '\n';
+});
+</script>
+
 
 <!-- Keep1R Top Banner -->
 <div id="k1r-banner">
@@ -1897,7 +1911,7 @@ tfoot th:first-child {
       <div class="card-content">
         <div class="form-group">
           <label>Бренд:</label>
-          <select id="brand" onchange="window.onBrandChange()">
+          <select id="brand">
             <option value="">Выберите бренд</option>
             <option value="manual">Ввести вручную</option>
             <option value="Audi">Audi</option>
@@ -1940,7 +1954,7 @@ tfoot th:first-child {
         </div>
         <div class="form-group">
           <label>Модель:</label>
-          <select id="model" onchange="window.onModelChange()">
+          <select id="model">
             <option value="">Сначала выберите бренд</option>
             <option value="manual">Ввести вручную</option>
           </select>
@@ -1954,7 +1968,7 @@ tfoot th:first-child {
     </div>
 
     <div class="card">
-      <h2 class="collapsible collapsed" onclick="this.classList.toggle('collapsed');var p=this.parentElement.querySelector('.card-content');if(p)p.classList.toggle('collapsed')">📦 Полная защита вкруг</h2>
+      <h2 class="collapsible collapsed">📦 Полная защита вкруг</h2>
       <div class="card-content collapsed">
         <div class="package-grid">
           <div><label>Стоимость пленки:</label><input type="number" id="pkgWrapMat" placeholder="0" step="0.01"></div>
@@ -2006,7 +2020,7 @@ tfoot th:first-child {
     </div>
 
     <div class="card">
-      <h2 class="collapsible collapsed" onclick="this.classList.toggle('collapsed');var p=this.parentElement.querySelector('.card-content');if(p)p.classList.toggle('collapsed')">🛡️ Защита ударной части</h2>
+      <h2 class="collapsible collapsed">🛡️ Защита ударной части</h2>
       <div class="card-content collapsed">
         <div class="package-grid">
           <div><label>Стоимость пленки:</label><input type="number" id="impactWrapMat" placeholder="0" step="0.01"></div>
@@ -2078,7 +2092,7 @@ tfoot th:first-child {
 </div>
 
     <div class="card">
-      <h2 class="collapsible collapsed" onclick="this.classList.toggle('collapsed');var p=this.parentElement.querySelector('.card-content');if(p)p.classList.toggle('collapsed')">🔧 Арматурные работы</h2>
+      <h2 class="collapsible collapsed">🔧 Арматурные работы</h2>
       <div class="card-content collapsed" id="armContent"></div>
       <div class="block-summary" id="armSummary" style="display:none">
         <div class="block-summary-item"><span class="block-summary-label">Себестоимость</span><span class="block-summary-value" id="armSumBase">0 ₽</span></div>
@@ -2088,7 +2102,7 @@ tfoot th:first-child {
     </div>
 
     <div class="card">
-      <h2 class="collapsible collapsed" onclick="this.classList.toggle('collapsed');var p=this.parentElement.querySelector('.card-content');if(p)p.classList.toggle('collapsed')">🎨 Оклейка автомобиля</h2>
+      <h2 class="collapsible collapsed">🎨 Оклейка автомобиля</h2>
       <div class="card-content collapsed" id="wrapContent"></div>
       <div class="block-summary" id="wrapSummary" style="display:none">
         <div class="block-summary-item"><span class="block-summary-label">Себестоимость</span><span class="block-summary-value" id="wrapSumBase">0 ₽</span></div>
@@ -2098,7 +2112,7 @@ tfoot th:first-child {
     </div>
 
     <div class="card">
-      <h2 class="collapsible collapsed" onclick="this.classList.toggle('collapsed');var p=this.parentElement.querySelector('.card-content');if(p)p.classList.toggle('collapsed')">✨ Детейлинг</h2>
+      <h2 class="collapsible collapsed">✨ Детейлинг</h2>
       <div class="card-content collapsed" id="detContent"></div>
       <div class="block-summary" id="detSummary" style="display:none">
         <div class="block-summary-item"><span class="block-summary-label">Себестоимость</span><span class="block-summary-value" id="detSumBase">0 ₽</span></div>
@@ -2108,7 +2122,7 @@ tfoot th:first-child {
     </div>
 
     <div class="card">
-      <h2 class="collapsible collapsed" onclick="this.classList.toggle('collapsed');var p=this.parentElement.querySelector('.card-content');if(p)p.classList.toggle('collapsed')">🪟 Стёкла</h2>
+      <h2 class="collapsible collapsed">🪟 Стёкла</h2>
       <div class="card-content collapsed" id="glContent"></div>
       <div class="block-summary" id="glSummary" style="display:none">
         <div class="block-summary-item"><span class="block-summary-label">Себестоимость</span><span class="block-summary-value" id="glSumBase">0 ₽</span></div>
@@ -2118,7 +2132,7 @@ tfoot th:first-child {
     </div>
 
     <div class="card">
-      <h2 class="collapsible collapsed" onclick="this.classList.toggle('collapsed');var p=this.parentElement.querySelector('.card-content');if(p)p.classList.toggle('collapsed')">🛠️ Прочие работы</h2>
+      <h2 class="collapsible collapsed">🛠️ Прочие работы</h2>
       <div class="card-content collapsed" id="miscContent"></div>
       <div class="block-summary" id="miscSummary" style="display:none">
         <div class="block-summary-item"><span class="block-summary-label">Себестоимость</span><span class="block-summary-value" id="miscSumBase">0 ₽</span></div>
@@ -2291,15 +2305,23 @@ tfoot th:first-child {
 </div>
 </div>
 <script>
-(function() {
-'use strict';
+
+// ── Аккордеоны (event delegation) ──────────────────
+document.addEventListener('click', function(e) {
+  const h2 = e.target.closest('h2.collapsible');
+  if (!h2) return;
+  const card = h2.closest('.card');
+  if (!card) return;
+  const content = card.querySelector('.card-content');
+  if (!content) return;
+  h2.classList.toggle('collapsed');
+  content.classList.toggle('collapsed');
+});
 
 const SUPABASE_URL = 'https://hdghijgrrnzmntistdvw.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkZ2hpamdycm56bW50aXN0ZHZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMzMyNzksImV4cCI6MjA3NTYwOTI3OX0.D9EDTmVrFRVp0B8_5tCJM29gbFdtadsom0Ihsf4uQ8Q';
 
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-  auth: { persistSession: true }
-});
+const sb = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: true } }) : null;
 
 let currentUser = null;
 let currentProfile = null;
@@ -2336,6 +2358,7 @@ async function checkAccess(user) {
 
 async function checkAuth() {
   try {
+    if (!sb) return true; // Supabase не загружен — пропускаем авторизацию
     const { data: { session } } = await sb.auth.getSession();
     if (session) {
       currentUser = session.user;
@@ -2527,7 +2550,7 @@ function collectFormData() {
 }
 
 async function saveCalculation() {
-  if (!currentUser) {
+  if (!sb || !currentUser) {
     console.log('No user - skip save');
     return;
   }
@@ -4672,5 +4695,4 @@ window.onBrandChange = onBrandChange;
 window.onModelChange = onModelChange;
 window.renderAll = renderAll;
 
-})();
 </script>
