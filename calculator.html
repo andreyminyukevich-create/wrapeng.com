@@ -1865,6 +1865,63 @@ tfoot th:first-child {
   #k1r-note { display: none; }
   #k1r-banner-inner { padding: 7px 16px; }
 }
+
+/* ── Итоги блока ──────────────────────────────────────────── */
+.block-summary {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-top: 16px;
+  background: var(--bg-input, #f1f5ff);
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--border, rgba(15,23,42,0.10));
+}
+
+.block-summary-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 14px;
+  gap: 3px;
+  border-right: 1px solid var(--border, rgba(15,23,42,0.10));
+}
+.block-summary-item:last-child {
+  border-right: none;
+}
+
+.block-summary-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-muted, #64748b);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.block-summary-value {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text, #0f172a);
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+  white-space: nowrap;
+}
+
+.block-summary-value.markup {
+  color: var(--success, #059669);
+}
+
+.block-summary-item:last-child .block-summary-value {
+  color: var(--primary, #2563eb);
+  font-size: 1rem;
+}
+
+@media (max-width: 480px) {
+  .block-summary-item { padding: 8px 10px; }
+  .block-summary-value { font-size: 0.85rem; }
+  .block-summary-label { font-size: 0.65rem; }
+}
 </style>
 </head>
 <body>
