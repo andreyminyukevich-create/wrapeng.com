@@ -342,7 +342,7 @@ body::before {
       <form id="reg-form">
         <div class="form-group"><label>Название студии</label><input type="text" id="reg-studio" placeholder="Студия оклейки" required></div>
         <div class="form-group"><label>Город</label><input type="text" id="reg-city" placeholder="Москва" required></div>
-        <div class="form-group"><label>Телефон</label><input type="tel" id="reg-phone" placeholder="+7 900 000-00-00" required></div>
+        <div class="form-group"><label>Телефон</label><input type="tel" id="reg-phone" placeholder="+7 900 000-00-00" required autocomplete="tel"></div>
         <div class="form-group"><label>Email</label><input type="email" id="reg-email" placeholder="studio@example.com" required autocomplete="email"></div>
         <div class="form-group"><label>Пароль</label><input type="password" id="reg-password" placeholder="Минимум 6 символов" required autocomplete="new-password" minlength="6"></div>
         <button type="submit" class="btn btn-primary" id="reg-btn">Отправить заявку →</button>
@@ -492,6 +492,26 @@ document.getElementById('forgot-form').addEventListener('submit', async e => {
 
 window.logoutPending = async function() { await sb.auth.signOut(); showTab('login'); };
 checkSession();
+
+// Автопрефикс +7 для телефона
+(function(){
+  const ph = document.getElementById('reg-phone');
+  if (!ph) return;
+  ph.addEventListener('focus', function(){
+    if (!this.value) this.value = '+7 ';
+  });
+  ph.addEventListener('input', function(){
+    if (!this.value.startsWith('+7')) {
+      const digits = this.value.replace(/\D/g,'');
+      this.value = '+7 ' + (digits.startsWith('7') ? digits.slice(1) : digits);
+    }
+  });
+  ph.addEventListener('keydown', function(e){
+    if ((e.key === 'Backspace' || e.key === 'Delete') && this.value === '+7 ') {
+      e.preventDefault();
+    }
+  });
+})();
 })();
 </script>
 </body>
