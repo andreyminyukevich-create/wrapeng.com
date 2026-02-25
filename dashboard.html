@@ -380,13 +380,20 @@ function fmt(n) {
 }
 
 // ── Статистика ────────────────────────────────
+
+// Нормализация статуса (draft/null → new)
+function normalizeStatus(status) {
+  if (!status || status === '' || status === 'draft' || status === 'pending') return 'new';
+  return status;
+}
+
 function updateStats(calculations) {
   const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
   const month      = calculations.filter(c => new Date(c.created_at) >= monthStart);
   const total      = month.length;
   const sum        = month.reduce((a, c) => a + (c.total_price || 0), 0);
-  const done       = month.filter(c => c.work_assigned === true);
-  const doneSum    = done.reduce((a, c) => a + (c.total_price || 0), 0);
+  const done       = month.filter(c => ['done','delivered'].includes(normalizeStatus(c.status)));
+  const doneSum    = done.reduce((a, c) => a + (c.final_price || c.total_price || 0), 0);
   const avg        = total > 0 ? sum / total : 0;
 
   document.getElementById('statMonthTotal').textContent      = total;
@@ -426,7 +433,7 @@ async function loadMiniKanban(studioId) {
 
   let html = '';
   MINI_COLS.forEach(col => {
-    const cards   = data.filter(c => (c.status || 'new') === col.key);
+    const cards   = data.filter(c => normalizeStatus(c.status) === col.key);
     const visible = cards.slice(0, 5);
     const rest    = cards.length - 5;
 
