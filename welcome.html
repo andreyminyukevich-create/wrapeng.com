@@ -8,7 +8,7 @@
 <style>
 :root {
   --font: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
-  --bg:           #f0f4fb;
+  --bg:           #eef2f9;
   --surface:      #ffffff;
   --border:       rgba(15,23,42,0.09);
   --text:         #0f172a;
@@ -16,160 +16,102 @@
   --text-dim:     #94a3b8;
   --primary:      #2563eb;
   --primary-dark: #1d4ed8;
-  --primary-light:rgba(37,99,235,0.08);
-  --success:      #059669;
+  --primary-bg:   rgba(37,99,235,0.07);
   --danger:       #dc2626;
-  --warning:      #d97706;
-  --radius:       14px;
+  --radius:       16px;
   --radius-sm:    10px;
-  --shadow:       0 1px 4px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.06);
-  --shadow-lg:    0 8px 40px rgba(0,0,0,0.10);
 }
-
 * { box-sizing: border-box; margin: 0; padding: 0; }
-
-body {
+html, body {
+  min-height: 100%;
   font-family: var(--font);
   background: var(--bg);
   color: var(--text);
-  min-height: 100svh;
   -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
 }
-
-/* ── Фоновые акценты ── */
+body {
+  display: flex;
+  flex-direction: column;
+}
 body::before {
   content: '';
   position: fixed; inset: 0; z-index: 0;
   background:
-    radial-gradient(ellipse 800px 600px at -5% -5%, rgba(37,99,235,0.06) 0%, transparent 55%),
-    radial-gradient(ellipse 600px 500px at 105% 105%, rgba(37,99,235,0.04) 0%, transparent 55%);
+    radial-gradient(ellipse 900px 600px at 20% -10%, rgba(37,99,235,0.07) 0%, transparent 55%),
+    radial-gradient(ellipse 700px 500px at 80% 110%, rgba(37,99,235,0.05) 0%, transparent 55%);
   pointer-events: none;
 }
 
-/* ── Layout ── */
+/* ── страница ── */
 .page {
   position: relative; z-index: 1;
-  min-height: 100svh;
-  display: grid;
-  grid-template-columns: 1fr 420px;
-}
-
-/* ── Левая панель ── */
-.brand-panel {
+  flex: 1;
   display: flex;
   flex-direction: column;
+  align-items: center;
   justify-content: center;
-  padding: 60px 56px;
-  position: relative;
-  overflow: hidden;
+  padding: 40px 20px 24px;
 }
 
+/* бренд */
+.brand-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
 .brand-name {
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: var(--primary);
-  letter-spacing: -0.5px;
-  margin-bottom: 6px;
-}
-
-.brand-tagline {
-  font-size: 1.75rem;
+  font-size: 0.72rem;
   font-weight: 700;
-  color: var(--text);
-  line-height: 1.3;
-  letter-spacing: -0.5px;
+  color: var(--primary);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
   margin-bottom: 10px;
 }
-
-.brand-sub {
-  font-size: 0.95rem;
-  color: var(--text-muted);
-  margin-bottom: 48px;
-  line-height: 1.6;
-}
-
-/* Фичи */
-.features {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-bottom: 48px;
-  max-width: 440px;
-}
-
-.feature {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 14px 16px;
-  background: var(--surface);
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border);
-  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
-  transition: transform 0.15s, box-shadow 0.15s;
-}
-.feature:hover {
-  transform: translateX(3px);
-  box-shadow: 0 2px 12px rgba(37,99,235,0.08);
-}
-
-.feature-icon {
-  width: 38px; height: 38px;
-  background: var(--primary-light);
-  border-radius: 9px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1rem;
-  flex-shrink: 0;
-}
-
-.feature-text h4 {
-  font-size: 0.85rem;
+.brand-tagline {
+  font-size: 1.6rem;
   font-weight: 700;
   color: var(--text);
-  margin-bottom: 2px;
+  letter-spacing: -0.4px;
+  line-height: 1.25;
+  margin-bottom: 7px;
 }
-.feature-text p {
-  font-size: 0.75rem;
+.brand-sub {
+  font-size: 0.85rem;
   color: var(--text-muted);
-  line-height: 1.4;
+  line-height: 1.55;
 }
 
-.brand-note {
-  font-size: 0.75rem;
-  color: var(--text-dim);
-}
-.brand-note a {
-  color: var(--primary);
-  text-decoration: none;
-  font-weight: 600;
-}
-.brand-note a:hover { text-decoration: underline; }
-
-/* Декоративный элемент */
-.brand-deco {
-  position: absolute;
-  bottom: 40px; right: 40px;
-  width: 180px; height: 180px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(37,99,235,0.06) 0%, transparent 70%);
-  pointer-events: none;
-}
-
-/* ── Правая панель (auth) ── */
-.auth-panel {
-  background: var(--surface);
-  border-left: 1px solid var(--border);
+/* фичи */
+.features-row {
   display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 48px 40px;
-  position: relative;
-  overflow: hidden;
-  box-shadow: -4px 0 32px rgba(0,0,0,0.05);
+  gap: 8px;
+  margin-bottom: 20px;
+  width: 100%;
+  max-width: 440px;
+}
+.feat {
+  flex: 1;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 11px 6px;
+  text-align: center;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.feat-icon  { font-size: 1.1rem; margin-bottom: 4px; }
+.feat-label { font-size: 0.62rem; font-weight: 600; color: var(--text-muted); line-height: 1.3; }
+
+/* карточка */
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px 28px 24px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05), 0 12px 40px rgba(0,0,0,0.08);
 }
 
-/* ── Табы ── */
+/* табы */
 .auth-tabs {
   display: flex;
   gap: 3px;
@@ -177,16 +119,15 @@ body::before {
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 3px;
-  margin-bottom: 28px;
+  margin-bottom: 22px;
 }
-
 .auth-tab {
   flex: 1;
-  padding: 9px;
+  padding: 9px 6px;
   border-radius: 8px;
   border: none;
   font-family: var(--font);
-  font-size: 0.83rem;
+  font-size: 0.81rem;
   font-weight: 700;
   cursor: pointer;
   background: transparent;
@@ -199,52 +140,48 @@ body::before {
   box-shadow: 0 2px 8px rgba(37,99,235,0.25);
 }
 
-/* ── Экраны ── */
+/* экраны */
 .screen { display: none; }
 .screen.active { display: block; animation: fadeUp 0.2s ease; }
-
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from { opacity:0; transform:translateY(7px); }
+  to   { opacity:1; transform:translateY(0); }
 }
-
 .screen-title {
-  font-size: 1.2rem;
+  font-size: 1.05rem;
   font-weight: 700;
-  margin-bottom: 4px;
-  color: var(--text);
-  letter-spacing: -0.3px;
+  margin-bottom: 2px;
+  letter-spacing: -0.2px;
 }
 .screen-sub {
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   color: var(--text-muted);
-  margin-bottom: 22px;
+  margin-bottom: 18px;
   line-height: 1.5;
 }
 
-/* ── Форма ── */
-.form-group { margin-bottom: 12px; }
-
+/* форма */
+.form-group { margin-bottom: 10px; }
 .form-group label {
   display: block;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 600;
   color: var(--text-muted);
-  margin-bottom: 5px;
+  margin-bottom: 4px;
   letter-spacing: 0.02em;
 }
-
 .form-group input {
   width: 100%;
-  padding: 11px 14px;
+  padding: 10px 13px;
   background: var(--bg);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font-family: var(--font);
-  font-size: 16px; /* prevent iOS zoom */
+  font-size: 16px;
   color: var(--text);
   outline: none;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+  -webkit-appearance: none;
 }
 .form-group input::placeholder { color: var(--text-dim); }
 .form-group input:focus {
@@ -253,274 +190,183 @@ body::before {
   background: var(--surface);
 }
 
-/* ── Кнопки ── */
+/* кнопки */
 .btn {
   width: 100%;
-  padding: 13px;
+  padding: 12px;
   border-radius: var(--radius-sm);
   border: none;
   font-family: var(--font);
-  font-size: 0.88rem;
+  font-size: 0.87rem;
   font-weight: 700;
   cursor: pointer;
-  margin-top: 8px;
+  margin-top: 7px;
   transition: all 0.15s;
   display: block;
   text-align: center;
   text-decoration: none;
+  -webkit-appearance: none;
 }
-.btn:disabled { opacity: 0.6; cursor: not-allowed; }
-
+.btn:disabled { opacity: 0.55; cursor: not-allowed; }
 .btn-primary {
   background: var(--primary);
   color: #fff;
-  box-shadow: 0 2px 10px rgba(37,99,235,0.25);
+  box-shadow: 0 2px 10px rgba(37,99,235,0.22);
 }
-.btn-primary:hover:not(:disabled) {
-  background: var(--primary-dark);
-  box-shadow: 0 4px 16px rgba(37,99,235,0.35);
-  transform: translateY(-1px);
-}
-.btn-primary:active { transform: translateY(0); }
-
+.btn-primary:hover:not(:disabled) { background: var(--primary-dark); transform: translateY(-1px); }
+.btn-primary:active:not(:disabled) { transform: translateY(0); }
 .btn-outline {
   background: transparent;
   color: var(--text-muted);
   border: 1px solid var(--border);
 }
-.btn-outline:hover:not(:disabled) {
-  background: var(--bg);
-  color: var(--text);
-}
+.btn-outline:hover:not(:disabled) { background: var(--bg); color: var(--text); }
 
-/* ── Ошибки ── */
+/* ошибки */
 .error-msg {
   display: none;
   background: rgba(220,38,38,0.07);
-  border: 1px solid rgba(220,38,38,0.2);
+  border: 1px solid rgba(220,38,38,0.18);
   color: var(--danger);
   border-radius: var(--radius-sm);
-  padding: 10px 13px;
-  font-size: 0.8rem;
+  padding: 9px 12px;
+  font-size: 0.77rem;
   font-weight: 600;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
+  line-height: 1.4;
 }
 
-/* ── Footer ── */
 .auth-footer {
   text-align: center;
-  margin-top: 18px;
-  font-size: 0.78rem;
+  margin-top: 14px;
+  font-size: 0.76rem;
   color: var(--text-muted);
 }
-.auth-footer a {
-  color: var(--primary);
-  text-decoration: none;
-  font-weight: 700;
-}
+.auth-footer a { color: var(--primary); text-decoration: none; font-weight: 700; }
 .auth-footer a:hover { text-decoration: underline; }
 
-/* ── Статус-боксы ── */
-.status-box {
-  border-radius: var(--radius);
-  padding: 24px;
+.consent-note {
+  font-size: 0.67rem;
+  color: var(--text-dim);
   text-align: center;
-  margin-bottom: 20px;
+  margin-top: 12px;
+  line-height: 1.55;
+}
+.consent-note a { color: var(--text-muted); text-decoration: underline; }
+
+/* статус */
+.status-box {
+  border-radius: var(--radius-sm);
+  padding: 18px;
+  text-align: center;
+  margin-bottom: 14px;
   border: 1px solid var(--border);
 }
-.status-box.blue  { background: var(--primary-light); }
-.status-box.amber { background: rgba(217,119,6,0.07); border-color: rgba(217,119,6,0.2); }
-.status-box.purple{ background: rgba(124,58,237,0.06); border-color: rgba(124,58,237,0.15); }
+.status-box.purple { background: rgba(124,58,237,0.06); border-color: rgba(124,58,237,0.15); }
+.status-box.amber  { background: rgba(217,119,6,0.07); border-color: rgba(217,119,6,0.18); }
+.status-icon  { font-size: 1.9rem; margin-bottom: 7px; }
+.status-title { font-size: 0.92rem; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+.status-desc  { font-size: 0.78rem; color: var(--text-muted); line-height: 1.5; }
 
-.status-icon { font-size: 2.2rem; margin-bottom: 10px; }
-.status-title {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--text);
-  margin-bottom: 6px;
-}
-.status-desc {
-  font-size: 0.82rem;
-  color: var(--text-muted);
-  line-height: 1.5;
-}
-
-/* ── Creds ── */
 .creds-box {
   background: var(--bg);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  padding: 14px 16px;
-  margin-bottom: 16px;
+  padding: 11px 14px;
+  margin-bottom: 12px;
 }
 .creds-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 6px 0;
+  padding: 5px 0;
   border-bottom: 1px solid var(--border);
-  font-size: 0.82rem;
+  font-size: 0.79rem;
 }
 .creds-row:last-child { border-bottom: none; }
 .creds-label { color: var(--text-muted); font-weight: 600; }
 .creds-value { color: var(--text); font-weight: 700; }
 
-/* ── Responsive ── */
-@media (max-width: 768px) {
-  .page {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto 1fr;
-  }
-
-  .brand-panel {
-    padding: 32px 24px 24px;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .brand-tagline { font-size: 1.3rem; }
-  .brand-sub { margin-bottom: 20px; font-size: 0.88rem; }
-
-  .features { display: none; } /* на мобиле убираем список фич */
-
-  .brand-note { display: none; }
-  .brand-deco { display: none; }
-
-  .auth-panel {
-    border-left: none;
-    padding: 32px 24px 40px;
-    box-shadow: none;
-    justify-content: flex-start;
-  }
+/* мобилка */
+@media (max-width: 480px) {
+  .page { padding: 32px 16px 16px; justify-content: flex-start; }
+  .brand-tagline { font-size: 1.35rem; }
+  .features-row { display: none; }
+  .auth-card { padding: 22px 18px 20px; }
 }
-
-@media (max-width: 400px) {
-  .brand-panel { padding: 24px 18px 20px; }
-  .auth-panel  { padding: 24px 18px 36px; }
+@media (min-width: 481px) {
+  .features-row { display: flex; }
 }
 </style>
 </head>
 <body>
-
 <div class="page">
 
-  <!-- Левая панель — бренд -->
-  <div class="brand-panel">
+  <div class="brand-header">
     <div class="brand-name">Keep1R CRM</div>
-    <div class="brand-tagline">Управление<br>детейлинг-студией</div>
+    <div class="brand-tagline">Управление детейлинг-студией</div>
     <div class="brand-sub">Расчёты, заказы, сотрудники и зарплаты<br>в одном инструменте</div>
-
-    <div class="features">
-      <div class="feature">
-        <div class="feature-icon">🧮</div>
-        <div class="feature-text">
-          <h4>Калькулятор оклейки</h4>
-          <p>PPF, PVC, детейлинг — быстрый расчёт и КП</p>
-        </div>
-      </div>
-      <div class="feature">
-        <div class="feature-icon">🔧</div>
-        <div class="feature-text">
-          <h4>Доска заказов</h4>
-          <p>Статусы, исполнители, контроль сроков</p>
-        </div>
-      </div>
-      <div class="feature">
-        <div class="feature-icon">👥</div>
-        <div class="feature-text">
-          <h4>Сотрудники и зарплаты</h4>
-          <p>Учёт выплат, мотивация, история</p>
-        </div>
-      </div>
-      <div class="feature">
-        <div class="feature-icon">📄</div>
-        <div class="feature-text">
-          <h4>Экспорт в PDF</h4>
-          <p>КП, себестоимость, листы исполнителей</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="brand-note">
-      Продукт <a href="https://keep1r.ru" target="_blank">keep1r.ru</a> · Поддержка <a href="https://t.me/keeper_wrap" target="_blank">@keeper_wrap</a>
-    </div>
-    <div class="brand-deco"></div>
   </div>
 
-  <!-- Правая панель — авторизация -->
-  <div class="auth-panel">
+  <div class="features-row">
+    <div class="feat"><div class="feat-icon">🧮</div><div class="feat-label">Калькулятор оклейки</div></div>
+    <div class="feat"><div class="feat-icon">🔧</div><div class="feat-label">Доска заказов</div></div>
+    <div class="feat"><div class="feat-icon">👥</div><div class="feat-label">Сотрудники</div></div>
+    <div class="feat"><div class="feat-icon">💰</div><div class="feat-label">Зарплаты</div></div>
+    <div class="feat"><div class="feat-icon">📄</div><div class="feat-label">PDF-экспорт</div></div>
+  </div>
 
+  <div class="auth-card">
     <div class="auth-tabs">
       <button class="auth-tab active" onclick="showTab('login')">Войти</button>
       <button class="auth-tab" onclick="showTab('register')">Заявка на доступ</button>
     </div>
 
-    <!-- Войти -->
     <div id="screen-login" class="screen active">
       <div class="screen-title">Добро пожаловать 👋</div>
       <div class="screen-sub">Введите данные для входа</div>
       <div class="error-msg" id="login-error"></div>
       <form id="login-form">
-        <div class="form-group">
-          <label>Email</label>
-          <input type="email" id="login-email" placeholder="studio@example.com" required autocomplete="email">
-        </div>
-        <div class="form-group">
-          <label>Пароль</label>
-          <input type="password" id="login-password" placeholder="••••••••" required autocomplete="current-password">
-        </div>
+        <div class="form-group"><label>Email</label><input type="email" id="login-email" placeholder="studio@example.com" required autocomplete="email"></div>
+        <div class="form-group"><label>Пароль</label><input type="password" id="login-password" placeholder="••••••••" required autocomplete="current-password"></div>
         <button type="submit" class="btn btn-primary" id="login-btn">Войти →</button>
         <button type="button" class="btn btn-outline" onclick="showTab('forgot')">Забыл пароль</button>
       </form>
       <div class="auth-footer">Нет доступа? <a href="#" onclick="showTab('register')">Оставить заявку</a></div>
     </div>
 
-    <!-- Заявка -->
     <div id="screen-register" class="screen">
       <div class="screen-title">Заявка на доступ 📋</div>
       <div class="screen-sub">Свяжемся в течение 24 часов и откроем доступ</div>
       <div class="error-msg" id="reg-error"></div>
       <form id="reg-form">
-        <div class="form-group">
-          <label>Название студии</label>
-          <input type="text" id="reg-studio" placeholder="Студия оклейки" required>
-        </div>
-        <div class="form-group">
-          <label>Город</label>
-          <input type="text" id="reg-city" placeholder="Москва" required>
-        </div>
-        <div class="form-group">
-          <label>Телефон</label>
-          <input type="tel" id="reg-phone" placeholder="+7 900 000-00-00" required>
-        </div>
-        <div class="form-group">
-          <label>Email</label>
-          <input type="email" id="reg-email" placeholder="studio@example.com" required autocomplete="email">
-        </div>
-        <div class="form-group">
-          <label>Пароль</label>
-          <input type="password" id="reg-password" placeholder="Минимум 6 символов" required autocomplete="new-password" minlength="6">
-        </div>
+        <div class="form-group"><label>Название студии</label><input type="text" id="reg-studio" placeholder="Студия оклейки" required></div>
+        <div class="form-group"><label>Город</label><input type="text" id="reg-city" placeholder="Москва" required></div>
+        <div class="form-group"><label>Телефон</label><input type="tel" id="reg-phone" placeholder="+7 900 000-00-00" required></div>
+        <div class="form-group"><label>Email</label><input type="email" id="reg-email" placeholder="studio@example.com" required autocomplete="email"></div>
+        <div class="form-group"><label>Пароль</label><input type="password" id="reg-password" placeholder="Минимум 6 символов" required autocomplete="new-password" minlength="6"></div>
         <button type="submit" class="btn btn-primary" id="reg-btn">Отправить заявку →</button>
       </form>
+      <div class="consent-note">
+        Отправляя заявку, вы соглашаетесь с
+        <a href="user-agreement.html" target="_blank">Пользовательским соглашением</a>,
+        <a href="privacy-policy.html" target="_blank">Политикой конфиденциальности</a>
+        и <a href="consent.html" target="_blank">Согласием на обработку ПДн</a>
+      </div>
       <div class="auth-footer">Есть доступ? <a href="#" onclick="showTab('login')">Войти</a></div>
     </div>
 
-    <!-- Сброс пароля -->
     <div id="screen-forgot" class="screen">
       <div class="screen-title">Сброс пароля 🔑</div>
       <div class="screen-sub">Отправим ссылку на ваш email</div>
       <div class="error-msg" id="forgot-error"></div>
       <form id="forgot-form">
-        <div class="form-group">
-          <label>Email</label>
-          <input type="email" id="forgot-email" placeholder="studio@example.com" required>
-        </div>
+        <div class="form-group"><label>Email</label><input type="email" id="forgot-email" placeholder="studio@example.com" required></div>
         <button type="submit" class="btn btn-primary" id="forgot-btn">Отправить письмо →</button>
         <button type="button" class="btn btn-outline" onclick="showTab('login')">← Назад</button>
       </form>
     </div>
 
-    <!-- Успех -->
     <div id="screen-success" class="screen">
       <div class="status-box purple">
         <div class="status-icon">📬</div>
@@ -528,20 +374,13 @@ body::before {
         <div class="status-desc">Свяжемся по телефону или email<br>в течение <strong>24 часов</strong></div>
       </div>
       <div class="creds-box">
-        <div class="creds-row">
-          <span class="creds-label">Email</span>
-          <span class="creds-value" id="success-email">—</span>
-        </div>
-        <div class="creds-row">
-          <span class="creds-label">Телефон</span>
-          <span class="creds-value" id="success-phone">—</span>
-        </div>
+        <div class="creds-row"><span class="creds-label">Email</span><span class="creds-value" id="success-email">—</span></div>
+        <div class="creds-row"><span class="creds-label">Телефон</span><span class="creds-value" id="success-phone">—</span></div>
       </div>
       <a href="https://t.me/PPFKeep1R" target="_blank" class="btn btn-primary">✈️ Написать в Telegram</a>
       <div class="auth-footer"><a href="#" onclick="showTab('login')">← Вернуться ко входу</a></div>
     </div>
 
-    <!-- Ожидание -->
     <div id="screen-pending" class="screen">
       <div class="status-box amber">
         <div class="status-icon">⏳</div>
@@ -551,7 +390,6 @@ body::before {
       <a href="https://t.me/PPFKeep1R" target="_blank" class="btn btn-primary" style="margin-bottom:8px">✈️ Написать в Telegram</a>
       <button class="btn btn-outline" onclick="logoutPending()">Выйти</button>
     </div>
-
   </div>
 </div>
 
@@ -617,31 +455,24 @@ document.getElementById('reg-form').addEventListener('submit', async e => {
     if (ae) throw ae;
     const uid = auth.user?.id;
     if (!uid) throw new Error('Ошибка создания аккаунта. Попробуйте ещё раз.');
-    if (auth.user?.identities?.length === 0) {
-      throw new Error('Этот email уже зарегистрирован. Войдите или сбросьте пароль.');
-    }
+    if (auth.user?.identities?.length === 0) throw new Error('Этот email уже зарегистрирован. Войдите или сбросьте пароль.');
     const refCode = Math.random().toString(36).substring(2,10).toUpperCase();
     const {data:studioData,error:se} = await sb.from('studios').insert({
       name: studio, owner_id: uid, subscription_tier: 'pending',
       referral_code: refCode, settings: {phone, city, contact_email: email}
     }).select('id').single();
     if (se) {
-      const { error: reqErr } = await sb.from('access_requests').insert({
-        studio_name: studio, city, phone, email, supabase_user_id: uid, status: 'new'
-      });
-      if (reqErr) {
-        err('reg-error', 'Ошибка сохранения заявки: ' + (se.message || 'попробуйте ещё раз'));
-        await sb.auth.signOut(); btn.disabled=false; btn.textContent='Отправить заявку →'; return;
-      }
+      const { error: reqErr } = await sb.from('access_requests').insert({studio_name:studio,city,phone,email,supabase_user_id:uid,status:'new'});
+      if (reqErr) { err('reg-error','Ошибка: '+(se.message||'попробуйте ещё раз')); await sb.auth.signOut(); btn.disabled=false; btn.textContent='Отправить заявку →'; return; }
       await sb.auth.signOut();
-      document.getElementById('success-email').textContent = email;
-      document.getElementById('success-phone').textContent = phone;
+      document.getElementById('success-email').textContent=email;
+      document.getElementById('success-phone').textContent=phone;
       showTab('success'); return;
     }
     await sb.from('studio_members').insert({studio_id:studioData.id,user_id:uid,role:'owner',is_active:true});
     await sb.auth.signOut();
-    document.getElementById('success-email').textContent = email;
-    document.getElementById('success-phone').textContent = phone;
+    document.getElementById('success-email').textContent=email;
+    document.getElementById('success-phone').textContent=phone;
     showTab('success');
   } catch(e) {
     err('reg-error', e.message==='User already registered'?'Этот email уже зарегистрирован':e.message);
@@ -652,7 +483,7 @@ document.getElementById('forgot-form').addEventListener('submit', async e => {
   e.preventDefault();
   const btn=document.getElementById('forgot-btn'); btn.disabled=true; btn.textContent='Отправляем...';
   try {
-    const {error} = await sb.auth.resetPasswordForEmail(document.getElementById('forgot-email').value.trim(),{redirectTo:location.origin+'/welcome.html'});
+    const {error}=await sb.auth.resetPasswordForEmail(document.getElementById('forgot-email').value.trim(),{redirectTo:location.origin+'/welcome.html'});
     if (error) throw error;
     alert('✅ Письмо отправлено!'); showTab('login');
   } catch(e) { err('forgot-error',e.message); }
