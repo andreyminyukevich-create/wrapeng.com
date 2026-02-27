@@ -492,12 +492,40 @@ html, body {
 
 <!-- Modal: Завершить работу -->
 <div class="modal" id="modalDone">
-  <div class="modal-content">
+  <div class="modal-content" style="max-width:540px">
     <div class="modal-title">✅ Завершить работу</div>
     <div class="modal-car" id="doneCarName"></div>
-    <p style="color:var(--text-muted);font-size:0.85rem;line-height:1.6;margin-bottom:6px">
-      Работы выполнены, ОТК проверил. Машина ждёт выдачи клиенту.
-    </p>
+
+    <!-- Материалы: план vs факт -->
+    <div id="doneMaterialsBlock" style="margin-bottom:16px">
+      <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:10px">
+        📦 Расход материалов
+      </div>
+      <div id="doneMaterialsLoading" style="color:var(--text-muted);font-size:0.82rem;text-align:center;padding:12px 0">
+        Загрузка...
+      </div>
+      <div id="doneMaterialsRows" style="display:none">
+        <!-- Заголовок таблицы -->
+        <div style="display:grid;grid-template-columns:1fr 110px 110px;gap:6px;margin-bottom:6px;padding:0 2px">
+          <div style="font-size:0.67rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted)">Услуга</div>
+          <div style="font-size:0.67rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);text-align:right">План, ₽</div>
+          <div style="font-size:0.67rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#7c3aed;text-align:right">Факт, ₽</div>
+        </div>
+        <div id="doneMaterialsList" style="display:flex;flex-direction:column;gap:5px"></div>
+        <!-- Итого -->
+        <div style="display:grid;grid-template-columns:1fr 110px 110px;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
+          <div style="font-size:0.8rem;font-weight:700;color:var(--text)">Итого</div>
+          <div id="donePlanTotal" style="font-size:0.88rem;font-weight:700;color:var(--text-muted);text-align:right">—</div>
+          <div id="doneFactTotal" style="font-size:0.88rem;font-weight:700;color:#7c3aed;text-align:right">—</div>
+        </div>
+        <!-- Дельта -->
+        <div id="doneDelta" style="margin-top:6px;font-size:0.78rem;text-align:right;color:var(--text-muted)"></div>
+      </div>
+      <div id="doneMaterialsEmpty" style="display:none;color:var(--text-muted);font-size:0.82rem;padding:8px 0">
+        В расчёте нет плановых материалов.
+      </div>
+    </div>
+
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('modalDone')">Отмена</button>
       <button class="btn" style="background:var(--purple);color:#fff" onclick="saveDone()">✅ Завершить</button>
@@ -697,6 +725,7 @@ function openModal(modalId, calcId, carName) {
   }
   if (modalId === 'modalDone') {
     document.getElementById('doneCarName').textContent = carName;
+    loadDoneMaterials(calcId);
   }
   document.getElementById(modalId).classList.add('active');
 }
@@ -787,8 +816,120 @@ window.saveSchedule = async function() {
   if (ok) { closeModal('modalSchedule'); loadBoard(); }
 };
 
+// ── Материалы: план vs факт ─────────────────────────────────
+let _donePlanItems = []; // [{key, name, plan}]
+
+function extractMaterials(calcData) {
+  const items = [];
+  const d = calcData || {};
+  const seen = new Set();
+
+  function add(key, name, mat) {
+    const m = parseFloat(mat) || 0;
+    if (m > 0 && !seen.has(key)) { seen.add(key); items.push({ key, name, plan: m }); }
+  }
+
+  if (d.package) {
+    add('pkg_wrap', 'Оклейка (Полная защита)', d.package.wrapMat);
+    add('pkg_prep', 'Подготовка (Полная защита)', d.package.prepMat);
+    add('pkg_arm',  'Бронирование (Полная защита)', d.package.armMat);
+  }
+  if (d.impact) {
+    add('impact_wrap', 'Оклейка (Ударная часть)', d.impact.wrapMat);
+    add('impact_prep', 'Подготовка (Ударная часть)', d.impact.prepMat);
+    add('impact_arm',  'Бронирование (Ударная часть)', d.impact.armMat);
+  }
+  if (d.services_detail) {
+    const gn = { arm: 'Бронирование', det: 'Детейлинг', gl: 'Стёкла', ms: 'Доп. услуги', wrap: 'Оклейка' };
+    Object.entries(gn).forEach(([key, gName]) => {
+      (d.services_detail[key] || []).forEach((item, idx) => {
+        const m = parseFloat(item.mat) || 0;
+        if (m > 0) add(`${key}_${idx}`, item.name || gName, m);
+      });
+    });
+  }
+  if (!d.services_detail) {
+    const cats = { arm: 'Арматурные работы', wrap: 'Оклейка', det: 'Детейлинг', gl: 'Стёкла', ms: 'Прочие услуги' };
+    Object.entries(cats).forEach(([key, name]) => {
+      if (d[key]) add(key, name, d[key].mat || d[key].material);
+    });
+  }
+
+  return items;
+}
+
+async function loadDoneMaterials(calcId) {
+  const loading = document.getElementById('doneMaterialsLoading');
+  const rows    = document.getElementById('doneMaterialsRows');
+  const empty   = document.getElementById('doneMaterialsEmpty');
+  const list    = document.getElementById('doneMaterialsList');
+
+  loading.style.display = 'block';
+  rows.style.display    = 'none';
+  empty.style.display   = 'none';
+
+  const { data } = await sb.from('calculations').select('calculation_data, fact_materials').eq('id', calcId).single();
+  const items    = extractMaterials(data?.calculation_data || {});
+  const existing = data?.fact_materials || {};
+
+  loading.style.display = 'none';
+  _donePlanItems = items;
+
+  if (!items.length) { empty.style.display = 'block'; return; }
+
+  rows.style.display = 'block';
+  list.innerHTML = items.map(item => `
+    <div style="display:grid;grid-template-columns:1fr 110px 110px;gap:6px;align-items:center">
+      <div style="font-size:0.8rem;color:var(--text);font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${item.name}">${item.name}</div>
+      <div style="font-size:0.82rem;color:var(--text-muted);text-align:right;font-weight:600">${fmt(item.plan)}</div>
+      <div>
+        <input type="number"
+          data-key="${item.key}"
+          value="${existing[item.key] !== undefined ? existing[item.key] : item.plan}"
+          min="0" step="1"
+          oninput="updateDoneTotals()"
+          style="width:100%;padding:5px 8px;background:rgba(124,58,237,0.05);border:1px solid rgba(124,58,237,0.25);border-radius:6px;font-size:0.82rem;font-weight:700;color:#7c3aed;outline:none;text-align:right;font-family:var(--font)"
+        >
+      </div>
+    </div>
+  `).join('');
+
+  updateDoneTotals();
+}
+
+window.updateDoneTotals = function() {
+  let planSum = 0, factSum = 0;
+  _donePlanItems.forEach(item => { planSum += item.plan; });
+  document.querySelectorAll('#doneMaterialsList input[data-key]').forEach(inp => {
+    factSum += parseFloat(inp.value) || 0;
+  });
+
+  document.getElementById('donePlanTotal').textContent = fmt(planSum) + ' ₽';
+  document.getElementById('doneFactTotal').textContent = fmt(factSum) + ' ₽';
+
+  const delta    = factSum - planSum;
+  const deltaEl  = document.getElementById('doneDelta');
+  if (delta === 0) {
+    deltaEl.textContent = 'Факт совпал с планом';
+    deltaEl.style.color = 'var(--text-muted)';
+  } else if (delta > 0) {
+    deltaEl.textContent = `Перерасход: +${fmt(delta)} ₽`;
+    deltaEl.style.color = 'var(--danger)';
+  } else {
+    deltaEl.textContent = `Экономия: ${fmt(Math.abs(delta))} ₽`;
+    deltaEl.style.color = 'var(--success)';
+  }
+};
+
 window.saveDone = async function() {
-  const ok = await updateStatus(activeCalcId, 'done');
+  // Собираем факт материалов
+  const factMaterials = {};
+  document.querySelectorAll('#doneMaterialsList input[data-key]').forEach(inp => {
+    factMaterials[inp.dataset.key] = parseFloat(inp.value) || 0;
+  });
+
+  const extra = Object.keys(factMaterials).length > 0 ? { fact_materials: factMaterials } : {};
+  const ok = await updateStatus(activeCalcId, 'done', extra);
   if (ok) { closeModal('modalDone'); loadBoard(); }
 };
 
