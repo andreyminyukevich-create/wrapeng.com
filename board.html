@@ -3,437 +3,219 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>В работе — CRM</title>
-<script>document.documentElement.setAttribute('data-theme', 'light');</script>
+<title>В работе — Keep1R CRM</title>
+<script>document.documentElement.setAttribute('data-theme','light');</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="stylesheet" href="nav.css">
 <script src="nav.js"></script>
 <style>
 :root {
-  --bg-primary: #080f1e;
-  --bg-secondary: #0e1829;
-  --bg-card: #131f35;
-  --bg-input: #1a2844;
-  --text: #eef2ff;
-  --text-muted: #8aa0c0;
-  --text-label: #b0c4de;
-  --border: rgba(120, 160, 220, 0.22);
-  --border-focus: rgba(99, 160, 255, 0.6);
-  --primary: #5b9cf6;
-  --primary-dark: #2563eb;
-  --success: #22d3a0;
-  --success-dark: #059669;
-  --danger: #f87171;
-  --danger-bg: rgba(248, 113, 113, 0.14);
-  --warning: #fbbf24;
-  --shadow: 0 4px 24px rgba(0,0,0,0.5);
-  --shadow-lg: 0 8px 40px rgba(0,0,0,0.6);
-}
-
-[data-theme="light"] {
-  --bg-primary: #f0f4fb;
-  --bg-secondary: #ffffff;
-  --bg-card: #ffffff;
-  --bg-input: #f8faff;
-  --text: #0f172a;
-  --text-muted: #64748b;
-  --text-label: #475569;
-  --border: rgba(15, 23, 42, 0.1);
-  --border-focus: rgba(79, 142, 247, 0.5);
-  --shadow: 0 4px 16px rgba(0,0,0,0.08);
-  --shadow-lg: 0 8px 32px rgba(0,0,0,0.12);
+  --font:         -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
+  --bg:           #eef2f9;
+  --surface:      #ffffff;
+  --border:       rgba(15,23,42,0.08);
+  --border-focus: rgba(37,99,235,0.35);
+  --text:         #0f172a;
+  --text-muted:   #64748b;
+  --text-dim:     #94a3b8;
+  --primary:      #2563eb;
+  --primary-dark: #1d4ed8;
+  --success:      #059669;
+  --warning:      #d97706;
+  --danger:       #dc2626;
+  --purple:       #7c3aed;
+  --shadow:       0 1px 3px rgba(0,0,0,0.05), 0 4px 16px rgba(0,0,0,0.07);
+  --shadow-modal: 0 8px 40px rgba(0,0,0,0.14);
+  --radius:       14px;
+  --radius-sm:    10px;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
+html, body {
+  height: 100%;
+  font-family: var(--font);
   -webkit-font-smoothing: antialiased;
-  background: var(--bg-primary);
+  background: var(--bg);
   color: var(--text);
-  line-height: 1.5;
-  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── Board layout ────────────────────────────────── */
+.board-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100svh;
+}
+
+.board-outer {
+  flex: 1;
   overflow-x: auto;
+  padding: 20px 20px 32px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(37,99,235,0.2) transparent;
 }
 
-/* Top Bar */
-.top-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 24px 32px;
-  margin-bottom: 24px;
-  background: var(--card);
-  backdrop-filter: blur(20px);
-  border-radius: 20px;
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-lg);
-  gap: 20px;
-}
+.board-outer::-webkit-scrollbar       { height: 6px; }
+.board-outer::-webkit-scrollbar-track { background: transparent; }
+.board-outer::-webkit-scrollbar-thumb { background: rgba(37,99,235,0.18); border-radius: 3px; }
 
-.top-bar-left {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.menu-toggle {
-  background: var(--bg-input);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 8px 12px;
-  cursor: pointer;
-  font-size: 1.1rem;
-  transition: all 0.2s;
-  color: var(--text);
-}
-
-.menu-toggle:hover {
-  background: var(--primary);
-  color: #fff;
-  transform: scale(1.05);
-}
-
-.top-bar h1 {
-  font-size: 1.3rem;
-  font-weight: 800;
-  background: linear-gradient(120deg, var(--primary), var(--success));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  letter-spacing: -0.5px;
-}
-
-.top-bar-right {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
-.global-nav {
-  display: flex;
-  gap: 6px;
-  align-items: center;
-}
-
-.nav-link {
-  padding: 8px 16px;
-  border-radius: 8px;
-  font-size: 0.88rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  text-decoration: none;
-  transition: all 0.2s;
-  border: 1px solid transparent;
-}
-
-.nav-link:hover {
-  background: var(--bg-input);
-  color: var(--text);
-}
-
-.nav-link.active {
-  background: var(--primary);
-  color: #fff;
-  border-color: var(--primary);
-}
-
-.action-btn {
-  background: var(--primary);
-  color: #fff;
-  border: none;
-  padding: 9px 20px;
-  border-radius: 10px;
-  font-size: 0.88rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.action-btn:hover {
-  background: var(--primary-dark);
-  transform: translateY(-1px);
-}
-
-/* Drawer Menu */
-.drawer-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 999;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s;
-}
-
-.drawer-overlay.active {
-  opacity: 1;
-  pointer-events: all;
-}
-
-.drawer {
-  position: fixed;
-  top: 0;
-  left: -300px;
-  width: 300px;
-  height: 100vh;
-  background: var(--bg-card);
-  box-shadow: var(--shadow-lg);
-  z-index: 1000;
-  transition: left 0.3s;
-  overflow-y: auto;
-}
-
-.drawer.active {
-  left: 0;
-}
-
-.drawer-header {
-  padding: 24px 20px;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.drawer-title {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--text);
-}
-
-.drawer-close {
-  background: var(--bg-input);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 6px 10px;
-  cursor: pointer;
-  font-size: 1.2rem;
-  color: var(--text);
-  transition: all 0.2s;
-}
-
-.drawer-close:hover {
-  background: var(--danger);
-  color: #fff;
-}
-
-.drawer-menu {
-  padding: 20px 0;
-}
-
-.drawer-link {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 14px 20px;
-  color: var(--text);
-  text-decoration: none;
-  transition: all 0.2s;
-  font-size: 0.95rem;
-  font-weight: 500;
-}
-
-.drawer-link:hover {
-  background: var(--bg-input);
-  color: var(--primary);
-}
-
-.drawer-link.disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.drawer-badge {
-  margin-left: auto;
-  padding: 2px 8px;
-  background: var(--warning);
-  color: #000;
-  border-radius: 6px;
-  font-size: 0.7rem;
-  font-weight: 700;
-}
-
-.btn {
-  background: var(--primary);
-  color: #fff;
-  border: none;
-  padding: 9px 20px;
-  border-radius: 10px;
-  font-size: 0.88rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  text-decoration: none;
-  font-family: 'Inter', sans-serif;
-}
-
-.btn:hover {
-  background: var(--primary-dark);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow);
-}
-
-.btn-secondary {
-  background: transparent;
-  color: var(--text-muted);
-  border: 1px solid var(--border);
-}
-
-.btn-secondary:hover {
-  background: var(--bg-input);
-  color: var(--text);
-  border-color: var(--border-focus);
-}
-
-.theme-toggle {
-  background: var(--bg-input);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 8px 12px;
-  cursor: pointer;
-  font-size: 1.1rem;
-  transition: all 0.2s;
-}
-
-/* Board */
 .board-wrap {
-  padding: 24px;
   display: flex;
-  gap: 16px;
-  min-height: calc(100vh - 65px);
+  gap: 14px;
   align-items: flex-start;
-  justify-content: center;
-  flex-wrap: nowrap;
-  overflow-x: auto;
+  min-width: max-content;
 }
 
-/* Column */
+/* ── Column ──────────────────────────────────────── */
 .column {
-  flex: 0 0 280px;
-  background: var(--bg-secondary);
-  border-radius: 16px;
+  width: 272px;
+  flex-shrink: 0;
+  background: var(--surface);
+  border-radius: var(--radius);
   border: 1px solid var(--border);
   display: flex;
   flex-direction: column;
-  max-height: calc(100vh - 110px);
-}
-
-[data-theme="dark"] .column {
-  background: #0a1525;
-  border-color: rgba(120,160,220,0.2);
+  max-height: calc(100svh - 110px);
+  box-shadow: var(--shadow);
 }
 
 .column-header {
-  padding: 16px 18px 12px;
+  padding: 14px 16px 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   border-bottom: 1px solid var(--border);
+  border-radius: var(--radius) var(--radius) 0 0;
   position: sticky;
   top: 0;
-  border-radius: 16px 16px 0 0;
-  background: inherit;
+  background: var(--surface);
+  z-index: 1;
 }
 
 .column-title {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   font-weight: 700;
-  font-size: 0.9rem;
-  letter-spacing: -0.1px;
+  font-size: 0.82rem;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
 }
 
 .column-dot {
-  width: 10px;
-  height: 10px;
+  width: 8px; height: 8px;
   border-radius: 50%;
   flex-shrink: 0;
 }
 
 .column-count {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 700;
   padding: 2px 8px;
-  border-radius: 10px;
-  background: var(--bg-input);
+  border-radius: 20px;
+  background: var(--bg);
   color: var(--text-muted);
+  min-width: 24px;
+  text-align: center;
 }
 
 .column-cards {
-  padding: 12px;
+  padding: 10px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 7px;
   overflow-y: auto;
   flex: 1;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0,0,0,0.08) transparent;
 }
 
-/* Card */
+/* ── Column accent colours ───────────────────────── */
+.col-new .column-dot        { background: #94a3b8; }
+.col-new .column-title      { color: #64748b; }
+.col-new .column-count      { background: rgba(148,163,184,0.12); }
+
+.col-scheduled .column-dot   { background: #f59e0b; }
+.col-scheduled .column-title { color: #92400e; }
+.col-scheduled .column-count { background: rgba(245,158,11,0.1); color: #b45309; }
+.col-scheduled              { border-top: 3px solid #f59e0b; border-radius: var(--radius); }
+
+.col-in_progress .column-dot   { background: var(--primary); }
+.col-in_progress .column-title { color: var(--primary); }
+.col-in_progress .column-count { background: rgba(37,99,235,0.08); color: var(--primary); }
+.col-in_progress               { border-top: 3px solid var(--primary); border-radius: var(--radius); }
+
+.col-done .column-dot   { background: var(--purple); }
+.col-done .column-title { color: var(--purple); }
+.col-done .column-count { background: rgba(124,58,237,0.08); color: var(--purple); }
+.col-done               { border-top: 3px solid var(--purple); border-radius: var(--radius); }
+
+.col-delivered .column-dot   { background: var(--success); }
+.col-delivered .column-title { color: #065f46; }
+.col-delivered .column-count { background: rgba(5,150,105,0.08); color: var(--success); }
+.col-delivered               { border-top: 3px solid var(--success); border-radius: var(--radius); }
+
+/* ── Kanban card ─────────────────────────────────── */
 .kanban-card {
-  background: var(--bg-card);
+  background: #f8fafc;
   border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 14px 16px;
+  border-radius: var(--radius-sm);
+  padding: 12px 13px;
   cursor: pointer;
-  transition: all 0.2s;
-  position: relative;
-}
-
-[data-theme="dark"] .kanban-card {
-  background: #131f35;
-  border-color: rgba(120,160,220,0.2);
+  transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s, background 0.15s;
 }
 
 .kanban-card:hover {
+  background: var(--surface);
+  border-color: rgba(37,99,235,0.3);
+  box-shadow: 0 3px 14px rgba(37,99,235,0.09);
   transform: translateY(-2px);
-  box-shadow: var(--shadow);
-  border-color: var(--border-focus);
 }
 
 .card-car {
   font-weight: 700;
-  font-size: 0.92rem;
-  margin-bottom: 6px;
+  font-size: 0.88rem;
+  margin-bottom: 5px;
   letter-spacing: -0.2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text);
+}
+
+.card-checkin {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 5px;
+  background: rgba(217,119,6,0.08);
+  color: #b45309;
+  border: 1px solid rgba(217,119,6,0.18);
+  margin-bottom: 6px;
+}
+
+.card-note {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+  margin-bottom: 6px;
+  font-style: italic;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.card-meta {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  font-size: 0.78rem;
-  color: var(--text-muted);
-  margin-bottom: 10px;
-}
-
-.card-meta-row {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
 .card-price {
-  font-size: 1rem;
+  font-size: 0.98rem;
   font-weight: 800;
   color: var(--success);
-  letter-spacing: -0.5px;
-  margin-bottom: 10px;
+  letter-spacing: -0.4px;
+  margin-bottom: 9px;
 }
 
 .card-actions {
@@ -444,418 +226,212 @@ body {
 
 .card-btn {
   width: 100%;
-  padding: 7px 12px;
-  border-radius: 8px;
-  font-size: 0.82rem;
-  font-weight: 600;
+  padding: 7px 10px;
+  border-radius: 7px;
+  font-size: 0.78rem;
+  font-weight: 700;
   cursor: pointer;
   border: none;
-  transition: all 0.2s;
-  font-family: inherit;
+  transition: all 0.15s;
+  font-family: var(--font);
   text-align: center;
+  letter-spacing: -0.1px;
 }
 
 .card-btn-primary {
   background: var(--primary);
   color: #fff;
 }
-
-.card-btn-primary:hover {
-  background: var(--primary-dark);
-}
+.card-btn-primary:hover { background: var(--primary-dark); }
 
 .card-btn-secondary {
-  background: var(--bg-input);
+  background: var(--bg);
   color: var(--text-muted);
   border: 1px solid var(--border);
 }
-
-.card-btn-secondary:hover {
-  color: var(--text);
-  border-color: var(--border-focus);
-}
-
-.card-checkin {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  padding: 3px 8px;
-  border-radius: 6px;
-  background: rgba(251,191,36,0.12);
-  color: var(--warning);
-  border: 1px solid rgba(251,191,36,0.25);
-  margin-bottom: 8px;
-}
-
-.card-note {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  line-height: 1.4;
-  margin-bottom: 8px;
-  font-style: italic;
-}
-
-/* Column colors */
-.col-new .column-dot { background: #94a3b8; }
-.col-new .column-title { color: #94a3b8; }
-.col-new .column-count { background: rgba(148,163,184,0.1); }
-
-.col-scheduled .column-dot { background: #fbbf24; }
-.col-scheduled .column-title { color: #fbbf24; }
-.col-scheduled .column-count { background: rgba(251,191,36,0.1); color: #fbbf24; }
-
-.col-in_progress .column-dot { background: #5b9cf6; }
-.col-in_progress .column-title { color: #5b9cf6; }
-.col-in_progress .column-count { background: rgba(91,156,246,0.1); color: #5b9cf6; }
-
-.col-done .column-dot { background: #a78bfa; }
-.col-done .column-title { color: #a78bfa; }
-.col-done .column-count { background: rgba(167,139,250,0.1); color: #a78bfa; }
-
-.col-delivered .column-dot { background: #22d3a0; }
-.col-delivered .column-title { color: #22d3a0; }
-.col-delivered .column-count { background: rgba(34,211,160,0.1); color: #22d3a0; }
+.card-btn-secondary:hover { color: var(--text); border-color: rgba(37,99,235,0.25); background: #fff; }
 
 .empty-col {
   text-align: center;
-  padding: 32px 16px;
-  color: var(--text-muted);
-  font-size: 0.82rem;
-  opacity: 0.6;
+  padding: 28px 12px;
+  color: var(--text-dim);
+  font-size: 0.78rem;
 }
 
-/* Modal */
+/* ── Modal ───────────────────────────────────────── */
 .modal {
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.7);
-  backdrop-filter: blur(8px);
+  background: rgba(15,23,42,0.5);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   z-index: 1000;
   align-items: center;
   justify-content: center;
   padding: 20px;
 }
+.modal.active { display: flex; animation: fadeIn 0.15s ease; }
 
-.modal.active { display: flex; }
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
 
 .modal-content {
-  background: var(--bg-card);
-  border-radius: 20px;
+  background: var(--surface);
+  border-radius: var(--radius);
   border: 1px solid var(--border);
-  padding: 32px;
-  max-width: 480px;
+  padding: 28px 28px 24px;
+  max-width: 440px;
   width: 100%;
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-modal);
+  animation: slideUp 0.18s ease;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(12px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
 }
 
 .modal-title {
-  font-size: 1.2rem;
-  font-weight: 800;
-  margin-bottom: 8px;
-  letter-spacing: -0.3px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+  letter-spacing: -0.2px;
 }
 
 .modal-car {
-  font-size: 0.9rem;
+  font-size: 0.82rem;
   color: var(--text-muted);
-  margin-bottom: 24px;
+  margin-bottom: 20px;
+  font-weight: 500;
 }
 
-.form-group {
-  margin-bottom: 16px;
-}
+.form-group { margin-bottom: 13px; }
 
 .form-group label {
   display: block;
-  font-size: 0.78rem;
-  font-weight: 600;
+  font-size: 0.69rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--text-label);
-  margin-bottom: 6px;
+  letter-spacing: 0.07em;
+  color: var(--text-muted);
+  margin-bottom: 5px;
 }
 
 .form-group input,
 .form-group textarea,
 .form-group select {
   width: 100%;
-  padding: 11px 14px;
-  background: var(--bg-input);
+  padding: 10px 13px;
+  background: var(--bg);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   color: var(--text);
-  font-size: 0.9rem;
-  font-family: 'Inter', sans-serif;
-  transition: all 0.2s;
+  font-size: 16px;
+  font-family: var(--font);
+  transition: border-color 0.15s, box-shadow 0.15s;
+  outline: none;
+  -webkit-appearance: none;
 }
 
-.form-group textarea {
-  resize: vertical;
-  min-height: 80px;
-}
+.form-group textarea { resize: vertical; min-height: 72px; }
 
 .form-group input:focus,
 .form-group textarea:focus,
 .form-group select:focus {
-  outline: none;
-  border-color: var(--border-focus);
-  box-shadow: 0 0 0 3px rgba(79,142,247,0.1);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.10);
+  background: var(--surface);
 }
 
 .modal-footer {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   justify-content: flex-end;
-  margin-top: 24px;
+  margin-top: 20px;
 }
 
+/* Инфо-строки в модале */
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.85rem;
+}
+.info-row:last-child { border-bottom: none; }
+.info-row-label { color: var(--text-muted); font-weight: 500; }
+.info-row-value { font-weight: 700; text-align: right; }
+
+.info-note-box {
+  background: var(--bg);
+  border-radius: var(--radius-sm);
+  padding: 10px 13px;
+  margin-top: 10px;
+}
+.info-note-label {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+  margin-bottom: 4px;
+  font-weight: 700;
+}
+.info-note-text {
+  font-size: 0.83rem;
+  font-style: italic;
+  color: var(--text-muted);
+}
+
+/* ── Кнопки ──────────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 9px 18px;
+  border-radius: var(--radius-sm);
+  font-size: 0.83rem; font-weight: 700;
+  font-family: var(--font); cursor: pointer;
+  border: none; transition: all 0.15s; text-decoration: none;
+  white-space: nowrap;
+}
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-secondary {
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+.btn-secondary:hover { background: var(--bg); color: var(--text); }
+
+/* ── Loading ─────────────────────────────────────── */
 .loading {
   text-align: center;
-  padding: 60px;
+  padding: 60px 20px;
   color: var(--text-muted);
+  font-size: 0.88rem;
   width: 100%;
 }
 
-/* ── MOBILE ── */
-@media (max-width: 768px) {
-  .top-bar {
-    flex-wrap: wrap;
-    padding: 14px 16px;
-    gap: 12px;
-  }
-
-  .top-bar-left {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .top-bar h1 {
-    font-size: 1.15rem;
-  }
-
-  .global-nav {
-    width: 100%;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    flex-wrap: nowrap;
-    padding: 8px 0;
-  }
-
-  .global-nav::-webkit-scrollbar {
-    display: none;
-  }
-
-  .nav-link {
-    font-size: 0.8rem;
-    padding: 6px 12px;
-    flex-shrink: 0;
-  }
-
-  .action-btn {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .board-wrap {
-    padding: 12px 8px;
-    gap: 12px;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .column {
-    flex: 0 0 240px;
-    max-height: calc(100vh - 140px);
-  }
-
-  .column-header {
-    padding: 14px 16px 12px;
-  }
-
-  .column-title {
-    font-size: 0.85rem;
-  }
-
-  .column-cards {
-    padding: 12px;
-  }
-
-  .kanban-card {
-    padding: 14px 16px;
-  }
-
-  .card-car {
-    font-size: 0.9rem;
-  }
-
-  .card-price {
-    font-size: 1rem;
-  }
-
-  .card-btn {
-    padding: 10px 12px;
-    font-size: 0.8rem;
-    min-height: 36px;
-  }
-
-  .modal {
-    padding: 12px;
-  }
-
-  .modal-content {
-    max-width: 100%;
-    margin: 0;
-    padding: 24px 20px;
-    border-radius: 16px;
-  }
-
-  .modal-title {
-    font-size: 1.1rem;
-  }
-
-  .form-group input,
-  .form-group textarea,
-  .form-group select {
-    font-size: 16px; /* Prevent zoom on iOS */
-    padding: 12px 14px;
-  }
-
-  .btn {
-    padding: 12px 20px;
-    font-size: 0.9rem;
-    min-height: 44px; /* Touch target */
-  }
+/* ── Mobile ──────────────────────────────────────── */
+@media (max-width: 640px) {
+  .board-outer { padding: 12px 10px 24px; }
+  .column { width: 240px; max-height: calc(100svh - 90px); }
+  .modal-content { padding: 22px 18px 20px; }
+  .modal-footer { flex-direction: column-reverse; gap: 7px; }
+  .modal-footer .btn { width: 100%; justify-content: center; }
 }
-
-@media (max-width: 480px) {
-  .column {
-    flex: 0 0 220px;
-  }
-
-  .card-actions {
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .card-btn {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .modal-content {
-    padding: 20px 16px;
-  }
-
-  .modal-footer {
-    flex-direction: column-reverse;
-  }
-
-  .modal-footer .btn {
-    width: 100%;
-  }
-}
-    width: 100%;
-  }
-
-  .modal-footer {
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .modal-footer .btn {
-    width: 100%;
-  }
-
-  .global-nav {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    flex-wrap: nowrap;
-  }
-
-  .global-nav::-webkit-scrollbar {
-    display: none;
-  }
-
-  .nav-link {
-    flex-shrink: 0;
-  }
-}
-
-/* Footer */
-.page-footer {
-  margin-top: 60px;
-  padding: 32px 24px;
-  background: var(--bg-card);
-  border-top: 1px solid var(--border);
-  text-align: center;
-}
-
-.footer-content {
-  max-width: 800px;
-  margin: 0 auto;
-}
-
-.footer-theme {
-  margin-bottom: 20px;
-}
-
-.footer-theme button {
-  background: var(--bg-input);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 10px 20px;
-  cursor: pointer;
-  font-size: 1.1rem;
-  transition: all 0.2s;
-  font-family: 'Inter', sans-serif;
-  color: var(--text);
-}
-
-.footer-theme button:hover {
-  border-color: var(--border-focus);
-  transform: translateY(-2px);
-}
-
-.footer-desc {
-  color: var(--text-muted);
-  font-size: 0.9rem;
-  line-height: 1.6;
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-.footer-desc strong {
-  color: var(--text);
-  font-weight: 600;
-}
-
-@media (max-width: 600px) {
-  .page-footer {
-    padding: 24px 16px;
-    margin-top: 40px;
-  }
-
-  .footer-desc {
-    font-size: 0.85rem;
-  }
-}
-
 </style>
 </head>
 <body>
 
-
-
-<!-- Board -->
-<div class="board-wrap" id="board">
-  <div class="loading">⏳ Загрузка...</div>
+<div class="board-page">
+  <div class="board-outer">
+    <div class="board-wrap" id="board">
+      <div class="loading">⏳ Загрузка...</div>
+    </div>
+  </div>
 </div>
 
 <!-- Modal: Назначить дату заезда -->
@@ -868,7 +444,7 @@ body {
       <input type="date" id="scheduleDate">
     </div>
     <div class="form-group">
-      <label>Время заезда</label>
+      <label>Время</label>
       <input type="time" id="scheduleTime" value="10:00">
     </div>
     <div class="form-group">
@@ -877,7 +453,7 @@ body {
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('modalSchedule')">Отмена</button>
-      <button class="btn" style="background:var(--warning);color:#000" onclick="saveSchedule()">📅 Назначить</button>
+      <button class="btn" style="background:var(--warning);color:#fff" onclick="saveSchedule()">📅 Назначить</button>
     </div>
   </div>
 </div>
@@ -886,27 +462,25 @@ body {
 <div class="modal" id="modalInfo">
   <div class="modal-content">
     <div class="modal-title">ℹ️ Информация о заказе</div>
-    <div style="margin-bottom:20px">
-      <div style="font-size:1.2rem;font-weight:700;margin-bottom:16px" id="infoCarName"></div>
-      <div style="display:flex;flex-direction:column;gap:12px">
-        <div style="display:flex;justify-content:space-between">
-          <span style="color:var(--text-muted)">Статус:</span>
-          <span id="infoStatus" style="font-weight:600"></span>
-        </div>
-        <div style="display:flex;justify-content:space-between">
-          <span style="color:var(--text-muted)">Сумма:</span>
-          <span id="infoPrice" style="font-weight:700;color:var(--success)"></span>
-        </div>
-        <div id="infoCheckinBlock" style="display:none">
-          <div style="display:flex;justify-content:space-between">
-            <span style="color:var(--text-muted)">Дата заезда:</span>
-            <span id="infoCheckin" style="font-weight:600"></span>
-          </div>
-        </div>
-        <div id="infoNoteBlock" style="display:none;padding:12px;background:var(--bg-secondary);border-radius:8px">
-          <div style="font-size:0.75rem;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px">Комментарий:</div>
-          <div id="infoNote" style="font-style:italic"></div>
-        </div>
+    <div style="font-size:1rem;font-weight:700;margin:4px 0 16px;letter-spacing:-0.2px" id="infoCarName"></div>
+    <div>
+      <div class="info-row">
+        <span class="info-row-label">Статус</span>
+        <span class="info-row-value" id="infoStatus"></span>
+      </div>
+      <div class="info-row">
+        <span class="info-row-label">Сумма</span>
+        <span class="info-row-value" style="color:var(--success)" id="infoPrice"></span>
+      </div>
+      <div class="info-row" id="infoCheckinBlock" style="display:none">
+        <span class="info-row-label">Дата заезда</span>
+        <span class="info-row-value" id="infoCheckin"></span>
+      </div>
+    </div>
+    <div id="infoNoteBlock" style="display:none">
+      <div class="info-note-box">
+        <div class="info-note-label">Комментарий</div>
+        <div class="info-note-text" id="infoNote"></div>
       </div>
     </div>
     <div class="modal-footer">
@@ -916,22 +490,22 @@ body {
   </div>
 </div>
 
-<!-- Modal: Завершить -->
+<!-- Modal: Завершить работу -->
 <div class="modal" id="modalDone">
   <div class="modal-content">
     <div class="modal-title">✅ Завершить работу</div>
     <div class="modal-car" id="doneCarName"></div>
-    <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:24px">
+    <p style="color:var(--text-muted);font-size:0.85rem;line-height:1.6;margin-bottom:6px">
       Работы выполнены, ОТК проверил. Машина ждёт выдачи клиенту.
     </p>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('modalDone')">Отмена</button>
-      <button class="btn" style="background:#a78bfa" onclick="saveDone()">✅ Завершить</button>
+      <button class="btn" style="background:var(--purple);color:#fff" onclick="saveDone()">✅ Завершить</button>
     </div>
   </div>
 </div>
 
-<!-- Modal: Выдать -->
+<!-- Modal: Выдать клиенту -->
 <div class="modal" id="modalDeliver">
   <div class="modal-content">
     <div class="modal-title">🚗 Выдать клиенту</div>
@@ -954,19 +528,12 @@ body {
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('modalDeliver')">Отмена</button>
-      <button class="btn" style="background:var(--success);color:#000" onclick="saveDeliver()">🚗 Выдать</button>
+      <button class="btn" style="background:var(--success);color:#fff" onclick="saveDeliver()">🚗 Выдать</button>
     </div>
   </div>
 </div>
 
-<footer class="page-footer">
-  <div class="footer-content">
-    <div class="footer-desc">
-      <strong>В работе</strong> — канбан-доска. 5 стадий: Расчёт → Заезд → В работе → Завершено → Выдано.
-    </div>
-  </div>
-</footer>
-
+<script src="footer.js"></script>
 <script>
 (function() {
 'use strict';
@@ -989,10 +556,6 @@ const COLUMNS = [
   { key: 'delivered',   label: 'Выдано',       icon: '🚗' },
 ];
 
-
-
-
-// Format
 function fmt(n) {
   return new Intl.NumberFormat('ru-RU', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(n || 0);
 }
@@ -1002,7 +565,6 @@ function fmtDate(d) {
   return new Date(d).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
 }
 
-// Auth
 async function checkAuth() {
   const { data: { session } } = await sb.auth.getSession();
   if (!session) { window.location.href = 'welcome.html'; return false; }
@@ -1022,14 +584,11 @@ async function getStudio() {
   return true;
 }
 
-
-// Нормализация статуса (draft/null → new)
 function normalizeStatus(status) {
   if (!status || status === '' || status === 'draft' || status === 'pending') return 'new';
   return status;
 }
 
-// Load
 async function loadBoard() {
   const { data, error } = await sb
     .from('calculations')
@@ -1042,7 +601,6 @@ async function loadBoard() {
   renderBoard();
 }
 
-// Render
 function renderBoard() {
   const board = document.getElementById('board');
 
@@ -1073,7 +631,7 @@ function renderBoard() {
 
 function renderCard(calc, status) {
   const price = fmt(calc.final_price || calc.total_price);
-  
+
   let checkin = '';
   if (calc.checkin_date) {
     const dateStr = fmtDate(calc.checkin_date);
@@ -1090,21 +648,21 @@ function renderCard(calc, status) {
   if (status === 'new') {
     actions = `
       <button class="card-btn card-btn-secondary" onclick="event.stopPropagation();openCalc('${calc.id}')">📂 Открыть</button>
-      <button class="card-btn card-btn-primary" onclick="event.stopPropagation();openModal('modalSchedule','${calc.id}','${escStr(calc.car_name)}')">📅 Заезд</button>
+      <button class="card-btn card-btn-primary" onclick="event.stopPropagation();openModal('modalSchedule','${calc.id}','${escStr(calc.car_name)}')">📅 Назначить заезд</button>
     `;
   } else if (status === 'scheduled') {
     actions = `
-      <button class="card-btn card-btn-secondary" onclick="event.stopPropagation();openModal('modalSchedule','${calc.id}','${escStr(calc.car_name)}')">✏️ Дата</button>
+      <button class="card-btn card-btn-secondary" onclick="event.stopPropagation();openModal('modalSchedule','${calc.id}','${escStr(calc.car_name)}')">✏️ Изменить дату</button>
       <button class="card-btn card-btn-primary" onclick="event.stopPropagation();goAssign('${calc.id}')">🔧 В работу</button>
     `;
   } else if (status === 'in_progress') {
     actions = `
       <button class="card-btn card-btn-secondary" onclick="event.stopPropagation();goAssign('${calc.id}')">👥 Работы</button>
-      <button class="card-btn card-btn-primary" onclick="event.stopPropagation();openModal('modalDone','${calc.id}','${escStr(calc.car_name)}')" style="background:#a78bfa">✅ Готово</button>
+      <button class="card-btn card-btn-primary" onclick="event.stopPropagation();openModal('modalDone','${calc.id}','${escStr(calc.car_name)}')" style="background:var(--purple)">✅ Готово</button>
     `;
   } else if (status === 'done') {
     actions = `
-      <button class="card-btn card-btn-primary" onclick="event.stopPropagation();openModalDeliver('${calc.id}','${escStr(calc.car_name)}',${calc.total_price || 0})" style="background:var(--success);color:#000">🚗 Выдать</button>
+      <button class="card-btn card-btn-primary" onclick="event.stopPropagation();openModalDeliver('${calc.id}','${escStr(calc.car_name)}',${calc.total_price || 0})" style="background:var(--success)">🚗 Выдать</button>
     `;
   } else if (status === 'delivered') {
     actions = `
@@ -1113,7 +671,7 @@ function renderCard(calc, status) {
   }
 
   return `
-    <div class="kanban-card" onclick="openModalInfo('${calc.id}', '${escStr(calc.car_name)}', '${status}', ${calc.final_price || calc.total_price || 0}, '${calc.checkin_date || ''}', '${calc.checkin_time || ''}', '${escStr(calc.schedule_note || '')}')">
+    <div class="kanban-card" onclick="openModalInfo('${calc.id}','${escStr(calc.car_name)}','${status}',${calc.final_price || calc.total_price || 0},'${calc.checkin_date || ''}','${calc.checkin_time || ''}','${escStr(calc.schedule_note || '')}')">
       <div class="card-car">${calc.car_name || 'Без названия'}</div>
       ${checkin}
       ${note}
@@ -1129,13 +687,8 @@ function escStr(s) {
   return (s || '').replace(/'/g, '&#39;').replace(/"/g, '&quot;');
 }
 
-// Modal helpers
 function openModal(modalId, calcId, carName) {
   activeCalcId = calcId;
-  const nameEl = document.getElementById(modalId.replace('modal', '').toLowerCase() + 'CarName');
-  if (nameEl) nameEl.textContent = carName;
-
-  // Для schedule - имена элементов другие
   if (modalId === 'modalSchedule') {
     document.getElementById('scheduleCarName').textContent = carName;
     document.getElementById('scheduleDate').value = '';
@@ -1145,7 +698,6 @@ function openModal(modalId, calcId, carName) {
   if (modalId === 'modalDone') {
     document.getElementById('doneCarName').textContent = carName;
   }
-
   document.getElementById(modalId).classList.add('active');
 }
 
@@ -1159,31 +711,29 @@ function openModalDeliver(calcId, carName, price) {
 
 window.openModalInfo = function(calcId, carName, status, price, checkinDate, checkinTime, note) {
   activeCalcId = calcId;
-  
+
   const STATUS_LABELS = {
     new: '📋 Расчёт',
-    scheduled: '📅 Дата заезда назначена',
+    scheduled: '📅 Заезд назначен',
     in_progress: '🔧 В работе',
     done: '✅ Завершено',
     delivered: '🚗 Выдано'
   };
-  
-  document.getElementById('infoCarName').textContent = carName;
-  document.getElementById('infoStatus').textContent = STATUS_LABELS[status] || status;
-  document.getElementById('infoPrice').textContent = fmt(price) + ' ₽';
-  
-  // Дата и время заезда
+
+  document.getElementById('infoCarName').textContent  = carName;
+  document.getElementById('infoStatus').textContent   = STATUS_LABELS[status] || status;
+  document.getElementById('infoPrice').textContent    = fmt(price) + ' ₽';
+
   const checkinBlock = document.getElementById('infoCheckinBlock');
   if (checkinDate) {
     const dateStr = fmtDate(checkinDate);
     const timeStr = checkinTime ? checkinTime.slice(0, 5) : '';
     document.getElementById('infoCheckin').textContent = dateStr + (timeStr ? ', ' + timeStr : '');
-    checkinBlock.style.display = 'block';
+    checkinBlock.style.display = 'flex';
   } else {
     checkinBlock.style.display = 'none';
   }
-  
-  // Комментарий
+
   const noteBlock = document.getElementById('infoNoteBlock');
   if (note) {
     document.getElementById('infoNote').textContent = note;
@@ -1191,7 +741,7 @@ window.openModalInfo = function(calcId, carName, status, price, checkinDate, che
   } else {
     noteBlock.style.display = 'none';
   }
-  
+
   document.getElementById('modalInfo').classList.add('active');
 };
 
@@ -1205,10 +755,9 @@ window.closeModal = function(modalId) {
   activeCalcId = null;
 };
 
-window.openModal = openModal;
-window.openModalDeliver = openModalDeliver;
+window.openModal         = openModal;
+window.openModalDeliver  = openModalDeliver;
 
-// Actions
 window.openCalc = function(calcId) {
   window.location.href = `calculator.html?load=${calcId}`;
 };
@@ -1222,12 +771,7 @@ async function updateStatus(calcId, status, extra = {}) {
     .from('calculations')
     .update({ status, ...extra })
     .eq('id', calcId);
-
-  if (error) {
-    console.error(error);
-    alert('❌ Ошибка: ' + error.message);
-    return false;
-  }
+  if (error) { console.error(error); alert('❌ Ошибка: ' + error.message); return false; }
   return true;
 }
 
@@ -1235,54 +779,32 @@ window.saveSchedule = async function() {
   const date = document.getElementById('scheduleDate').value;
   const time = document.getElementById('scheduleTime').value;
   const note = document.getElementById('scheduleNote').value.trim();
-  
   if (!date) { alert('Выберите дату!'); return; }
   if (!time) { alert('Выберите время!'); return; }
-
-  const ok = await updateStatus(activeCalcId, 'scheduled', { 
-    checkin_date: date,
-    checkin_time: time,
-    schedule_note: note || null
+  const ok = await updateStatus(activeCalcId, 'scheduled', {
+    checkin_date: date, checkin_time: time, schedule_note: note || null
   });
-  if (ok) {
-    closeModal('modalSchedule');
-    loadBoard();
-  }
+  if (ok) { closeModal('modalSchedule'); loadBoard(); }
 };
 
 window.saveDone = async function() {
   const ok = await updateStatus(activeCalcId, 'done');
-  if (ok) {
-    closeModal('modalDone');
-    loadBoard();
-  }
+  if (ok) { closeModal('modalDone'); loadBoard(); }
 };
 
 window.saveDeliver = async function() {
   const price = parseFloat(document.getElementById('deliverPrice').value) || null;
-  const note = document.getElementById('deliverNote').value.trim();
-
-  const ok = await updateStatus(activeCalcId, 'delivered', {
-    final_price: price,
-    delivery_note: note
-  });
-  if (ok) {
-    closeModal('modalDeliver');
-    loadBoard();
-  }
+  const note  = document.getElementById('deliverNote').value.trim();
+  const ok = await updateStatus(activeCalcId, 'delivered', { final_price: price, delivery_note: note });
+  if (ok) { closeModal('modalDeliver'); loadBoard(); }
 };
 
-// Close modal on backdrop
 document.querySelectorAll('.modal').forEach(m => {
   m.addEventListener('click', e => {
-    if (e.target === m) {
-      m.classList.remove('active');
-      activeCalcId = null;
-    }
+    if (e.target === m) { m.classList.remove('active'); activeCalcId = null; }
   });
 });
 
-// Init
 async function init() {
   initNav();
   if (!await checkAuth()) return;
@@ -1295,6 +817,5 @@ init();
 })();
 </script>
 
-<script src="footer.js"></script>
 </body>
 </html>
