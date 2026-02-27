@@ -570,9 +570,22 @@ async function loadMiniKanban(studioId) {
       html += `<div class="mini-col-empty">Нет</div>`;
     } else {
       visible.forEach(c => {
-        html += `<div class="mini-card" onclick="location.href='board.html'">
+        const isInProgress = col.key === 'in_progress';
+        const assignBtn = isInProgress
+          ? `<a href="assign-work.html?calc_id=${c.id}" onclick="event.stopPropagation()"
+               style="display:block;margin-top:6px;padding:4px 8px;border-radius:6px;
+                      font-size:0.69rem;font-weight:700;text-align:center;text-decoration:none;
+                      background:rgba(37,99,235,0.08);color:#2563eb;
+                      border:1px solid rgba(37,99,235,0.2);transition:all 0.15s"
+               onmouseover="this.style.background='#2563eb';this.style.color='#fff'"
+               onmouseout="this.style.background='rgba(37,99,235,0.08)';this.style.color='#2563eb'">
+               👥 Распределить
+             </a>`
+          : '';
+        html += `<div class="mini-card" onclick="location.href='${isInProgress ? `assign-work.html?calc_id=${c.id}` : 'board.html'}'">
           <div class="mini-card-car">${c.car_name || 'Без названия'}</div>
           <div class="mini-card-price">${fmt(c.final_price || c.total_price || 0)} ₽</div>
+          ${assignBtn}
         </div>`;
       });
       if (rest > 0) {
