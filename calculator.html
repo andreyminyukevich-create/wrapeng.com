@@ -104,8 +104,8 @@
   color: var(--text);
 }
 #navTopBar .nav-link.active {
-  background: var(--primary-light);
-  color: var(--primary) !important;
+  background: rgba(37,99,235,0.10);
+  color: #2563eb !important;
   font-weight: 700;
 }
 #navTopBar .nav-link.nav-soon {
@@ -237,7 +237,7 @@ body {
 }
 
 html {
-  overflow-x: hidden;
+  overflow-x: clip;
   scroll-behavior: smooth;
 }
 
@@ -249,7 +249,7 @@ body {
   line-height: 1.6;
   transition: background-color 0.3s ease, color 0.3s ease;
   -webkit-tap-highlight-color: transparent;
-  overflow-x: hidden;
+  overflow-x: clip;
   position: relative;
 }
 
@@ -1424,6 +1424,44 @@ tfoot th:first-child {
   box-shadow: var(--shadow-lg), 0 0 40px rgba(16, 185, 129, 0.5);
 }
 
+/* ── Block Summary (строка итогов под каждым блоком) ── */
+.block-summary {
+  display: flex;
+  gap: 0;
+  border-top: 1px solid var(--border);
+  margin-top: 8px;
+  padding-top: 8px;
+}
+.block-summary-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 6px 8px;
+  border-right: 1px solid var(--border);
+}
+.block-summary-item:last-child {
+  border-right: none;
+}
+.block-summary-label {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  margin-bottom: 3px;
+}
+.block-summary-value {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+}
+.block-summary-value.markup {
+  color: var(--success);
+}
+
 /* ── Toast «Сохранено» ───────────────────────────── */
 #saveToast {
   position: fixed;
@@ -2203,18 +2241,6 @@ window.addEventListener('unhandledrejection', function(e) {
 
   <div class="right-column">
     
-    <div class="card">
-      <h2>🎁 Скидки</h2>
-      <div class="card-content">
-        <div class="discount-grid">
-          <div class="discount-btn" data-discount="0">Без скидки</div>
-          <div class="discount-btn" data-discount="10">Дружеская 10%</div>
-        </div>
-        <div style="margin-top:8px">
-          <input type="number" id="customDiscount" placeholder="Своя скидка %" min="0" max="100" step="0.01">
-        </div>
-      </div>
-    </div>
 
     <div class="card">
       <h2>💎 Итоги</h2>
