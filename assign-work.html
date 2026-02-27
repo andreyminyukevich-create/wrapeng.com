@@ -3,640 +3,410 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Распределение работ — CRM</title>
-<script>document.documentElement.setAttribute('data-theme', 'light');</script>
+<title>Распределение работ — Keep1R CRM</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="stylesheet" href="nav.css">
 <script src="nav.js"></script>
 <style>
 :root {
-  --bg-primary: #080f1e;
-  --bg-secondary: #0e1829;
-  --bg-card: #131f35;
-  --bg-input: #1a2844;
-  --text: #eef2ff;
-  --text-muted: #8aa0c0;
-  --text-label: #b0c4de;
-  --border: rgba(120, 160, 220, 0.22);
-  --border-focus: rgba(99, 160, 255, 0.6);
-  --primary: #5b9cf6;
-  --primary-dark: #2563eb;
-  --success: #22d3a0;
-  --success-dark: #059669;
-  --success-bg: rgba(34, 211, 160, 0.12);
-  --danger: #f87171;
-  --danger-bg: rgba(248, 113, 113, 0.14);
-  --warning: #fbbf24;
-  --warning-bg: rgba(251, 191, 36, 0.12);
-  --shadow: 0 4px 24px rgba(0,0,0,0.5);
-  --shadow-lg: 0 8px 40px rgba(0,0,0,0.6);
-}
-
-[data-theme="light"] {
-  --bg-primary: #f0f4fb;
-  --bg-secondary: #ffffff;
-  --bg-card: #ffffff;
-  --bg-input: #f8faff;
-  --text: #0f172a;
-  --text-muted: #64748b;
-  --text-label: #475569;
-  --border: rgba(15, 23, 42, 0.1);
-  --border-focus: rgba(79, 142, 247, 0.5);
-  --shadow: 0 4px 16px rgba(0,0,0,0.08);
-  --shadow-lg: 0 8px 32px rgba(0,0,0,0.12);
+  --font:       -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
+  --bg:         #eef2f9;
+  --surface:    #ffffff;
+  --border:     rgba(15,23,42,0.08);
+  --text:       #0f172a;
+  --muted:      #64748b;
+  --dim:        #94a3b8;
+  --primary:    #2563eb;
+  --primary-dk: #1d4ed8;
+  --success:    #059669;
+  --success-bg: rgba(5,150,105,0.07);
+  --danger:     #dc2626;
+  --danger-bg:  rgba(220,38,38,0.07);
+  --warning:    #d97706;
+  --warning-bg: rgba(217,119,6,0.07);
+  --radius:     14px;
+  --radius-sm:  9px;
+  --shadow:     0 1px 3px rgba(0,0,0,0.04), 0 4px 14px rgba(0,0,0,0.06);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-  font-family: 'Inter', -apple-system, sans-serif;
-  background: var(--bg-primary);
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+  background: var(--bg);
   color: var(--text);
-  line-height: 1.6;
-  min-height: 100vh;
-  font-size: 15px;
+  min-height: 100svh;
 }
 
-[data-theme="dark"] body::before {
-  content: '';
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: 
-    radial-gradient(ellipse at 10% 20%, rgba(79, 142, 247, 0.12) 0%, transparent 55%),
-    radial-gradient(ellipse at 90% 80%, rgba(34, 211, 160, 0.1) 0%, transparent 55%);
-  pointer-events: none;
-  z-index: 0;
-}
-
+/* ── Субшапка ────────────────────────────────────── */
 .page-subheader {
   display: flex;
   align-items: center;
-  padding: 12px 24px;
-  background: #fff;
-  border-bottom: 1px solid rgba(15,23,42,0.08);
+  padding: 11px 20px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
   gap: 12px;
-  margin-bottom: 24px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
 }
 .page-subheader-left {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
   flex: 1;
+  min-width: 0;
 }
 .page-subheader-title {
-  font-size: 1rem;
+  font-size: 0.92rem;
   font-weight: 700;
-  color: #0f172a;
+  white-space: nowrap;
 }
+.car-subtitle {
+  font-size: 0.82rem;
+  color: var(--muted);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .btn-back {
   display: inline-flex;
   align-items: center;
-  padding: 6px 14px;
-  border-radius: 8px;
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: #2563eb;
-  background: rgba(37,99,235,0.08);
-  border: 1px solid rgba(37,99,235,0.2);
+  padding: 6px 12px;
+  border-radius: 7px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--primary);
+  background: rgba(37,99,235,0.07);
+  border: 1px solid rgba(37,99,235,0.18);
   cursor: pointer;
-  font-family: inherit;
+  font-family: var(--font);
   transition: all 0.15s;
   white-space: nowrap;
+  flex-shrink: 0;
 }
-.btn-back:hover {
-  background: #2563eb;
-  color: #fff;
-  border-color: #2563eb;
-}
-.car-subtitle {
-  font-size: 0.85rem;
-  color: #64748b;
-  font-weight: 500;
-}
+.btn-back:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
 
+/* ── Контент ─────────────────────────────────────── */
 .container {
-  max-width: 860px;
+  max-width: 820px;
   margin: 0 auto;
-  padding: 28px 20px;
-  position: relative;
-  z-index: 1;
+  padding: 22px 18px 48px;
 }
 
-/* ── Top Bar ── */
-.global-nav {
-  display: flex;
-  gap: 6px;
-  align-items: center;
+/* ── Карточки ────────────────────────────────────── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 22px;
+  margin-bottom: 14px;
+  box-shadow: var(--shadow);
 }
-
-.nav-link {
-  padding: 8px 16px;
-  border-radius: 8px;
-  font-size: 0.88rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  text-decoration: none;
-  transition: all 0.2s;
-  border: 1px solid transparent;
-  white-space: nowrap;
-}
-
-.nav-link:hover {
-  background: var(--bg-input);
-  color: var(--text);
-}
-
-.nav-link.active {
-  background: var(--primary);
-  color: #fff;
-  border-color: var(--primary);
-}
-
-/* ── Buttons ── */
-.btn {
-  background: var(--primary);
-  color: #fff;
-  border: none;
-  padding: 11px 22px;
-  border-radius: 12px;
+.card-title {
   font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: inline-flex;
+  font-weight: 700;
+  margin-bottom: 16px;
+  display: flex;
   align-items: center;
   gap: 7px;
-  text-decoration: none;
   letter-spacing: -0.1px;
 }
 
-.btn:hover {
-  background: var(--primary-dark);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow);
-}
-
-.btn-success {
-  background: linear-gradient(135deg, var(--success), #0fa882);
-  color: #fff;
-  font-size: 1rem;
-  padding: 13px 28px;
-}
-
-.btn-success:hover {
-  background: linear-gradient(135deg, #1db890, #0d9072);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(34,211,160,0.3);
-}
-
-.btn-secondary {
-  background: transparent;
-  color: var(--text-muted);
-  border: 1px solid var(--border);
-}
-
-.btn-secondary:hover {
-  background: var(--bg-input);
-  color: var(--text);
-  border-color: var(--border-focus);
-}
-
-.btn-danger {
-  background: var(--danger-bg);
-  color: var(--danger);
-  border: 1px solid rgba(248,113,113,0.3);
-}
-
-.btn-danger:hover {
-  background: var(--danger);
-  color: #fff;
-}
-
-.btn-sm { padding: 8px 16px; font-size: 0.85rem; }
-
-/* ── Card ── */
-.card {
-  background: var(--bg-card);
-  border-radius: 18px;
-  border: 1px solid var(--border);
-  padding: 24px;
-  margin-bottom: 16px;
-  box-shadow: var(--shadow);
-}
-
-.card-title {
-  font-size: 1rem;
-  font-weight: 700;
-  margin-bottom: 20px;
-  color: var(--text);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  letter-spacing: -0.2px;
-}
-
-/* ── Admin Sale ── */
+/* ── Admin sale block ────────────────────────────── */
 .admin-sale-block {
-  background: var(--warning-bg);
-  border: 1px solid rgba(251,191,36,0.25);
-  border-radius: 14px;
-  padding: 18px 22px;
-  margin-bottom: 16px;
+  background: var(--surface);
+  border: 1px solid rgba(217,119,6,0.22);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  margin-bottom: 14px;
+  box-shadow: var(--shadow);
 }
 
 .admin-sale-row {
   display: flex;
-  align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 0;
 }
 
 .toggle-switch {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 9px;
   cursor: pointer;
-  font-weight: 600;
-  font-size: 0.95rem;
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: var(--text);
+  user-select: none;
 }
-
 .toggle-switch input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
+  width: 17px; height: 17px;
   accent-color: var(--warning);
   cursor: pointer;
+  flex-shrink: 0;
 }
 
 .admin-details {
   display: none;
-  align-items: flex-end;
-  gap: 14px;
   flex-wrap: wrap;
+  gap: 12px;
   margin-top: 14px;
   padding-top: 14px;
-  border-top: 1px solid rgba(251,191,36,0.2);
+  border-top: 1px solid rgba(217,119,6,0.15);
+  align-items: flex-end;
 }
-
 .admin-details.active { display: flex; }
 
-/* ── Form ── */
+/* ── Form group ──────────────────────────────────── */
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 4px;
 }
-
 .form-group label {
-  font-size: 0.78rem;
-  color: var(--text-label);
-  font-weight: 600;
+  font-size: 0.67rem;
+  color: var(--muted);
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.06em;
 }
-
 .form-group input,
 .form-group select {
-  padding: 10px 14px;
-  background: var(--bg-input);
+  padding: 9px 12px;
+  background: var(--bg);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   color: var(--text);
-  font-size: 0.9rem;
-  font-family: 'Inter', sans-serif;
-  transition: all 0.2s;
+  font-size: 16px;
+  font-family: var(--font);
+  transition: border-color 0.15s, box-shadow 0.15s;
+  outline: none;
+  -webkit-appearance: none;
 }
-
 .form-group input:focus,
 .form-group select:focus {
-  outline: none;
-  border-color: var(--border-focus);
-  background: var(--bg-card);
-  box-shadow: 0 0 0 3px rgba(79,142,247,0.12);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.08);
+  background: var(--surface);
 }
 
-/* ── Work Items ── */
+/* ── Work list ───────────────────────────────────── */
 .work-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 .work-item {
-  background: var(--bg-secondary);
+  background: var(--bg);
   border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 18px 20px;
-  transition: border-color 0.2s;
+  border-radius: 12px;
+  padding: 16px 18px;
+  transition: border-color 0.15s;
 }
-
-[data-theme="dark"] .work-item {
-  background: #0e1829;
-  border-color: rgba(120, 160, 220, 0.28);
-}
-
-.work-item:hover {
-  border-color: var(--border-focus);
-}
-
-[data-theme="dark"] .executor-select-wrap select,
-[data-theme="dark"] .executor-manual-wrap .manual-name-input,
-[data-theme="dark"] .salary-input,
-[data-theme="dark"] .add-work-row input {
-  background: #1a2844;
-  border-color: rgba(120, 160, 220, 0.3);
-  color: #eef2ff;
-}
-
-[data-theme="dark"] .executor-select-wrap select:focus,
-[data-theme="dark"] .executor-manual-wrap .manual-name-input:focus,
-[data-theme="dark"] .salary-input:focus,
-[data-theme="dark"] .add-work-row input:focus {
-  background: #1f3055;
-  border-color: rgba(99, 160, 255, 0.7);
-}
-
-[data-theme="dark"] .mode-btn {
-  background: #1a2844;
-  border-color: rgba(120, 160, 220, 0.3);
-  color: #8aa0c0;
-}
-
-[data-theme="dark"] .mode-btn.active {
-  background: var(--primary);
-  border-color: var(--primary);
-  color: #fff;
-}
-
-[data-theme="dark"] .work-base-salary {
-  background: rgba(34, 211, 160, 0.15);
-  border-color: rgba(34, 211, 160, 0.3);
-  color: var(--success);
-}
-
-[data-theme="dark"] .card {
-  background: #131f35;
-  border-color: rgba(120, 160, 220, 0.2);
-}
-
-[data-theme="dark"] .admin-sale-block {
-  background: rgba(251, 191, 36, 0.08);
-  border-color: rgba(251, 191, 36, 0.25);
-}
-
-[data-theme="dark"] .summary-block {
-  background: rgba(34, 211, 160, 0.08);
-  border-color: rgba(34, 211, 160, 0.25);
-}
+.work-item:hover { border-color: rgba(37,99,235,0.2); }
 
 .work-item-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 14px;
-  gap: 12px;
+  margin-bottom: 12px;
+  gap: 10px;
+  flex-wrap: wrap;
 }
-
 .work-service-name {
   font-weight: 700;
-  font-size: 0.95rem;
+  font-size: 0.88rem;
   color: var(--text);
-  letter-spacing: -0.1px;
 }
-
 .work-base-salary {
-  font-size: 0.8rem;
-  font-weight: 600;
+  font-size: 0.72rem;
+  font-weight: 700;
   color: var(--success);
   background: var(--success-bg);
-  padding: 4px 12px;
+  padding: 3px 10px;
   border-radius: 20px;
   white-space: nowrap;
-  border: 1px solid rgba(34,211,160,0.2);
+  border: 1px solid rgba(5,150,105,0.18);
 }
 
-/* ── Executor Row ── */
-.executor-rows {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
+/* ── Executor rows ───────────────────────────────── */
+.executor-rows { display: flex; flex-direction: column; gap: 8px; }
 
-.executor-row {
-  width: 100%;
-}
+.executor-row { width: 100%; }
 
-.executor-input-group {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
+.executor-input-group { display: flex; flex-direction: column; gap: 5px; }
 
-.executor-mode-switcher {
-  display: flex;
-  gap: 6px;
-}
+.executor-mode-switcher { display: flex; gap: 4px; }
 
 .mode-btn {
-  background: var(--bg-input);
+  background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 5px 14px;
+  border-radius: 7px;
+  padding: 4px 12px;
   cursor: pointer;
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  transition: all 0.2s;
-  font-family: 'Inter', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--muted);
+  transition: all 0.15s;
+  font-family: var(--font);
   white-space: nowrap;
 }
+.mode-btn:hover { color: var(--text); }
+.mode-btn.active { background: var(--primary); border-color: var(--primary); color: #fff; }
 
-.mode-btn.active {
-  background: var(--primary);
-  border-color: var(--primary);
-  color: #fff;
-}
-
-/* Одна строка: [дропдаун] [сумма] [×] */
+/* Строка: [дропдаун/инпут] [сумма] [×] */
 .executor-fields-row {
   display: grid;
-  grid-template-columns: 1fr 140px 36px;
-  gap: 8px;
+  grid-template-columns: 1fr 130px 34px;
+  gap: 7px;
   align-items: center;
 }
 
 .executor-select-wrap select,
 .executor-manual-wrap .manual-name-input {
   width: 100%;
-  padding: 9px 13px;
-  background: var(--bg-input);
+  padding: 8px 12px;
+  background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   color: var(--text);
-  font-size: 0.88rem;
-  font-family: 'Inter', sans-serif;
-  transition: all 0.2s;
+  font-size: 16px;
+  font-family: var(--font);
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  -webkit-appearance: none;
 }
-
-.executor-select-wrap,
-.executor-manual-wrap {
-  min-width: 0;
-}
-
 .executor-select-wrap select:focus,
 .executor-manual-wrap .manual-name-input:focus {
-  outline: none;
-  border-color: var(--border-focus);
-  box-shadow: 0 0 0 3px rgba(79,142,247,0.1);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.08);
 }
-
-.executor-manual-save {
-  display: flex;
-  align-items: center;
-  padding-left: 2px;
-}
-
-.save-to-list-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: var(--success);
-  cursor: pointer;
-  letter-spacing: 0.1px;
-}
-
-.save-to-list-label input[type="checkbox"] {
-  accent-color: var(--success);
-  width: 13px;
-  height: 13px;
-  cursor: pointer;
-}
+.executor-select-wrap, .executor-manual-wrap { min-width: 0; }
 
 .salary-input {
-  padding: 9px 13px;
-  background: var(--bg-input);
+  padding: 8px 12px;
+  background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   color: var(--text);
-  font-size: 0.88rem;
-  font-family: 'Inter', sans-serif;
-  transition: all 0.2s;
+  font-size: 16px;
+  font-family: var(--font);
+  font-weight: 700;
   width: 100%;
-  font-weight: 600;
-}
-
-.salary-input:focus {
   outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.salary-input:focus {
   border-color: var(--success);
-  box-shadow: 0 0 0 3px rgba(34,211,160,0.1);
+  box-shadow: 0 0 0 3px rgba(5,150,105,0.08);
 }
 
 .btn-remove-exec {
   background: var(--danger-bg);
-  border: 1px solid rgba(248,113,113,0.25);
+  border: 1px solid rgba(220,38,38,0.15);
   color: var(--danger);
-  border-radius: 9px;
+  border-radius: 8px;
   padding: 0;
   cursor: pointer;
   font-size: 0.8rem;
-  transition: all 0.2s;
+  transition: all 0.15s;
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 36px;
-  width: 36px;
+  height: 34px;
+  width: 34px;
+  flex-shrink: 0;
+  font-family: var(--font);
 }
+.btn-remove-exec:hover { background: var(--danger); color: #fff; border-color: var(--danger); }
 
-.btn-remove-exec:hover {
-  background: var(--danger);
-  color: #fff;
-  border-color: var(--danger);
+.executor-manual-save {
+  display: flex;
+  align-items: center;
+  padding-left: 1px;
 }
-
-.add-executor-btn {
-  margin-top: 10px;
-  font-size: 0.82rem;
-  padding: 7px 14px;
-  color: var(--primary);
-  background: rgba(79,142,247,0.08);
-  border: 1px dashed rgba(79,142,247,0.35);
-  border-radius: 9px;
-  cursor: pointer;
+.save-to-list-label {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  transition: all 0.2s;
-  font-weight: 600;
-  font-family: 'Inter', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--success);
+  cursor: pointer;
+  user-select: none;
+}
+.save-to-list-label input[type="checkbox"] {
+  accent-color: var(--success);
+  width: 13px; height: 13px;
+  cursor: pointer;
 }
 
-.add-executor-btn:hover {
-  background: rgba(79,142,247,0.15);
-  border-color: var(--primary);
+.add-executor-btn {
+  margin-top: 8px;
+  font-size: 0.75rem;
+  padding: 6px 12px;
+  color: var(--primary);
+  background: rgba(37,99,235,0.05);
+  border: 1px dashed rgba(37,99,235,0.28);
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.15s;
+  font-weight: 700;
+  font-family: var(--font);
 }
+.add-executor-btn:hover { background: rgba(37,99,235,0.10); border-color: var(--primary); }
 
-/* ── Add Manual Work ── */
+/* ── Добавить работу вручную ─────────────────────── */
 .add-work-row {
   display: grid;
-  grid-template-columns: 1fr 160px;
-  gap: 12px;
+  grid-template-columns: 1fr 150px;
+  gap: 10px;
 }
-
 .add-work-row input {
-  padding: 10px 14px;
-  background: var(--bg-input);
+  padding: 9px 12px;
+  background: var(--bg);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   color: var(--text);
-  font-size: 0.9rem;
-  font-family: 'Inter', sans-serif;
-  transition: all 0.2s;
-}
-
-.add-work-row input:focus {
+  font-size: 16px;
+  font-family: var(--font);
   outline: none;
-  border-color: var(--border-focus);
-  box-shadow: 0 0 0 3px rgba(79,142,247,0.1);
+  transition: border-color 0.15s, box-shadow 0.15s;
+  -webkit-appearance: none;
+}
+.add-work-row input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.08);
 }
 
-/* ── Summary ── */
+/* ── Итого ───────────────────────────────────────── */
 .summary-block {
   background: var(--success-bg);
-  border: 1px solid rgba(34,211,160,0.25);
-  border-radius: 14px;
-  padding: 20px 24px;
-  overflow: hidden;
+  border: 1px solid rgba(5,150,105,0.2);
+  border-radius: 12px;
+  padding: 18px 20px;
 }
-
 .summary-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 0;
+  padding: 8px 0;
   gap: 20px;
 }
-
-.summary-row + .summary-row {
-  border-top: 1px solid rgba(34,211,160,0.15);
-}
-
-.summary-label {
-  color: var(--text-label);
-  font-size: 0.9rem;
-  font-weight: 500;
-  white-space: nowrap;
-}
-
-.summary-value {
-  font-weight: 700;
-  font-size: 1rem;
-  text-align: right;
-}
-
+.summary-row + .summary-row { border-top: 1px solid rgba(5,150,105,0.12); }
+.summary-label { color: var(--muted); font-size: 0.85rem; font-weight: 600; white-space: nowrap; }
+.summary-value { font-weight: 700; font-size: 0.92rem; }
 .summary-total-value {
   color: var(--success);
-  font-size: 1.8rem;
+  font-size: 1.7rem;
   font-weight: 800;
   letter-spacing: -1px;
   text-align: right;
@@ -645,170 +415,70 @@ body {
   word-break: break-word;
 }
 
-.loading { text-align: center; padding: 60px; color: var(--text-muted); font-size: 1rem; }
+/* ── Кнопки ──────────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 10px 20px;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-weight: 700;
+  font-family: var(--font);
+  cursor: pointer;
+  border: none;
+  transition: all 0.15s;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.btn-primary   { background: var(--primary); color: #fff; }
+.btn-primary:hover   { background: var(--primary-dk); }
+.btn-success   { background: var(--success); color: #fff; font-size: 0.92rem; padding: 12px 24px; }
+.btn-success:hover   { background: #047857; }
+.btn-secondary {
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--border);
+}
+.btn-secondary:hover { background: var(--bg); color: var(--text); }
+.btn-sm { padding: 7px 14px; font-size: 0.78rem; }
 
-@media (max-width: 768px) {
-  .container {
-    padding: 16px 12px;
-  }
-
-        .card {
-    padding: 20px 16px;
-  }
-
-  .card-title {
-    font-size: 0.95rem;
-  }
-
-  .work-item {
-    padding: 16px;
-  }
-
-  .work-item-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
-
-  .executor-fields-row {
-    grid-template-columns: 1fr 100px 36px;
-  }
-
-  .mode-btn {
-    font-size: 0.75rem;
-    padding: 4px 8px;
-  }
-
-  .summary-block {
-    padding: 16px;
-  }
-
-  .btn {
-    padding: 10px 18px;
-    font-size: 0.88rem;
-  }
-
-  .admin-sale-block {
-    padding: 16px;
-  }
-
-  .admin-details {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .admin-details .form-group {
-    width: 100%;
-  }
+/* ── Состояния ───────────────────────────────────── */
+.loading {
+  text-align: center;
+  padding: 60px;
+  color: var(--muted);
+  font-size: 0.9rem;
 }
 
-@media (max-width: 600px) {
-  .container {
-    padding: 16px 12px;
-  }
+/* ── Адаптив ─────────────────────────────────────── */
+@media (max-width: 640px) {
+  .container { padding: 16px 14px 40px; }
+  .card { padding: 16px 16px; }
 
-    .top-bar h1 {
-    font-size: 1.1rem;
-  }
+  .executor-fields-row { grid-template-columns: 1fr 100px 34px; }
 
-    .btn {
-    width: 100%;
-    min-height: 48px;
-  }
+  .add-work-row { grid-template-columns: 1fr; }
 
-  .card {
-    padding: 18px 14px;
-  }
+  .admin-details { flex-direction: column; align-items: stretch; }
+  .admin-details .form-group { width: 100%; }
 
-  .executor-row {
-    grid-template-columns: 1fr;
-    gap: 10px;
-  }
-
-  .executor-fields-row {
-    grid-template-columns: 1fr;
-    gap: 10px;
-  }
-
-  .salary-input {
-    margin-top: 0;
-  }
-
-  .btn-remove-exec {
-    margin-top: 0;
-    width: 100%;
-    height: 44px;
-    max-width: none;
-  }
-
-  .executor-select-wrap select,
-  .executor-manual-wrap .manual-name-input,
-  .salary-input,
-  .form-group input,
-  .form-group select,
-  .add-work-row input {
-    font-size: 16px; /* Prevent iOS zoom */
-    padding: 12px 14px;
-    min-height: 44px;
-  }
-
-  .add-work-row {
-    grid-template-columns: 1fr;
-  }
-
-  .summary-total-value {
-    font-size: 1.6rem;
-  }
-
-  .admin-details {
-    flex-direction: column;
-  }
-
-  .work-item-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
+  .summary-total-value { font-size: 1.5rem; }
+  .work-item { padding: 14px 14px; }
+  .work-item-header { flex-direction: column; align-items: flex-start; }
 }
 
 @media (max-width: 480px) {
-  .top-bar h1 {
-    font-size: 1rem;
-  }
-
-  .work-service-name {
-    font-size: 0.88rem;
-  }
-
-  .card-title {
-    font-size: 0.9rem;
-  }
-
-  .summary-row {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
-  }
-
-  .summary-total-value {
-    font-size: 1.4rem;
-    align-self: flex-end;
-  }
+  .executor-fields-row { grid-template-columns: 1fr; gap: 8px; }
+  .btn-remove-exec { width: 100%; height: 40px; }
+  .btn-success { width: 100%; justify-content: center; }
+  .summary-row { flex-direction: column; align-items: flex-start; gap: 2px; }
+  .summary-total-value { align-self: flex-end; }
 }
-    align-items: flex-start;
-    gap: 4px;
-  }
-
-  .summary-total-value {
-    font-size: 1.3rem;
-  }
-}
-
 </style>
 </head>
 <body>
 
 <div class="container">
+  <!-- Субшапка -->
   <div class="page-subheader">
     <div class="page-subheader-left">
       <button class="btn-back" onclick="goBack()">← В работе</button>
@@ -822,11 +492,11 @@ body {
   </div>
 </div>
 
+<script src="footer.js"></script>
 <script>
 (function() {
 'use strict';
 
-// Функция возврата назад
 window.goBack = function() {
   const referrer = document.referrer;
   if (referrer && referrer.includes('board.html')) {
@@ -836,41 +506,35 @@ window.goBack = function() {
   }
 };
 
-const SUPABASE_URL = 'https://hdghijgrrnzmntistdvw.supabase.co';
+const SUPABASE_URL     = 'https://hdghijgrrnzmntistdvw.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkZ2hpamdycm56bW50aXN0ZHZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMzMyNzksImV4cCI6MjA3NTYwOTI3OX0.D9EDTmVrFRVp0B8_5tCJM29gbFdtadsom0Ihsf4uQ8Q';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 window._crmSb = sb;
 
-let currentUser = null;
+let currentUser   = null;
 let currentStudio = null;
-let calculation = null;
-let executors = [];
-let calcId = null;
+let calculation   = null;
+let executors     = [];
+let calcId        = null;
 
-// Названия услуг
 const SERVICE_NAMES = {
-  pkg_wrap: 'Оклейка (Полная защита)',
-  pkg_prep: 'Подготовка (Полная защита)',
-  pkg_arm:  'Арматурные работы (Полная защита)',
+  pkg_wrap:    'Оклейка (Полная защита)',
+  pkg_prep:    'Подготовка (Полная защита)',
+  pkg_arm:     'Арматурные работы (Полная защита)',
   impact_wrap: 'Оклейка (Ударная часть)',
   impact_prep: 'Подготовка (Ударная часть)',
   impact_arm:  'Арматурные работы (Ударная часть)',
-  arm: 'Арматурные работы',
+  arm:  'Арматурные работы',
   wrap: 'Оклейка',
-  det: 'Детейлинг',
-  gl:  'Полировка/Химчистка',
-  ms:  'Прочие услуги'
+  det:  'Детейлинг',
+  gl:   'Полировка/Химчистка',
+  ms:   'Прочие услуги'
 };
 
-// Theme
-
-
-// Format
 function fmt(n) {
   return new Intl.NumberFormat('ru-RU', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(n || 0);
 }
 
-// Auth
 async function checkAuth() {
   const { data: { session } } = await sb.auth.getSession();
   if (!session) { window.location.href = 'welcome.html'; return false; }
@@ -878,7 +542,6 @@ async function checkAuth() {
   return true;
 }
 
-// Get studio
 async function getStudio() {
   const { data, error } = await sb
     .from('studio_members')
@@ -891,7 +554,6 @@ async function getStudio() {
   return true;
 }
 
-// Load executors
 async function loadExecutors() {
   const { data, error } = await sb
     .from('executors')
@@ -903,7 +565,6 @@ async function loadExecutors() {
   executors = data || [];
 }
 
-// Build executor dropdown
 function executorSelect(selectedId = '') {
   const opts = executors.map(e =>
     `<option value="${e.id}" ${e.id === selectedId ? 'selected' : ''}>${e.full_name} (${roleRu(e.role)})</option>`
@@ -916,17 +577,15 @@ function roleRu(r) {
   return m[r] || r;
 }
 
-// Admin executor dropdown
 function adminExecutorSelect(selectedId = '') {
   const admins = executors.filter(e => e.is_admin);
-  if (admins.length === 0) return '<span style="color:var(--text-muted);font-size:0.9rem">Нет продавцов. Добавь в Исполнителях.</span>';
+  if (admins.length === 0) return '<span style="color:var(--muted);font-size:0.82rem">Нет продавцов. Добавьте в Исполнителях.</span>';
   const opts = admins.map(e =>
     `<option value="${e.id}" ${e.id === selectedId ? 'selected' : ''}>${e.full_name}</option>`
   ).join('');
   return `<select id="adminExecutorId"><option value="">— Выбрать продавца —</option>${opts}</select>`;
 }
 
-// Extract services from calculation_data
 function extractServices(calcData) {
   const services = [];
   const d = calcData;
@@ -940,54 +599,33 @@ function extractServices(calcData) {
     }
   }
 
-  // 1. Полная защита вкруг (package)
   if (d.package) {
-    addIfHasMot('pkg_wrap', SERVICE_NAMES.pkg_wrap || 'Оклейка PPF', d.package.wrapMot);
-    addIfHasMot('pkg_prep', SERVICE_NAMES.pkg_prep || 'Подготовка', d.package.prepMot);
-    addIfHasMot('pkg_arm',  SERVICE_NAMES.pkg_arm  || 'Бронирование', d.package.armMot);
+    addIfHasMot('pkg_wrap', SERVICE_NAMES.pkg_wrap, d.package.wrapMot);
+    addIfHasMot('pkg_prep', SERVICE_NAMES.pkg_prep, d.package.prepMot);
+    addIfHasMot('pkg_arm',  SERVICE_NAMES.pkg_arm,  d.package.armMot);
   }
-
-  // 2. Ударная часть (impact)
   if (d.impact) {
-    addIfHasMot('impact_wrap', SERVICE_NAMES.impact_wrap || 'Оклейка ударки', d.impact.wrapMot);
-    addIfHasMot('impact_prep', SERVICE_NAMES.impact_prep || 'Подготовка ударки', d.impact.prepMot);
-    addIfHasMot('impact_arm',  SERVICE_NAMES.impact_arm  || 'Бронирование ударки', d.impact.armMot);
+    addIfHasMot('impact_wrap', SERVICE_NAMES.impact_wrap, d.impact.wrapMot);
+    addIfHasMot('impact_prep', SERVICE_NAMES.impact_prep, d.impact.prepMot);
+    addIfHasMot('impact_arm',  SERVICE_NAMES.impact_arm,  d.impact.armMot);
   }
-
-  // 3. Детали услуг из нового формата (services_detail)
   if (d.services_detail) {
-    const groups = {
-      arm:  'Бронирование',
-      det:  'Детейлинг',
-      gl:   'Стёкла',
-      ms:   'Доп. услуги',
-      wrap: 'Оклейка',
-    };
+    const groups = { arm: 'Бронирование', det: 'Детейлинг', gl: 'Стёкла', ms: 'Доп. услуги', wrap: 'Оклейка' };
     Object.entries(groups).forEach(([key, groupName]) => {
-      const items = d.services_detail[key] || [];
-      items.forEach((item, idx) => {
+      (d.services_detail[key] || []).forEach((item, idx) => {
         const m = parseFloat(item.mot) || 0;
         if (m > 0) {
           const k = `${key}_${idx}`;
-          if (!seen.has(k)) {
-            seen.add(k);
-            services.push({ key: k, name: item.name || groupName, baseSalary: m });
-          }
+          if (!seen.has(k)) { seen.add(k); services.push({ key: k, name: item.name || groupName, baseSalary: m }); }
         }
       });
     });
   }
-
-  // 4. Старый формат — суммарная мотивация по категории (fallback)
   if (!d.services_detail) {
-    ['arm', 'wrap', 'det', 'gl', 'ms'].forEach(key => {
-      if (d[key]) {
-        addIfHasMot(key, SERVICE_NAMES[key] || key, d[key].mot || d[key].motivation);
-      }
+    ['arm','wrap','det','gl','ms'].forEach(key => {
+      if (d[key]) addIfHasMot(key, SERVICE_NAMES[key] || key, d[key].mot || d[key].motivation);
     });
   }
-
-  // 5. Массив услуг (если был)
   if (d.services && Array.isArray(d.services)) {
     d.services.forEach((srv, idx) => {
       const m = parseFloat(srv.mot || srv.motivation) || 0;
@@ -998,13 +636,23 @@ function extractServices(calcData) {
   return services;
 }
 
-// Render work item
 let workItemCounter = 0;
 
 function renderWorkItem(service, existingAssignments = []) {
   const id = `work_${workItemCounter++}`;
-  const execRowsHtml = existingAssignments.length > 0
-    ? existingAssignments.map((a, i) => renderExecutorRow(`${id}_exec_${i}`, a.executor_id, a.salary)).join('')
+
+  // ── БАГ-ФИX ──────────────────────────────────────────────────────
+  // Существующие назначения хранят service_name, а не service_key.
+  // Фильтруем по service_name, а service_key используем только как
+  // data-атрибут для будущих расширений.
+  const matched = existingAssignments.filter(a =>
+    a.service_name === service.name ||
+    a.service_key  === service.key          // fallback для старых записей
+  );
+  // ─────────────────────────────────────────────────────────────────
+
+  const execRowsHtml = matched.length > 0
+    ? matched.map((a, i) => renderExecutorRow(`${id}_exec_${i}`, a.executor_id || '', a.salary, a.executor_name || '')).join('')
     : renderExecutorRow(`${id}_exec_0`, '', service.baseSalary);
 
   return `
@@ -1024,7 +672,8 @@ function renderWorkItem(service, existingAssignments = []) {
 }
 
 function renderExecutorRow(id, executorId = '', salary = 0, manualName = '') {
-  const isManual = !executorId && manualName;
+  // Если есть executorId — режим "из справочника"; если только имя — режим "вручную"
+  const isManual = !executorId && !!manualName;
   return `
     <div class="executor-row" id="${id}">
       <div class="executor-input-group">
@@ -1037,10 +686,10 @@ function renderExecutorRow(id, executorId = '', salary = 0, manualName = '') {
             ${executorSelect(executorId)}
           </div>
           <div class="executor-manual-wrap" style="display:${isManual ? 'block' : 'none'}">
-            <input type="text" class="manual-name-input" value="${manualName}" placeholder="ФИО исполнителя">
+            <input type="text" class="manual-name-input" value="${manualName}" placeholder="ФИО исполнителя" autocomplete="off">
           </div>
           <input type="number" value="${salary ? Math.round(salary) : ''}" placeholder="Сумма ₽" step="1" class="salary-input">
-          <button class="btn-remove-exec" onclick="removeExecutorRow('${id}')">✕</button>
+          <button class="btn-remove-exec" onclick="removeExecutorRow('${id}')" title="Удалить">✕</button>
         </div>
         <div class="executor-manual-save" style="display:${isManual ? 'flex' : 'none'}">
           <label class="save-to-list-label">
@@ -1060,7 +709,6 @@ window.setExecutorMode = function(rowId, mode) {
   const manualWrap = row.querySelector('.executor-manual-wrap');
   const manualSave = row.querySelector('.executor-manual-save');
   const btns = row.querySelectorAll('.mode-btn');
-
   if (mode === 'manual') {
     selectWrap.style.display = 'none';
     manualWrap.style.display = 'block';
@@ -1090,24 +738,192 @@ window.removeExecutorRow = function(rowId) {
   updateSummary();
 };
 
-// Update summary
 function updateSummary() {
-  let total = 0;
-  let count = 0;
+  let total = 0, count = 0;
   document.querySelectorAll('.executor-row').forEach(row => {
-    const sal = parseFloat(row.querySelector('input[type="number"]')?.value) || 0;
+    const sal  = parseFloat(row.querySelector('input[type="number"]')?.value) || 0;
     const exec = row.querySelector('select')?.value;
     if (exec || sal > 0) { total += sal; count++; }
   });
-
   document.getElementById('summaryCount').textContent = count;
   document.getElementById('summaryTotal').textContent = fmt(total) + ' ₽';
 }
 
-// Render main content
+window.toggleAdminSale = function() {
+  const isChecked = document.getElementById('isAdminSale').checked;
+  document.getElementById('adminDetails').classList.toggle('active', isChecked);
+  calcAdminSalary();
+};
+
+window.setAdminMode = function(mode) {
+  const selectWrap = document.getElementById('adminSelectWrap');
+  const manualWrap = document.getElementById('adminManualWrap');
+  const btnSelect  = document.getElementById('adminModeSelect');
+  const btnManual  = document.getElementById('adminModeManual');
+  if (mode === 'manual') {
+    selectWrap.style.display = 'none';
+    manualWrap.style.display = 'block';
+    btnSelect.classList.remove('active');
+    btnManual.classList.add('active');
+  } else {
+    selectWrap.style.display = 'block';
+    manualWrap.style.display = 'none';
+    btnSelect.classList.add('active');
+    btnManual.classList.remove('active');
+  }
+};
+
+function calcAdminSalary() {
+  if (!document.getElementById('isAdminSale')?.checked) return;
+  const pct      = parseFloat(document.getElementById('adminPercent')?.value) || 0;
+  const adminSal = Math.round((calculation?.total_price || 0) * pct / 100);
+  const el       = document.getElementById('adminSalaryCalc');
+  if (el) el.textContent = `ЗП продавца: ${fmt(adminSal)} ₽`;
+}
+
+window.addManualWork = function() {
+  const name   = document.getElementById('manualServiceName').value.trim();
+  const salary = parseFloat(document.getElementById('manualSalary').value) || 0;
+  if (!name) { alert('Введите название работы'); return; }
+
+  const service = { key: `manual_${Date.now()}`, name, baseSalary: salary };
+  const item = document.createElement('div');
+  item.innerHTML = renderWorkItem(service);
+
+  let workList = document.getElementById('workList');
+  if (!workList) {
+    const card = document.querySelector('.card');
+    const div  = document.createElement('div');
+    div.className = 'work-list'; div.id = 'workList';
+    card.appendChild(div);
+    div.appendChild(item.firstElementChild);
+  } else {
+    workList.appendChild(item.firstElementChild);
+  }
+
+  item.querySelectorAll('input, select').forEach(el => {
+    el.addEventListener('change', updateSummary);
+    el.addEventListener('input', updateSummary);
+  });
+
+  document.getElementById('manualServiceName').value = '';
+  document.getElementById('manualSalary').value = '';
+  updateSummary();
+};
+
+window.saveAssignments = async function() {
+  const assignments = [];
+
+  // Admin sale
+  const isAdminSale = document.getElementById('isAdminSale')?.checked;
+  if (isAdminSale) {
+    const isManualMode = document.getElementById('adminManualWrap')?.style.display !== 'none';
+    const pct          = parseFloat(document.getElementById('adminPercent')?.value) || 0;
+    const adminSal     = Math.round((calculation.total_price || 0) * pct / 100);
+    let adminExecId = null, adminExecName = '';
+
+    if (isManualMode) {
+      adminExecName = document.getElementById('adminManualName')?.value?.trim();
+      const saveToList = document.getElementById('adminSaveToList')?.checked;
+      if (adminExecName && saveToList) {
+        const { data: savedAdmin } = await sb.from('executors').insert({
+          studio_id: currentStudio.studio_id,
+          full_name: adminExecName,
+          role: 'universal', is_active: true, is_admin: true
+        }).select().single();
+        if (savedAdmin) { adminExecId = savedAdmin.id; executors.push(savedAdmin); }
+      }
+    } else {
+      adminExecId = document.getElementById('adminExecutorId')?.value;
+      adminExecName = executors.find(e => e.id === adminExecId)?.full_name || '';
+    }
+
+    if ((adminExecId || adminExecName) && adminSal > 0) {
+      assignments.push({
+        studio_id: currentStudio.studio_id, calculation_id: calcId,
+        car_name: calculation.car_name,
+        service_name: 'Продажа (% от чека)',
+        executor_id: adminExecId || null, executor_name: adminExecName,
+        salary: adminSal, is_admin_sale: true, admin_percent: pct,
+        status: 'pending', payment_month: new Date().toISOString().slice(0, 7)
+      });
+    }
+  }
+
+  // Work items
+  const newExecutorsToSave = [];
+
+  document.querySelectorAll('.work-item').forEach(item => {
+    const serviceName = item.dataset.serviceName;
+
+    item.querySelectorAll('.executor-row').forEach(row => {
+      const isManualMode = row.querySelector('.executor-manual-wrap')?.style.display !== 'none';
+      let execId = null, execName = '', saveToList = false;
+
+      if (isManualMode) {
+        execName = row.querySelector('.manual-name-input')?.value?.trim();
+        saveToList = row.querySelector('.save-to-list')?.checked;
+        if (!execName) return;
+        if (saveToList) newExecutorsToSave.push(execName);
+      } else {
+        execId = row.querySelector('select')?.value;
+        if (!execId) return;
+        execName = executors.find(e => e.id === execId)?.full_name || '';
+      }
+
+      const salary = parseFloat(row.querySelector('.salary-input')?.value) || 0;
+      if (salary <= 0) return;
+
+      assignments.push({
+        studio_id: currentStudio.studio_id, calculation_id: calcId,
+        car_name: calculation.car_name,
+        service_name: serviceName,
+        executor_id: execId || null, executor_name: execName,
+        salary, is_admin_sale: false, status: 'pending',
+        payment_month: new Date().toISOString().slice(0, 7)
+      });
+    });
+  });
+
+  if (assignments.length === 0) { alert('❌ Не назначено ни одного исполнителя с суммой!'); return; }
+
+  try {
+    if (newExecutorsToSave.length > 0) {
+      const uniqueNames = [...new Set(newExecutorsToSave)];
+      const { data: savedExecs, error: execError } = await sb.from('executors').insert(
+        uniqueNames.map(name => ({ studio_id: currentStudio.studio_id, full_name: name, role: 'universal', is_active: true, is_admin: false }))
+      ).select();
+      if (!execError && savedExecs) {
+        savedExecs.forEach(saved => {
+          assignments.forEach(a => { if (a.executor_name === saved.full_name && !a.executor_id) a.executor_id = saved.id; });
+        });
+        executors.push(...savedExecs);
+      }
+    }
+
+    await sb.from('work_assignments').delete().eq('calculation_id', calcId);
+    const { error } = await sb.from('work_assignments').insert(assignments);
+    if (error) { console.error('Save error:', error); alert('❌ Ошибка сохранения: ' + error.message); return; }
+
+    await sb.from('calculations').update({ work_assigned: true, status: 'in_progress' }).eq('id', calcId);
+
+    alert(`✅ Сохранено! Назначено ${assignments.length} записей.`);
+    goBack();
+  } catch (e) {
+    console.error('Error:', e);
+    alert('❌ Ошибка сохранения');
+  }
+};
+
 function renderContent(services, existingAssignments = []) {
   const carName = calculation.car_name || 'Без названия';
   document.getElementById('carSubtitle').textContent = carName;
+
+  // Ищем существующую admin-sale запись
+  const adminSaleRecord = existingAssignments.find(a => a.is_admin_sale);
+  const adminChecked    = !!adminSaleRecord;
+  const adminPercent    = adminSaleRecord?.admin_percent || 3;
+  const adminExecId     = adminSaleRecord?.executor_id || '';
 
   let html = '';
 
@@ -1116,24 +932,24 @@ function renderContent(services, existingAssignments = []) {
     <div class="admin-sale-block">
       <div class="admin-sale-row">
         <label class="toggle-switch">
-          <input type="checkbox" id="isAdminSale" onchange="toggleAdminSale()">
-          <span style="font-weight:600">👔 Продажу сделал администратор</span>
+          <input type="checkbox" id="isAdminSale" onchange="toggleAdminSale()" ${adminChecked ? 'checked' : ''}>
+          <span>👔 Продажу сделал администратор</span>
         </label>
-        <div class="admin-details" id="adminDetails">
+        <div class="admin-details${adminChecked ? ' active' : ''}" id="adminDetails">
           <div class="form-group">
             <label>Режим</label>
-            <div style="display:flex;gap:6px">
+            <div style="display:flex;gap:5px">
               <button class="mode-btn active" id="adminModeSelect" onclick="setAdminMode('select')">📋 Из списка</button>
               <button class="mode-btn" id="adminModeManual" onclick="setAdminMode('manual')">✏️ Вручную</button>
             </div>
           </div>
           <div class="form-group" id="adminSelectWrap">
             <label>Продавец</label>
-            ${adminExecutorSelect()}
+            ${adminExecutorSelect(adminExecId)}
           </div>
           <div class="form-group" id="adminManualWrap" style="display:none">
             <label>ФИО продавца</label>
-            <input type="text" id="adminManualName" placeholder="Иванов Иван Иванович" style="width:220px">
+            <input type="text" id="adminManualName" placeholder="Иванов Иван Иванович" style="width:220px" autocomplete="off">
             <label class="save-to-list-label" style="margin-top:4px">
               <input type="checkbox" id="adminSaveToList" checked>
               <span>Сохранить в справочник</span>
@@ -1141,9 +957,9 @@ function renderContent(services, existingAssignments = []) {
           </div>
           <div class="form-group">
             <label>% от чека</label>
-            <input type="number" id="adminPercent" value="3" min="0" max="100" step="0.5" style="width:100px">
+            <input type="number" id="adminPercent" value="${adminPercent}" min="0" max="100" step="0.5" style="width:100px">
           </div>
-          <div style="font-size:0.85rem;color:var(--text-muted);line-height:1.5">
+          <div style="font-size:0.8rem;color:var(--muted);line-height:1.5">
             Чек: ${fmt(calculation.total_price)} ₽<br>
             <strong id="adminSalaryCalc" style="color:var(--warning)"></strong>
           </div>
@@ -1152,13 +968,16 @@ function renderContent(services, existingAssignments = []) {
     </div>
   `;
 
+  // Non-admin assignments (фильтруем admin_sale из списка)
+  const workAssignments = existingAssignments.filter(a => !a.is_admin_sale);
+
   // Services
   if (services.length > 0) {
     html += `
       <div class="card">
         <div class="card-title">🔧 Услуги из расчёта</div>
         <div class="work-list" id="workList">
-          ${services.map(s => renderWorkItem(s, existingAssignments.filter(a => a.service_key === s.key))).join('')}
+          ${services.map(s => renderWorkItem(s, workAssignments)).join('')}
         </div>
       </div>
     `;
@@ -1166,7 +985,7 @@ function renderContent(services, existingAssignments = []) {
     html += `
       <div class="card">
         <div class="card-title">🔧 Услуги из расчёта</div>
-        <div style="padding:20px;color:var(--text-muted);text-align:center">
+        <div style="padding:20px;color:var(--muted);text-align:center;font-size:0.85rem">
           В расчёте нет услуг с мотивацией. Добавьте услуги вручную ниже.
         </div>
       </div>
@@ -1178,10 +997,10 @@ function renderContent(services, existingAssignments = []) {
     <div class="card">
       <div class="card-title">➕ Добавить работу вручную</div>
       <div class="add-work-row">
-        <input type="text" id="manualServiceName" placeholder="Название работы (напр: Мойка, Полировка)">
+        <input type="text" id="manualServiceName" placeholder="Название работы (напр: Мойка, Полировка)" autocomplete="off">
         <input type="number" id="manualSalary" placeholder="Сумма ₽" min="0" step="1">
       </div>
-      <button class="btn btn-secondary btn-sm" style="margin-top:12px" onclick="addManualWork()">➕ Добавить</button>
+      <button class="btn btn-secondary btn-sm" style="margin-top:10px" onclick="addManualWork()">➕ Добавить</button>
     </div>
   `;
 
@@ -1199,8 +1018,8 @@ function renderContent(services, existingAssignments = []) {
           <span class="summary-total-value" id="summaryTotal">0 ₽</span>
         </div>
       </div>
-      <div style="display:flex;gap:12px;margin-top:20px;justify-content:flex-end;flex-wrap:wrap">
-        <button class="btn btn-secondary" onclick="window.location.href='dashboard.html'">← Отмена</button>
+      <div style="display:flex;gap:10px;margin-top:16px;justify-content:flex-end;flex-wrap:wrap">
+        <button class="btn btn-secondary" onclick="window.history.back()">← Отмена</button>
         <button class="btn btn-success" onclick="saveAssignments()">💾 Сохранить распределение</button>
       </div>
     </div>
@@ -1208,247 +1027,22 @@ function renderContent(services, existingAssignments = []) {
 
   document.getElementById('mainContent').innerHTML = html;
 
-  // Listen for changes to update summary
+  // Слушатели на изменения
   document.querySelectorAll('.executor-row input, .executor-row select').forEach(el => {
     el.addEventListener('change', updateSummary);
     el.addEventListener('input', updateSummary);
   });
 
-  // Admin percent live calc
   document.getElementById('adminPercent')?.addEventListener('input', calcAdminSalary);
   calcAdminSalary();
   updateSummary();
 }
 
-window.toggleAdminSale = function() {
-  const isChecked = document.getElementById('isAdminSale').checked;
-  const details = document.getElementById('adminDetails');
-  details.classList.toggle('active', isChecked);
-  calcAdminSalary();
-};
-
-window.setAdminMode = function(mode) {
-  const selectWrap = document.getElementById('adminSelectWrap');
-  const manualWrap = document.getElementById('adminManualWrap');
-  const btnSelect = document.getElementById('adminModeSelect');
-  const btnManual = document.getElementById('adminModeManual');
-
-  if (mode === 'manual') {
-    selectWrap.style.display = 'none';
-    manualWrap.style.display = 'block';
-    btnSelect.classList.remove('active');
-    btnManual.classList.add('active');
-  } else {
-    selectWrap.style.display = 'block';
-    manualWrap.style.display = 'none';
-    btnSelect.classList.add('active');
-    btnManual.classList.remove('active');
-  }
-};
-
-function calcAdminSalary() {
-  const isChecked = document.getElementById('isAdminSale')?.checked;
-  if (!isChecked) return;
-  const pct = parseFloat(document.getElementById('adminPercent')?.value) || 0;
-  const totalCheck = calculation?.total_price || 0;
-  const adminSal = Math.round(totalCheck * pct / 100);
-  const el = document.getElementById('adminSalaryCalc');
-  if (el) el.textContent = `ЗП продавца: ${fmt(adminSal)} ₽`;
-}
-
-// Add manual work
-window.addManualWork = function() {
-  const name = document.getElementById('manualServiceName').value.trim();
-  const salary = parseFloat(document.getElementById('manualSalary').value) || 0;
-
-  if (!name) { alert('Введите название работы'); return; }
-
-  const service = { key: `manual_${Date.now()}`, name, baseSalary: salary };
-  const item = document.createElement('div');
-  item.innerHTML = renderWorkItem(service);
-
-  const workList = document.getElementById('workList');
-  if (!workList) {
-    // Создаём workList если его нет (нет услуг из расчёта)
-    const card = document.querySelector('.card');
-    const div = document.createElement('div');
-    div.className = 'work-list';
-    div.id = 'workList';
-    card.appendChild(div);
-    div.appendChild(item.firstElementChild);
-  } else {
-    workList.appendChild(item.firstElementChild);
-  }
-
-  // Listen changes
-  item.querySelectorAll('input, select').forEach(el => {
-    el.addEventListener('change', updateSummary);
-    el.addEventListener('input', updateSummary);
-  });
-
-  document.getElementById('manualServiceName').value = '';
-  document.getElementById('manualSalary').value = '';
-  updateSummary();
-};
-
-// Save
-window.saveAssignments = async function() {
-  const assignments = [];
-
-  // Admin sale
-  const isAdminSale = document.getElementById('isAdminSale')?.checked;
-  if (isAdminSale) {
-    const isManualMode = document.getElementById('adminManualWrap')?.style.display !== 'none';
-    const pct = parseFloat(document.getElementById('adminPercent')?.value) || 0;
-    const adminSal = Math.round((calculation.total_price || 0) * pct / 100);
-    let adminExecId = null;
-    let adminExecName = '';
-
-    if (isManualMode) {
-      adminExecName = document.getElementById('adminManualName')?.value?.trim();
-      const saveToList = document.getElementById('adminSaveToList')?.checked;
-      if (adminExecName && saveToList) {
-        // Сохраняем в справочник
-        const { data: savedAdmin } = await sb.from('executors').insert({
-          studio_id: currentStudio.studio_id,
-          full_name: adminExecName,
-          role: 'universal',
-          is_active: true,
-          is_admin: true
-        }).select().single();
-        if (savedAdmin) { adminExecId = savedAdmin.id; executors.push(savedAdmin); }
-      }
-    } else {
-      adminExecId = document.getElementById('adminExecutorId')?.value;
-      const adminExec = executors.find(e => e.id === adminExecId);
-      adminExecName = adminExec?.full_name || '';
-    }
-
-    if ((adminExecId || adminExecName) && adminSal > 0) {
-      assignments.push({
-        studio_id: currentStudio.studio_id,
-        calculation_id: calcId,
-        car_name: calculation.car_name,
-        service_name: 'Продажа (% от чека)',
-        executor_id: adminExecId || null,
-        executor_name: adminExecName,
-        salary: adminSal,
-        is_admin_sale: true,
-        admin_percent: pct,
-        status: 'pending',
-        payment_month: new Date().toISOString().slice(0, 7)
-      });
-    }
-  }
-
-  // Work items
-  const newExecutorsToSave = []; // Новые исполнители для справочника
-
-  document.querySelectorAll('.work-item').forEach(item => {
-    const serviceName = item.dataset.serviceName;
-
-    item.querySelectorAll('.executor-row').forEach(row => {
-      const isManualMode = row.querySelector('.executor-manual-wrap')?.style.display !== 'none';
-      let execId = null;
-      let execName = '';
-      let saveToList = false;
-
-      if (isManualMode) {
-        execName = row.querySelector('.manual-name-input')?.value?.trim();
-        saveToList = row.querySelector('.save-to-list')?.checked;
-        if (!execName) return;
-        if (saveToList) newExecutorsToSave.push(execName);
-      } else {
-        execId = row.querySelector('select')?.value;
-        if (!execId) return;
-        const exec = executors.find(e => e.id === execId);
-        execName = exec?.full_name || '';
-      }
-
-      const salary = parseFloat(row.querySelector('.salary-input')?.value) || 0;
-      if (salary <= 0) return;
-
-      assignments.push({
-        studio_id: currentStudio.studio_id,
-        calculation_id: calcId,
-        car_name: calculation.car_name,
-        service_name: serviceName,
-        executor_id: execId || null,
-        executor_name: execName,
-        salary,
-        is_admin_sale: false,
-        status: 'pending',
-        payment_month: new Date().toISOString().slice(0, 7)
-      });
-    });
-  });
-
-  if (assignments.length === 0) {
-    alert('❌ Не назначено ни одного исполнителя с суммой!');
-    return;
-  }
-
-  try {
-    // Сохраняем новых исполнителей в справочник
-    if (newExecutorsToSave.length > 0) {
-      const uniqueNames = [...new Set(newExecutorsToSave)];
-      const newExecs = uniqueNames.map(name => ({
-        studio_id: currentStudio.studio_id,
-        full_name: name,
-        role: 'universal',
-        is_active: true,
-        is_admin: false
-      }));
-
-      const { data: savedExecs, error: execError } = await sb
-        .from('executors')
-        .insert(newExecs)
-        .select();
-
-      if (!execError && savedExecs) {
-        // Обновляем executor_id в assignments
-        savedExecs.forEach(saved => {
-          assignments.forEach(a => {
-            if (a.executor_name === saved.full_name && !a.executor_id) {
-              a.executor_id = saved.id;
-            }
-          });
-        });
-        // Обновляем локальный список
-        executors.push(...savedExecs);
-      }
-    }
-    // Удаляем старые назначения для этого расчёта
-    await sb.from('work_assignments').delete().eq('calculation_id', calcId);
-
-    // Вставляем новые
-    const { error } = await sb.from('work_assignments').insert(assignments);
-
-    if (error) {
-      console.error('Save error:', error);
-      alert('❌ Ошибка сохранения: ' + error.message);
-      return;
-    }
-
-    // Помечаем расчёт как распределённый
-    await sb.from('calculations').update({ work_assigned: true, status: 'in_progress' }).eq('id', calcId);
-
-    alert(`✅ Сохранено! Назначено ${assignments.length} записей.`);
-    goBack();
-
-  } catch (e) {
-    console.error('Error:', e);
-    alert('❌ Ошибка сохранения');
-  }
-};
-
-// Init
 async function init() {
   initNav({ actionHref: 'board.html', actionLabel: '← В работе' });
   if (!await checkAuth()) return;
   if (!await getStudio()) return;
 
-  // Get calc_id from URL
   const params = new URLSearchParams(window.location.search);
   calcId = params.get('calc_id');
 
@@ -1457,7 +1051,6 @@ async function init() {
     return;
   }
 
-  // Load calculation
   const { data: calcData, error: calcError } = await sb
     .from('calculations')
     .select('*')
@@ -1470,20 +1063,15 @@ async function init() {
   }
 
   calculation = calcData;
-
-  // Load executors
   await loadExecutors();
 
-  // Load existing assignments (если уже распределяли)
+  // Загружаем существующие назначения
   const { data: existingData } = await sb
     .from('work_assignments')
     .select('*')
     .eq('calculation_id', calcId);
 
-  // Extract services
   const services = extractServices(calcData.calculation_data || {});
-
-  // Render
   renderContent(services, existingData || []);
 }
 
@@ -1491,6 +1079,6 @@ init();
 
 })();
 </script>
-<script src="footer.js"></script>
+
 </body>
 </html>
