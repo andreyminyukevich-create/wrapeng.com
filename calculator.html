@@ -2197,37 +2197,15 @@ tfoot th:first-child {
       </div>
     </div>
 
-    <div class="card">
-      <h2>📄 Предпросмотр КП</h2>
-      <div class="card-content">
-        <div class="table-wrapper">
-          <table id="kpTable">
-            <thead><tr><th style="width:25%">Услуга</th><th style="width:50%">Описание</th><th style="width:25%">Стоимость</th></tr></thead>
-            <tbody></tbody>
-          </table>
-        </div>
-        <div style="text-align:right;font-weight:bold;margin-top:10px">Итого: <span id="kpTotal">0,00</span> ₽</div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h2>💰 Предпросмотр себестоимости</h2>
-      <div class="card-content">
-        <div class="table-wrapper">
-          <table id="costTable">
-            <thead><tr><th style="width:50%">Услуга</th><th style="width:25%">Материалы</th><th style="width:25%">Мотивация</th></tr></thead>
-            <tbody></tbody>
-          </table>
-        </div>
-        <div style="display:flex;justify-content:space-between;font-weight:bold;margin-top:10px;flex-wrap:wrap;gap:10px;font-size:.9rem">
-          <span>Материалы: <span id="cMat">0,00</span> ₽</span>
-          <span>Мотивация: <span id="cMot">0,00</span> ₽</span>
-          <span>Итого: <span id="cTotal">0,00</span> ₽</span>
-        </div>
-      </div>
-    </div>
-
   </div>
+
+<!-- Скрытые таблицы для JS рендеринга (не удалять) -->
+<div style="display:none">
+  <table id="kpTable"><thead><tr><th></th><th></th><th></th></tr></thead><tbody></tbody></table>
+  <span id="kpTotal"></span>
+  <table id="costTable"><thead><tr><th></th><th></th><th></th></tr></thead><tbody></tbody></table>
+  <span id="cMat"></span><span id="cMot"></span><span id="cTotal"></span>
+</div>
 
   <div class="right-column">
     
@@ -2264,12 +2242,9 @@ tfoot th:first-child {
         <div id="telegramWarning">
           ⚠️ <b>Telegram WebView:</b> Для скачивания PDF откройте в браузере (••• → Открыть в браузере)
         </div>
-        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px">
-          <button type="button" class="btn btn-primary" id="btnRecalc" style="flex:1;min-width:140px">🔄 Пересчитать</button>
-          <button type="button" class="btn btn-secondary" id="btnReset" style="flex:1;min-width:140px">🔃 Сброс</button>
-        </div>
         <div class="export-buttons">
-          <button type="button" class="btn btn-primary" id="btnSaveCalc" style="margin-bottom:12px">💾 Сохранить расчет</button>
+          <button type="button" class="btn btn-primary" id="btnSaveCalc">💾 Сохранить расчёт</button>
+          <button type="button" class="btn btn-secondary" id="btnReset">📝 Новый расчёт</button>
           <button type="button" class="btn btn-success" id="btnDownloadKP">📥 Скачать КП</button>
           <button type="button" class="btn btn-success" id="btnShareKP" style="display:none">📤 Поделиться КП</button>
         </div>
