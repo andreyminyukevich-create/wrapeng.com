@@ -1,16 +1,19 @@
 // footer.js — единый футер Keep1R CRM
 (function() {
-  // Прижимаем футер к низу: body должен быть flex-колонкой
-  const bodyStyle = document.body.style;
-  if (!bodyStyle.display || bodyStyle.display !== 'flex') {
-    document.body.style.minHeight = '100dvh';
-    document.body.style.display = 'flex';
-    document.body.style.flexDirection = 'column';
-  }
-  // Главный контент тянется, футер прибит к низу
-  // Ищем первый дочерний не-script элемент и даём ему flex:1
+  // Прижимаем футер к низу через min-height на body
+  document.body.style.minHeight = '100dvh';
+  document.body.style.display = 'flex';
+  document.body.style.flexDirection = 'column';
+
+  // Ищем основной контент (не nav, не script, не footer, не style)
+  // и растягиваем его — чтобы footer прибился к низу
+  const excluded = ['SCRIPT','FOOTER','STYLE'];
+  const excludedIds = ['navTopBar', 'crm-footer'];
   const children = Array.from(document.body.children);
-  const main = children.find(el => !['SCRIPT','FOOTER','STYLE'].includes(el.tagName));
+  const main = children.find(el =>
+    !excluded.includes(el.tagName) &&
+    !excludedIds.includes(el.id)
+  );
   if (main && !main.style.flex) main.style.flex = '1';
 
   const style = document.createElement('style');
