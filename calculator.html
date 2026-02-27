@@ -1865,66 +1865,22 @@ tfoot th:first-child {
   #k1r-note { display: none; }
   #k1r-banner-inner { padding: 7px 16px; }
 }
-
-/* ── Итоги блока ──────────────────────────────────────────── */
-.block-summary {
-  display: flex;
-  align-items: center;
-  gap: 0;
-  margin-top: 16px;
-  background: var(--bg-input, #f1f5ff);
-  border-radius: 10px;
-  overflow: hidden;
-  border: 1px solid var(--border, rgba(15,23,42,0.10));
-}
-
-.block-summary-item {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 10px 14px;
-  gap: 3px;
-  border-right: 1px solid var(--border, rgba(15,23,42,0.10));
-}
-.block-summary-item:last-child {
-  border-right: none;
-}
-
-.block-summary-label {
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: var(--text-muted, #64748b);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  white-space: nowrap;
-}
-
-.block-summary-value {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: var(--text, #0f172a);
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
-  white-space: nowrap;
-}
-
-.block-summary-value.markup {
-  color: var(--success, #059669);
-}
-
-.block-summary-item:last-child .block-summary-value {
-  color: var(--primary, #2563eb);
-  font-size: 1rem;
-}
-
-@media (max-width: 480px) {
-  .block-summary-item { padding: 8px 10px; }
-  .block-summary-value { font-size: 0.85rem; }
-  .block-summary-label { font-size: 0.65rem; }
-}
 </style>
 </head>
 <body>
+<script>
+// Диагностика — показываем ошибки прямо на странице
+window.onerror = function(msg, src, line, col, err) {
+  var d = document.getElementById('_dbg');
+  if (!d) { d = document.createElement('div'); d.id='_dbg'; d.style.cssText='position:fixed;top:0;left:0;right:0;background:#fee2e2;color:#7f1d1d;padding:10px;font-size:12px;z-index:99999;font-family:monospace;white-space:pre-wrap;max-height:200px;overflow:auto'; document.body.appendChild(d); }
+  d.textContent += '❌ ' + msg + '\n   файл: ' + (src||'').split('/').pop() + ' строка ' + line + '\n';
+};
+window.addEventListener('unhandledrejection', function(e) {
+  var d = document.getElementById('_dbg');
+  if (!d) { d = document.createElement('div'); d.id='_dbg'; d.style.cssText='position:fixed;top:0;left:0;right:0;background:#fee2e2;color:#7f1d1d;padding:10px;font-size:12px;z-index:99999;font-family:monospace;white-space:pre-wrap;max-height:200px;overflow:auto'; document.body.appendChild(d); }
+  d.textContent += '❌ Promise: ' + (e.reason && e.reason.message || e.reason) + '\n';
+});
+</script>
 
 
 <!-- Keep1R Top Banner -->
@@ -2197,15 +2153,37 @@ tfoot th:first-child {
       </div>
     </div>
 
-  </div>
+    <div class="card">
+      <h2>📄 Предпросмотр КП</h2>
+      <div class="card-content">
+        <div class="table-wrapper">
+          <table id="kpTable">
+            <thead><tr><th style="width:25%">Услуга</th><th style="width:50%">Описание</th><th style="width:25%">Стоимость</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div style="text-align:right;font-weight:bold;margin-top:10px">Итого: <span id="kpTotal">0,00</span> ₽</div>
+      </div>
+    </div>
 
-<!-- Скрытые таблицы для JS рендеринга (не удалять) -->
-<div style="display:none">
-  <table id="kpTable"><thead><tr><th></th><th></th><th></th></tr></thead><tbody></tbody></table>
-  <span id="kpTotal"></span>
-  <table id="costTable"><thead><tr><th></th><th></th><th></th></tr></thead><tbody></tbody></table>
-  <span id="cMat"></span><span id="cMot"></span><span id="cTotal"></span>
-</div>
+    <div class="card">
+      <h2>💰 Предпросмотр себестоимости</h2>
+      <div class="card-content">
+        <div class="table-wrapper">
+          <table id="costTable">
+            <thead><tr><th style="width:50%">Услуга</th><th style="width:25%">Материалы</th><th style="width:25%">Мотивация</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-weight:bold;margin-top:10px;flex-wrap:wrap;gap:10px;font-size:.9rem">
+          <span>Материалы: <span id="cMat">0,00</span> ₽</span>
+          <span>Мотивация: <span id="cMot">0,00</span> ₽</span>
+          <span>Итого: <span id="cTotal">0,00</span> ₽</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
 
   <div class="right-column">
     
@@ -2242,11 +2220,15 @@ tfoot th:first-child {
         <div id="telegramWarning">
           ⚠️ <b>Telegram WebView:</b> Для скачивания PDF откройте в браузере (••• → Открыть в браузере)
         </div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px">
+          <button type="button" class="btn btn-primary" id="btnRecalc" style="flex:1;min-width:140px">🔄 Пересчитать</button>
+          <button type="button" class="btn btn-secondary" id="btnReset" style="flex:1;min-width:140px">🔃 Сброс</button>
+        </div>
         <div class="export-buttons">
-          <button type="button" class="btn btn-primary" id="btnSaveCalc">💾 Сохранить расчёт</button>
-          <button type="button" class="btn btn-secondary" id="btnReset">📝 Новый расчёт</button>
+          <button type="button" class="btn btn-primary" id="btnSaveCalc" style="margin-bottom:12px">💾 Сохранить расчет</button>
           <button type="button" class="btn btn-success" id="btnDownloadKP">📥 Скачать КП</button>
           <button type="button" class="btn btn-success" id="btnShareKP" style="display:none">📤 Поделиться КП</button>
+          <button type="button" class="btn btn-success" id="btnExportCost">💰 Себес (PDF)</button>
         </div>
       </div>
     </div>
@@ -2261,31 +2243,16 @@ tfoot th:first-child {
   <div id="pdfKP" class="pdf-block">
     <div class="trial-watermark" id="watermarkKP" style="display:none"></div>
 
-    <!-- Хедер КП — платная версия -->
-    <div id="kpHeaderPaid" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;padding-bottom:14px;border-bottom:2px solid #e2e8f0">
-      <div style="display:flex;align-items:center;gap:10px">
-        <img src="logo.png" alt="Логотип" style="height:40px;width:auto;object-fit:contain;" onerror="this.style.display='none'">
-        <div>
-          <div style="font-size:13px;font-weight:800;color:#0f172a;letter-spacing:-0.3px" id="kpStudioName">Студия оклейки</div>
-          <div style="font-size:8px;color:#64748b;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;margin-top:1px">CRM для студии детейлинга</div>
-        </div>
+    <!-- Хедер КП — брендинг Keep1R (для Trial); для Pro — заменяется через applyKPBranding() -->
+    <div id="kpBrandHeader" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;padding-bottom:14px;border-bottom:2px solid #e2e8f0">
+      <div>
+        <div style="font-size:22px;font-weight:900;letter-spacing:-1px;color:#0f172a">KEEP<span style="color:#2563eb">1</span>R</div>
+        <div style="font-size:8px;color:#64748b;font-weight:600;letter-spacing:0.15em;text-transform:uppercase;margin-top:2px">Профессиональная плёнка для авто</div>
       </div>
-      <div style="text-align:right;font-size:8px;color:#475569;line-height:2">
-        <div>🌐 wrapeng.com</div>
-      </div>
-    </div>
-    <!-- Хедер КП — триал версия -->
-    <div id="kpHeaderTrial" style="display:none;flex-direction:column;margin-bottom:18px;padding-bottom:14px;border-bottom:2px solid #e2e8f0">
-      <div style="display:flex;align-items:center;justify-content:space-between">
-        <div>
-          <div style="font-size:22px;font-weight:900;letter-spacing:-1px;color:#0f172a">KEEP<span style="color:#2563eb">1</span>R</div>
-          <div style="font-size:8px;color:#64748b;font-weight:600;letter-spacing:0.15em;text-transform:uppercase;margin-top:2px">Профессиональная плёнка для авто</div>
-        </div>
-        <div style="text-align:right;font-size:8px;color:#475569;line-height:1.8">
-          <div>🌐 keep1r.ru</div>
-          <div>✈️ @PPFKeep1R</div>
-          <div>📞 +7 930 337 1008</div>
-        </div>
+      <div style="text-align:right;font-size:8px;color:#475569;line-height:1.8">
+        <div>🌐 keep1r.ru</div>
+        <div>✈️ @PPFKeep1R</div>
+        <div>📞 +7 930 337 1008</div>
       </div>
     </div>
 
@@ -2298,9 +2265,9 @@ tfoot th:first-child {
     </table>
     <p style="text-align:center;margin-top:24px;font-style:italic;color:#64748b;font-size:10px">Коммерческое предложение актуально в течение 3х дней</p>
 
-    <!-- Футер КП — только для триала -->
-    <div id="kpFooterTrial" style="display:none;position:absolute;bottom:20mm;left:20mm;right:20mm;border-top:1px solid #e2e8f0;padding-top:10px">
-      <div style="display:flex;justify-content:space-between;align-items:center;font-size:7.5px;color:#94a3b8">
+    <!-- Футер КП — брендинг Keep1R (для Trial); для Pro — заменяется через applyKPBranding() -->
+    <div style="position:absolute;bottom:20mm;left:20mm;right:20mm;border-top:1px solid #e2e8f0;padding-top:10px">
+      <div id="kpBrandFooter" style="display:flex;justify-content:space-between;align-items:center;font-size:7.5px;color:#94a3b8">
         <div>
           <span style="font-weight:800;color:#0f172a">KEEP1R</span> — поставщик защитных плёнок PPF и винила для профессиональных студий
         </div>
@@ -2349,65 +2316,2340 @@ tfoot th:first-child {
 </div>
 </div>
 </div>
-<script src="calculator-data.js"></script>
-<script src="calculator-engine.js"></script>
-<script src="calculator-render.js"></script>
-<script src="calculator-persistence.js"></script>
-<script src="calculator-pdf.js"></script>
-<script src="calculator-ui.js"></script>
-
-<!-- Кнопка «наверх» -->
-<button id="btnScrollTop" title="Наверх" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
-<style>
-#btnScrollTop {
-  position: fixed;
-  bottom: 52px;
-  right: 20px;
-  width: 40px; height: 40px;
-  border-radius: 50%;
-  border: none;
-  background: rgba(255,255,255,0.92);
-  color: #0f172a;
-  font-size: 1rem;
-  font-weight: 700;
-  cursor: pointer;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.12);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  z-index: 999;
-  transition: opacity 0.2s, transform 0.2s;
-}
-#btnScrollTop:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.16); }
-</style>
 <script>
-(function(){
-  const btn = document.getElementById('btnScrollTop');
-  window.addEventListener('scroll', function(){
-    if (window.scrollY > 300) { btn.style.display='flex'; }
-    else { btn.style.display='none'; }
-  }, {passive:true});
 
-  // КП: переключение шапки/футера платная vs триал
-  // Вызывается из calculator-persistence.js после проверки профиля
-  window.applyKPBranding = function(isTrial) {
-    const paid   = document.getElementById('kpHeaderPaid');
-    const trial  = document.getElementById('kpHeaderTrial');
-    const footer = document.getElementById('kpFooterTrial');
-    if (isTrial) {
-      if (paid)   paid.style.display   = 'none';
-      if (trial)  trial.style.display  = 'flex';
-      if (footer) footer.style.display = 'block';
-    } else {
-      if (paid)   paid.style.display   = 'flex';
-      if (trial)  trial.style.display  = 'none';
-      if (footer) footer.style.display = 'none';
+// ── Аккордеоны (event delegation) ──────────────────
+document.addEventListener('click', function(e) {
+  const h2 = e.target.closest('h2.collapsible');
+  if (!h2) return;
+  const card = h2.closest('.card');
+  if (!card) return;
+  const content = card.querySelector('.card-content');
+  if (!content) return;
+  h2.classList.toggle('collapsed');
+  content.classList.toggle('collapsed');
+});
+
+const SUPABASE_URL = 'https://hdghijgrrnzmntistdvw.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkZ2hpamdycm56bW50aXN0ZHZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMzMyNzksImV4cCI6MjA3NTYwOTI3OX0.D9EDTmVrFRVp0B8_5tCJM29gbFdtadsom0Ihsf4uQ8Q';
+
+const sb = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: true } }) : null;
+
+let currentUser = null;
+let currentProfile = null;
+let currentCalculationId = null; // ID текущего открытого расчёта
+
+async function checkAccess(user) {
+  try {
+    const { data: profile, error } = await sb.from('profiles').select('*').eq('id', user.id).single();
+    
+    if (error || !profile) {
+      console.error('Profile not found:', error);
+      return false;
+    }
+
+    currentProfile = profile;
+
+    if (profile.is_paid) {
+      return true;
+    }
+
+    const now = new Date();
+    const trialEnds = profile.trial_ends_at ? new Date(profile.trial_ends_at) : null;
+    
+    if (!trialEnds || trialEnds <= now) {
+      return false;
+    }
+
+    return true;
+  } catch (e) {
+    console.error('checkAccess error:', e);
+    return false;
+  }
+}
+
+async function checkAuth() {
+  try {
+    if (!sb) return true; // Supabase не загружен — пропускаем авторизацию
+    const { data: { session } } = await sb.auth.getSession();
+    if (session) {
+      currentUser = session.user;
+      // Загружаем профиль студии чтобы сохранение работало
+      const { data: member } = await sb
+        .from('studio_members')
+        .select('studio_id, studios(name, subscription_tier, subscription_expires_at)')
+        .eq('user_id', session.user.id)
+        .eq('is_active', true)
+        .single();
+      if (member) {
+        currentProfile = {
+          id: session.user.id,
+          studio_name: member.studios?.name || 'Студия',
+          studio_id: member.studio_id,
+          is_paid: ['active','trial'].includes(member.studios?.subscription_tier),
+          trial_ends_at: member.studios?.subscription_expires_at,
+        };
+      } else {
+        // Нет студии — разрешаем пользоваться, но без сохранения
+        currentProfile = null;
+      }
+      displayUserInfo();
+    }
+    return true;
+  } catch (e) {
+    console.error('Auth check error:', e);
+    return true;
+  }
+}
+
+function displayUserInfo() {
+  const userInfo = document.getElementById('user-info');
+  
+  if (!userInfo || !currentProfile) return;
+
+  let statusText = '';
+  if (currentProfile.is_paid) {
+    statusText = '✅ Оплачен';
+  } else if (currentProfile.trial_ends_at) {
+    const now = new Date();
+    const end = new Date(currentProfile.trial_ends_at);
+    const hours = Math.floor((end - now) / (1000 * 60 * 60));
+    statusText = hours > 0 ? `🕐 Триал: ${hours}ч` : '⚠️ Истёк';
+  }
+
+  userInfo.innerHTML = `<div>${currentProfile.studio_name || 'Студия'}</div><div style="font-size:0.75rem">${statusText}</div>`;
+  userInfo.style.display = 'block';
+}
+
+function goToDashboard() {
+  window.location.href = 'dashboard.html';
+}
+
+// ========================================
+// AUTOSAVE FUNCTIONS
+// ========================================
+
+let saveTimeout = null;
+let lastSavedData = null;
+
+function collectFormData() {
+  // Собираем все данные формы
+  const data = {
+    // Автомобиль
+    car: {
+      brand: q('#brandManual')?.classList.contains('invis') ? q('#brand')?.value : q('#brandManual')?.value,
+      model: q('#modelManual')?.classList.contains('invis') ? q('#model')?.value : q('#modelManual')?.value,
+      year: q('#year')?.value
+    },
+    
+    // Полная защита вкруг
+    package: {
+      wrapMat: q('#pkgWrapMat')?.value,
+      wrapMot: q('#pkgWrapMot')?.value,
+      prepMat: q('#pkgPrepMat')?.value,
+      prepMot: q('#pkgPrepMot')?.value,
+      armMat: q('#pkgArmMat')?.value,
+      armMot: q('#pkgArmMot')?.value,
+      markup: q('#pkgMarkup')?.value,
+      costs: []
+    },
+    
+    // Защита ударной части
+    impact: {
+      wrapMat: q('#impactWrapMat')?.value,
+      wrapMot: q('#impactWrapMot')?.value,
+      prepMat: q('#impactPrepMat')?.value,
+      prepMot: q('#impactPrepMot')?.value,
+      armMat: q('#impactArmMat')?.value,
+      armMot: q('#impactArmMot')?.value,
+      markup: q('#impactMarkup')?.value,
+      costs: []
+    },
+    
+    // Форма оплаты
+    paymentMode: q('input[name=payMode]:checked')?.value || 'cash',
+    
+    // Скидка
+    discount: q('#customDiscount')?.value || '0',
+    
+    // Наценки
+    markups: {
+      arm: q('#armMarkup')?.value,
+      wrap: q('#wrapMarkup')?.value,
+      det: q('#detMarkup')?.value,
+      gl: q('#glMarkup')?.value,
+      misc: q('#miscMarkup')?.value
     }
   };
-})();
-</script>
+  
+  // Собираем доп затраты для пакетов
+  qa('#pkgCostsContent .cost-row').forEach(row => {
+    data.package.costs.push({
+      name: row.querySelector('.pkg-cost-name')?.value,
+      value: row.querySelector('.pkg-cost-val')?.value
+    });
+  });
+  
+  qa('#impactCostsContent .cost-row').forEach(row => {
+    data.impact.costs.push({
+      name: row.querySelector('.impact-cost-name')?.value,
+      value: row.querySelector('.impact-cost-val')?.value
+    });
+  });
+  
+  // Добавляем детали по услугам из collectAll (для assign-work)
+  try {
+    const sums = collectAll();
+    data.services_detail = {
+      arm: sums.arm.details.map(d => ({ name: d[0], mat: d[1], mot: d[2] })),
+      det: sums.det.details.map(d => ({ name: d[0], mat: d[1], mot: d[2] })),
+      gl:  sums.gl.details.map(d => ({ name: d[0], mat: d[1], mot: d[2] })),
+      ms:  sums.ms.details.map(d => ({ name: d[0], mat: d[1], mot: d[2] })),
+      wrap: sums.wrap.details.map(d => ({ name: d[0], mat: d[3], mot: d[4] })),
+    };
+  } catch(e) { /* collectAll может не быть при загрузке */ }
 
-</body>
-</html>
+  // Собираем исполнителей
+  data.executors = [];
+  qa('#executorsContent .executor-row').forEach(row => {
+    const baseId = row.getAttribute('data-exec-id');
+    if (!baseId) return;
+    
+    const serviceName = row.querySelector('.executor-row-header')?.textContent?.trim();
+    const executorName = row.querySelector(`#${baseId}name`)?.value || '';
+    const salary = row.querySelector(`#${baseId}salary`)?.value || '0';
+    const receive = row.querySelector(`#${baseId}receive`)?.value || '';
+    const returnDate = row.querySelector(`#${baseId}return`)?.value || '';
+    const note = row.querySelector(`#${baseId}note`)?.value || '';
+    
+    // Основной исполнитель
+    if (executorName || parseFloat(salary) > 0) {
+      data.executors.push({
+        service: serviceName,
+        name: executorName,
+        salary: parseFloat(salary) || 0,
+        receive_date: receive,
+        return_date: returnDate,
+        note: note
+      });
+    }
+    
+    // Дополнительные исполнители
+    const extraContainer = row.querySelector('.extra-executors');
+    if (extraContainer) {
+      extraContainer.querySelectorAll('.extra-executor-row').forEach(extraRow => {
+        const extraName = extraRow.querySelector('input[id*="name"]')?.value || '';
+        const extraSalary = extraRow.querySelector('input[id*="salary"]')?.value || '0';
+        const extraReceive = extraRow.querySelector('input[id*="receive"]')?.value || '';
+        const extraReturn = extraRow.querySelector('input[id*="return"]')?.value || '';
+        const extraNote = extraRow.querySelector('input[id*="note"]')?.value || '';
+        
+        if (extraName || parseFloat(extraSalary) > 0) {
+          data.executors.push({
+            service: serviceName,
+            name: extraName,
+            salary: parseFloat(extraSalary) || 0,
+            receive_date: extraReceive,
+            return_date: extraReturn,
+            note: extraNote
+          });
+        }
+      });
+    }
+  });
+  
+  return data;
+}
+
+async function saveCalculation() {
+  if (!sb || !currentUser) {
+    console.log('No user - skip save');
+    return;
+  }
+  
+  try {
+    // Получаем studio_id текущего пользователя
+    const { data: memberData, error: memberError } = await sb
+      .from('studio_members')
+      .select('studio_id')
+      .eq('user_id', currentUser.id)
+      .eq('is_active', true)
+      .single();
+    
+    if (memberError || !memberData) {
+      console.error('No studio found for user:', memberError);
+      // Fallback - сохраняем БЕЗ studio_id (для обратной совместимости)
+      // В следующий раз при логине студия создастся автоматически
+    }
+    
+    const studioId = memberData?.studio_id;
+    
+    const formData = collectFormData();
+    const dataStr = JSON.stringify(formData);
+    
+    // Проверяем изменились ли данные
+    if (dataStr === lastSavedData) {
+      console.log('No changes - skip save');
+      return;
+    }
+    
+    // Собираем итоги
+    const s = collectAll();
+    const mu = markups();
+    const taxK = taxCoef();
+    
+    const baseAll = (s.pkg.mat + s.pkg.mot) + (s.impact.mat + s.impact.mot) + 
+                    (s.arm.mat + s.arm.mot) + (s.wrap.mat + s.wrap.mot) + 
+                    (s.det.mat + s.det.mot) + (s.gl.mat + s.gl.mot) + (s.ms.mat + s.ms.mot);
+    
+    const pkgTotal = s.pkg.mat + s.pkg.mot;
+    const impactTotal = s.impact.mat + s.impact.mot;
+    const armTotal = s.arm.mat + s.arm.mot;
+    const wrapTotal = s.wrap.mat + s.wrap.mot;
+    const detTotal = s.det.mat + s.det.mot;
+    const glTotal = s.gl.mat + s.gl.mot;
+    const msTotal = s.ms.mat + s.ms.mot;
+    
+    const totalMarkup = 
+      r100(pkgTotal * (mu.pkg || 0) / 100) +
+      r100(impactTotal * (mu.impact || 0) / 100) +
+      r100(armTotal * (mu.arm || 0) / 100) +
+      r100(wrapTotal * (mu.wrap || 0) / 100) +
+      r100(detTotal * (mu.det || 0) / 100) +
+      r100(glTotal * (mu.gl || 0) / 100) +
+      r100(msTotal * (mu.ms || 0) / 100);
+    
+    const disc = parseFloat(q('#customDiscount')?.value) || 0;
+    const markupWithDiscount = r100(totalMarkup * (1 - disc / 100));
+    const afterMarkup = baseAll + markupWithDiscount;
+    const tax = r100(afterMarkup * taxK);
+    const finalTotal = afterMarkup + tax;
+    
+    const car_name = `${formData.car.brand || ''} ${formData.car.model || ''} ${formData.car.year || ''}`.trim();
+    
+    // Подготавливаем данные для сохранения
+    const calcData = {
+      user_id: currentUser.id,
+      car_name: car_name || 'Без названия',
+      brand: formData.car.brand || null,
+      model: formData.car.model || null,
+      year: formData.car.year || null,
+      total_price: finalTotal,
+      calculation_data: formData,
+      status: 'draft',
+      updated_at: new Date().toISOString()
+    };
+    
+    // Добавляем studio_id если есть
+    if (studioId) {
+      calcData.studio_id = studioId;
+    }
+    
+    // Умная логика сохранения:
+    // - Если открыли существующий расчёт (currentCalculationId) → UPDATE
+    // - Если новый расчёт → INSERT один раз, запоминаем ID, дальше UPDATE
+    let error;
+    let savedData;
+    
+    if (currentCalculationId) {
+      // UPDATE существующего
+      ({ error } = await sb
+        .from('calculations')
+        .update(calcData)
+        .eq('id', currentCalculationId));
+      console.log('Updated existing calculation:', currentCalculationId);
+    } else {
+      // INSERT нового
+      ({ data: savedData, error } = await sb
+        .from('calculations')
+        .insert(calcData)
+        .select()
+        .single());
+      
+      if (savedData) {
+        currentCalculationId = savedData.id; // Запоминаем ID
+        console.log('Created new calculation:', currentCalculationId);
+      }
+    }
+    
+    if (error) {
+      console.error('Save error details:', JSON.stringify(error));
+      // Показываем пользователю ошибку
+      const btn2 = q('#btnSaveCalc');
+      if (btn2) {
+        const orig = btn2.textContent;
+        btn2.textContent = '❌ Ошибка сохранения';
+        btn2.style.background = '#ef4444';
+        setTimeout(() => { btn2.textContent = orig; btn2.style.background = ''; }, 3000);
+      }
+      return;
+    }
+    
+    lastSavedData = dataStr;
+    console.log('✅ Saved successfully');
+    
+    // Показываем индикатор сохранения
+    const btn = q('#btnSaveCalc');
+    if (btn) {
+      const originalText = btn.textContent;
+      btn.textContent = '✅ Сохранено';
+      btn.style.background = 'linear-gradient(135deg, var(--success), var(--success-dark))';
+      setTimeout(() => {
+        btn.textContent = originalText;
+        btn.style.background = '';
+      }, 2000);
+    }
+  } catch (e) {
+    console.error('Save error:', e);
+  }
+}
+
+function scheduleSave() {
+  if (saveTimeout) clearTimeout(saveTimeout);
+  saveTimeout = setTimeout(saveCalculation, 2000); // Автосохранение через 2 сек после последнего изменения
+}
+
+// ========================================
+// ЗАГРУЗКА РАСЧЁТА ИЗ URL
+// ========================================
+
+async function loadCalculationFromUrl() {
+  // Получаем ID из URL параметров
+  const urlParams = new URLSearchParams(window.location.search);
+  const calcId = urlParams.get('load');
+  
+  if (!calcId) return; // Нет ID - ничего не делаем
+  
+  try {
+    console.log('Loading calculation:', calcId);
+    
+    // Загружаем расчёт из Supabase
+    const { data: calculation, error } = await sb
+      .from('calculations')
+      .select('*')
+      .eq('id', calcId)
+      .single();
+    
+    if (error || !calculation) {
+      console.error('Failed to load calculation:', error);
+      alert('❌ Не удалось загрузить расчёт');
+      return;
+    }
+    
+    console.log('Calculation loaded:', calculation);
+    
+    // Запоминаем ID открытого расчёта
+    currentCalculationId = calcId;
+    
+    const formData = calculation.calculation_data;
+    if (!formData) return;
+    
+    // Заполняем автомобиль
+    if (formData.car) {
+      if (formData.car.brand) {
+        const brandSelect = q('#brand');
+        const brandManual = q('#brandManual');
+        if (brandSelect) brandSelect.value = formData.car.brand;
+        if (brandManual) brandManual.value = formData.car.brand;
+        // Загружаем модели для бренда
+        fillModels(formData.car.brand);
+      }
+      
+      setTimeout(() => {
+        if (formData.car.model) {
+          const modelSelect = q('#model');
+          const modelManual = q('#modelManual');
+          if (modelSelect) modelSelect.value = formData.car.model;
+          if (modelManual) modelManual.value = formData.car.model;
+        }
+        if (formData.car.year) {
+          const yearInput = q('#year');
+          if (yearInput) yearInput.value = formData.car.year;
+        }
+      }, 100);
+    }
+    
+    // Заполняем пакет "Полная защита"
+    if (formData.package) {
+      if (formData.package.wrapMat) q('#pkgWrapMat').value = formData.package.wrapMat;
+      if (formData.package.wrapMot) q('#pkgWrapMot').value = formData.package.wrapMot;
+      if (formData.package.prepMat) q('#pkgPrepMat').value = formData.package.prepMat;
+      if (formData.package.prepMot) q('#pkgPrepMot').value = formData.package.prepMot;
+      if (formData.package.armMat) q('#pkgArmMat').value = formData.package.armMat;
+      if (formData.package.armMot) q('#pkgArmMot').value = formData.package.armMot;
+      if (formData.package.markup) q('#pkgMarkup').value = formData.package.markup;
+      
+      // Доп затраты для пакета
+      if (formData.package.costs && formData.package.costs.length > 0) {
+        formData.package.costs.forEach(cost => {
+          addCostRow('pkg');
+          const rows = qa('#pkgCostsContent .cost-row');
+          const lastRow = rows[rows.length - 1];
+          if (lastRow) {
+            const nameInput = lastRow.querySelector('.pkg-cost-name');
+            const valInput = lastRow.querySelector('.pkg-cost-val');
+            if (nameInput) nameInput.value = cost.name || '';
+            if (valInput) valInput.value = cost.value || '';
+          }
+        });
+      }
+    }
+    
+    // Заполняем пакет "Защита ударной части"
+    if (formData.impact) {
+      if (formData.impact.wrapMat) q('#impactWrapMat').value = formData.impact.wrapMat;
+      if (formData.impact.wrapMot) q('#impactWrapMot').value = formData.impact.wrapMot;
+      if (formData.impact.prepMat) q('#impactPrepMat').value = formData.impact.prepMat;
+      if (formData.impact.prepMot) q('#impactPrepMot').value = formData.impact.prepMot;
+      if (formData.impact.armMat) q('#impactArmMat').value = formData.impact.armMat;
+      if (formData.impact.armMot) q('#impactArmMot').value = formData.impact.armMot;
+      if (formData.impact.markup) q('#impactMarkup').value = formData.impact.markup;
+      
+      // Доп затраты
+      if (formData.impact.costs && formData.impact.costs.length > 0) {
+        formData.impact.costs.forEach(cost => {
+          addCostRow('impact');
+          const rows = qa('#impactCostsContent .cost-row');
+          const lastRow = rows[rows.length - 1];
+          if (lastRow) {
+            const nameInput = lastRow.querySelector('.impact-cost-name');
+            const valInput = lastRow.querySelector('.impact-cost-val');
+            if (nameInput) nameInput.value = cost.name || '';
+            if (valInput) valInput.value = cost.value || '';
+          }
+        });
+      }
+    }
+    
+    // Форма оплаты
+    if (formData.paymentMode) {
+      const payModeRadio = q(`input[name=payMode][value="${formData.paymentMode}"]`);
+      if (payModeRadio) payModeRadio.checked = true;
+    }
+    
+    // Скидка
+    if (formData.discount) {
+      q('#customDiscount').value = formData.discount;
+    }
+    
+    // Наценки
+    if (formData.markups) {
+      if (formData.markups.arm) q('#armMarkup').value = formData.markups.arm;
+      if (formData.markups.wrap) q('#wrapMarkup').value = formData.markups.wrap;
+      if (formData.markups.det) q('#detMarkup').value = formData.markups.det;
+      if (formData.markups.gl) q('#glMarkup').value = formData.markups.gl;
+      if (formData.markups.misc) q('#miscMarkup').value = formData.markups.misc;
+    }
+    
+    // Пересчитываем всё
+    setTimeout(() => {
+      renderAll();
+      console.log('✅ Calculation loaded and rendered');
+    }, 200);
+    
+  } catch (e) {
+    console.error('Error loading calculation:', e);
+    alert('❌ Ошибка загрузки расчёта');
+  }
+}
+
+// ========================================
+// MAIN CALCULATOR CODE
+// ========================================
+
+const q = s => document.querySelector(s);
+const qa = s => document.querySelectorAll(s);
+const fmt = n => parseFloat((n || 0).toFixed(2)).toLocaleString('ru-RU', {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2
+});
+const r100 = n => Math.round((n || 0) * 100) / 100;
+
+let disc = 0;
+let chart = null;
+let costCounter = 0;
+
+const carDB = {
+  Audi: ["A3", "A4", "A5", "A6", "A7", "A8", "Q2", "Q3", "Q4 e-tron", "Q5", "Q7", "Q8", "Q8 e-tron", "RS3", "RS4", "RS5", "RS6", "RS7", "RSQ8", "S3", "S4", "S5", "S6", "S7", "S8", "SQ5", "SQ7", "SQ8", "TT", "e-tron GT"],
+  BMW: ["1 Series", "2 Series", "3 Series", "4 Series", "5 Series", "6 Series", "7 Series", "8 Series", "X1", "X2", "X3", "X4", "X5", "X6", "X7", "iX", "iX3", "i4", "i7", "Z4", "M2", "M3", "M4", "M5", "M8", "X3 M", "X4 M", "X5 M", "X6 M"],
+  Buick: ["Cascada", "Enclave", "Encore", "Encore GX", "Envision", "GL8", "LaCrosse", "Regal", "Regal TourX", "Verano"],
+  BYD: ["Dolphin", "Han", "Qin Plus", "Seal", "Song Plus", "Tang", "Yuan Plus"],
+  Cadillac: ["Celestiq", "CT4", "CT5", "CT6", "Escalade", "Escalade ESV", "Lyriq", "XT4", "XT5", "XT6"],
+  Changan: ["CS35 Plus", "CS55 Plus", "CS75 Plus", "Uni-K", "Uni-T"],
+  Chery: ["Arrizo 5", "Tiggo 2", "Tiggo 4", "Tiggo 7", "Tiggo 8"],
+  Chevrolet: ["Blazer", "Colorado", "Equinox", "Malibu", "Silverado 1500", "Silverado 2500/3500 HD", "Suburban", "Tahoe", "Trailblazer", "Traverse"],
+  Chrysler: ["200", "300", "Pacifica", "Pacifica Hybrid", "Town & Country", "Voyager"],
+  Dodge: ["Challenger", "Challenger SRT Hellcat", "Charger", "Charger SRT Hellcat", "Dart", "Durango", "Grand Caravan", "Hornet", "Journey", "Viper"],
+  Fisker: ["Alaska", "Ocean", "Pear", "Ronin"],
+  Ford: ["Bronco", "Edge", "Escape", "Expedition", "Explorer", "F-150", "Maverick", "Mustang", "Mustang Mach-E", "Ranger"],
+  Geely: ["Atlas", "Coolray", "Emgrand", "Monjaro", "Tugella"],
+  GMC: ["Acadia", "Canyon", "Hummer EV Pickup", "Hummer EV SUV", "Savana", "Sierra 1500", "Sierra HD", "Terrain", "Yukon", "Yukon XL"],
+  Haval: ["Dargo", "F7", "F7x", "H6", "H9", "Jolion"],
+  Honda: ["Accord", "Civic", "Civic Type R", "CR-V", "HR-V", "Odyssey", "Passport", "Pilot", "Ridgeline"],
+  Hummer: ["EV Pickup", "EV SUV"],
+  Hyundai: ["Creta", "Elantra", "Ioniq 5", "Ioniq 6", "Kona", "Kona Electric", "Palisade", "Santa Cruz", "Santa Fe", "Sonata", "Tucson", "Venue"],
+  Jeep: ["Cherokee", "Compass", "Gladiator", "Grand Cherokee", "Grand Wagoneer", "Renegade", "Wagoneer", "Wagoneer S", "Wrangler", "Wrangler 4xe"],
+  Kia: ["Carnival", "Cerato", "Ceed", "EV6", "EV9", "Forte", "K5", "Niro", "Rio", "Seltos", "Sorento", "Soul", "Sportage", "Stinger", "Telluride"],
+  Lexus: ["ES", "GX", "IS", "LC", "LS", "LX", "NX", "RC", "RX", "TX", "UX"],
+  Lincoln: ["Aviator", "Continental", "Corsair", "MKC", "MKT", "MKX", "MKZ", "Nautilus", "Navigator", "Navigator L"],
+  Lixiang: ["I8", "L6", "L7", "L8", "L9", "Mega", "One"],
+  Lucid: ["Air", "Air Grand Touring", "Air Pure", "Air Sapphire", "Air Touring", "Gravity", "Gravity Grand Touring", "Gravity Touring"],
+  Mazda: ["CX-3", "CX-30", "CX-5", "CX-50", "CX-60", "CX-70", "CX-90", "Mazda2", "Mazda3", "Mazda6", "MX-5", "MX-30"],
+  "Mercedes-Benz": ["A-Class", "B-Class", "C-Class", "CLA", "CLE", "CLS", "E-Class", "EQA", "EQB", "EQC", "EQE", "EQS", "G-Class", "GLA", "GLB", "GLC", "GLE", "GLS", "S-Class", "SL", "AMG GT"],
+  Nissan: ["Altima", "Ariya", "GT-R", "Kicks", "Leaf", "Maxima", "Murano", "Pathfinder", "Qashqai", "Rogue", "Sentra", "Titan", "X-Trail", "Z"],
+  Omoda: ["C5", "C7", "C9", "E5", "S5"],
+  Porsche: ["911", "718 Boxster", "718 Cayman", "Cayenne", "Cayenne Coupe", "Macan", "Panamera", "Taycan", "Taycan Cross Turismo"],
+  Ram: ["1500", "1500 Classic", "1500 TRX", "2500", "3500", "4500 Chassis Cab", "5500 Chassis Cab", "ProMaster", "ProMaster City", "ProMaster Rapid"],
+  Rivian: ["EDV", "R1S", "R1T", "R2", "R3", "R3X", "RCV"],
+  Tank: ["300", "400", "500", "700"],
+  Tesla: ["Cybertruck", "Model 3", "Model S", "Model X", "Model Y", "Roadster", "Semi"],
+  Toyota: ["4Runner", "Alphard", "Avalon", "Camry", "C-HR", "Corolla", "Corolla Cross", "Crown", "GR86", "GR Supra", "Highlander", "Hilux", "Land Cruiser", "Land Cruiser 300", "Prius", "RAV4", "Sequoia", "Sienna", "Tacoma", "Tundra", "Venza", "Yaris"],
+  Volkswagen: ["Arteon", "Atlas", "Golf", "Golf GTI", "Golf R", "ID.4", "ID.Buzz", "Jetta", "Jetta GLI", "Passat", "Polo", "Taos", "T-Roc", "Tiguan", "Touareg"],
+  Voyah: ["Courage", "Dream", "Free", "Passion"],
+  Zeekr: ["001", "007", "009", "7X", "9X", "Mix", "X"]
+};
+
+const serviceDescriptions = {
+  'Полная защита вкруг': 'Полная защита глянцевых кузовных элементов автомобиля с разбором съемных элементов и подготовкой кузова',
+  'Защита ударной части': 'Защита ударной части автомобиля с разбором съемных элементов и подготовкой кузова',
+  'Демонтаж элементов': 'Снятие кузовных элементов для проведения работ',
+  'Монтаж элементов': 'Установка кузовных элементов после проведения работ',
+  'Демонтаж и монтаж': 'Полный цикл снятия и установки элементов кузова',
+  'Мойка кузова перед оклейкой': 'Подготовительная мойка автомобиля перед оклейкой',
+  'Подготовка кузова': 'Комплексная подготовка поверхности к нанесению пленки',
+  'Глубокая чистка кузова': 'Детальная очистка кузова от загрязнений и дефектов',
+  'Полировка кузова': 'Восстановление и выравнивание лакокрасочного покрытия',
+  'Нанесение составов на кузов': 'Обработка кузова защитными составами',
+  'Химчистка салона': 'Глубокая очистка салона автомобиля',
+  'Нанесение составов на элементы салона': 'Защитная обработка элементов интерьера',
+  'Полировка глянцевых элементов': 'Восстановление блеска глянцевых поверхностей',
+  'Тонирование задней полусферы': 'Установка тонировочной пленки на заднюю полусферу',
+  'Тонирование передних боковых стекол': 'Установка тонировочной пленки на передние боковые стекла',
+  'Тонирование лобового стекла': 'Установка тонировочной пленки на лобовое стекло',
+  'Бронирование лобового стекла': 'Установка защитной пленки на лобовое стекло',
+  'Малярные работы': 'Локальный окрас элемента',
+  'Выпрямление вмятин без покраски': 'Выпрямление повреждений ЛКП без окраса',
+  'Реставрация ЛКП': 'Работы по лакокрасочному покрытию автомобиля, корректировка и скрытие повреждений',
+  'Шумоизоляция': 'Работы по дооснащению автомобиля материалами, снижающими вибрации, шумы и посторонние звуки',
+  'PPF прозрачный вкруг': 'Полная защита глянцевых кузовных элементов автомобиля',
+  'PPF цветной вкруг': 'Полная защита кузовных элементов цветной пленкой',
+  'PPF матовый вкруг': 'Полная защита кузовных элементов матовой пленкой',
+  'ПВХ полная оклейка': 'Полная оклейка автомобиля виниловой пленкой'
+};
+
+const partElements = [
+  'Передний бампер', 'Задний бампер', 'Передний бампер (доп)', 'Задний бампер (доп)',
+  'Передняя оптика', 'Противотуманные фары', 'Задние фонари', 'Решетка радиатора',
+  'Полоска на капот', 'Капот', 'Переднее крыло', 'Два передних крыла',
+  'Расширители арок', 'Стойки вокруг лобового', 'Полоска на крышу', 'Крыша',
+  'Пороги', 'Пороги до замка', 'Дверные проемы', 'Передняя дверь',
+  'Передние двери (2 шт)', 'Зона под ручками (2 шт)', 'Зона под ручками (4 шт)',
+  'Задняя дверь', 'Задние двери (2 шт)', 'Заднее крыло', 'Задние крылья (2 шт)',
+  'Крышка багажника', 'Багажник (доп)', 'Оклейка элементов интерьера', 'Антихром'
+];
+
+const armServices = ['Демонтаж элементов', 'Монтаж элементов', 'Демонтаж и монтаж'];
+const detailServices = [
+  'Мойка кузова перед оклейкой', 'Подготовка кузова', 'Глубокая чистка кузова',
+  'Полировка кузова', 'Нанесение составов на кузов', 'Химчистка салона',
+  'Нанесение составов на элементы салона', 'Полировка глянцевых элементов'
+];
+const glassServices = [
+  'Тонирование задней полусферы', 'Тонирование передних боковых стекол',
+  'Тонирование лобового стекла', 'Бронирование лобового стекла'
+];
+const miscServices = [
+  'Малярные работы', 'Выпрямление вмятин без покраски',
+  'Реставрация ЛКП', 'Шумоизоляция'
+];
+
+
+function fillBrands() {
+  const s = q('#brand');
+  
+  // Если бренды уже есть в HTML - не трогаем
+  if (s.options.length > 2) {
+    const yearInput = q('#year');
+    if (yearInput && !yearInput.value) {
+      yearInput.value = '2026';
+    }
+    return;
+  }
+  
+  // Если по какой-то причине список пустой - заполняем из carDB
+  s.innerHTML = '<option value="">Выберите бренд</option><option value="manual">Ввести вручную</option>';
+  Object.keys(carDB).sort().forEach(b => {
+    const o = document.createElement('option');
+    o.value = b;
+    o.textContent = b;
+    s.appendChild(o);
+  });
+  
+  // Автозаполнение года 2026
+  const yearInput = q('#year');
+  if (yearInput && !yearInput.value) {
+    yearInput.value = '2026';
+  }
+}
+function formatYearInput(input) {
+  let val = input.value.replace(/\D/g, '');
+  if (val.length > 4) val = val.slice(0, 4);
+  input.value = val;
+}
+function onBrandChange() {
+  const b = q('#brand').value;
+  fillModels(b);
+  renderAll();
+}
+
+function fillModels(brandValue) {
+  const m = q('#model');
+  const bm = q('#brandManual');
+  m.innerHTML = '<option value="">Выберите модель</option><option value="manual">Ввести вручную</option>';
+  
+  if (brandValue && carDB[brandValue]) {
+    bm.classList.add('invis');
+    carDB[brandValue].forEach(md => {
+      const o = document.createElement('option');
+      o.value = md;
+      o.textContent = md;
+      m.appendChild(o);
+    });
+  } else if (brandValue === 'manual') {
+    bm.classList.remove('invis');
+    m.innerHTML = '<option value="manual">Ввести вручную</option>';
+    const mm = q('#modelManual');
+    if (mm) mm.classList.remove('invis');
+  }
+}
+
+function onModelChange() {
+  const m = q('#model').value;
+  const mm = q('#modelManual');
+  if (m === 'manual') mm.classList.remove('invis');
+  else mm.classList.add('invis');
+  renderAll();
+}
+
+
+// Helper для заглавной первой буквы
+function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+function renderServiceList(containerId, services, classPrefix) {
+  const container = q(containerId);
+  let html = '';
+  
+  services.forEach((name, idx) => {
+    html += `<div class="service-item">
+      <div class="service-header">
+        <input type="checkbox" class="${classPrefix}-chk" id="${classPrefix}${idx + 1}">
+        <label for="${classPrefix}${idx + 1}">${name}</label>
+      </div>
+      <div class="service-body">
+        <div class="service-fields">
+          <div class="form-group"><label>Материалы (₽):</label><input type="number" class="${classPrefix}-mat" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Мотивация (₽):</label><input type="number" class="${classPrefix}-mot" placeholder="0" step="0.01"></div>
+        </div>
+        <div class="service-complexity">
+          <input type="checkbox" class="${classPrefix}-complex" id="${classPrefix}${idx + 1}c">
+          <label for="${classPrefix}${idx + 1}c">Усложнение +10%</label>
+        </div>
+      </div>
+    </div>`;
+  });
+  
+  html += `<div id="${classPrefix}Dyn"></div>
+    <button type="button" class="btn btn-secondary" id="btnAdd${capitalize(classPrefix)}">+ Дополнительно</button>
+    <div class="partial-wrapper">
+      <div class="partial-header">
+        <input type="checkbox" id="${classPrefix}CostsChk">
+        <label for="${classPrefix}CostsChk">Дополнительные затраты</label>
+      </div>
+      <div class="partial-content" id="${classPrefix}CostsContent"></div>
+    </div>
+    <button type="button" class="btn btn-secondary" id="btnAdd${capitalize(classPrefix)}Cost" style="margin-top:10px;display:none">+ Добавить затрату</button>
+    <div style="margin-top:15px">
+      <label class="markup-label">⚠️ Наценка (%):</label>
+      <input type="number" id="${classPrefix}Markup" placeholder="0" step="1">
+      <div class="chips">
+        <span class="chip" data-markup-target="#${classPrefix}Markup">10</span>
+        <span class="chip" data-markup-target="#${classPrefix}Markup">20</span>
+        <span class="chip" data-markup-target="#${classPrefix}Markup">30</span>
+        <span class="chip" data-markup-target="#${classPrefix}Markup">40</span>
+        <span class="chip" data-markup-target="#${classPrefix}Markup">50</span>
+        <span class="chip" data-markup-target="#${classPrefix}Markup">60</span>
+        <span class="chip" data-markup-target="#${classPrefix}Markup">70</span>
+        <span class="chip" data-markup-target="#${classPrefix}Markup">80</span>
+        <span class="chip" data-markup-target="#${classPrefix}Markup">90</span>
+        <span class="chip" data-markup-target="#${classPrefix}Markup">100</span>
+      </div>
+    </div>
+`;
+  
+  container.innerHTML = html;
+}
+
+function renderWrapContent() {
+  const container = q('#wrapContent');
+  let html = `<h3 style="margin-bottom:10px;font-size:1.05rem;font-weight:700">PPF</h3>
+    <div class="service-item">
+      <div class="service-header"><input type="checkbox" id="ppfClearChk"><label for="ppfClearChk">PPF прозрачный вкруг</label></div>
+      <div class="service-body">
+        <div class="service-fields">
+          <div class="form-group"><label>Метры (м):</label><input type="number" id="ppfClearM" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Цена за метр (₽):</label><input type="number" id="ppfClearPrice" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Мотивация (₽):</label><input type="number" id="ppfClearMot" placeholder="0" step="0.01"></div>
+        </div>
+        <div class="service-complexity"><input type="checkbox" id="ppfClearComplex"><label for="ppfClearComplex">Усложнение +10%</label></div>
+      </div>
+    </div>
+    <div class="service-item">
+      <div class="service-header"><input type="checkbox" id="ppfColorChk"><label for="ppfColorChk">PPF цветной вкруг</label></div>
+      <div class="service-body">
+        <div class="service-fields">
+          <div class="form-group"><label>Метры (м):</label><input type="number" id="ppfColorM" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Цена за метр (₽):</label><input type="number" id="ppfColorPrice" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Мотивация (₽):</label><input type="number" id="ppfColorMot" placeholder="0" step="0.01"></div>
+        </div>
+        <div class="service-complexity"><input type="checkbox" id="ppfColorComplex"><label for="ppfColorComplex">Усложнение +10%</label></div>
+      </div>
+    </div>
+    <div class="service-item">
+      <div class="service-header"><input type="checkbox" id="ppfMatChk"><label for="ppfMatChk">PPF матовый вкруг</label></div>
+      <div class="service-body">
+        <div class="service-fields">
+          <div class="form-group"><label>Метры (м):</label><input type="number" id="ppfMatM" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Цена за метр (₽):</label><input type="number" id="ppfMatPrice" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Мотивация (₽):</label><input type="number" id="ppfMatMot" placeholder="0" step="0.01"></div>
+        </div>
+        <div class="service-complexity"><input type="checkbox" id="ppfMatComplex"><label for="ppfMatComplex">Усложнение +10%</label></div>
+      </div>
+    </div>
+    <div class="partial-wrapper">
+      <div class="partial-header"><input type="checkbox" id="ppfPartChk"><label for="ppfPartChk">PPF частично</label></div>
+      <div class="partial-content" id="ppfPartContent"></div>
+    </div>
+    <h3 style="margin:20px 0 10px;font-size:1.05rem;font-weight:700">PVC</h3>
+    <div class="service-item">
+      <div class="service-header"><input type="checkbox" id="pvcFullChk"><label for="pvcFullChk">ПВХ полная оклейка</label></div>
+      <div class="service-body">
+        <div class="service-fields">
+          <div class="form-group"><label>Метры (м):</label><input type="number" id="pvcFullM" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Цена за метр (₽):</label><input type="number" id="pvcFullPrice" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Мотивация (₽):</label><input type="number" id="pvcFullMot" placeholder="0" step="0.01"></div>
+        </div>
+        <div class="service-complexity"><input type="checkbox" id="pvcFullComplex"><label for="pvcFullComplex">Усложнение +10%</label></div>
+      </div>
+    </div>
+    <div class="partial-wrapper">
+      <div class="partial-header"><input type="checkbox" id="pvcPartChk"><label for="pvcPartChk">ПВХ частично</label></div>
+      <div class="partial-content" id="pvcPartContent"></div>
+    </div>
+    <div id="wrapDyn"></div>
+    <button type="button" class="btn btn-secondary" id="btnAddWrap">+ Дополнительно</button>
+    <div class="partial-wrapper">
+      <div class="partial-header">
+        <input type="checkbox" id="wrapCostsChk">
+        <label for="wrapCostsChk">Дополнительные затраты</label>
+      </div>
+      <div class="partial-content" id="wrapCostsContent"></div>
+    </div>
+    <button type="button" class="btn btn-secondary" id="btnAddWrapCost" style="margin-top:10px;display:none">+ Добавить затрату</button>
+    <div style="margin-top:20px">
+      <label class="markup-label">⚠️ Наценка на оклейку (%):</label>
+      <input type="number" id="wrapMarkup" placeholder="0" step="1">
+      <div class="chips">
+        <span class="chip" data-markup-target="#wrapMarkup">10</span>
+        <span class="chip" data-markup-target="#wrapMarkup">20</span>
+        <span class="chip" data-markup-target="#wrapMarkup">30</span>
+        <span class="chip" data-markup-target="#wrapMarkup">40</span>
+        <span class="chip" data-markup-target="#wrapMarkup">50</span>
+        <span class="chip" data-markup-target="#wrapMarkup">60</span>
+        <span class="chip" data-markup-target="#wrapMarkup">70</span>
+        <span class="chip" data-markup-target="#wrapMarkup">80</span>
+        <span class="chip" data-markup-target="#wrapMarkup">90</span>
+        <span class="chip" data-markup-target="#wrapMarkup">100</span>
+      </div>
+    </div>
+`;
+  // wrapSummary — статичный div в HTML
+  
+  container.innerHTML = html;
+}
+
+function renderPartialLists() {
+  const ppf = q('#ppfPartContent');
+  const pvc = q('#pvcPartContent');
+  let ppfHtml = '', pvcHtml = '';
+  
+  partElements.forEach((name, idx) => {
+    ppfHtml += `<div class="service-item">
+      <div class="service-header"><input type="checkbox" class="ppf-part-chk" id="ppfp${idx}"><label for="ppfp${idx}">${name}</label></div>
+      <div class="service-body">
+        <div class="service-fields">
+          <div class="form-group"><label>Метры (м):</label><input type="number" class="ppf-part-m" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Цена за метр (₽):</label><input type="number" class="ppf-part-price" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Мотивация (₽):</label><input type="number" class="ppf-part-mot" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Своя наценка (%):</label><input type="number" class="ppf-part-markup" placeholder="0"></div>
+        </div>
+<div class="chips" style="margin-top:10px">
+          <span class="chip" data-ppf-markup="${idx}">10</span>
+          <span class="chip" data-ppf-markup="${idx}">20</span>
+          <span class="chip" data-ppf-markup="${idx}">30</span>
+          <span class="chip" data-ppf-markup="${idx}">40</span>
+          <span class="chip" data-ppf-markup="${idx}">50</span>
+          <span class="chip" data-ppf-markup="${idx}">60</span>
+          <span class="chip" data-ppf-markup="${idx}">70</span>
+          <span class="chip" data-ppf-markup="${idx}">80</span>
+          <span class="chip" data-ppf-markup="${idx}">90</span>
+          <span class="chip" data-ppf-markup="${idx}">100</span>
+        </div>
+      </div>
+    </div>`;
+    
+    pvcHtml += `<div class="service-item">
+      <div class="service-header"><input type="checkbox" class="pvc-part-chk" id="pvcp${idx}"><label for="pvcp${idx}">${name}</label></div>
+      <div class="service-body">
+        <div class="service-fields">
+          <div class="form-group"><label>Метры (м):</label><input type="number" class="pvc-part-m" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Цена за метр (₽):</label><input type="number" class="pvc-part-price" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Мотивация (₽):</label><input type="number" class="pvc-part-mot" placeholder="0" step="0.01"></div>
+<div class="form-group"><label>Своя наценка (%):</label><input type="number" class="pvc-part-markup" placeholder="0"></div>
+        </div>
+<div class="chips" style="margin-top:10px">
+          <span class="chip" data-pvc-markup="${idx}">10</span>
+          <span class="chip" data-pvc-markup="${idx}">20</span>
+          <span class="chip" data-pvc-markup="${idx}">30</span>
+          <span class="chip" data-pvc-markup="${idx}">40</span>
+          <span class="chip" data-pvc-markup="${idx}">50</span>
+          <span class="chip" data-pvc-markup="${idx}">60</span>
+          <span class="chip" data-pvc-markup="${idx}">70</span>
+          <span class="chip" data-pvc-markup="${idx}">80</span>
+          <span class="chip" data-pvc-markup="${idx}">90</span>
+          <span class="chip" data-pvc-markup="${idx}">100</span>
+        </div>
+      </div>
+    </div>`;
+  });
+  
+  ppf.innerHTML = ppfHtml;
+  pvc.innerHTML = pvcHtml;
+}
+
+function addCostRow(prefix) {
+  costCounter++;
+  const container = q(`#${prefix}CostsContent`);
+  const row = document.createElement('div');
+  row.className = 'cost-row';
+  row.innerHTML = `
+    <div class="form-group">
+      <input type="text" placeholder="Название затраты" class="${prefix}-cost-name">
+      <input type="number" placeholder="Сумма (₽)" class="${prefix}-cost-val" step="0.01">
+    </div>
+    <button type="button" onclick="this.closest('.cost-row').remove();renderAll()">❌</button>
+  `;
+  container.appendChild(row);
+  renderAll();
+}
+
+let dynCounter = 0;
+function addDynRow(id, cls) {
+  const c = q(id);
+  const d = document.createElement('div');
+  d.className = 'service-item';
+  dynCounter++;
+  
+  // Для wrap - особые поля (метры/цена/мотивация)
+  if (cls === 'wrap') {
+    d.innerHTML = `<div class="service-header">
+      <input type="checkbox" checked id="dyn${cls}${dynCounter}">
+      <label for="dyn${cls}${dynCounter}"><input type="text" placeholder="Название услуги" style="border:none;background:transparent;padding:0;font-weight:600;font-size:.95rem;color:var(--text);width:100%"></label>
+    </div>
+    <div class="service-body open">
+      <div class="service-fields">
+        <div class="form-group"><label>Метры (м):</label><input type="number" class="${cls}-m" placeholder="0" step="0.01"></div>
+        <div class="form-group"><label>Цена за метр (₽):</label><input type="number" class="${cls}-price" placeholder="0" step="0.01"></div>
+        <div class="form-group"><label>Мотивация (₽):</label><input type="number" class="${cls}-mot" placeholder="0" step="0.01"></div>
+      </div>
+      <div class="service-complexity">
+        <input type="checkbox" class="${cls}-complex" id="dyn${cls}${dynCounter}c">
+        <label for="dyn${cls}${dynCounter}c">Усложнение +10%</label>
+      </div>
+    </div>`;
+  } else {
+    // Для остальных - обычные поля (материалы/мотивация)
+    d.innerHTML = `<div class="service-header">
+      <input type="checkbox" checked id="dyn${cls}${dynCounter}">
+      <label for="dyn${cls}${dynCounter}"><input type="text" placeholder="Название услуги" style="border:none;background:transparent;padding:0;font-weight:600;font-size:.95rem;color:var(--text);width:100%"></label>
+    </div>
+    <div class="service-body open">
+      <div class="service-fields">
+        <div class="form-group"><label>Материалы (₽):</label><input type="number" class="${cls}-mat" placeholder="0" step="0.01"></div>
+        <div class="form-group"><label>Мотивация (₽):</label><input type="number" class="${cls}-mot" placeholder="0" step="0.01"></div>
+      </div>
+      <div class="service-complexity">
+        <input type="checkbox" class="${cls}-complex" id="dyn${cls}${dynCounter}c">
+        <label for="dyn${cls}${dynCounter}c">Усложнение +10%</label>
+      </div>
+    </div>`;
+  }
+  c.appendChild(d);
+}
+
+function initServiceToggles() {
+  qa('.service-item').forEach(item => {
+    const chk = item.querySelector('.service-header input[type="checkbox"]');
+    const body = item.querySelector('.service-body');
+    const header = item.querySelector('.service-header');
+    
+    if (!chk || !body) return;
+    
+    header.onclick = function(e) {
+      if (e.target === chk || e.target.tagName === 'INPUT' || e.target.tagName === 'LABEL') return;
+      chk.click();
+    };
+    
+    chk.onchange = function() {
+      if (chk.checked) {
+        body.classList.add('open');
+      } else {
+        body.classList.remove('open');
+      }
+    };
+  });
+  
+  ['ppfPartChk', 'pvcPartChk', 'pkgCostsChk', 'impactCostsChk', 'armCostsChk', 'wrapCostsChk', 'detCostsChk', 'glCostsChk', 'miscCostsChk'].forEach(id => {
+    const chk = q(`#${id}`);
+    if (!chk) return;
+    const content = q(`#${id.replace('Chk', 'Content')}`);
+    
+    // Исправляем регистр: первая буква заглавная
+    let btnId = id.replace('Chk', '').replace('Costs', 'Cost');
+    btnId = btnId.charAt(0).toUpperCase() + btnId.slice(1);
+    const btn = q(`#btnAdd${btnId}`);
+    if (!content) return;
+    
+    chk.onchange = function() {
+      if (chk.checked) {
+        content.classList.add('open');
+        if (btn) btn.style.display = 'block';
+      } else {
+        content.classList.remove('open');
+        if (btn) btn.style.display = 'none';
+      }
+    };
+  });
+}
+
+function collectAdditionalCosts(prefix) {
+  let total = 0;
+  qa(`#${prefix}CostsContent .cost-row`).forEach(row => {
+    const val = parseFloat(row.querySelector(`.${prefix}-cost-val`)?.value) || 0;
+    total += val;
+  });
+  return total;
+}
+
+function collectAll() {
+  const sums = {
+    pkg: { mat: 0, mot: 0, names: [] },
+    impact: { mat: 0, mot: 0, names: [] },
+    arm: { mat: 0, mot: 0, names: [], details: [] },
+    wrap: { mat: 0, mot: 0, details: [] },
+    det: { mat: 0, mot: 0, names: [], details: [] },
+    gl: { mat: 0, mot: 0, names: [], details: [] },
+    ms: { mat: 0, mot: 0, names: [], details: [] }
+  };
+  
+  const pkgWrapMat = parseFloat(q('#pkgWrapMat')?.value) || 0;
+  const pkgWrapMot = parseFloat(q('#pkgWrapMot')?.value) || 0;
+  const pkgPrepMat = parseFloat(q('#pkgPrepMat')?.value) || 0;
+  const pkgPrepMot = parseFloat(q('#pkgPrepMot')?.value) || 0;
+  const pkgArmMat = parseFloat(q('#pkgArmMat')?.value) || 0;
+  const pkgArmMot = parseFloat(q('#pkgArmMot')?.value) || 0;
+  const pkgCosts = collectAdditionalCosts('pkg');
+  
+  if (pkgWrapMat > 0 || pkgWrapMot > 0 || pkgPrepMat > 0 || pkgPrepMot > 0 || pkgArmMat > 0 || pkgArmMot > 0 || pkgCosts > 0) {
+    sums.pkg.mat = pkgWrapMat + pkgPrepMat + pkgArmMat + pkgCosts;
+    sums.pkg.mot = pkgWrapMot + pkgPrepMot + pkgArmMot;
+    sums.pkg.names.push('Полная защита вкруг');
+  }
+  
+  const impactWrapMat = parseFloat(q('#impactWrapMat')?.value) || 0;
+  const impactWrapMot = parseFloat(q('#impactWrapMot')?.value) || 0;
+  const impactPrepMat = parseFloat(q('#impactPrepMat')?.value) || 0;
+  const impactPrepMot = parseFloat(q('#impactPrepMot')?.value) || 0;
+  const impactArmMat = parseFloat(q('#impactArmMat')?.value) || 0;
+  const impactArmMot = parseFloat(q('#impactArmMot')?.value) || 0;
+  const impactCosts = collectAdditionalCosts('impact');
+  
+  if (impactWrapMat > 0 || impactWrapMot > 0 || impactPrepMat > 0 || impactPrepMot > 0 || impactArmMat > 0 || impactArmMot > 0 || impactCosts > 0) {
+    sums.impact.mat = impactWrapMat + impactPrepMat + impactArmMat + impactCosts;
+    sums.impact.mot = impactWrapMot + impactPrepMot + impactArmMot;
+    sums.impact.names.push('Защита ударной части');
+  }
+  
+  qa('.arm-chk').forEach(c => {
+    if (c.checked) {
+      const item = c.closest('.service-item');
+      const n = item.querySelector('.service-header label')?.textContent?.trim();
+      let mat = parseFloat(item.querySelector('.arm-mat')?.value) || 0;
+      let mot = parseFloat(item.querySelector('.arm-mot')?.value) || 0;
+      if (item.querySelector('.arm-complex')?.checked) { mat *= 1.1; mot *= 1.1; }
+      if (n && (mat > 0 || mot > 0)) {
+        sums.arm.mat += mat;
+        sums.arm.mot += mot;
+        sums.arm.names.push(n);
+        sums.arm.details.push([n, mat, mot]);
+      }
+    }
+  });
+  
+  qa('#armDyn .service-item').forEach(item => {
+    const c = item.querySelector('input[type=checkbox]');
+    if (c?.checked) {
+      const n = item.querySelector('input[type=text]')?.value?.trim() || 'Название услуги';
+      let mat = parseFloat(item.querySelector('.arm-mat')?.value) || 0;
+      let mot = parseFloat(item.querySelector('.arm-mot')?.value) || 0;
+      if (item.querySelector('.arm-complex')?.checked) { mat *= 1.1; mot *= 1.1; }
+      if (mat > 0 || mot > 0) {
+        sums.arm.mat += mat;
+        sums.arm.mot += mot;
+        sums.arm.names.push(n);
+        sums.arm.details.push([n, mat, mot]);
+      }
+    }
+  });
+  
+  sums.arm.mat += collectAdditionalCosts('arm');
+  
+  if (q('#ppfClearChk')?.checked) {
+    const pr = parseFloat(q('#ppfClearPrice')?.value) || 0;
+    let m = parseFloat(q('#ppfClearM')?.value) || 0;
+    let mot = parseFloat(q('#ppfClearMot')?.value) || 0;
+    if (q('#ppfClearComplex')?.checked) { m *= 1.1; mot *= 1.1; }
+    const mat = r100(m * pr);
+    sums.wrap.mat += mat;
+    sums.wrap.mot += mot;
+    sums.wrap.details.push(['PPF прозрачный вкруг', m, pr, mat, mot, 0]);
+  }
+  
+  if (q('#ppfColorChk')?.checked) {
+    const pr = parseFloat(q('#ppfColorPrice')?.value) || 0;
+    let m = parseFloat(q('#ppfColorM')?.value) || 0;
+    let mot = parseFloat(q('#ppfColorMot')?.value) || 0;
+    if (q('#ppfColorComplex')?.checked) { m *= 1.1; mot *= 1.1; }
+    const mat = r100(m * pr);
+    sums.wrap.mat += mat;
+    sums.wrap.mot += mot;
+    sums.wrap.details.push(['PPF цветной вкруг', m, pr, mat, mot, 0]);
+  }
+  
+  if (q('#ppfMatChk')?.checked) {
+    const pr = parseFloat(q('#ppfMatPrice')?.value) || 0;
+    let m = parseFloat(q('#ppfMatM')?.value) || 0;
+    let mot = parseFloat(q('#ppfMatMot')?.value) || 0;
+    if (q('#ppfMatComplex')?.checked) { m *= 1.1; mot *= 1.1; }
+    const mat = r100(m * pr);
+    sums.wrap.mat += mat;
+    sums.wrap.mot += mot;
+    sums.wrap.details.push(['PPF матовый вкруг', m, pr, mat, mot, 0]);
+  }
+  
+  qa('.ppf-part-chk').forEach(c => {
+    if (c.checked) {
+      const ppfPartMainChk = q('#ppfPartChk');
+      if (!ppfPartMainChk || !ppfPartMainChk.checked) return;
+      
+      const item = c.closest('.service-item');
+      const n = item.querySelector('.service-header label')?.textContent?.trim();
+      let m = parseFloat(item.querySelector('.ppf-part-m')?.value) || 0;
+      const pr = parseFloat(item.querySelector('.ppf-part-price')?.value) || 0;
+      let mot = parseFloat(item.querySelector('.ppf-part-mot')?.value) || 0;
+      if (item.querySelector('.ppf-part-complex')?.checked) { m *= 1.1; mot *= 1.1; }
+      
+      if (m > 0 || pr > 0 || mot > 0) {
+        const mat = r100(m * pr);
+        const itemMarkup = parseFloat(item.querySelector('.ppf-part-markup')?.value) || 0;
+        sums.wrap.mat += mat;
+        sums.wrap.mot += mot;
+        sums.wrap.details.push([`PPF частично - ${n}`, m, pr, mat, mot, itemMarkup]);
+      }
+    }
+  });
+  
+  if (q('#pvcFullChk')?.checked) {
+    const pr = parseFloat(q('#pvcFullPrice')?.value) || 0;
+    let m = parseFloat(q('#pvcFullM')?.value) || 0;
+    let mot = parseFloat(q('#pvcFullMot')?.value) || 0;
+    if (q('#pvcFullComplex')?.checked) { m *= 1.1; mot *= 1.1; }
+    const mat = r100(m * pr);
+    sums.wrap.mat += mat;
+    sums.wrap.mot += mot;
+    sums.wrap.details.push(['ПВХ полная оклейка', m, pr, mat, mot, 0]);
+  }
+  
+  qa('.pvc-part-chk').forEach(c => {
+    if (c.checked) {
+      const pvcPartMainChk = q('#pvcPartChk');
+      if (!pvcPartMainChk || !pvcPartMainChk.checked) return;
+      
+      const item = c.closest('.service-item');
+      const n = item.querySelector('.service-header label')?.textContent?.trim();
+      let m = parseFloat(item.querySelector('.pvc-part-m')?.value) || 0;
+      const pr = parseFloat(item.querySelector('.pvc-part-price')?.value) || 0;
+      let mot = parseFloat(item.querySelector('.pvc-part-mot')?.value) || 0;
+      if (item.querySelector('.pvc-part-complex')?.checked) { m *= 1.1; mot *= 1.1; }
+      
+      if (m > 0 || pr > 0 || mot > 0) {
+        const mat = r100(m * pr);
+        const itemMarkup = parseFloat(item.querySelector('.pvc-part-markup')?.value) || 0;
+        sums.wrap.mat += mat;
+        sums.wrap.mot += mot;
+        sums.wrap.details.push([`ПВХ частично - ${n}`, m, pr, mat, mot, itemMarkup]);
+      }
+    }
+  });
+  
+  qa('#wrapDyn .service-item').forEach(item => {
+    const c = item.querySelector('input[type=checkbox]');
+    if (c?.checked) {
+      const n = item.querySelector('input[type=text]')?.value?.trim() || 'Название услуги';
+      let m = parseFloat(item.querySelectorAll('input[type=number]')[0]?.value) || 0;
+      const pr = parseFloat(item.querySelectorAll('input[type=number]')[1]?.value) || 0;
+      let mot = parseFloat(item.querySelectorAll('input[type=number]')[2]?.value) || 0;
+      if (item.querySelector('.wrap-complex')?.checked) { m *= 1.1; mot *= 1.1; }
+      
+      if (m > 0 || pr > 0 || mot > 0) {
+        const mat = r100(m * pr);
+        sums.wrap.mat += mat;
+        sums.wrap.mot += mot;
+        sums.wrap.details.push([n, m, pr, mat, mot, 0]);
+      }
+    }
+  });
+  
+  sums.wrap.mat += collectAdditionalCosts('wrap');
+  
+  ['det', 'gl', 'misc'].forEach(tp => {
+    const key = tp === 'misc' ? 'ms' : tp;
+    
+    qa(`.${tp}-chk`).forEach(c => {
+      if (c.checked) {
+        const item = c.closest('.service-item');
+        const n = item.querySelector('.service-header label')?.textContent?.trim();
+        let mat = parseFloat(item.querySelector(`.${tp}-mat`)?.value) || 0;
+        let mot = parseFloat(item.querySelector(`.${tp}-mot`)?.value) || 0;
+        if (item.querySelector(`.${tp}-complex`)?.checked) { mat *= 1.1; mot *= 1.1; }
+        if (n && (mat > 0 || mot > 0)) {
+          sums[key].mat += mat;
+          sums[key].mot += mot;
+          sums[key].names.push(n);
+          sums[key].details.push([n, mat, mot]);
+        }
+      }
+    });
+    
+    qa(`#${tp}Dyn .service-item`).forEach(item => {
+      const c = item.querySelector('input[type=checkbox]');
+      if (c?.checked) {
+        const n = item.querySelector('input[type=text]')?.value?.trim() || 'Название услуги';
+        let mat = parseFloat(item.querySelector(`.${tp}-mat`)?.value) || 0;
+        let mot = parseFloat(item.querySelector(`.${tp}-mot`)?.value) || 0;
+        if (item.querySelector(`.${tp}-complex`)?.checked) { mat *= 1.1; mot *= 1.1; }
+        if (mat > 0 || mot > 0) {
+          sums[key].mat += mat;
+          sums[key].mot += mot;
+          sums[key].names.push(n);
+          sums[key].details.push([n, mat, mot]);
+        }
+      }
+    });
+    
+    sums[key].mat += collectAdditionalCosts(tp);
+  });
+  
+  return sums;
+}
+
+function taxCoef() {
+  const m = q('input[name=payMode]:checked')?.value;
+  return m === 'card' ? 0.13 : m === 'ooo' ? 0.22 : 0;
+}
+
+function markups() {
+  return {
+    pkg: parseFloat(q('#pkgMarkup')?.value) || 0,
+    impact: parseFloat(q('#impactMarkup')?.value) || 0,
+    arm: parseFloat(q('#armMarkup')?.value) || 0,
+    wrap: parseFloat(q('#wrapMarkup')?.value) || 0,
+    det: parseFloat(q('#detMarkup')?.value) || 0,
+    gl: parseFloat(q('#glMarkup')?.value) || 0,
+    ms: parseFloat(q('#miscMarkup')?.value) || 0
+  };
+}
+
+function getServiceDescription(name) {
+  return serviceDescriptions[name] || name;
+}
+
+function renderKP(s, mu) {
+  const tb = q('#kpTable tbody');
+  if (!tb) return;
+  tb.innerHTML = '';
+  
+  const taxK = taxCoef();
+  let tot = 0;
+  
+  // Полная защита вкруг
+  const pkgBase = s.pkg.mat + s.pkg.mot;
+  if (pkgBase > 0) {
+    const markupAmount = r100(pkgBase * (mu.pkg || 0) / 100);
+    const markupWithDiscount = r100(markupAmount * (1 - disc / 100));
+    let pr = pkgBase + markupWithDiscount;
+    pr = r100(pr * (1 + taxK));
+    tot += pr;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td style="text-align:left">Полная защита вкруг</td><td style="text-align:left">${getServiceDescription('Полная защита вкруг')}</td><td>${fmt(pr)}</td>`;
+    tb.appendChild(tr);
+  }
+  
+  // Защита ударной части
+  const impactBase = s.impact.mat + s.impact.mot;
+  if (impactBase > 0) {
+    const markupAmount = r100(impactBase * (mu.impact || 0) / 100);
+    const markupWithDiscount = r100(markupAmount * (1 - disc / 100));
+    let pr = impactBase + markupWithDiscount;
+    pr = r100(pr * (1 + taxK));
+    tot += pr;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td style="text-align:left">Защита ударной части</td><td style="text-align:left">${getServiceDescription('Защита ударной части')}</td><td>${fmt(pr)}</td>`;
+    tb.appendChild(tr);
+  }
+  
+  // Арматурные работы - каждая услуга отдельно
+  if (s.arm.details && s.arm.details.length > 0) {
+    s.arm.details.forEach(detail => {
+      const [name, mat, mot] = detail;
+      const armBase = s.arm.mat + s.arm.mot;
+      const serviceFraction = armBase / s.arm.details.length;
+      const markupAmount = r100(serviceFraction * (mu.arm || 0) / 100);
+      const markupWithDiscount = r100(markupAmount * (1 - disc / 100));
+      let pr = serviceFraction + markupWithDiscount;
+      pr = r100(pr * (1 + taxK));
+      tot += pr;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td style="text-align:left">${name}</td><td style="text-align:left">${getServiceDescription(name)}</td><td>${fmt(pr)}</td>`;
+      tb.appendChild(tr);
+    });
+  }
+  
+  // Оклейка - каждая услуга отдельно
+  if (s.wrap.details && s.wrap.details.length > 0) {
+    s.wrap.details.forEach(detail => {
+      const [name, meters, price, mat, mot, itemMarkup] = detail;
+      const base = mat + mot;
+      if (base <= 0) return;
+      
+      const markupToUse = (itemMarkup && itemMarkup > 0) ? itemMarkup : mu.wrap;
+      const markupAmount = r100(base * (markupToUse || 0) / 100);
+      const markupWithDiscount = r100(markupAmount * (1 - disc / 100));
+      let pr = base + markupWithDiscount;
+      pr = r100(pr * (1 + taxK));
+      tot += pr;
+      
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td style="text-align:left">${name}</td><td style="text-align:left">${getServiceDescription(name)}</td><td>${fmt(pr)}</td>`;
+      tb.appendChild(tr);
+    });
+  }
+  
+  // Детейлинг - каждая услуга отдельно
+  if (s.det.details && s.det.details.length > 0) {
+    s.det.details.forEach(detail => {
+      const [name, mat, mot] = detail;
+      const detBase = s.det.mat + s.det.mot;
+      const serviceFraction = detBase / s.det.details.length;
+      const markupAmount = r100(serviceFraction * (mu.det || 0) / 100);
+      const markupWithDiscount = r100(markupAmount * (1 - disc / 100));
+      let pr = serviceFraction + markupWithDiscount;
+      pr = r100(pr * (1 + taxK));
+      tot += pr;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td style="text-align:left">${name}</td><td style="text-align:left">${getServiceDescription(name)}</td><td>${fmt(pr)}</td>`;
+      tb.appendChild(tr);
+    });
+  }
+  
+  // Стёкла - каждая услуга отдельно
+  if (s.gl.details && s.gl.details.length > 0) {
+    s.gl.details.forEach(detail => {
+      const [name, mat, mot] = detail;
+      const glBase = s.gl.mat + s.gl.mot;
+      const serviceFraction = glBase / s.gl.details.length;
+      const markupAmount = r100(serviceFraction * (mu.gl || 0) / 100);
+      const markupWithDiscount = r100(markupAmount * (1 - disc / 100));
+      let pr = serviceFraction + markupWithDiscount;
+      pr = r100(pr * (1 + taxK));
+      tot += pr;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td style="text-align:left">${name}</td><td style="text-align:left">${getServiceDescription(name)}</td><td>${fmt(pr)}</td>`;
+      tb.appendChild(tr);
+    });
+  }
+  
+  // Прочие работы - каждая услуга отдельно
+  if (s.ms.details && s.ms.details.length > 0) {
+    s.ms.details.forEach(detail => {
+      const [name, mat, mot] = detail;
+      const msBase = s.ms.mat + s.ms.mot;
+      const serviceFraction = msBase / s.ms.details.length;
+      const markupAmount = r100(serviceFraction * (mu.ms || 0) / 100);
+      const markupWithDiscount = r100(markupAmount * (1 - disc / 100));
+      let pr = serviceFraction + markupWithDiscount;
+      pr = r100(pr * (1 + taxK));
+      tot += pr;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td style="text-align:left">${name}</td><td style="text-align:left">${getServiceDescription(name)}</td><td>${fmt(pr)}</td>`;
+      tb.appendChild(tr);
+    });
+  }
+  
+  q('#kpTotal').textContent = fmt(tot);
+}
+
+function renderCost(s) {
+  const tb = q('#costTable tbody');
+  if (!tb) return;
+  tb.innerHTML = '';
+  
+  const rows = [
+    { t: 'Полная защита вкруг', sum: s.pkg },
+    { t: 'Защита ударной части', sum: s.impact },
+    { t: 'Арматурные работы', sum: s.arm },
+    { t: 'Детейлинг', sum: s.det },
+    { t: 'Стёкла', sum: s.gl },
+    { t: 'Прочие работы', sum: s.ms }
+  ];
+  
+  let totM = 0, totO = 0;
+  
+  rows.forEach(r => {
+    const base = r.sum.mat + r.sum.mot;
+    if (base <= 0) return;
+    
+    totM += r.sum.mat;
+    totO += r.sum.mot;
+    
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td style="text-align:left">${r.t}</td><td>${fmt(r.sum.mat)}</td><td>${fmt(r.sum.mot)}</td>`;
+    tb.appendChild(tr);
+  });
+  
+  if (s.wrap.details && s.wrap.details.length > 0) {
+    s.wrap.details.forEach(detail => {
+      const [name, meters, price, mat, mot, itemMarkup] = detail;
+      if (mat <= 0 && mot <= 0) return;
+      
+      totM += mat;
+      totO += mot;
+      
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td style="text-align:left">${name}</td><td>${fmt(mat)}</td><td>${fmt(mot)}</td>`;
+      tb.appendChild(tr);
+    });
+  }
+  
+  q('#cMat').textContent = fmt(totM);
+  q('#cMot').textContent = fmt(totO);
+  q('#cTotal').textContent = fmt(totM + totO);
+}
+function renderExecutors(s) {
+  const container = q('#executorsContent');
+  if (!container) return;
+  
+  let execIndex = 0;
+  const allServices = [];
+  
+  // Пакет "Полная защита вкруг" - разбиваем на услуги
+  const pkgWrapMot = parseFloat(q('#pkgWrapMot')?.value) || 0;
+  const pkgPrepMot = parseFloat(q('#pkgPrepMot')?.value) || 0;
+  const pkgArmMot = parseFloat(q('#pkgArmMot')?.value) || 0;
+  
+  if (pkgWrapMot > 0 || pkgPrepMot > 0 || pkgArmMot > 0) {
+    if (pkgWrapMot > 0) {
+      allServices.push({ name: 'Полная защита вкруг - Инсталляция пленки', mot: pkgWrapMot, idx: execIndex++ });
+    }
+    if (pkgPrepMot > 0) {
+      allServices.push({ name: 'Полная защита вкруг - Подготовка', mot: pkgPrepMot, idx: execIndex++ });
+    }
+    if (pkgArmMot > 0) {
+      allServices.push({ name: 'Полная защита вкруг - Арматурные работы', mot: pkgArmMot, idx: execIndex++ });
+    }
+  }
+  
+  // Пакет "Защита ударной части" - разбиваем на услуги
+  const impactWrapMot = parseFloat(q('#impactWrapMot')?.value) || 0;
+  const impactPrepMot = parseFloat(q('#impactPrepMot')?.value) || 0;
+  const impactArmMot = parseFloat(q('#impactArmMot')?.value) || 0;
+  
+  if (impactWrapMot > 0 || impactPrepMot > 0 || impactArmMot > 0) {
+    if (impactWrapMot > 0) {
+      allServices.push({ name: 'Защита ударной части - Инсталляция пленки', mot: impactWrapMot, idx: execIndex++ });
+    }
+    if (impactPrepMot > 0) {
+      allServices.push({ name: 'Защита ударной части - Подготовка', mot: impactPrepMot, idx: execIndex++ });
+    }
+    if (impactArmMot > 0) {
+      allServices.push({ name: 'Защита ударной части - Арматурные работы', mot: impactArmMot, idx: execIndex++ });
+    }
+  }
+  
+  if (s.arm.details && s.arm.details.length > 0) {
+    s.arm.details.forEach(detail => {
+      allServices.push({ name: detail[0], mot: detail[2], idx: execIndex++ });
+    });
+  }
+  
+  if (s.wrap.details && s.wrap.details.length > 0) {
+    s.wrap.details.forEach(detail => {
+      allServices.push({ name: detail[0], mot: detail[4], idx: execIndex++ });
+    });
+  }
+  
+  if (s.det.details && s.det.details.length > 0) {
+    s.det.details.forEach(detail => {
+      allServices.push({ name: detail[0], mot: detail[2], idx: execIndex++ });
+    });
+  }
+  
+  if (s.gl.details && s.gl.details.length > 0) {
+    s.gl.details.forEach(detail => {
+      allServices.push({ name: detail[0], mot: detail[2], idx: execIndex++ });
+    });
+  }
+  
+  if (s.ms.details && s.ms.details.length > 0) {
+    s.ms.details.forEach(detail => {
+      allServices.push({ name: detail[0], mot: detail[2], idx: execIndex++ });
+    });
+  }
+  
+  // Проверяем, изменилось ли количество услуг
+  const existingRows = container.querySelectorAll('[data-exec-id]');
+  if (existingRows.length === allServices.length) {
+    // Только обновляем значения зарплаты если они не были изменены вручную
+    allServices.forEach(srv => {
+      const baseId = `exec${srv.idx}`;
+      const salaryInput = q(`#${baseId}salary`);
+      if (salaryInput && salaryInput.dataset.manuallySet !== 'true') {
+        salaryInput.value = srv.mot.toFixed(2);
+      }
+    });
+    return; // НЕ перерисовываем
+  }
+  
+  // Если количество изменилось — полная перерисовка
+  let html = '';
+  
+  allServices.forEach(srv => {
+    const baseId = `exec${srv.idx}`;
+    
+    html += `<div class="executor-row" data-exec-id="${baseId}">
+      <div class="executor-row-header">${srv.name}</div>
+      <div class="executor-fields-new">
+        <div class="executor-field">
+          <label>Исполнитель:</label>
+          <input type="text" id="${baseId}name" placeholder="ФИО" value="">
+        </div>
+        <div class="executor-field">
+          <label>Зарплата (₽):</label>
+          <input type="number" id="${baseId}salary" placeholder="0" value="${srv.mot.toFixed(2)}" step="0.01" data-original-motivation="${srv.mot.toFixed(2)}">
+        </div>
+        <div class="executor-field">
+          <label>Дата приема:</label>
+          <input type="date" id="${baseId}receive" value="">
+        </div>
+        <div class="executor-field">
+          <label>Дата выдачи:</label>
+          <input type="date" id="${baseId}return" value="">
+        </div>
+        <div class="executor-field executor-field-note">
+          <label>Примечание:</label>
+          <input type="text" id="${baseId}note" placeholder="Заметки" value="">
+        </div>
+      </div>
+      <div style="margin-top:12px;text-align:center">
+        <label style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:0.9rem;user-select:none">
+          <input type="checkbox" class="add-executor-chk" data-exec-base="${baseId}" style="width:20px;height:20px;cursor:pointer;accent-color:var(--primary)">
+          <span>+ Добавить исполнителя</span>
+        </label>
+      </div>
+      <div class="extra-executors" id="${baseId}-extra"></div>
+    </div>`;
+  });
+  
+  container.innerHTML = html;
+  
+  // Навешиваем обработчики
+  qa('.add-executor-chk').forEach(chk => {
+    chk.addEventListener('change', function() {
+      if (this.checked) {
+        const baseId = this.getAttribute('data-exec-base');
+        const extraContainer = q(`#${baseId}-extra`);
+        const baseRow = this.closest('.executor-row');
+        const baseSalaryInput = baseRow.querySelector(`#${baseId}salary`);
+        
+        // Берем ОРИГИНАЛЬНУЮ мотивацию, а не текущее значение
+        const originalMotivation = parseFloat(baseSalaryInput?.getAttribute('data-original-motivation')) || 0;
+        
+        const extraCount = extraContainer.querySelectorAll('.extra-executor-row').length;
+        
+        // НЕ делим зарплату! У первого остается 100%, у нового пусто
+        const newId = `${baseId}-ex${extraCount + 1}`;
+        
+        const row = document.createElement('div');
+        row.className = 'extra-executor-row';
+        row.style.cssText = 'margin-top:12px;padding:12px;background:var(--bg-tertiary);border-radius:12px;border:1px solid var(--border)';
+        row.innerHTML = `
+          <div class="executor-row-header" style="font-size:0.8rem;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">
+            <span>Исполнитель ${extraCount + 2}</span>
+            <button type="button" class="btn-remove-executor" style="background:var(--danger);color:#fff;border:none;padding:6px 12px;border-radius:8px;font-size:0.8rem;cursor:pointer;font-weight:600;transition:all 0.3s">❌ Удалить</button>
+          </div>
+          <div class="executor-fields-new">
+            <div class="executor-field">
+              <label>Исполнитель:</label>
+              <input type="text" id="${newId}name" placeholder="ФИО" value="">
+            </div>
+            <div class="executor-field">
+              <label>Зарплата (₽):</label>
+              <input type="number" id="${newId}salary" placeholder="0" value="" step="0.01">
+            </div>
+            <div class="executor-field">
+              <label>Дата приема:</label>
+              <input type="date" id="${newId}receive" value="">
+            </div>
+            <div class="executor-field">
+              <label>Дата выдачи:</label>
+              <input type="date" id="${newId}return" value="">
+            </div>
+            <div class="executor-field executor-field-note">
+              <label>Примечание:</label>
+              <input type="text" id="${newId}note" placeholder="Заметки" value="">
+            </div>
+          </div>
+          <div style="margin-top:12px;text-align:center">
+            <label style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:0.9rem;user-select:none">
+              <input type="checkbox" class="add-executor-chk" data-exec-base="${baseId}" style="width:20px;height:20px;cursor:pointer;accent-color:var(--primary)">
+              <span>+ Добавить исполнителя</span>
+            </label>
+          </div>
+        `;
+        
+        extraContainer.appendChild(row);
+        this.checked = false;
+        
+        // Обработчик на кнопку удаления
+        row.querySelector('.btn-remove-executor').addEventListener('click', function() {
+          if (confirm('Удалить этого исполнителя?')) {
+            row.remove();
+          }
+        });
+      }
+    });
+  });
+}
+
+
+function updateBlockSummaries(s, mu) {
+  function setSummary(sid, base, markupAmt) {
+    const el = document.getElementById(sid);
+    if (!el) return;
+    if (base === 0 && markupAmt === 0) { el.style.display = 'none'; return; }
+    el.style.display = 'flex';
+    const total = base + markupAmt;
+    const baseEl = document.getElementById(sid + 'Base') || document.getElementById(sid.replace('Summary','') + 'SumBase');
+    const markEl = document.getElementById(sid + 'Markup') || document.getElementById(sid.replace('Summary','') + 'SumMarkup');
+    const totEl  = document.getElementById(sid + 'Total') || document.getElementById(sid.replace('Summary','') + 'SumTotal');
+    if (baseEl) baseEl.textContent = fmt(base) + ' ₽';
+    if (markEl) markEl.textContent = (markupAmt >= 0 ? '+' : '') + fmt(markupAmt) + ' ₽';
+    if (totEl)  totEl.textContent  = fmt(total) + ' ₽';
+  }
+
+  const pkgBase    = s.pkg.mat + s.pkg.mot;
+  const impactBase = s.impact.mat + s.impact.mot;
+  const armBase    = s.arm.mat + s.arm.mot;
+  const wrapBase   = s.wrap.mat + s.wrap.mot;
+  const detBase    = s.det.mat + s.det.mot;
+  const glBase     = s.gl.mat + s.gl.mot;
+  const msBase     = s.ms.mat + s.ms.mot;
+
+  // Наценки в рублях
+  let wrapMarkupAmt = 0;
+  if (s.wrap.details && s.wrap.details.length > 0) {
+    s.wrap.details.forEach(d => {
+      const base = d[3] + d[4];
+      const mk = (d[5] && d[5] > 0) ? d[5] : (mu.wrap || 0);
+      wrapMarkupAmt += r100(base * mk / 100);
+    });
+  } else {
+    wrapMarkupAmt = r100(wrapBase * (mu.wrap || 0) / 100);
+  }
+
+  // pkg
+  const pkgEl = document.getElementById('pkgSummary');
+  if (pkgEl) {
+    if (pkgBase === 0) { pkgEl.style.display = 'none'; }
+    else {
+      pkgEl.style.display = 'flex';
+      const m = r100(pkgBase * (mu.pkg || 0) / 100);
+      document.getElementById('pkgSumBase').textContent   = fmt(pkgBase) + ' ₽';
+      document.getElementById('pkgSumMarkup').textContent = '+' + fmt(m) + ' ₽';
+      document.getElementById('pkgSumTotal').textContent  = fmt(pkgBase + m) + ' ₽';
+    }
+  }
+  // impact
+  const impEl = document.getElementById('impactSummary');
+  if (impEl) {
+    if (impactBase === 0) { impEl.style.display = 'none'; }
+    else {
+      impEl.style.display = 'flex';
+      const m = r100(impactBase * (mu.impact || 0) / 100);
+      document.getElementById('impactSumBase').textContent   = fmt(impactBase) + ' ₽';
+      document.getElementById('impactSumMarkup').textContent = '+' + fmt(m) + ' ₽';
+      document.getElementById('impactSumTotal').textContent  = fmt(impactBase + m) + ' ₽';
+    }
+  }
+
+  // Динамические блоки (arm/det/gl/ms через renderServiceList)
+  const dynBlocks = [
+    { sid: 'armSummary',  base: armBase,  mu: mu.arm  || 0 },
+    { sid: 'detSummary',  base: detBase,  mu: mu.det  || 0 },
+    { sid: 'glSummary',   base: glBase,   mu: mu.gl   || 0 },
+    { sid: 'miscSummary', base: msBase,   mu: mu.ms   || 0 },
+  ];
+  dynBlocks.forEach(({ sid, base, mu: muPct }) => {
+    const el = document.getElementById(sid);
+    if (!el) return;
+    if (base === 0) { el.style.display = 'none'; return; }
+    el.style.display = 'flex';
+    const m = r100(base * muPct / 100);
+    const prefix = sid.replace('Summary', '');
+    const baseEl = document.getElementById(prefix + 'SumBase');
+    const markEl = document.getElementById(prefix + 'SumMarkup');
+    const totEl  = document.getElementById(prefix + 'SumTotal');
+    if (baseEl) baseEl.textContent = fmt(base) + ' ₽';
+    if (markEl) markEl.textContent = '+' + fmt(m) + ' ₽';
+    if (totEl)  totEl.textContent  = fmt(base + m) + ' ₽';
+  });
+
+  // wrap
+  const wrapEl = document.getElementById('wrapSummary');
+  if (wrapEl) {
+    if (wrapBase === 0) { wrapEl.style.display = 'none'; }
+    else {
+      wrapEl.style.display = 'flex';
+      document.getElementById('wrapSumBase').textContent   = fmt(wrapBase) + ' ₽';
+      document.getElementById('wrapSumMarkup').textContent = '+' + fmt(wrapMarkupAmt) + ' ₽';
+      document.getElementById('wrapSumTotal').textContent  = fmt(wrapBase + wrapMarkupAmt) + ' ₽';
+    }
+  }
+}
+
+function renderBadges(s, mu) {
+  // Итоги по направлениям удалены, считаем только общие итоги
+  
+  const pkgTotal = s.pkg.mat + s.pkg.mot;
+  const impactTotal = s.impact.mat + s.impact.mot;
+  const armTotal = s.arm.mat + s.arm.mot;
+  const wrapTotal = s.wrap.mat + s.wrap.mot;
+  const detTotal = s.det.mat + s.det.mot;
+  const glTotal = s.gl.mat + s.gl.mot;
+  const msTotal = s.ms.mat + s.ms.mot;
+  
+  const baseAll = pkgTotal + impactTotal + armTotal + wrapTotal + detTotal + glTotal + msTotal;
+  
+  const pkgMarkup = r100(pkgTotal * (mu.pkg || 0) / 100);
+  const impactMarkup = r100(impactTotal * (mu.impact || 0) / 100);
+  const armMarkup = r100(armTotal * (mu.arm || 0) / 100);
+  const detMarkup = r100(detTotal * (mu.det || 0) / 100);
+  const glMarkup = r100(glTotal * (mu.gl || 0) / 100);
+  const msMarkup = r100(msTotal * (mu.ms || 0) / 100);
+  
+  let wrapMarkup = 0;
+  if (s.wrap.details && s.wrap.details.length > 0) {
+    s.wrap.details.forEach(detail => {
+      const [name, meters, price, mat, mot, itemMarkup] = detail;
+      const base = mat + mot;
+      const markupToUse = (itemMarkup && itemMarkup > 0) ? itemMarkup : mu.wrap;
+      wrapMarkup += r100(base * (markupToUse || 0) / 100);
+    });
+  } else {
+    wrapMarkup = r100(wrapTotal * (mu.wrap || 0) / 100);
+  }
+  
+  const totalMarkup = pkgMarkup + impactMarkup + armMarkup + wrapMarkup + detMarkup + glMarkup + msMarkup;
+  const markupWithDiscount = r100(totalMarkup * (1 - disc / 100));
+  const afterMarkup = baseAll + markupWithDiscount;
+  const taxK = taxCoef();
+  const tax = r100(afterMarkup * taxK);
+  const fin = afterMarkup + tax;
+  
+  updateBlockSummaries(s, mu);
+  q('#grandMat').textContent = fmt(s.pkg.mat + s.impact.mat + s.arm.mat + s.wrap.mat + s.det.mat + s.gl.mat + s.ms.mat);
+  q('#grandMot').textContent = fmt(s.pkg.mot + s.impact.mot + s.arm.mot + s.wrap.mot + s.det.mot + s.gl.mot + s.ms.mot);
+  q('#grandBase').textContent = fmt(baseAll);
+  q('#grandMarkup').textContent = fmt(markupWithDiscount);
+  q('#grandTax').textContent = fmt(tax);
+  q('#finalTotal').textContent = fmt(fin);
+  
+  if (chart) {
+    chart.data.datasets[0].data = [
+      s.pkg.mat + s.impact.mat + s.arm.mat + s.wrap.mat + s.det.mat + s.gl.mat + s.ms.mat,
+      s.pkg.mot + s.impact.mot + s.arm.mot + s.wrap.mot + s.det.mot + s.gl.mot + s.ms.mot,
+      markupWithDiscount,
+      tax
+    ];
+    chart.update('none');
+  }
+}
+
+function renderAll() {
+  const s = collectAll();
+  const mu = markups();
+  renderBadges(s, mu);
+  renderKP(s, mu);
+  renderCost(s);
+  renderExecutors(s);
+  highlightMarkupFields(s, mu);
+}
+
+function highlightMarkupFields(s, mu) {
+  const checks = [
+    { sum: s.pkg.mat + s.pkg.mot, markup: mu.pkg, field: '#pkgMarkup' },
+    { sum: s.impact.mat + s.impact.mot, markup: mu.impact, field: '#impactMarkup' },
+    { sum: s.arm.mat + s.arm.mot, markup: mu.arm, field: '#armMarkup' },
+    { sum: s.wrap.mat + s.wrap.mot, markup: mu.wrap, field: '#wrapMarkup' },
+    { sum: s.det.mat + s.det.mot, markup: mu.det, field: '#detMarkup' },
+    { sum: s.gl.mat + s.gl.mot, markup: mu.gl, field: '#glMarkup' },
+    { sum: s.ms.mat + s.ms.mot, markup: mu.ms, field: '#miscMarkup' }
+  ];
+  
+  checks.forEach(c => {
+    const field = q(c.field);
+    if (!field) return;
+    if (c.sum > 0 && (!c.markup || c.markup === 0)) {
+      field.classList.add('markup-warning');
+    } else {
+      field.classList.remove('markup-warning');
+    }
+  });
+}
+
+function initTheme() {
+  // Принудительно светлая тема
+  document.body.setAttribute('data-theme', 'light');
+
+  qa('.toggle-btn').forEach(b => {
+    b.addEventListener('click', () => {
+      const r = b.querySelector('input[type=radio]');
+      if (r) {
+        r.checked = true;
+        qa('.toggle-btn').forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+        renderAll();
+      }
+    });
+  });
+
+}
+
+function initDiscounts() {
+  qa('.discount-btn').forEach(b => {
+    b.addEventListener('click', () => {
+      disc = parseInt(b.dataset.discount) || 0;
+      qa('.discount-btn').forEach(x => x.classList.toggle('active', parseInt(x.dataset.discount) === disc));
+      q('#customDiscount').value = '';
+      renderAll();
+    });
+  });
+  
+  q('#customDiscount')?.addEventListener('input', e => {
+    const v = Math.max(0, Math.min(100, parseFloat(e.target.value) || 0));
+    disc = v;
+    qa('.discount-btn').forEach(b => b.classList.remove('active'));
+    renderAll();
+  });
+}
+
+function initChart() {
+  const ctx = q('#pieChart')?.getContext('2d');
+  if (!ctx || !window.Chart) return;
+  
+  // Получаем цвет текста из CSS переменной (адаптивно к теме)
+  const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text-primary').trim() || '#f1f5f9';
+  
+  chart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Материалы', 'Мотивация', 'Наценка', 'Налог'],
+      datasets: [{
+        data: [0, 0, 0, 0],
+        backgroundColor: [
+          'rgba(59, 130, 246, 0.8)',
+          'rgba(16, 185, 129, 0.8)',
+          'rgba(245, 158, 11, 0.8)',
+          'rgba(239, 68, 68, 0.8)'
+        ],
+        borderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: {
+            font: { size: 13, family: 'Inter', weight: '600' },
+            padding: 12,
+            color: textColor,
+            usePointStyle: true,
+            pointStyle: 'circle'
+          }
+        },
+        tooltip: {
+          backgroundColor: 'rgba(15, 23, 42, 0.95)',
+          titleFont: { size: 12, family: 'Inter', weight: '600' },
+          bodyFont: { size: 11, family: 'Inter' },
+          padding: 12,
+          cornerRadius: 8,
+          displayColors: true,
+          callbacks: {
+            label: function(context) {
+              return context.label + ': ' + fmt(context.parsed) + ' ₽';
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+function exportPDF(blockId, filename) {
+  const { jsPDF } = window.jspdf || {};
+  if (!jsPDF || !window.html2canvas) {
+    alert('Библиотеки PDF загружаются...');
+    return;
+  }
+  
+  const holder = q('#pdfTemplates');
+  const block = q(blockId);
+  const orig = holder.style.display;
+  holder.style.display = 'block';
+  holder.style.position = 'absolute';
+  holder.style.left = '-9999px';
+  
+  setTimeout(() => {
+    html2canvas(block, { scale: 2, useCORS: true, backgroundColor: '#fff' }).then(canvas => {
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
+      const pw = pdf.internal.pageSize.getWidth();
+      const ph = pdf.internal.pageSize.getHeight();
+      const iw = canvas.width;
+      const ih = canvas.height;
+      const ratio = Math.min(pw / iw, ph / ih);
+      const sw = iw * ratio;
+      const sh = ih * ratio;
+      const x = (pw - sw) / 2;
+      const y = 20;
+      
+      pdf.addImage(canvas.toDataURL('image/png'), 'PNG', x, y, sw, Math.min(sh, ph - 40));
+      pdf.save(filename);
+    }).catch(err => {
+      alert('Ошибка создания PDF: ' + err.message);
+    }).finally(() => {
+      holder.style.display = orig;
+    });
+  }, 200);
+}
+function showTrialWatermark() {
+  if (!currentProfile) return;
+  
+  // Если оплачен - скрываем водяные знаки
+  if (currentProfile.is_paid) {
+    document.querySelectorAll('.trial-watermark').forEach(w => w.style.display = 'none');
+    return;
+  }
+  
+  // Если триал - показываем водяные знаки
+  const trialEnd = currentProfile.trial_ends_at ? new Date(currentProfile.trial_ends_at) : null;
+  if (!trialEnd) return;
+  
+  const dateStr = trialEnd.toLocaleDateString('ru-RU');
+  const watermarkText = `ПРОБНАЯ ВЕРСИЯ ДО ${dateStr}`;
+  
+  document.querySelectorAll('.trial-watermark').forEach(w => {
+    w.textContent = watermarkText;
+    w.style.display = 'block';
+  });
+}
+function prepKP() {
+  showTrialWatermark();
+  const tb = q('#pdfKPTBody');
+  if (!tb) return;
+  tb.innerHTML = '';
+  
+  qa('#kpTable tbody tr').forEach(tr => {
+    const t = tr.children[0].textContent.trim();
+    const d = tr.children[1].textContent.trim();
+    const p = tr.children[2].textContent.trim();
+    const r = document.createElement('tr');
+    r.innerHTML = `<td style="width:25%">${t}</td><td style="width:50%">${d || '—'}</td><td style="width:25%">${p}</td>`;
+    tb.appendChild(r);
+  });
+  
+  q('#pdfKPTotal').textContent = q('#kpTotal')?.textContent || '0,00';
+  
+  const br = q('#brandManual').classList.contains('invis') ? q('#brand').value : q('#brandManual').value;
+  const md = q('#modelManual').classList.contains('invis') ? q('#model').value : q('#modelManual').value;
+  const yr = q('#year').value || '—';
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('ru-RU');
+  const timeStr = now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+const payMode = q('input[name=payMode]:checked')?.value;
+const payText = payMode === 'cash' ? 'Наличные' : payMode === 'card' ? 'Карта или ИП' : 'ООО';
+  
+  q('#pdfKPMeta').innerHTML = `Автомобиль: ${br || '—'} ${md || '—'} ${yr}<br>Дата: ${dateStr} ${timeStr}<br><b><i>Условия оплаты: ${payText}</i></b>`;
+}
+
+function prepCost() {
+  showTrialWatermark();
+  const tb = q('#pdfCostTBody');
+  if (!tb) return;
+  tb.innerHTML = '';
+  
+  qa('#costTable tbody tr').forEach(tr => {
+    const c = tr.children;
+    const r = document.createElement('tr');
+    r.innerHTML = `<td>${c[0].textContent.trim()}</td><td>${c[1].textContent.trim()}</td><td>${c[2].textContent.trim()}</td>`;
+    tb.appendChild(r);
+  });
+  
+  q('#pdfCM').textContent = q('#cMat')?.textContent || '0,00';
+  q('#pdfCO').textContent = q('#cMot')?.textContent || '0,00';
+  
+  const br = q('#brandManual').classList.contains('invis') ? q('#brand').value : q('#brandManual').value;
+  const md = q('#modelManual').classList.contains('invis') ? q('#model').value : q('#modelManual').value;
+  const yr = q('#year').value || '—';
+  
+  q('#pdfCostMeta').textContent = `Автомобиль: ${br || '—'} ${md || '—'} ${yr}`;
+}
+
+function prepExecutors() {
+  showTrialWatermark();
+  const tb = q('#pdfExecutorsTBody');
+  if (!tb) return;
+  tb.innerHTML = '';
+  
+  const now = new Date();
+  const todayStr = now.toISOString().split('T')[0]; // YYYY-MM-DD
+  
+  qa('#executorsContent .executor-row').forEach(row => {
+    const name = row.querySelector('.executor-row-header')?.textContent?.trim() || '';
+    
+    // Основной исполнитель
+    const baseId = row.getAttribute('data-exec-id');
+    if (baseId) {
+      const executor = row.querySelector(`#${baseId}name`)?.value || '';
+      const receive = row.querySelector(`#${baseId}receive`)?.value || todayStr;
+      const returnDate = row.querySelector(`#${baseId}return`)?.value || '';
+      const note = row.querySelector(`#${baseId}note`)?.value || '';
+      
+      if (executor) {
+        const r = document.createElement('tr');
+        r.innerHTML = `<td>${name}</td><td>${executor}</td><td>${receive}</td><td>${returnDate}</td><td>${note}</td>`;
+        tb.appendChild(r);
+      }
+    }
+    
+    // Дополнительные исполнители
+    const extraContainer = row.querySelector('.extra-executors');
+    if (extraContainer) {
+      extraContainer.querySelectorAll('.extra-executor-row').forEach(extraRow => {
+        const extraName = extraRow.querySelector('input[id*="name"]')?.value || '';
+        const extraReceive = extraRow.querySelector('input[id*="receive"]')?.value || todayStr;
+        const extraReturn = extraRow.querySelector('input[id*="return"]')?.value || '';
+        const extraNote = extraRow.querySelector('input[id*="note"]')?.value || '';
+        
+        if (extraName) {
+          const r = document.createElement('tr');
+          r.innerHTML = `<td>${name}</td><td>${extraName}</td><td>${extraReceive}</td><td>${extraReturn}</td><td>${extraNote}</td>`;
+          tb.appendChild(r);
+        }
+      });
+    }
+  });
+  
+  const br = q('#brandManual').classList.contains('invis') ? q('#brand').value : q('#brandManual').value;
+  const md = q('#modelManual').classList.contains('invis') ? q('#model').value : q('#modelManual').value;
+  const yr = q('#year').value || '—';
+  
+  q('#pdfExecutorsMeta').textContent = `Автомобиль: ${br || '—'} ${md || '—'} ${yr}`;
+}
+
+function prepExecutorsWithSalary() {
+  showTrialWatermark();
+  const tb = q('#pdfExecutorsWithSalaryTBody');
+  if (!tb) return;
+  tb.innerHTML = '';
+  
+  const now = new Date();
+  const todayStr = now.toISOString().split('T')[0];
+  
+  qa('#executorsContent .executor-row').forEach(row => {
+    const name = row.querySelector('.executor-row-header')?.textContent?.trim() || '';
+    
+    // Основной исполнитель
+    const baseId = row.getAttribute('data-exec-id');
+    if (baseId) {
+      const executor = row.querySelector(`#${baseId}name`)?.value || '';
+      const salary = row.querySelector(`#${baseId}salary`)?.value || '0';
+      const receive = row.querySelector(`#${baseId}receive`)?.value || todayStr;
+      const returnDate = row.querySelector(`#${baseId}return`)?.value || '';
+      const note = row.querySelector(`#${baseId}note`)?.value || '';
+      
+      if (executor) {
+        const r = document.createElement('tr');
+        r.innerHTML = `<td>${name}</td><td>${executor}</td><td>${fmt(parseFloat(salary))}</td><td>${receive}</td><td>${returnDate}</td><td>${note}</td>`;
+        tb.appendChild(r);
+      }
+    }
+    
+    // Дополнительные исполнители
+    const extraContainer = row.querySelector('.extra-executors');
+    if (extraContainer) {
+      extraContainer.querySelectorAll('.extra-executor-row').forEach(extraRow => {
+        const extraName = extraRow.querySelector('input[id*="name"]')?.value || '';
+        const extraSalary = extraRow.querySelector('input[id*="salary"]')?.value || '0';
+        const extraReceive = extraRow.querySelector('input[id*="receive"]')?.value || todayStr;
+        const extraReturn = extraRow.querySelector('input[id*="return"]')?.value || '';
+        const extraNote = extraRow.querySelector('input[id*="note"]')?.value || '';
+        
+        if (extraName) {
+          const r = document.createElement('tr');
+          r.innerHTML = `<td>${name}</td><td>${extraName}</td><td>${fmt(parseFloat(extraSalary))}</td><td>${extraReceive}</td><td>${extraReturn}</td><td>${extraNote}</td>`;
+          tb.appendChild(r);
+        }
+      });
+    }
+  });
+  
+  const br = q('#brandManual').classList.contains('invis') ? q('#brand').value : q('#brandManual').value;
+  const md = q('#modelManual').classList.contains('invis') ? q('#model').value : q('#modelManual').value;
+  const yr = q('#year').value || '—';
+  
+  q('#pdfExecutorsWithSalaryMeta').textContent = `Автомобиль: ${br || '—'} ${md || '—'} ${yr}`;
+}
+
+function setDefaultMarkups() {
+  ['#pkgMarkup', '#impactMarkup', '#armMarkup', '#wrapMarkup', '#detMarkup', '#glMarkup', '#miscMarkup'].forEach(id => {
+    const field = q(id);
+    if (field) field.value = 40;
+  });
+}
+
+function formatNumberInput(input) {
+  const val = parseFloat(input.value);
+  if (!isNaN(val) && val >= 0) {
+    input.value = val.toFixed(2);
+  }
+}
+
+// ══════════════════════════════════════════
+// ИНИЦИАЛИЗАЦИЯ — разбита по зонам ответственности
+// ══════════════════════════════════════════
+
+async function initAuthAndAccess() {
+  const hasAccess = await checkAuth();
+  return hasAccess;
+}
+
+function initPageState() {
+  const isTelegram = window.TelegramWebviewProxy !== undefined || navigator.userAgent.includes('Telegram');
+  if (isTelegram) {
+    const warning = q('#telegramWarning');
+    if (warning) warning.style.display = 'block';
+  }
+}
+
+function initUI() {
+  initTheme();
+  initDiscounts();
+}
+
+function initDataSources() {
+  fillBrands();
+  q('#brand')?.addEventListener('change', onBrandChange);
+  q('#model')?.addEventListener('change', onModelChange);
+}
+
+function initRender() {
+  renderServiceList('#armContent', armServices, 'arm');
+  renderWrapContent();
+  renderPartialLists();
+  renderServiceList('#detContent', detailServices, 'det');
+  renderServiceList('#glContent', glassServices, 'gl');
+  renderServiceList('#miscContent', miscServices, 'misc');
+  initServiceToggles();
+  setDefaultMarkups();
+  renderAll();
+}
+
+function initBindings() {
+  // Добавление строк — конфиг-массив вместо дублирования
+  const addRowBindings = [
+    { sel: '#btnAddPkgCost',    action: () => addCostRow('pkg') },
+    { sel: '#btnAddImpactCost', action: () => addCostRow('impact') },
+    { sel: '#btnAddArm',        action: () => { addDynRow('#armDyn',  'arm');  initServiceToggles(); } },
+    { sel: '#btnAddArmCost',    action: () => addCostRow('arm') },
+    { sel: '#btnAddWrap',       action: () => { addDynRow('#wrapDyn', 'wrap'); initServiceToggles(); } },
+    { sel: '#btnAddWrapCost',   action: () => addCostRow('wrap') },
+    { sel: '#btnAddDet',        action: () => { addDynRow('#detDyn',  'det');  initServiceToggles(); } },
+    { sel: '#btnAddDetCost',    action: () => addCostRow('det') },
+    { sel: '#btnAddGl',         action: () => { addDynRow('#glDyn',   'gl');   initServiceToggles(); } },
+    { sel: '#btnAddGlCost',     action: () => addCostRow('gl') },
+    { sel: '#btnAddMisc',       action: () => { addDynRow('#miscDyn', 'misc'); initServiceToggles(); } },
+    { sel: '#btnAddMiscCost',   action: () => addCostRow('misc') },
+  ];
+  addRowBindings.forEach(({ sel, action }) => q(sel)?.addEventListener('click', action));
+
+  // Форма оплаты
+  qa('input[name=payMode]').forEach(r => r.addEventListener('change', () => {
+    renderAll();
+    scheduleSave();
+  }));
+
+  // Управляющие кнопки
+  q('#btnRecalc')?.addEventListener('click', renderAll);
+  q('#btnReset')?.addEventListener('click', () => {
+    if (confirm('Вы уверены, что хотите сбросить все данные?')) location.reload();
+  });
+  q('#btnSaveCalc')?.addEventListener('click', async () => {
+    const btn = q('#btnSaveCalc');
+    const originalText = btn?.textContent;
+    if (btn) { btn.textContent = '⏳ Сохранение...'; btn.disabled = true; }
+    await saveCalculation();
+    if (btn) { btn.textContent = originalText; btn.disabled = false; }
+  });
+
+  // Экспорт PDF
+  if (q('#btnShareKP')) q('#btnShareKP').style.display = 'inline-block';
+  q('#btnDownloadKP')?.addEventListener('click', () => {
+    prepKP();
+    setTimeout(() => exportPDF('#pdfKP', 'Коммерческое_предложение.pdf'), 100);
+  });
+  q('#btnShareKP')?.addEventListener('click', async () => {
+    const btn = q('#btnShareKP');
+    const origText = btn.textContent;
+    btn.textContent = '⏳ Генерация...'; btn.disabled = true;
+    const fallbackDownload = () => { prepKP(); setTimeout(() => exportPDF('#pdfKP', 'КП_оклейка.pdf'), 100); };
+    try {
+      prepKP();
+      await new Promise(resolve => setTimeout(resolve, 400));
+      const { jsPDF } = window.jspdf || {};
+      if (!jsPDF || !window.html2canvas) { fallbackDownload(); return; }
+      const block = q('#pdfKP');
+      let canvas;
+      try {
+        canvas = await window.html2canvas(block, { scale: 2, useCORS: true, allowTaint: true, backgroundColor: '#fff', logging: false });
+      } catch(canvasErr) { fallbackDownload(); return; }
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
+      const pw = pdf.internal.pageSize.getWidth(), ph = pdf.internal.pageSize.getHeight();
+      const ratio = Math.min(pw / canvas.width, ph / canvas.height);
+      pdf.addImage(canvas.toDataURL('image/png'), 'PNG', (pw - canvas.width * ratio) / 2, 20, canvas.width * ratio, Math.min(canvas.height * ratio, ph - 40));
+      const pdfBlob = pdf.output('blob');
+      const pdfFile = new File([pdfBlob], 'КП_оклейка.pdf', { type: 'application/pdf' });
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
+        await navigator.share({ title: 'Коммерческое предложение', files: [pdfFile] });
+      } else {
+        const url = URL.createObjectURL(pdfBlob);
+        const a = document.createElement('a');
+        a.href = url; a.download = 'КП_оклейка.pdf'; a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      }
+    } catch(err) {
+      if (err.name !== 'AbortError') fallbackDownload();
+    } finally { btn.textContent = origText; btn.disabled = false; }
+  });
+  q('#btnExportCost')?.addEventListener('click', () => {
+    prepCost();
+    setTimeout(() => exportPDF('#pdfCost', 'Себестоимость.pdf'), 100);
+  });
+  q('#btnExportExecutors')?.addEventListener('click', () => {
+    prepExecutors();
+    setTimeout(() => exportPDF('#pdfExecutors', 'Список_исполнителей.pdf'), 100);
+  });
+  q('#btnExportExecutorsWithSalary')?.addEventListener('click', () => {
+    prepExecutorsWithSalary();
+    setTimeout(() => exportPDF('#pdfExecutorsWithSalary', 'Список_исполнителей_ЗП.pdf'), 100);
+  });
+
+  // Chips (наценки)
+  qa('.chip').forEach(ch => {
+    ch.addEventListener('click', () => {
+      const sel = ch.getAttribute('data-markup-target');
+      const ppfIdx = ch.getAttribute('data-ppf-markup');
+      const pvcIdx = ch.getAttribute('data-pvc-markup');
+      if (sel) {
+        const tgt = q(sel);
+        if (tgt) { tgt.value = ch.textContent.trim(); renderAll(); }
+      } else if (ppfIdx !== null) {
+        const inp = ch.closest('.service-item')?.querySelector('.ppf-part-markup');
+        if (inp) { inp.value = ch.textContent.trim(); renderAll(); }
+      } else if (pvcIdx !== null) {
+        const inp = ch.closest('.service-item')?.querySelector('.pvc-part-markup');
+        if (inp) { inp.value = ch.textContent.trim(); renderAll(); }
+      }
+    });
+  });
+
+  // Глобальные input-события
+  document.addEventListener('input', e => {
+    if (e.target.id === 'year') { formatYearInput(e.target); renderAll(); scheduleSave(); return; }
+    if (e.target.id && e.target.id.includes('salary')) e.target.dataset.manuallySet = 'true';
+    if (e.target.matches('input[type="number"]')) {
+      const val = parseFloat(e.target.value);
+      if (!isNaN(val) && val < 0) e.target.value = '';
+    }
+    if (e.target.matches('input, select')) { renderAll(); scheduleSave(); }
+  });
+
+  document.addEventListener('blur', e => {
+    if (e.target.matches('input[type="number"]') && e.target.value !== '') {
+      formatNumberInput(e.target); renderAll(); scheduleSave();
+    }
+  }, true);
+}
+
+// ── Точка входа ──────────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
+  const hasAccess = await initAuthAndAccess();
+  if (!hasAccess) return;
+
+  initPageState();
+  initUI();
+  initDataSources();
+  initRender();
+  initBindings();
+
+  await loadCalculationFromUrl();
+});
+
+  
+// Экспортируем функции в глобальный scope для inline handlers
+window.fillModels = fillModels;
+window.onBrandChange = onBrandChange;
+window.onModelChange = onModelChange;
+window.renderAll = renderAll;
+
+</script>
