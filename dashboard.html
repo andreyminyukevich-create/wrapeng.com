@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Keep1R CRM — Главная</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -15,294 +15,431 @@
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  background: #f0f4fb;
+  background: #eef2f9;
   color: #0f172a;
-  min-height: 100vh;
+  min-height: 100svh;
 }
 
 .container {
-  max-width: 1400px;
+  max-width: 1360px;
   margin: 0 auto;
-  padding: 28px 24px;
+  padding: 28px 24px 48px;
 }
 
-/* ── Стат-карточки ────────────────────────── */
+/* ── Шапка страницы ─────────────────────────────── */
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.page-greeting {
+  display: flex;
+  flex-direction: column;
+}
+
+.studio-name {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.3px;
+  line-height: 1.2;
+}
+
+.studio-sub {
+  font-size: 0.78rem;
+  color: #64748b;
+  margin-top: 2px;
+  font-weight: 500;
+}
+
+.btn-logout {
+  padding: 8px 16px;
+  background: #fff;
+  color: #64748b;
+  border: 1px solid rgba(15,23,42,0.10);
+  border-radius: 9px;
+  font-size: 0.81rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.btn-logout:hover {
+  background: #fee2e2;
+  color: #dc2626;
+  border-color: rgba(220,38,38,0.2);
+}
+
+/* ── Стат-карточки ──────────────────────────────── */
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  margin-bottom: 24px;
+  gap: 14px;
+  margin-bottom: 20px;
 }
 
 .stat-card {
   background: #fff;
-  border-radius: 14px;
-  border: 1px solid var(--border, rgba(15,23,42,0.08));
-  padding: 26px 28px;
+  border-radius: 16px;
+  border: 1px solid rgba(15,23,42,0.07);
+  padding: 22px 20px 18px;
   position: relative;
   overflow: hidden;
-  transition: box-shadow 0.2s, transform 0.2s;
+  transition: box-shadow 0.18s, transform 0.18s;
   text-decoration: none;
   display: block;
   color: inherit;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
 }
-.stat-card::before {
+
+.stat-card::after {
   content: '';
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 3px;
-  background: linear-gradient(90deg, var(--primary, #2563eb), #7c3aed);
+  background: var(--accent, #2563eb);
+  opacity: 0.7;
 }
+
 .stat-card:hover {
   box-shadow: 0 6px 24px rgba(37,99,235,0.10);
   transform: translateY(-2px);
 }
-.stat-icon { font-size: 1.8rem; margin-bottom: 12px; line-height: 1; }
-.stat-label {
-  font-size: 0.78rem;
-  color: #64748b;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-  margin-bottom: 8px;
+
+.stat-icon {
+  font-size: 1.5rem;
+  line-height: 1;
+  margin-bottom: 14px;
+  display: block;
 }
+
+.stat-label {
+  font-size: 0.7rem;
+  color: #64748b;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 6px;
+}
+
 .stat-value {
-  font-size: 2.1rem;
+  font-size: 1.75rem;
   font-weight: 800;
   color: #0f172a;
   line-height: 1;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
+  letter-spacing: -0.5px;
 }
+
 .stat-change {
-  font-size: 0.82rem;
-  color: var(--success, #059669);
+  font-size: 0.75rem;
+  color: #64748b;
   font-weight: 500;
 }
 
-/* ── Блок-карточка ────────────────────────── */
+/* Цветовые акценты карточек */
+.stat-card:nth-child(1) { --accent: #2563eb; }
+.stat-card:nth-child(2) { --accent: #059669; }
+.stat-card:nth-child(3) { --accent: #7c3aed; }
+.stat-card:nth-child(4) { --accent: #d97706; }
+
+/* ── Карточка-контейнер ─────────────────────────── */
 .card {
   background: #fff;
-  border-radius: 14px;
-  border: 1px solid var(--border, rgba(15,23,42,0.08));
-  padding: 22px 24px;
-  margin-bottom: 20px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  border-radius: 16px;
+  border: 1px solid rgba(15,23,42,0.07);
+  padding: 20px 22px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
 }
+
 .card-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 18px;
-}
-.card-title {
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: var(--text, #0f172a);
-}
-.card-link {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--primary, #2563eb);
-  text-decoration: none;
-  padding: 5px 12px;
-  border-radius: 7px;
-  border: 1px solid rgba(37,99,235,0.3);
-  transition: all 0.15s;
-}
-.card-link:hover {
-  background: var(--primary, #2563eb);
-  color: #fff;
-  border-color: var(--primary, #2563eb);
+  margin-bottom: 16px;
 }
 
-/* ── Поиск ────────────────────────────────── */
-.search-wrap { margin-bottom: 20px; }
+.card-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.1px;
+}
+
+.card-link {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #2563eb;
+  text-decoration: none;
+  padding: 5px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(37,99,235,0.25);
+  background: rgba(37,99,235,0.04);
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.card-link:hover {
+  background: #2563eb;
+  color: #fff;
+  border-color: #2563eb;
+}
+
+/* ── Поиск ──────────────────────────────────────── */
+.search-wrap { margin-bottom: 16px; }
+
 .search-input {
   width: 100%;
-  max-width: 420px;
+  max-width: 400px;
   padding: 10px 16px;
-  border: 1px solid var(--border, rgba(15,23,42,0.12));
+  border: 1px solid rgba(15,23,42,0.10);
   border-radius: 10px;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   font-family: inherit;
-  color: var(--text, #0f172a);
+  color: #0f172a;
   background: #fff;
   outline: none;
   transition: border-color 0.15s, box-shadow 0.15s;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.03);
 }
+.search-input::placeholder { color: #94a3b8; }
 .search-input:focus {
-  border-color: var(--primary, #2563eb);
+  border-color: #2563eb;
   box-shadow: 0 0 0 3px rgba(37,99,235,0.08);
 }
 
-/* ── Мини-канбан ──────────────────────────── */
+/* ── Мини-канбан ────────────────────────────────── */
 .mini-kanban {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 12px;
+  gap: 10px;
 }
+
 .mini-col { min-width: 0; }
+
 .mini-col-header {
   display: flex;
   align-items: center;
   gap: 6px;
   margin-bottom: 8px;
-  font-size: 0.78rem;
+  font-size: 0.7rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.06em;
+  color: #64748b;
+  padding-bottom: 8px;
+  border-bottom: 2px solid rgba(15,23,42,0.06);
 }
-.mini-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+.mini-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
 .mini-cards { display: flex; flex-direction: column; gap: 5px; }
 
 .mini-card {
-  background: var(--bg-input, #f1f5ff);
-  border: 1px solid var(--border, rgba(15,23,42,0.08));
-  border-radius: 8px;
-  padding: 10px 12px;
+  background: #f8fafc;
+  border: 1px solid rgba(15,23,42,0.07);
+  border-radius: 10px;
+  padding: 10px 11px;
   cursor: pointer;
   transition: all 0.15s;
 }
 .mini-card:hover {
-  border-color: var(--primary, #2563eb);
-  box-shadow: 0 2px 8px rgba(37,99,235,0.08);
+  border-color: #2563eb;
+  background: #fff;
+  box-shadow: 0 2px 10px rgba(37,99,235,0.08);
+  transform: translateY(-1px);
 }
+
 .mini-card-car {
-  font-size: 0.88rem;
+  font-size: 0.82rem;
   font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  color: var(--text, #0f172a);
+  color: #0f172a;
   margin-bottom: 3px;
 }
-.mini-card-price { font-size: 0.82rem; color: var(--success, #059669); font-weight: 700; }
+
+.mini-card-price {
+  font-size: 0.78rem;
+  color: #059669;
+  font-weight: 700;
+}
 
 .mini-col-more {
-  font-size: 0.7rem;
-  color: var(--text-muted, #64748b);
+  font-size: 0.68rem;
+  color: #94a3b8;
   text-align: center;
   padding: 5px;
   cursor: pointer;
   border-radius: 7px;
-  border: 1px dashed var(--border, rgba(15,23,42,0.12));
+  border: 1px dashed rgba(15,23,42,0.1);
   margin-top: 2px;
   transition: all 0.15s;
 }
-.mini-col-more:hover { color: var(--primary, #2563eb); border-color: var(--primary, #2563eb); }
-.mini-col-empty { font-size: 0.7rem; color: var(--text-muted, #64748b); text-align: center; padding: 14px 4px; opacity: 0.5; }
+.mini-col-more:hover {
+  color: #2563eb;
+  border-color: rgba(37,99,235,0.3);
+  background: rgba(37,99,235,0.03);
+}
+
+.mini-col-empty {
+  font-size: 0.7rem;
+  color: #94a3b8;
+  text-align: center;
+  padding: 16px 4px;
+}
 
 /* Цвета колонок */
 .mini-col-new         .mini-dot { background: #94a3b8; }
-.mini-col-new         .mini-col-header { color: #64748b; }
+.mini-col-new         .mini-col-header { color: #64748b; border-bottom-color: #94a3b8; }
 .mini-col-scheduled   .mini-dot { background: #f59e0b; }
-.mini-col-scheduled   .mini-col-header { color: #92400e; }
-.mini-col-in_progress .mini-dot { background: #3b82f6; }
-.mini-col-in_progress .mini-col-header { color: #1e40af; }
-.mini-col-done        .mini-dot { background: #8b5cf6; }
-.mini-col-done        .mini-col-header { color: #5b21b6; }
-.mini-col-delivered   .mini-dot { background: #10b981; }
-.mini-col-delivered   .mini-col-header { color: #065f46; }
+.mini-col-scheduled   .mini-col-header { color: #92400e; border-bottom-color: #f59e0b; }
+.mini-col-in_progress .mini-dot { background: #2563eb; }
+.mini-col-in_progress .mini-col-header { color: #1e40af; border-bottom-color: #2563eb; }
+.mini-col-done        .mini-dot { background: #7c3aed; }
+.mini-col-done        .mini-col-header { color: #5b21b6; border-bottom-color: #7c3aed; }
+.mini-col-delivered   .mini-dot { background: #059669; }
+.mini-col-delivered   .mini-col-header { color: #065f46; border-bottom-color: #059669; }
 
-/* ── Результаты поиска ────────────────────── */
+/* ── Результаты поиска ──────────────────────────── */
 .calc-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
 }
+
 .calc-card {
-  background: var(--bg-primary, #f0f4fb);
-  border: 1px solid var(--border, rgba(15,23,42,0.08));
+  background: #f8fafc;
+  border: 1px solid rgba(15,23,42,0.07);
   border-radius: 12px;
-  padding: 16px;
+  padding: 15px;
   cursor: pointer;
   transition: all 0.15s;
 }
-.calc-card:hover { border-color: var(--primary, #2563eb); box-shadow: 0 4px 16px rgba(37,99,235,0.08); }
-.calc-card h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: 5px; }
-.calc-price { font-size: 1.2rem; font-weight: 800; color: var(--success, #059669); margin-bottom: 12px; }
-.calc-actions { display: flex; gap: 8px; }
+.calc-card:hover {
+  border-color: #2563eb;
+  box-shadow: 0 4px 16px rgba(37,99,235,0.08);
+  transform: translateY(-1px);
+}
+.calc-card h3 {
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+  color: #0f172a;
+}
+.calc-price {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #059669;
+  margin-bottom: 12px;
+  letter-spacing: -0.3px;
+}
 
+.calc-actions { display: flex; gap: 7px; }
+
+/* ── Кнопки ─────────────────────────────────────── */
 .btn {
   display: inline-flex; align-items: center; gap: 5px;
-  padding: 7px 13px; border-radius: 8px;
-  font-size: 0.8rem; font-weight: 600;
+  padding: 7px 12px; border-radius: 8px;
+  font-size: 0.78rem; font-weight: 700;
   font-family: inherit; cursor: pointer;
   border: none; transition: all 0.15s; text-decoration: none;
 }
-.btn-primary { background: var(--primary, #2563eb); color: #fff; }
-.btn-primary:hover { background: var(--primary-dark, #1d4ed8); }
-.btn-success { background: var(--success-bg, rgba(5,150,105,0.1)); color: var(--success, #059669); border: 1px solid rgba(5,150,105,0.25); }
-.btn-success:hover { background: var(--success, #059669); color: #fff; }
-
-/* ── Состояния ────────────────────────────── */
-.loading { text-align: center; padding: 40px; color: var(--text-muted, #64748b); font-size: 0.9rem; }
-.empty-state { text-align: center; padding: 50px 20px; color: var(--text-muted, #64748b); }
-.empty-state-icon { font-size: 2.5rem; margin-bottom: 10px; opacity: 0.4; }
-.empty-state h3 { font-size: 1rem; color: var(--text, #0f172a); }
-
-/* ── Footer ───────────────────────────────── */
-.page-footer {
-  margin-top: 40px;
-  padding: 24px;
-  text-align: center;
-  border-top: 1px solid var(--border, rgba(15,23,42,0.08));
+.btn-primary { background: #2563eb; color: #fff; }
+.btn-primary:hover { background: #1d4ed8; }
+.btn-success {
+  background: rgba(5,150,105,0.08);
+  color: #059669;
+  border: 1px solid rgba(5,150,105,0.2);
 }
-.footer-desc { font-size: 0.8rem; color: var(--text-muted, #64748b); max-width: 540px; margin: 0 auto; line-height: 1.6; }
+.btn-success:hover { background: #059669; color: #fff; }
 
-/* ── Адаптив ──────────────────────────────── */
-@media (max-width: 1100px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+/* ── Состояния ──────────────────────────────────── */
+.loading {
+  text-align: center;
+  padding: 40px;
+  color: #64748b;
+  font-size: 0.88rem;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 48px 20px;
+  color: #64748b;
+}
+.empty-state-icon {
+  font-size: 2.2rem;
+  margin-bottom: 10px;
+  opacity: 0.35;
+}
+.empty-state h3 {
+  font-size: 0.95rem;
+  color: #0f172a;
+  font-weight: 700;
+}
+
+/* ── Адаптив ────────────────────────────────────── */
+@media (max-width: 1100px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+}
 @media (max-width: 768px) {
-  .container { padding: 16px 14px; }
+  .container { padding: 16px 14px 40px; }
   .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-  .mini-kanban { grid-template-columns: repeat(3, 1fr); }
   .stat-value { font-size: 1.4rem; }
+  .mini-kanban { grid-template-columns: repeat(3, 1fr); }
 }
 @media (max-width: 480px) {
   .mini-kanban { grid-template-columns: repeat(2, 1fr); }
   .search-input { max-width: 100%; }
+  .stats-grid { gap: 8px; }
 }
-
 </style>
 </head>
 <body>
 
 <div class="container">
 
-  <!-- Шапка с приветствием и кнопкой выйти -->
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
-    <div>
-      <div style="font-size:1.2rem;font-weight:800;color:#0f172a" id="studioNameHeader">Загрузка...</div>
-      <div style="font-size:0.8rem;color:#64748b;margin-top:2px" id="studioSubheader">Keep1R CRM</div>
+  <!-- Шапка -->
+  <div class="page-header">
+    <div class="page-greeting">
+      <div class="studio-name" id="studioNameHeader">Загрузка...</div>
+      <div class="studio-sub" id="studioSubheader">Keep1R CRM</div>
     </div>
-    <button onclick="logout()" style="padding:7px 16px;background:#f1f5ff;color:#64748b;border:1.5px solid rgba(15,23,42,0.1);border-radius:8px;font-size:0.82rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.15s" onmouseover="this.style.background='#fee2e2';this.style.color='#dc2626';this.style.borderColor='rgba(220,38,38,0.2)'" onmouseout="this.style.background='#f1f5ff';this.style.color='#64748b';this.style.borderColor='rgba(15,23,42,0.1)'">
-      Выйти →
-    </button>
+    <button class="btn-logout" onclick="logout()">Выйти →</button>
   </div>
 
   <!-- Стат-карточки -->
-  <div class="stats-grid">
+  <div class="stats-grid" id="statsGrid">
     <a class="stat-card" href="analytics.html">
-      <div class="stat-icon">🚗</div>
+      <span class="stat-icon">🚗</span>
       <div class="stat-label">Расчётов за месяц</div>
       <div class="stat-value" id="statMonthTotal">—</div>
       <div class="stat-change" id="statMonthTotalChange">Текущий месяц</div>
     </a>
     <a class="stat-card" href="analytics.html">
-      <div class="stat-icon">💰</div>
+      <span class="stat-icon">💰</span>
       <div class="stat-label">Сумма расчётов</div>
       <div class="stat-value" id="statMonthSum">—</div>
       <div class="stat-change">Текущий месяц</div>
     </a>
     <a class="stat-card" href="analytics.html">
-      <div class="stat-icon">✅</div>
+      <span class="stat-icon">✅</span>
       <div class="stat-label">Завершённые работы</div>
       <div class="stat-value" id="statMonthDone">—</div>
       <div class="stat-change" id="statMonthDoneCount">0 машин</div>
     </a>
     <a class="stat-card" href="analytics.html">
-      <div class="stat-icon">📊</div>
+      <span class="stat-icon">📊</span>
       <div class="stat-label">Средний чек</div>
       <div class="stat-value" id="statMonthAvg">—</div>
       <div class="stat-change">За месяц</div>
@@ -342,26 +479,19 @@ body {
 
 </div>
 
-<footer class="page-footer">
-  <div class="footer-desc">
-    <strong>Главная</strong> — сводка за текущий месяц. Карточки кликабельны и ведут в Аналитику.
-    Поиск позволяет быстро найти любой расчёт по названию машины.
-  </div>
-</footer>
-
+<script src="footer.js"></script>
 <script>
 (function() {
 'use strict';
 
-const SUPABASE_URL     = 'https://hdghijgrrnzmntistdvw.supabase.co';
+const SUPABASE_URL      = 'https://hdghijgrrnzmntistdvw.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkZ2hpamdycm56bW50aXN0ZHZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMzMyNzksImV4cCI6MjA3NTYwOTI3OX0.D9EDTmVrFRVp0B8_5tCJM29gbFdtadsom0Ihsf4uQ8Q';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-window._crmSb = sb; // для nav.js checkSubscription
+window._crmSb = sb;
 
-let currentUser        = null;
-let allCalcsForSearch  = [];
+let currentUser       = null;
+let allCalcsForSearch = [];
 
-// ── Auth ──────────────────────────────────────
 async function checkAuth() {
   const { data: { session } } = await sb.auth.getSession();
   if (!session) { window.location.href = 'welcome.html'; return false; }
@@ -374,14 +504,10 @@ window.logout = async function() {
   window.location.href = 'welcome.html';
 };
 
-// ── Формат числа ──────────────────────────────
 function fmt(n) {
   return new Intl.NumberFormat('ru-RU', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(n || 0);
 }
 
-// ── Статистика ────────────────────────────────
-
-// Нормализация статуса (draft/null → new)
 function normalizeStatus(status) {
   if (!status || status === '' || status === 'draft' || status === 'pending') return 'new';
   return status;
@@ -396,15 +522,14 @@ function updateStats(calculations) {
   const doneSum    = done.reduce((a, c) => a + (c.final_price || c.total_price || 0), 0);
   const avg        = total > 0 ? sum / total : 0;
 
-  document.getElementById('statMonthTotal').textContent      = total;
-  document.getElementById('statMonthSum').textContent        = fmt(sum) + ' ₽';
-  document.getElementById('statMonthDone').textContent       = fmt(doneSum) + ' ₽';
-  document.getElementById('statMonthAvg').textContent        = fmt(avg) + ' ₽';
-  document.getElementById('statMonthDoneCount').textContent  = done.length + ' машин';
+  document.getElementById('statMonthTotal').textContent     = total;
+  document.getElementById('statMonthSum').textContent       = fmt(sum) + ' ₽';
+  document.getElementById('statMonthDone').textContent      = fmt(doneSum) + ' ₽';
+  document.getElementById('statMonthAvg').textContent       = fmt(avg) + ' ₽';
+  document.getElementById('statMonthDoneCount').textContent = done.length + ' машин';
   document.getElementById('statMonthTotalChange').textContent = 'Текущий месяц';
 }
 
-// ── Мини-канбан ───────────────────────────────
 const MINI_COLS = [
   { key: 'new',         label: 'Расчёт',    icon: '📋' },
   { key: 'scheduled',   label: 'Заезд',     icon: '📅' },
@@ -459,7 +584,6 @@ async function loadMiniKanban(studioId) {
   container.innerHTML = html;
 }
 
-// ── Поиск ─────────────────────────────────────
 let searchTimeout;
 
 window.handleSearch = function() {
@@ -495,46 +619,39 @@ window.handleSearch = function() {
   }, 300);
 };
 
-
-// ── Дашборд-дразнилка для неоплативших ────────────────────────
 function showLockedDashboard() {
-  // Стат карточки — замазываем цифры
   const fakeStats = [
-    { icon: '🧮', label: 'Расчётов за месяц', value: '██', change: '+██%', color: '#2563eb' },
-    { icon: '💰', label: 'Выручка за месяц',  value: '███ ███ ₽', change: '+██%', color: '#059669' },
-    { icon: '🔧', label: 'В работе сейчас',   value: '██', change: '', color: '#d97706' },
-    { icon: '✅', label: 'Выдано за месяц',   value: '██', change: '+██%', color: '#7c3aed' },
+    { icon: '🚗', label: 'Расчётов за месяц', value: '██', change: '+██%' },
+    { icon: '💰', label: 'Сумма расчётов',     value: '███ ███ ₽', change: '+██%' },
+    { icon: '✅', label: 'Завершённые работы', value: '██', change: '' },
+    { icon: '📊', label: 'Средний чек',        value: '██ ██ ₽', change: '+██%' },
   ];
 
   const grid = document.getElementById('statsGrid');
   if (grid) {
     grid.innerHTML = fakeStats.map(s => `
-      <div class="stat-card" style="cursor:default" title="Оформите подписку для просмотра">
-        <div class="stat-icon" style="color:${s.color}">${s.icon}</div>
+      <div class="stat-card" style="cursor:default">
+        <span class="stat-icon">${s.icon}</span>
         <div class="stat-label">${s.label}</div>
-        <div class="stat-value" style="filter:blur(4px);user-select:none">${s.value}</div>
+        <div class="stat-value" style="filter:blur(5px);user-select:none">${s.value}</div>
         ${s.change ? `<div class="stat-change" style="filter:blur(4px);user-select:none">${s.change}</div>` : ''}
-      </div>
-    `).join('');
+      </div>`).join('');
   }
 
-  // Канбан — заглушка
   const kanban = document.getElementById('miniKanban');
   if (kanban) {
     kanban.innerHTML = `
-      <div style="text-align:center;padding:32px 16px;color:#94a3b8">
+      <div style="grid-column:1/-1;text-align:center;padding:32px 16px;color:#94a3b8">
         <div style="font-size:2rem;margin-bottom:10px">📋</div>
-        <div style="font-size:0.9rem;font-weight:600;color:#64748b;margin-bottom:4px">Здесь будут ваши заказы</div>
+        <div style="font-size:0.88rem;font-weight:600;color:#64748b;margin-bottom:4px">Здесь будут ваши заказы</div>
         <div style="font-size:0.8rem">Оформите подписку, чтобы увидеть доску</div>
       </div>`;
   }
 
-  // Поиск — отключаем
   const search = document.getElementById('searchInput');
   if (search) { search.disabled = true; search.placeholder = '🔒 Доступно после оплаты'; }
 }
 
-// ── Init ──────────────────────────────────────
 async function init() {
   initNav();
   if (!await checkAuth()) return;
@@ -554,14 +671,12 @@ async function init() {
 
   const studioId = member.studio_id;
 
-  // Показываем название студии
   const { data: studioInfo } = await sb.from('studios').select('name').eq('id', studioId).single();
   if (studioInfo) {
     document.getElementById('studioNameHeader').textContent = studioInfo.name;
-    document.getElementById('studioSubheader').textContent = 'Keep1R CRM';
+    document.getElementById('studioSubheader').textContent  = 'Keep1R CRM';
   }
 
-  // Проверка подписки
   const subStatus = await checkSubscription(studioId);
   if (subStatus === 'expired' || subStatus === 'none') {
     showPaywall(subStatus === 'expired');
@@ -569,7 +684,6 @@ async function init() {
     return;
   }
 
-  // Активна или триал — грузим данные
   const { data: calcs } = await sb
     .from('calculations')
     .select('id, car_name, total_price, final_price, status, work_assigned, created_at')
@@ -586,6 +700,5 @@ document.addEventListener('DOMContentLoaded', init);
 })();
 </script>
 
-<script src="footer.js"></script>
 </body>
 </html>
