@@ -3,249 +3,357 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Keep1R CRM — Админ</title>
+<title>Keep1R CRM — Администрирование</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <link rel="stylesheet" href="nav.css">
 <script src="nav.js"></script>
 <style>
 :root {
-  --bg: #f0f4fb;
-  --card: #ffffff;
-  --border: rgba(15,23,42,0.09);
-  --text: #0f172a;
-  --muted: #64748b;
-  --primary: #2563eb;
-  --success: #059669;
-  --warning: #d97706;
-  --danger: #dc2626;
-  --purple: #7c3aed;
-  --radius: 12px;
+  --font:       -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
+  --bg:         #eef2f9;
+  --surface:    #ffffff;
+  --border:     rgba(15,23,42,0.08);
+  --text:       #0f172a;
+  --muted:      #64748b;
+  --dim:        #94a3b8;
+  --primary:    #2563eb;
+  --primary-dk: #1d4ed8;
+  --success:    #059669;
+  --warning:    #d97706;
+  --danger:     #dc2626;
+  --purple:     #7c3aed;
+  --radius:     14px;
+  --radius-sm:  9px;
+  --shadow:     0 1px 3px rgba(0,0,0,0.04), 0 4px 14px rgba(0,0,0,0.06);
+  --shadow-lg:  0 8px 40px rgba(0,0,0,0.14);
 }
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: var(--bg); color: var(--text); font-family: inherit; }
 
-.page { max-width: 1100px; margin: 0 auto; padding: 28px 20px; }
+body {
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100svh;
+}
 
-/* ── Заголовок страницы ── */
+.page {
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 24px 20px 48px;
+}
+
+/* ── Заголовок ───────────────────────────────────── */
 .page-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 10px;
 }
 .page-title {
-  font-size: 1.4rem;
+  font-size: 1.2rem;
   font-weight: 800;
   letter-spacing: -0.3px;
 }
 .page-title span { color: var(--primary); }
 
-/* ── Табы ── */
+/* ── Стат-карточки ───────────────────────────────── */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  box-shadow: var(--shadow);
+}
+.stat-label {
+  font-size: 0.67rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin-bottom: 5px;
+}
+.stat-value {
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: -0.8px;
+  line-height: 1;
+}
+.stat-sub { font-size: 0.7rem; color: var(--muted); margin-top: 3px; }
+
+/* ── Табы ────────────────────────────────────────── */
 .tabs {
   display: flex;
-  gap: 4px;
-  background: var(--card);
+  gap: 3px;
+  background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 4px;
-  margin-bottom: 24px;
+  border-radius: var(--radius-sm);
+  padding: 3px;
+  margin-bottom: 18px;
   width: fit-content;
+  max-width: 100%;
+  flex-wrap: wrap;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.03);
 }
 .tab-btn {
-  padding: 7px 18px;
+  padding: 7px 15px;
   border-radius: 7px;
-  font-size: 0.85rem;
-  font-weight: 600;
+  font-size: 0.8rem;
+  font-weight: 700;
   cursor: pointer;
   border: none;
   background: transparent;
   color: var(--muted);
-  font-family: inherit;
+  font-family: var(--font);
   transition: all 0.15s;
   white-space: nowrap;
 }
-.tab-btn.active {
-  background: var(--primary);
-  color: #fff;
-}
+.tab-btn:hover { background: var(--bg); color: var(--text); }
+.tab-btn.active { background: var(--primary); color: #fff; box-shadow: 0 2px 8px rgba(37,99,235,0.22); }
 
-/* ── Карточка ── */
+/* ── Карточка ────────────────────────────────────── */
 .card {
-  background: var(--card);
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   overflow: hidden;
-  margin-bottom: 20px;
-  box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+  margin-bottom: 16px;
+  box-shadow: var(--shadow);
 }
 .card-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 20px;
+  padding: 15px 20px;
   border-bottom: 1px solid var(--border);
   flex-wrap: wrap;
   gap: 10px;
 }
-.card-head h2 { font-size: 0.95rem; font-weight: 700; }
+.card-head h2 { font-size: 0.9rem; font-weight: 700; }
 
-/* ── Таблица ── */
-.table-wrap { overflow-x: auto; }
-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+/* ── Таблица ─────────────────────────────────────── */
+.table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+table { width: 100%; border-collapse: collapse; font-size: 0.82rem; min-width: 540px; }
 thead th {
-  background: #f8faff;
-  padding: 10px 16px;
+  background: var(--bg);
+  padding: 9px 14px;
   text-align: left;
-  font-size: 0.75rem;
+  font-size: 0.67rem;
   font-weight: 700;
   color: var(--muted);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
   border-bottom: 1px solid var(--border);
   white-space: nowrap;
 }
 tbody td {
-  padding: 12px 16px;
+  padding: 11px 14px;
   border-bottom: 1px solid var(--border);
   vertical-align: middle;
 }
 tbody tr:last-child td { border-bottom: none; }
-tbody tr:hover { background: #f8faff; }
+tbody tr:hover { background: #f8fafc; }
 
-.studio-name { font-weight: 700; font-size: 0.88rem; }
-.studio-email { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+.studio-name  { font-weight: 700; font-size: 0.85rem; }
+.studio-email { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
 
-/* ── Бейджи подписки ── */
+/* ── Бейджи ──────────────────────────────────────── */
 .badge {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 3px 10px;
+  gap: 3px;
+  padding: 2px 8px;
   border-radius: 20px;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 700;
   white-space: nowrap;
 }
-.badge-active  { background: rgba(5,150,105,0.1);  color: var(--success); }
-.badge-trial   { background: rgba(37,99,235,0.1);   color: var(--primary); }
-.badge-expired { background: rgba(220,38,38,0.1);   color: var(--danger);  }
-.badge-ref     { background: rgba(124,58,237,0.1);  color: var(--purple);  }
-.badge-pending { background: rgba(217,119,6,0.1);   color: var(--warning); }
-.badge-paid    { background: rgba(5,150,105,0.1);   color: var(--success); }
+.badge-active  { background: rgba(5,150,105,0.10);  color: var(--success); border: 1px solid rgba(5,150,105,0.2); }
+.badge-trial   { background: rgba(37,99,235,0.10);   color: var(--primary); border: 1px solid rgba(37,99,235,0.2); }
+.badge-expired { background: rgba(220,38,38,0.08);   color: var(--danger);  border: 1px solid rgba(220,38,38,0.15); }
+.badge-ref     { background: rgba(124,58,237,0.08);  color: var(--purple);  border: 1px solid rgba(124,58,237,0.15); }
+.badge-pending { background: rgba(217,119,6,0.08);   color: var(--warning); border: 1px solid rgba(217,119,6,0.2); }
+.badge-paid    { background: rgba(5,150,105,0.10);   color: var(--success); border: 1px solid rgba(5,150,105,0.2); }
 
-/* ── Кнопки действий ── */
+/* ── Кнопки ──────────────────────────────────────── */
 .actions { display: flex; gap: 5px; flex-wrap: wrap; }
 .btn {
-  padding: 5px 12px;
+  padding: 6px 12px;
   border-radius: 7px;
-  font-size: 0.78rem;
-  font-weight: 600;
+  font-size: 0.75rem;
+  font-weight: 700;
   cursor: pointer;
   border: none;
-  font-family: inherit;
+  font-family: var(--font);
   transition: all 0.15s;
   white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
-.btn-primary  { background: var(--primary); color: #fff; }
-.btn-primary:hover { background: #1d4ed8; }
-.btn-success  { background: var(--success); color: #fff; }
-.btn-success:hover { background: #047857; }
-.btn-warning  { background: rgba(217,119,6,0.12); color: var(--warning); border: 1px solid rgba(217,119,6,0.25); }
-.btn-warning:hover { background: var(--warning); color: #fff; }
-.btn-danger   { background: rgba(220,38,38,0.08); color: var(--danger); border: 1px solid rgba(220,38,38,0.2); }
-.btn-danger:hover { background: var(--danger); color: #fff; }
-.btn-ghost    { background: #f1f5ff; color: var(--primary); border: 1px solid rgba(37,99,235,0.15); }
-.btn-ghost:hover { background: var(--primary); color: #fff; }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-primary  { background: var(--primary); color: #fff; }
+.btn-primary:hover  { background: var(--primary-dk); }
+.btn-success  { background: var(--success); color: #fff; }
+.btn-success:hover  { background: #047857; }
+.btn-warning  { background: rgba(217,119,6,0.10); color: var(--warning); border: 1px solid rgba(217,119,6,0.2); }
+.btn-warning:hover  { background: var(--warning); color: #fff; }
+.btn-danger   { background: rgba(220,38,38,0.07); color: var(--danger); border: 1px solid rgba(220,38,38,0.15); }
+.btn-danger:hover   { background: var(--danger); color: #fff; }
+.btn-ghost    { background: rgba(37,99,235,0.06); color: var(--primary); border: 1px solid rgba(37,99,235,0.18); }
+.btn-ghost:hover    { background: var(--primary); color: #fff; }
+.btn-excel    { background: rgba(5,150,105,0.08); color: var(--success); border: 1px solid rgba(5,150,105,0.2); }
+.btn-excel:hover    { background: var(--success); color: #fff; }
+.btn-sm { padding: 4px 9px; font-size: 0.7rem; }
 
-/* ── Stat карточки ── */
-.stats-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 14px;
-  margin-bottom: 24px;
-}
-.stat-card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 18px 20px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
-}
-.stat-label { font-size: 0.75rem; color: var(--muted); font-weight: 600; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
-.stat-value { font-size: 1.8rem; font-weight: 800; letter-spacing: -1px; }
-.stat-sub   { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
-
-/* ── Реферальный код ── */
+/* ── Реф. код ────────────────────────────────────── */
 .ref-code {
   font-family: monospace;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 700;
-  background: #f1f5ff;
+  background: rgba(37,99,235,0.06);
   color: var(--primary);
-  padding: 3px 8px;
-  border-radius: 6px;
-  letter-spacing: 0.1em;
+  padding: 2px 7px;
+  border-radius: 5px;
+  letter-spacing: 0.08em;
+  border: 1px solid rgba(37,99,235,0.15);
 }
 
-.expires-text { font-size: 0.8rem; color: var(--muted); }
-.expires-soon { color: var(--warning); font-weight: 600; }
+.expires-text { font-size: 0.78rem; color: var(--muted); }
+.expires-soon { color: var(--warning); font-weight: 700; font-size: 0.78rem; }
 
-/* ── Пустое состояние ── */
+/* ── Пустое состояние ────────────────────────────── */
 .empty { text-align: center; padding: 40px; color: var(--muted); }
-.empty-icon { font-size: 2.5rem; margin-bottom: 10px; }
+.empty-icon { font-size: 2rem; margin-bottom: 8px; opacity: 0.35; }
 
-/* ── Модалка ── */
+/* ── Расчёты — тулбар ────────────────────────────── */
+.calcs-toolbar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.calcs-toolbar select,
+.calcs-toolbar input[type="text"] {
+  padding: 8px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+  font-family: var(--font);
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+}
+.calcs-toolbar select:focus,
+.calcs-toolbar input[type="text"]:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.08);
+}
+.calcs-toolbar input[type="text"] { min-width: 200px; }
+
+.calcs-stats {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+.calcs-stat-pill {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 14px;
+  text-align: center;
+}
+.calcs-stat-pill .s-label { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.06em; }
+.calcs-stat-pill .s-val   { font-size: 1rem; font-weight: 800; letter-spacing: -0.3px; }
+
+/* ── Work assigned checkbox ──────────────────────── */
+.work-check {
+  width: 16px; height: 16px;
+  accent-color: var(--success);
+  cursor: default;
+  pointer-events: none;
+}
+
+/* ── Модалки ─────────────────────────────────────── */
 .modal-overlay {
   display: none;
   position: fixed; inset: 0; z-index: 1000;
-  background: rgba(15,23,42,0.4);
-  backdrop-filter: blur(4px);
+  background: rgba(15,23,42,0.45);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
   align-items: center; justify-content: center;
   padding: 20px;
 }
-.modal-overlay.active { display: flex; }
-.modal {
-  background: #fff;
-  border-radius: 16px;
-  padding: 28px;
-  width: 100%;
-  max-width: 400px;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
-}
-.modal h3 { font-size: 1.1rem; font-weight: 800; margin-bottom: 16px; }
-.modal-actions { display: flex; gap: 8px; margin-top: 20px; }
-.modal-actions .btn { flex: 1; padding: 10px; font-size: 0.85rem; }
+.modal-overlay.active { display: flex; animation: fadein 0.15s ease; }
 
-/* ── Форма в модалке ── */
-.form-group { margin-bottom: 14px; }
-.form-group label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--muted); margin-bottom: 5px; }
+@keyframes fadein  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideup { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+.modal {
+  background: var(--surface);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  padding: 26px 28px 24px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: var(--shadow-lg);
+  animation: slideup 0.18s ease;
+}
+.modal h3 { font-size: 1rem; font-weight: 700; margin-bottom: 14px; letter-spacing: -0.2px; }
+.modal-actions { display: flex; gap: 8px; margin-top: 18px; }
+.modal-actions .btn { flex: 1; padding: 10px; font-size: 0.82rem; justify-content: center; }
+
+/* ── Форма ───────────────────────────────────────── */
+.form-group { margin-bottom: 12px; }
+.form-group label {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin-bottom: 5px;
+}
 .form-group select, .form-group input {
   width: 100%;
   padding: 9px 12px;
+  background: var(--bg);
   border: 1.5px solid var(--border);
   border-radius: 8px;
-  font-size: 0.88rem;
-  font-family: inherit;
+  font-size: 16px;
+  font-family: var(--font);
   color: var(--text);
   outline: none;
+  -webkit-appearance: none;
+  transition: border-color 0.15s;
 }
-.form-group select:focus, .form-group input:focus { border-color: var(--primary); }
-
-@media (max-width: 640px) {
-  .page { padding: 16px 14px; }
-  .actions { flex-direction: column; }
-  .btn { width: 100%; text-align: center; }
+.form-group select:focus, .form-group input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.08);
+  background: var(--surface);
 }
 
-/* Модал просмотра расчёта */
+/* ── Модал просмотра расчёта ─────────────────────── */
 #calcViewModal {
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(15,23,42,0.6);
+  background: rgba(15,23,42,0.5);
+  backdrop-filter: blur(5px);
   z-index: 9000;
   align-items: center;
   justify-content: center;
@@ -253,35 +361,94 @@ tbody tr:hover { background: #f8faff; }
 }
 #calcViewModal.active { display: flex; }
 #calcViewModal .modal-box {
-  background: #fff;
-  border-radius: 16px;
-  padding: 28px;
-  max-width: 700px;
+  background: var(--surface);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  padding: 26px 28px;
+  max-width: 680px;
   width: 100%;
-  max-height: 85vh;
+  max-height: 88svh;
   overflow-y: auto;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  box-shadow: var(--shadow-lg);
 }
-#calcViewModal h2 { font-size: 1.2rem; font-weight: 800; margin-bottom: 20px; color: #1e293b; }
-.calc-detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
-.calc-detail-item { background: #f8fafc; border-radius: 10px; padding: 12px 16px; }
-.calc-detail-label { font-size: 0.72rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
-.calc-detail-value { font-size: 1rem; font-weight: 700; color: #1e293b; }
-.calc-detail-value.accent { color: #7c3aed; }
-.calc-services-list { border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; margin-bottom: 16px; }
-.calc-services-list table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-.calc-services-list th { background: #f1f5f9; padding: 8px 12px; text-align: left; font-weight: 700; color: #64748b; font-size: 0.75rem; text-transform: uppercase; }
-.calc-services-list td { padding: 8px 12px; border-top: 1px solid #f1f5f9; }
+#calcViewModal h2 { font-size: 1.05rem; font-weight: 700; margin-bottom: 18px; letter-spacing: -0.2px; }
+
+.calc-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.calc-detail-item {
+  background: var(--bg);
+  border-radius: 10px;
+  padding: 11px 14px;
+  border: 1px solid var(--border);
+}
+.calc-detail-label {
+  font-size: 0.67rem;
+  color: var(--dim);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+  margin-bottom: 3px;
+}
+.calc-detail-value { font-size: 0.92rem; font-weight: 700; color: var(--text); }
+.calc-detail-value.accent { color: var(--purple); }
+
+.calc-services-list {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+.calc-services-list table { min-width: 0; }
+.calc-services-list th {
+  background: var(--bg);
+  padding: 8px 12px;
+  text-align: left;
+  font-weight: 700;
+  color: var(--muted);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.calc-services-list td { padding: 8px 12px; border-top: 1px solid var(--border); font-size: 0.82rem; }
+
+/* ── Адаптив ─────────────────────────────────────── */
+@media (max-width: 1100px) {
+  .stats-row { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 768px) {
+  .page { padding: 14px 12px 36px; }
+  .stats-row { grid-template-columns: repeat(2, 1fr); }
+  .tabs { width: 100%; }
+  .tab-btn { flex: 1; text-align: center; padding: 7px 8px; font-size: 0.72rem; }
+  .calcs-toolbar { flex-direction: column; align-items: stretch; }
+  .calcs-toolbar input[type="text"] { min-width: 0; width: 100%; }
+  .calcs-stats { margin-left: 0; }
+  .actions { flex-direction: row; }
+  .modal { padding: 20px 16px 18px; }
+  .modal-actions { flex-direction: column-reverse; }
+  .calc-detail-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 480px) {
+  .stats-row { grid-template-columns: 1fr 1fr; }
+  .stat-card:last-child { grid-column: 1 / -1; }
+}
 </style>
 </head>
 <body>
 
 <div class="page">
+
+  <!-- Заголовок -->
   <div class="page-header">
     <div class="page-title">⚙️ <span>Администрирование</span></div>
-    <div id="adminBadge" style="font-size:0.8rem;color:var(--muted)">Загрузка...</div>
+    <div id="adminBadge" style="font-size:0.78rem;color:var(--muted);font-weight:600">Загрузка...</div>
   </div>
 
+  <!-- Статистика -->
   <div class="stats-row" id="statsRow">
     <div class="stat-card"><div class="stat-label">Студий всего</div><div class="stat-value" id="sTotal">—</div></div>
     <div class="stat-card"><div class="stat-label">Активных</div><div class="stat-value" id="sActive" style="color:var(--success)">—</div></div>
@@ -290,6 +457,7 @@ tbody tr:hover { background: #f8faff; }
     <div class="stat-card"><div class="stat-label">Комиссий к выплате</div><div class="stat-value" id="sCommission" style="color:var(--purple)">—</div><div class="stat-sub">₽</div></div>
   </div>
 
+  <!-- Табы -->
   <div class="tabs">
     <button class="tab-btn" onclick="switchTab('requests')">📋 Заявки <span id="badgeRequests"></span></button>
     <button class="tab-btn" onclick="switchTab('trial')">🧪 На тесте <span id="badgeTrial"></span></button>
@@ -300,27 +468,39 @@ tbody tr:hover { background: #f8faff; }
     <button class="tab-btn" onclick="switchTab('blacklist')">🚫 Блок-лист</button>
   </div>
 
-  <!-- Таб: Студии -->
+  <!-- Таб: Заявки -->
   <div id="tab-requests" style="display:none">
-  <table class="table">
-    <thead><tr>
-      <th>Студия</th><th>Город / Телефон</th><th>Email</th>
-      <th>Дата заявки</th><th>Действие</th>
-    </tr></thead>
-    <tbody id="requestsBody"><tr><td colspan="5" style="text-align:center;color:#94a3b8">Загрузка...</td></tr></tbody>
-  </table>
-</div>
+    <div class="card">
+      <div class="card-head"><h2>Новые заявки</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Студия</th><th>Город / Телефон</th><th>Email</th>
+            <th>Дата заявки</th><th>Действие</th>
+          </tr></thead>
+          <tbody id="requestsBody"><tr><td colspan="5" style="text-align:center;color:var(--dim)">Загрузка...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 
-<div id="tab-trial" style="display:none">
-  <table class="table">
-    <thead><tr>
-      <th>Студия</th><th>Владелец</th><th>Реф. код</th><th>Триал истекает</th><th>Действия</th>
-    </tr></thead>
-    <tbody id="trialBody"><tr><td colspan="5" style="text-align:center;color:#94a3b8">Загрузка...</td></tr></tbody>
-  </table>
-</div>
+  <!-- Таб: На тесте -->
+  <div id="tab-trial" style="display:none">
+    <div class="card">
+      <div class="card-head"><h2>Студии на триале</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Студия</th><th>Владелец</th><th>Реф. код</th><th>Триал истекает</th><th>Действия</th>
+          </tr></thead>
+          <tbody id="trialBody"><tr><td colspan="5" style="text-align:center;color:var(--dim)">Загрузка...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 
-<div id="tab-studios">
+  <!-- Таб: Студии -->
+  <div id="tab-studios">
     <div class="card">
       <div class="card-head">
         <h2>Список студий</h2>
@@ -328,83 +508,25 @@ tbody tr:hover { background: #f8faff; }
       </div>
       <div class="table-wrap">
         <table>
-          <thead>
-            <tr>
-              <th>Студия</th>
-              <th>Реф. код</th>
-              <th>Подписка</th>
-              <th>Истекает</th>
-              <th>Действия</th>
-            </tr>
-          </thead>
-          <tbody id="studiosBody">
-            <tr><td colspan="5"><div class="empty"><div class="empty-icon">⏳</div>Загрузка...</div></td></tr>
-          </tbody>
+          <thead><tr>
+            <th>Студия</th><th>Реф. код</th><th>Подписка</th><th>Истекает</th><th>Действия</th>
+          </tr></thead>
+          <tbody id="studiosBody"><tr><td colspan="5"><div class="empty"><div class="empty-icon">⏳</div>Загрузка...</div></td></tr></tbody>
         </table>
       </div>
     </div>
   </div>
 
   <!-- Таб: Рефералы -->
-  <div id="tab-calcs" style="display:none">
-  <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
-    <select id="calcsStudioFilter" style="padding:8px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:0.9rem">
-      <option value="">Все студии</option>
-    </select>
-    <input type="text" id="calcsSearch" placeholder="🔍 Поиск по авто..." style="padding:8px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:0.9rem;min-width:200px">
-    <span id="calcsCount" style="color:#64748b;font-size:0.85rem"></span>
-    <div style="margin-left:auto;display:flex;gap:8px">
-      <div style="background:#f1f5f9;border-radius:8px;padding:8px 16px;text-align:center">
-        <div style="font-size:0.75rem;color:#64748b;text-transform:uppercase">Расчётов</div>
-        <div id="calcsStatTotal" style="font-weight:800;font-size:1.1rem">—</div>
-      </div>
-      <div style="background:#f1f5f9;border-radius:8px;padding:8px 16px;text-align:center">
-        <div style="font-size:0.75rem;color:#64748b;text-transform:uppercase">Сумма</div>
-        <div id="calcsStatSum" style="font-weight:800;font-size:1.1rem;color:#7c3aed">—</div>
-      </div>
-      <div style="background:#f1f5f9;border-radius:8px;padding:8px 16px;text-align:center">
-        <div style="font-size:0.75rem;color:#64748b;text-transform:uppercase">Средний чек</div>
-        <div id="calcsStatAvg" style="font-weight:800;font-size:1.1rem">—</div>
-      </div>
-    </div>
-  </div>
-  <table class="table">
-    <thead><tr>
-      <th>Студия</th><th>Авто</th><th>Сумма</th><th>Итог</th><th>Статус</th><th>Дата</th><th></th>
-    </tr></thead>
-    <tbody id="calcsBody"><tr><td colspan="6" style="text-align:center;color:#94a3b8">Загрузка...</td></tr></tbody>
-  </table>
-</div>
-
-<div id="tab-blacklist" style="display:none">
-  <div style="margin-bottom:16px;color:#64748b;font-size:0.9rem">
-    Заблокированные студии. Можно вернуть в заявки кнопкой "Разблокировать".
-  </div>
-  <table class="table">
-    <thead><tr>
-      <th>Студия</th><th>Причина</th><th>Заблокирована</th><th>Действия</th>
-    </tr></thead>
-    <tbody id="blacklistBody"><tr><td colspan="4" style="text-align:center;color:#94a3b8">Загрузка...</td></tr></tbody>
-  </table>
-</div>
-
-<div id="tab-referrals" style="display:none">
+  <div id="tab-referrals" style="display:none">
     <div class="card">
       <div class="card-head"><h2>Реферальные связи</h2></div>
       <div class="table-wrap">
         <table>
-          <thead>
-            <tr>
-              <th>Кто пригласил</th>
-              <th>Приглашённая студия</th>
-              <th>Реф. код</th>
-              <th>Дата регистрации</th>
-              <th>Статус подписки</th>
-            </tr>
-          </thead>
-          <tbody id="referralsBody">
-            <tr><td colspan="5"><div class="empty"><div class="empty-icon">⏳</div>Загрузка...</div></td></tr>
-          </tbody>
+          <thead><tr>
+            <th>Кто пригласил</th><th>Приглашённая студия</th><th>Реф. код</th><th>Дата регистрации</th><th>Статус подписки</th>
+          </tr></thead>
+          <tbody id="referralsBody"><tr><td colspan="5"><div class="empty"><div class="empty-icon">⏳</div>Загрузка...</div></td></tr></tbody>
         </table>
       </div>
     </div>
@@ -419,31 +541,82 @@ tbody tr:hover { background: #f8faff; }
       </div>
       <div class="table-wrap">
         <table>
-          <thead>
-            <tr>
-              <th>Реферрер</th>
-              <th>За студию</th>
-              <th>Сумма платежа</th>
-              <th>Комиссия 20%</th>
-              <th>Дата</th>
-              <th>Статус</th>
-              <th>Действие</th>
-            </tr>
-          </thead>
-          <tbody id="commissionsBody">
-            <tr><td colspan="7"><div class="empty"><div class="empty-icon">⏳</div>Загрузка...</div></td></tr>
-          </tbody>
+          <thead><tr>
+            <th>Реферрер</th><th>За студию</th><th>Сумма платежа</th><th>Комиссия 20%</th><th>Дата</th><th>Статус</th><th>Действие</th>
+          </tr></thead>
+          <tbody id="commissionsBody"><tr><td colspan="7"><div class="empty"><div class="empty-icon">⏳</div>Загрузка...</div></td></tr></tbody>
         </table>
       </div>
     </div>
   </div>
-</div>
+
+  <!-- Таб: Расчёты -->
+  <div id="tab-calcs" style="display:none">
+    <div class="calcs-toolbar">
+      <select id="calcsStudioFilter">
+        <option value="">Все студии</option>
+      </select>
+      <input type="text" id="calcsSearch" placeholder="🔍 Поиск по авто...">
+      <span id="calcsCount" style="color:var(--muted);font-size:0.78rem;font-weight:600;white-space:nowrap"></span>
+      <button class="btn btn-excel" id="btnExcelExport" onclick="exportToExcel()">📥 Скачать в Excel</button>
+      <div class="calcs-stats">
+        <div class="calcs-stat-pill">
+          <div class="s-label">Расчётов</div>
+          <div class="s-val" id="calcsStatTotal">—</div>
+        </div>
+        <div class="calcs-stat-pill">
+          <div class="s-label">Сумма</div>
+          <div class="s-val" id="calcsStatSum" style="color:var(--purple)">—</div>
+        </div>
+        <div class="calcs-stat-pill">
+          <div class="s-label">Средний чек</div>
+          <div class="s-val" id="calcsStatAvg">—</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Студия</th>
+            <th>Авто</th>
+            <th>Себест.</th>
+            <th>Итог КП</th>
+            <th>Выдано</th>
+            <th>Статус</th>
+            <th>В работу</th>
+            <th>Дата</th>
+            <th></th>
+          </tr></thead>
+          <tbody id="calcsBody"><tr><td colspan="9" style="text-align:center;color:var(--dim)">Загрузка...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Таб: Блок-лист -->
+  <div id="tab-blacklist" style="display:none">
+    <div class="card">
+      <div class="card-head"><h2>Заблокированные студии</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Студия</th><th>Причина</th><th>Заблокирована</th><th>Действия</th>
+          </tr></thead>
+          <tbody id="blacklistBody"><tr><td colspan="4" style="text-align:center;color:var(--dim)">Загрузка...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /.page -->
 
 <!-- Модалка: управление подпиской -->
 <div class="modal-overlay" id="subModal">
   <div class="modal">
     <h3 id="subModalTitle">Управление подпиской</h3>
-    <div style="font-size:0.85rem;color:var(--muted);margin-bottom:16px" id="subModalStudio"></div>
+    <div style="font-size:0.8rem;color:var(--muted);margin-bottom:14px" id="subModalStudio"></div>
     <div class="form-group">
       <label>Действие</label>
       <select id="subAction">
@@ -458,7 +631,7 @@ tbody tr:hover { background: #f8faff; }
       <label>Количество дней</label>
       <input type="number" id="customDays" placeholder="30" min="1" max="3650">
     </div>
-    <div id="subModalPayment" style="font-size:0.83rem;color:var(--muted);margin-bottom:4px"></div>
+    <div id="subModalPayment" style="font-size:0.78rem;color:var(--muted);margin-bottom:4px"></div>
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeModal('subModal')">Отмена</button>
       <button class="btn btn-primary" id="subSaveBtn" onclick="saveSubscription()">Применить</button>
@@ -486,7 +659,7 @@ tbody tr:hover { background: #f8faff; }
         <option value="active_year">Активный (1 год)</option>
       </select>
     </div>
-    <div id="addError" style="color:var(--danger);font-size:0.82rem;margin-top:8px;display:none"></div>
+    <div id="addError" style="color:var(--danger);font-size:0.78rem;margin-top:8px;display:none"></div>
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeModal('addModal')">Отмена</button>
       <button class="btn btn-primary" id="addSaveBtn" onclick="saveNewStudio()">Создать</button>
@@ -494,6 +667,20 @@ tbody tr:hover { background: #f8faff; }
   </div>
 </div>
 
+<!-- Модал просмотра расчёта -->
+<div id="calcViewModal">
+  <div class="modal-box">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+      <h2 id="calcViewTitle">Расчёт</h2>
+      <button onclick="document.getElementById('calcViewModal').classList.remove('active')"
+              style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--dim);line-height:1;padding:4px 6px;border-radius:6px;transition:background 0.15s"
+              onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='none'">×</button>
+    </div>
+    <div id="calcViewContent">Загрузка...</div>
+  </div>
+</div>
+
+<script src="footer.js"></script>
 <script>
 (function() {
 'use strict';
@@ -505,10 +692,11 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 window._crmSb = sb;
 
-let allStudios = [];
+let allStudios   = [];
+let allCalcs     = [];
 let activeStudioId = null;
 
-// ── Auth + доступ только для админа ──────────────────────────
+// ── Auth ──────────────────────────────────────────
 async function checkAdminAuth() {
   const { data: { session } } = await sb.auth.getSession();
   if (!session) { window.location.href = 'welcome.html'; return false; }
@@ -520,7 +708,7 @@ async function checkAdminAuth() {
   return true;
 }
 
-// ── Форматирование ────────────────────────────────────────────
+// ── Форматирование ────────────────────────────────
 function fmt(n) {
   return new Intl.NumberFormat('ru-RU').format(n || 0);
 }
@@ -532,19 +720,13 @@ function subStatus(studio) {
   const tier    = studio.subscription_tier;
   const expires = studio.subscription_expires_at;
   const now     = new Date();
-  if (tier === 'active') {
-    return (!expires || new Date(expires) > now) ? 'active' : 'expired';
-  }
-  if (tier === 'trial') {
-    return (expires && new Date(expires) > now) ? 'trial' : 'expired';
-  }
+  if (tier === 'active') return (!expires || new Date(expires) > now) ? 'active' : 'expired';
+  if (tier === 'trial')  return (expires && new Date(expires) > now)  ? 'trial'  : 'expired';
   return 'expired';
 }
 function subBadge(studio) {
-  if (studio.subscription_tier === 'pending') {
-    return '<span class="badge badge-pending">📋 Заявка</span>';
-  }
-  const s = subStatus(studio);
+  if (studio.subscription_tier === 'pending') return '<span class="badge badge-pending">📋 Заявка</span>';
+  const s      = subStatus(studio);
   const labels = { active: '✅ Активна', trial: '⏰ Триал', expired: '❌ Истекла' };
   const cls    = { active: 'badge-active', trial: 'badge-trial', expired: 'badge-expired' };
   return `<span class="badge ${cls[s]}">${labels[s]}</span>`;
@@ -555,18 +737,14 @@ function expireText(studio) {
   const days = Math.ceil((d - new Date()) / 86400000);
   const txt  = fmtDate(studio.subscription_expires_at);
   if (days <= 7 && days > 0) return `<span class="expires-soon">⚠️ ${txt} (${days}д)</span>`;
-  if (days <= 0) return `<span style="color:var(--danger)">${txt}</span>`;
+  if (days <= 0) return `<span style="color:var(--danger);font-size:0.78rem">${txt}</span>`;
   return `<span class="expires-text">${txt}</span>`;
 }
 
-// ── Загрузка данных ───────────────────────────────────────────
-
-
-
-
+// ── Блок-лист ─────────────────────────────────────
 async function loadBlacklist() {
   const tbody = document.getElementById('blacklistBody');
-  if (tbody) tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#94a3b8">Загрузка...</td></tr>';
+  if (tbody) tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--dim)">Загрузка...</td></tr>';
 
   const { data, error } = await sb.from('studios')
     .select('id, name, settings, subscription_expires_at, created_at')
@@ -574,114 +752,110 @@ async function loadBlacklist() {
     .order('subscription_expires_at', { ascending: false });
 
   if (error || !data || !data.length) {
-    if (tbody) tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#94a3b8">Блок-лист пуст</td></tr>';
+    if (tbody) tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--dim)">Блок-лист пуст</td></tr>';
     return;
   }
 
-  tbody.innerHTML = data.map(function(s) {
-    return '<tr>'
-      + '<td><strong>'+(s.name||'—')+'</strong><br><small style="color:#94a3b8">'+(s.settings&&s.settings.contact_email||'')+'</small></td>'
-      + '<td style="color:#94a3b8;font-size:0.85rem">Заблокирован вручную</td>'
-      + '<td style="font-size:0.85rem">'+new Date(s.subscription_expires_at).toLocaleDateString('ru')+'</td>'
-      + '<td><button class="btn btn-sm" style="background:#fef3c7;color:#92400e" onclick="unblockStudio(this)" data-id="'+s.id+'" data-name="'+encodeURIComponent(s.name||'')+'">↩ Разблокировать</button></td>'
-      + '</tr>';
-  }).join('');
+  tbody.innerHTML = data.map(s => `
+    <tr>
+      <td><strong>${s.name || '—'}</strong><br><small style="color:var(--dim)">${s.settings?.contact_email || ''}</small></td>
+      <td style="color:var(--muted);font-size:0.8rem">Заблокирован вручную</td>
+      <td style="font-size:0.8rem">${new Date(s.subscription_expires_at).toLocaleDateString('ru')}</td>
+      <td><button class="btn btn-warning btn-sm" onclick="unblockStudio(this)" data-id="${s.id}" data-name="${encodeURIComponent(s.name||'')}">↩ Разблокировать</button></td>
+    </tr>
+  `).join('');
 }
 
-window.unblockStudio = async function(btn) { var studioId = btn.getAttribute('data-id'); var name = decodeURIComponent(btn.getAttribute('data-name')||'');
-  if (!confirm('Разблокировать "'+name+'" и вернуть в заявки?')) return;
-  var { error } = await sb.from('studios').update({
-    subscription_tier: 'pending',
-    subscription_expires_at: null
-  }).eq('id', studioId);
+window.unblockStudio = async function(btn) {
+  const studioId = btn.getAttribute('data-id');
+  const name     = decodeURIComponent(btn.getAttribute('data-name') || '');
+  if (!confirm(`Разблокировать "${name}" и вернуть в заявки?`)) return;
+  const { error } = await sb.from('studios').update({ subscription_tier: 'pending', subscription_expires_at: null }).eq('id', studioId);
   if (error) { alert('❌ ' + error.message); return; }
-  await loadStudios();
-  await loadRequests();
-  loadBlacklist();
+  await loadStudios(); await loadRequests(); loadBlacklist();
 };
 
+// ── Просмотр расчёта ──────────────────────────────
 window.openCalcView = async function(calcId) {
-  var modal = document.getElementById('calcViewModal');
-  var content = document.getElementById('calcViewContent');
-  var title = document.getElementById('calcViewTitle');
+  const modal   = document.getElementById('calcViewModal');
+  const content = document.getElementById('calcViewContent');
+  const title   = document.getElementById('calcViewTitle');
   modal.classList.add('active');
-  content.innerHTML = '<div style="text-align:center;padding:40px;color:#94a3b8">Загрузка...</div>';
+  content.innerHTML = '<div style="text-align:center;padding:40px;color:var(--dim)">Загрузка...</div>';
 
-  var res = await sb.from('calculations').select('*, studios(name)').eq('id', calcId).single();
-  if (res.error || !res.data) {
-    content.innerHTML = '<p style="color:#ef4444">Ошибка загрузки</p>';
-    return;
-  }
-  var data = res.data;
-  var cd = data.calculation_data || {};
-  var sd = data.services_detail || cd.services_detail || {};
-  var statusMap = { new:'🆕 Новый', scheduled:'📅 Запись', in_progress:'🔧 В работе', done:'✅ Готово', delivered:'🚗 Выдано' };
-  var sectionNames = { arm:'Бронирование', det:'Детейлинг', gl:'Стёкла', ms:'Доп.услуги', wrap:'Оклейка' };
+  const res = await sb.from('calculations').select('*, studios(name)').eq('id', calcId).single();
+  if (res.error || !res.data) { content.innerHTML = '<p style="color:var(--danger)">Ошибка загрузки</p>'; return; }
+
+  const data = res.data;
+  const cd   = data.calculation_data || {};
+  const sd   = data.services_detail  || cd.services_detail || {};
+  const statusMap    = { new:'🆕 Новый', scheduled:'📅 Запись', in_progress:'🔧 В работе', done:'✅ Готово', delivered:'🚗 Выдано' };
+  const sectionNames = { arm:'Бронирование', det:'Детейлинг', gl:'Стёкла', ms:'Доп.услуги', wrap:'Оклейка' };
 
   title.textContent = (data.car_name || 'Расчёт') + ' — ' + (data.studios ? data.studios.name : '');
 
-  var servicesRows = '';
+  let servicesRows = '';
   if (cd.package) {
-    var b = ['wrapMat','wrapMot','prepMat','prepMot','armMat','armMot'].reduce(function(a,k){ return a+(parseFloat(cd.package[k])||0); }, 0);
-    if (b > 0) servicesRows += '<tr><td>Полная защита</td><td>Пакет вкруг</td><td colspan="2">—</td><td><b>'+fmt(b)+' ₽</b></td></tr>';
+    const b = ['wrapMat','wrapMot','prepMat','prepMot','armMat','armMot'].reduce((a,k) => a + (parseFloat(cd.package[k]) || 0), 0);
+    if (b > 0) servicesRows += `<tr><td>Полная защита</td><td>Пакет вкруг</td><td colspan="2">—</td><td><b>${fmt(b)} ₽</b></td></tr>`;
   }
   if (cd.impact) {
-    var bi = ['wrapMat','wrapMot','prepMat','prepMot','armMat','armMot'].reduce(function(a,k){ return a+(parseFloat(cd.impact[k])||0); }, 0);
-    if (bi > 0) servicesRows += '<tr><td>Ударная часть</td><td>Защита</td><td colspan="2">—</td><td><b>'+fmt(bi)+' ₽</b></td></tr>';
+    const bi = ['wrapMat','wrapMot','prepMat','prepMot','armMat','armMot'].reduce((a,k) => a + (parseFloat(cd.impact[k]) || 0), 0);
+    if (bi > 0) servicesRows += `<tr><td>Ударная часть</td><td>Защита</td><td colspan="2">—</td><td><b>${fmt(bi)} ₽</b></td></tr>`;
   }
-  Object.keys(sd).forEach(function(key) {
-    var items = sd[key];
+  Object.keys(sd).forEach(key => {
+    const items = sd[key];
     if (!items || !items.length) return;
-    items.forEach(function(item) {
-      var base = (item.mat||0) + (item.mot||0);
+    items.forEach(item => {
+      const base = (item.mat || 0) + (item.mot || 0);
       if (base > 0) {
-        servicesRows += '<tr><td>'+(sectionNames[key]||key)+'</td><td>'+(item.name||'—')+'</td><td>'+fmt(item.mat||0)+' ₽</td><td>'+fmt(item.mot||0)+' ₽</td><td><b>'+fmt(base)+' ₽</b></td></tr>';
+        servicesRows += `<tr><td>${sectionNames[key] || key}</td><td>${item.name || '—'}</td><td>${fmt(item.mat||0)} ₽</td><td>${fmt(item.mot||0)} ₽</td><td><b>${fmt(base)} ₽</b></td></tr>`;
       }
     });
   });
 
-  var grid = '<div class="calc-detail-grid">'
-    + '<div class="calc-detail-item"><div class="calc-detail-label">Автомобиль</div><div class="calc-detail-value">'+(data.car_name||'—')+'</div></div>'
-    + '<div class="calc-detail-item"><div class="calc-detail-label">Статус</div><div class="calc-detail-value">'+(statusMap[data.status]||data.status||'—')+'</div></div>'
-    + '<div class="calc-detail-item"><div class="calc-detail-label">Студия</div><div class="calc-detail-value">'+(data.studios ? data.studios.name : '—')+'</div></div>'
-    + '<div class="calc-detail-item"><div class="calc-detail-label">Дата</div><div class="calc-detail-value">'+new Date(data.created_at).toLocaleDateString('ru')+'</div></div>'
-    + '<div class="calc-detail-item"><div class="calc-detail-label">Себестоимость</div><div class="calc-detail-value">'+fmt(data.total_price||0)+' ₽</div></div>'
-    + '<div class="calc-detail-item"><div class="calc-detail-label">Итоговая сумма</div><div class="calc-detail-value accent">'+fmt(data.final_price||data.total_price||0)+' ₽</div></div>'
-    + '</div>';
+  const grid = `<div class="calc-detail-grid">
+    <div class="calc-detail-item"><div class="calc-detail-label">Автомобиль</div><div class="calc-detail-value">${data.car_name || '—'}</div></div>
+    <div class="calc-detail-item"><div class="calc-detail-label">Статус</div><div class="calc-detail-value">${statusMap[data.status] || data.status || '—'}</div></div>
+    <div class="calc-detail-item"><div class="calc-detail-label">Студия</div><div class="calc-detail-value">${data.studios ? data.studios.name : '—'}</div></div>
+    <div class="calc-detail-item"><div class="calc-detail-label">Дата</div><div class="calc-detail-value">${new Date(data.created_at).toLocaleDateString('ru')}</div></div>
+    <div class="calc-detail-item"><div class="calc-detail-label">Себестоимость</div><div class="calc-detail-value">${fmt(data.total_price || 0)} ₽</div></div>
+    <div class="calc-detail-item"><div class="calc-detail-label">Итоговая сумма КП</div><div class="calc-detail-value accent">${fmt(data.final_price || data.total_price || 0)} ₽</div></div>
+    <div class="calc-detail-item"><div class="calc-detail-label">Сдано (выдача)</div><div class="calc-detail-value" style="color:var(--success)">${data.final_price ? fmt(data.final_price) + ' ₽' : '—'}</div></div>
+    <div class="calc-detail-item"><div class="calc-detail-label">В работу</div><div class="calc-detail-value">${data.work_assigned ? '✅ Да' : '—'}</div></div>
+  </div>`;
 
-  var table = servicesRows
-    ? '<div class="calc-services-list"><table><thead><tr><th>Блок</th><th>Услуга</th><th>Материалы</th><th>Мотивация</th><th>Итого</th></tr></thead><tbody>'+servicesRows+'</tbody></table></div>'
-    : '<p style="color:#94a3b8;font-size:0.9rem">Детализация недоступна</p>';
+  const table = servicesRows
+    ? `<div class="calc-services-list"><table><thead><tr><th>Блок</th><th>Услуга</th><th>Материалы</th><th>Мотивация</th><th>Итого</th></tr></thead><tbody>${servicesRows}</tbody></table></div>`
+    : '<p style="color:var(--dim);font-size:0.85rem;margin-bottom:14px">Детализация недоступна</p>';
 
   content.innerHTML = grid + table;
 
-  var closeDiv = document.createElement('div');
-  closeDiv.style.cssText = 'display:flex;justify-content:flex-end;margin-top:16px';
-  var closeBtn = document.createElement('button');
-  closeBtn.className = 'btn';
+  const closeDiv = document.createElement('div');
+  closeDiv.style.cssText = 'display:flex;justify-content:flex-end;margin-top:12px';
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'btn btn-ghost';
   closeBtn.textContent = 'Закрыть';
-  closeBtn.onclick = function() { modal.classList.remove('active'); };
+  closeBtn.onclick = () => modal.classList.remove('active');
   closeDiv.appendChild(closeBtn);
   content.appendChild(closeDiv);
 };
 
-// ── Расчёты всех студий ───────────────────────────────────────
-let allCalcs = [];
-
+// ── Расчёты ───────────────────────────────────────
 async function loadCalcs() {
   const tbody = document.getElementById('calcsBody');
-  if (tbody) tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#94a3b8">Загрузка...</td></tr>';
+  if (tbody) tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:var(--dim)">Загрузка...</td></tr>`;
 
   const { data, error } = await sb
     .from('calculations')
-    .select('id, car_name, total_price, final_price, status, created_at, studio_id, studios(name)')
+    .select('id, car_name, total_price, final_price, status, work_assigned, created_at, studio_id, studios(name)')
     .order('created_at', { ascending: false })
-    .limit(500);
+    .limit(1000);
 
   if (error) { console.error('loadCalcs error:', error); return; }
   allCalcs = data || [];
 
-  // Заполняем фильтр студий
+  // Фильтр студий
   const filter = document.getElementById('calcsStudioFilter');
   if (filter) {
     const studios = [...new Map(allCalcs.map(c => [c.studio_id, c.studios?.name || c.studio_id])).entries()];
@@ -700,7 +874,7 @@ async function loadCalcs() {
 
 function renderCalcs() {
   const studioFilter = document.getElementById('calcsStudioFilter')?.value || '';
-  const searchVal = (document.getElementById('calcsSearch')?.value || '').toLowerCase();
+  const searchVal    = (document.getElementById('calcsSearch')?.value || '').toLowerCase();
 
   let filtered = allCalcs.filter(c => {
     if (studioFilter && c.studio_id !== studioFilter) return false;
@@ -709,137 +883,177 @@ function renderCalcs() {
   });
 
   const total = filtered.length;
-  const sum = filtered.reduce((a, c) => a + (c.final_price || c.total_price || 0), 0);
-  const avg = total > 0 ? sum / total : 0;
+  const sum   = filtered.reduce((a, c) => a + (c.final_price || c.total_price || 0), 0);
+  const avg   = total > 0 ? sum / total : 0;
 
   document.getElementById('calcsStatTotal').textContent = total;
-  document.getElementById('calcsStatSum').textContent = fmt(sum) + ' ₽';
-  document.getElementById('calcsStatAvg').textContent = fmt(avg) + ' ₽';
-  document.getElementById('calcsCount').textContent = `Показано: ${total}`;
+  document.getElementById('calcsStatSum').textContent   = fmt(sum) + ' ₽';
+  document.getElementById('calcsStatAvg').textContent   = fmt(avg) + ' ₽';
+  document.getElementById('calcsCount').textContent     = `Показано: ${total}`;
 
-  const statusLabel = { new:'🆕 Новый', scheduled:'📅 Запись', in_progress:'🔧 В работе', done:'✅ Готово', delivered:'🚗 Выдано', draft:'📝 Черновик' };
+  const statusLabel = {
+    new: '🆕 Новый', scheduled: '📅 Запись', in_progress: '🔧 В работе',
+    done: '✅ Готово', delivered: '🚗 Выдано', draft: '📝 Черновик'
+  };
 
   const tbody = document.getElementById('calcsBody');
   if (!tbody) return;
   if (!filtered.length) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#94a3b8">Расчётов нет</td></tr>';
+    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:var(--dim)">Расчётов нет</td></tr>`;
     return;
   }
+
   tbody.innerHTML = filtered.map(c => `
     <tr>
       <td><strong>${c.studios?.name || '—'}</strong></td>
       <td>${c.car_name || '—'}</td>
-      <td style="color:#475569">${fmt(c.total_price || 0)} ₽</td>
-      <td style="color:#7c3aed;font-weight:700">${fmt(c.final_price || c.total_price || 0)} ₽</td>
-      <td><span style="font-size:0.8rem">${statusLabel[c.status] || c.status || '—'}</span></td>
-      <td style="color:#94a3b8;font-size:0.8rem">${new Date(c.created_at).toLocaleDateString('ru')}</td>
-      <td><button class="btn btn-sm" style="white-space:nowrap" onclick="openCalcView('${c.id}')">🔍 Открыть</button></td>
+      <td style="color:var(--muted)">${fmt(c.total_price || 0)} ₽</td>
+      <td style="color:var(--purple);font-weight:700">${fmt(c.final_price || c.total_price || 0)} ₽</td>
+      <td style="color:var(--success);font-weight:700">${c.final_price ? fmt(c.final_price) + ' ₽' : '—'}</td>
+      <td><span style="font-size:0.75rem">${statusLabel[c.status] || c.status || '—'}</span></td>
+      <td style="text-align:center"><input type="checkbox" class="work-check" ${c.work_assigned ? 'checked' : ''} title="${c.work_assigned ? 'Ушло в работу' : 'Не назначено'}"></td>
+      <td style="color:var(--dim);font-size:0.78rem;white-space:nowrap">${new Date(c.created_at).toLocaleDateString('ru')}</td>
+      <td><button class="btn btn-ghost btn-sm" onclick="openCalcView('${c.id}')">🔍</button></td>
     </tr>
   `).join('');
 }
 
+// ── Excel экспорт ─────────────────────────────────
+window.exportToExcel = function() {
+  const studioFilter = document.getElementById('calcsStudioFilter')?.value || '';
+  const searchVal    = (document.getElementById('calcsSearch')?.value || '').toLowerCase();
+
+  let filtered = allCalcs.filter(c => {
+    if (studioFilter && c.studio_id !== studioFilter) return false;
+    if (searchVal && !(c.car_name || '').toLowerCase().includes(searchVal)) return false;
+    return true;
+  });
+
+  if (!filtered.length) { alert('Нет данных для экспорта'); return; }
+
+  const statusMap = {
+    new: 'Новый', scheduled: 'Запись', in_progress: 'В работе',
+    done: 'Готово', delivered: 'Выдано', draft: 'Черновик'
+  };
+
+  const rows = filtered.map(c => ({
+    'Студия':           c.studios?.name || '—',
+    'Автомобиль':       c.car_name || '—',
+    'Себестоимость, ₽': c.total_price || 0,
+    'Итог КП, ₽':       c.final_price || c.total_price || 0,
+    'Сдано (выдача), ₽': c.final_price || '',
+    'Статус':           statusMap[c.status] || c.status || '—',
+    'В работу':         c.work_assigned ? 'Да' : 'Нет',
+    'Дата':             new Date(c.created_at).toLocaleDateString('ru-RU'),
+    'ID':               c.id,
+  }));
+
+  const studioName = studioFilter
+    ? (allCalcs.find(c => c.studio_id === studioFilter)?.studios?.name || 'студия')
+    : 'все-студии';
+
+  const ws  = XLSX.utils.json_to_sheet(rows);
+  const wb  = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Расчёты');
+
+  // Ширина колонок
+  ws['!cols'] = [
+    {wch:22},{wch:24},{wch:18},{wch:16},{wch:18},{wch:14},{wch:10},{wch:14},{wch:36}
+  ];
+
+  const date = new Date().toISOString().slice(0,10);
+  XLSX.writeFile(wb, `keep1r-calcs-${studioName}-${date}.xlsx`);
+};
+
+// ── Загрузка данных ───────────────────────────────
 async function loadAll() {
   await Promise.all([loadStudios(), loadCommissions()]);
-  await loadRequests(); // после loadStudios т.к. использует allStudios
+  await loadRequests();
 }
 
-
 async function loadRequests() {
-  // Берём заявки из двух источников: access_requests + pending студии
   let accessReqs = [], pendingStudios = [];
   try {
     const [r1, r2] = await Promise.all([
       sb.from('access_requests').select('*').order('created_at', { ascending: false }),
       sb.from('studios').select('*').in('subscription_tier', ['pending']).order('created_at', { ascending: false })
     ]);
-    accessReqs = r1.data || [];
+    accessReqs     = r1.data || [];
     pendingStudios = r2.data || [];
   } catch(e) {
-    console.error('loadRequests error:', e);
-    // access_requests может не существовать — используем только pending студии
     try {
       const { data } = await sb.from('studios').select('*').in('subscription_tier', ['pending']).order('created_at', { ascending: false });
       pendingStudios = data || [];
     } catch(e2) { console.error(e2); }
   }
 
-  const reqs = accessReqs;
-  const pending = pendingStudios;
-
-  // Бейдж и стат
-  const totalNew = reqs.filter(r => r.status === 'new').length + pending.length;
+  const totalNew = accessReqs.filter(r => r.status === 'new').length + pendingStudios.length;
   const badge = document.getElementById('badgeRequests');
-  if (badge) badge.textContent = totalNew > 0 ? '('+totalNew+')' : '';
+  if (badge) badge.textContent = totalNew > 0 ? '(' + totalNew + ')' : '';
   const sNew = document.getElementById('sNewRequests');
   if (sNew) sNew.textContent = totalNew;
 
   const tbody = document.getElementById('requestsBody');
   if (!tbody) return;
-
-  if (!reqs.length && !pending.length) {
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#94a3b8">Заявок нет</td></tr>';
+  if (!accessReqs.length && !pendingStudios.length) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--dim)">Заявок нет</td></tr>';
     return;
   }
 
-  // Рендерим pending студии
-  const pendingRows = pending.map(s => `
-    <tr style="background:rgba(245,158,11,0.05)">
-      <td><strong>${s.name || '—'}</strong><br><small style="color:#94a3b8">ID: ${s.id.substring(0,8)}...</small></td>
-      <td>${s.settings?.city || '—'}<br><small>${s.settings?.phone || '—'}</small></td>
-      <td>${s.settings?.contact_email || '—'}</td>
-      <td>${new Date(s.created_at).toLocaleDateString('ru')}</td>
-      <td style="display:flex;gap:6px">
-        <button class="btn btn-success btn-sm" onclick="approveStudio('${s.id}','${s.name || s.id}')">✅ Одобрить</button>
-        <button class="btn btn-sm" style="background:#fca5a5;color:#7f1d1d" onclick="blockStudio('${s.id}','${s.name}')">❌</button>
-      </td>
-    </tr>
-  `).join('');
+  const rows = [];
 
-  // Рендерим access_requests
-  const reqRows = reqs.map(r => `
-    <tr>
-      <td><strong>${r.studio_name || '—'}</strong></td>
-      <td>${r.city || '—'}<br><small>${r.phone || '—'}</small></td>
-      <td>${r.email || '—'}</td>
-      <td>${new Date(r.created_at).toLocaleDateString('ru')}</td>
+  pendingStudios.forEach(s => {
+    rows.push(`<tr>
+      <td><div class="studio-name">${s.name || '—'}</div></td>
+      <td style="font-size:0.8rem">${s.settings?.city || '—'} / ${s.settings?.phone || '—'}</td>
+      <td style="font-size:0.8rem">${s.settings?.contact_email || '—'}</td>
+      <td style="font-size:0.78rem;color:var(--dim)">${fmtDate(s.created_at)}</td>
       <td>
-        ${r.status === 'new' ? `
-          <button class="btn btn-success btn-sm" onclick="approveRequest('${r.id}','${(r.studio_name||'').replace(/'/g,'')}',' ${r.email}')">✅ Одобрить</button>
-          <button class="btn btn-sm" style="background:#fca5a5;color:#7f1d1d" onclick="rejectRequest('${r.id}')">❌</button>
-        ` : `<span style="color:#64748b;font-size:0.8rem">${r.status === 'approved' ? '✅ Одобрена' : '❌ Отклонена'}</span>`}
+        <div class="actions">
+          <button class="btn btn-success btn-sm" onclick="approveStudio('${s.id}','${s.name}')">✅ Одобрить</button>
+          <button class="btn btn-danger btn-sm" onclick="blockStudio('${s.id}','${s.name}')">🚫 Блок</button>
+        </div>
       </td>
-    </tr>
-  `).join('');
+    </tr>`);
+  });
 
-  tbody.innerHTML = pendingRows + reqRows;
+  accessReqs.filter(r => r.status === 'new').forEach(r => {
+    rows.push(`<tr>
+      <td><div class="studio-name">${r.studio_name || '—'}</div></td>
+      <td style="font-size:0.8rem">${r.city || '—'} / ${r.phone || '—'}</td>
+      <td style="font-size:0.8rem">${r.email || '—'}</td>
+      <td style="font-size:0.78rem;color:var(--dim)">${fmtDate(r.created_at)}</td>
+      <td>
+        <div class="actions">
+          <button class="btn btn-success btn-sm" onclick="approveRequest('${r.id}')">✅ Одобрить</button>
+          <button class="btn btn-danger btn-sm" onclick="rejectRequest('${r.id}')">❌ Отклонить</button>
+        </div>
+      </td>
+    </tr>`);
+  });
+
+  tbody.innerHTML = rows.join('');
 }
 
-window.approveRequest = async function(id, studioName, email) {
-  if (!confirm('Одобрить заявку от ' + studioName + '?')) return;
-  // Обновляем статус заявки
+window.approveRequest = async function(id) {
+  if (!confirm('Одобрить заявку?')) return;
   await sb.from('access_requests').update({ status: 'approved' }).eq('id', id);
-  // Если есть supabase_user — создаём студию
   const { data: req } = await sb.from('access_requests').select('*').eq('id', id).single();
   if (req?.supabase_user_id) {
-    const refCode = Math.random().toString(36).substring(2,10).toUpperCase();
+    const refCode   = Math.random().toString(36).substring(2,10).toUpperCase();
     const trialEnds = new Date(Date.now() + 72 * 3600 * 1000).toISOString();
     const { data: studio } = await sb.from('studios').insert({
-      name: req.studio_name,
-      owner_id: req.supabase_user_id,
-      subscription_tier: 'trial',
-      subscription_expires_at: trialEnds,
+      name: req.studio_name, owner_id: req.supabase_user_id,
+      subscription_tier: 'trial', subscription_expires_at: trialEnds,
       referral_code: refCode,
       settings: { phone: req.phone, city: req.city, contact_email: req.email }
     }).select('id').single();
     if (studio) {
-      await sb.from('studio_members').insert({
-        studio_id: studio.id, user_id: req.supabase_user_id, role: 'owner', is_active: true
-      });
+      await sb.from('studio_members').insert({ studio_id: studio.id, user_id: req.supabase_user_id, role: 'owner', is_active: true });
     }
   }
   alert('✅ Заявка одобрена! Студия создана, триал 72 часа.');
-  loadRequests();
-  loadStudios();
+  loadRequests(); loadStudios();
 };
 
 window.rejectRequest = async function(id) {
@@ -857,7 +1071,6 @@ async function loadStudios() {
   if (error) { console.error(error); return; }
   allStudios = data || [];
 
-  // Считаем статы
   let active = 0, trial = 0, expired = 0;
   allStudios.forEach(s => {
     const st = subStatus(s);
@@ -868,16 +1081,12 @@ async function loadStudios() {
 
   document.getElementById('sTotal').textContent   = allStudios.length;
   const pending = allStudios.filter(s => s.subscription_tier === 'pending').length;
-  if (pending > 0) {
-    document.getElementById('sTotal').textContent = allStudios.length + ' (' + pending + ' 📋)';
-  }
+  if (pending > 0) document.getElementById('sTotal').textContent = allStudios.length + ' (' + pending + ' 📋)';
   document.getElementById('sActive').textContent  = active;
   document.getElementById('sTrial').textContent   = trial;
   document.getElementById('sExpired').textContent = expired;
 
-  renderStudios();
-  renderTrialStudios();
-  renderReferrals();
+  renderStudios(); renderTrialStudios(); renderReferrals();
 }
 
 async function loadCommissions() {
@@ -888,45 +1097,42 @@ async function loadCommissions() {
 
   if (error) { console.error(error); return; }
   const comms = data || [];
-
   const pending = comms.filter(c => !c.paid_to_referrer).reduce((s, c) => s + Number(c.amount), 0);
   document.getElementById('sCommission').textContent = fmt(pending);
-
   renderCommissions(comms);
 }
 
-// ── Рендер студий ─────────────────────────────────────────────
 function renderTrialStudios() {
   const trial = allStudios.filter(s => s.subscription_tier === 'trial');
-  // Обновляем бейдж
   const badge = document.getElementById('badgeTrial');
   if (badge) badge.textContent = trial.length > 0 ? `(${trial.length})` : '';
-  
   const tbody = document.getElementById('trialBody');
   if (!tbody) return;
   if (!trial.length) {
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#94a3b8">Нет студий на тесте</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--dim)">Нет студий на тесте</td></tr>';
     return;
   }
   tbody.innerHTML = trial.map(s => {
-    const exp = s.subscription_expires_at ? new Date(s.subscription_expires_at) : null;
-    const now = new Date();
+    const exp       = s.subscription_expires_at ? new Date(s.subscription_expires_at) : null;
+    const now       = new Date();
     const hoursLeft = exp ? Math.round((exp - now) / 3600000) : null;
-    const expText = exp 
-      ? (hoursLeft > 0 
-          ? `<span style="color:${hoursLeft < 12 ? '#ef4444' : '#f59e0b'}">⏰ ${hoursLeft}ч осталось</span>`
-          : `<span style="color:#ef4444">⚠️ Истёк</span>`)
+    const expText   = exp
+      ? (hoursLeft > 0
+          ? `<span style="color:${hoursLeft < 12 ? 'var(--danger)' : 'var(--warning)'}">⏰ ${hoursLeft}ч осталось</span>`
+          : `<span style="color:var(--danger)">⚠️ Истёк</span>`)
       : '—';
     const owner = s.owner_id ? s.owner_id.substring(0,8)+'...' : 'нет владельца';
     return `<tr>
-      <td><strong>${s.name || '—'}</strong><br><small style="color:#94a3b8">${s.settings?.phone || ''} ${s.settings?.city || ''}</small></td>
-      <td style="font-size:0.8rem">${s.settings?.contact_email || owner}</td>
+      <td><strong>${s.name || '—'}</strong><br><small style="color:var(--dim)">${s.settings?.phone || ''} ${s.settings?.city || ''}</small></td>
+      <td style="font-size:0.78rem">${s.settings?.contact_email || owner}</td>
       <td><span class="ref-code">${s.referral_code || '—'}</span></td>
       <td>${expText}</td>
-      <td style="display:flex;gap:6px;flex-wrap:wrap">
-        <button class="btn btn-success btn-sm" onclick="extendTrial('${s.id}','${s.name}')">+72ч</button>
-        <button class="btn btn-sm" style="background:#7c3aed;color:#fff" onclick="openSubModal('${s.id}')">💳 Подписка</button>
-        <button class="btn btn-sm" style="background:#fca5a5;color:#7f1d1d" onclick="blockStudio('${s.id}','${s.name}')">🚫</button>
+      <td>
+        <div class="actions">
+          <button class="btn btn-success btn-sm" onclick="extendTrial('${s.id}','${s.name}')">+72ч</button>
+          <button class="btn btn-ghost btn-sm" onclick="openSubModal('${s.id}')">💳 Подписка</button>
+          <button class="btn btn-danger btn-sm" onclick="blockStudio('${s.id}','${s.name}')">🚫</button>
+        </div>
       </td>
     </tr>`;
   }).join('');
@@ -934,112 +1140,75 @@ function renderTrialStudios() {
 
 window.extendTrial = async function(studioId, name) {
   const trialEnds = new Date(Date.now() + 72 * 3600 * 1000).toISOString();
-  const { error } = await sb.from('studios').update({
-    subscription_expires_at: trialEnds
-  }).eq('id', studioId);
+  const { error } = await sb.from('studios').update({ subscription_expires_at: trialEnds }).eq('id', studioId);
   if (error) { alert('❌ ' + error.message); return; }
   alert('✅ Триал продлён на 72 часа');
   await loadStudios();
 };
 
 function renderStudios() {
-  // Показываем только active/expired/blocked
-  const visibleStudios = allStudios.filter(s => !['pending','trial'].includes(s.subscription_tier));
   const tbody = document.getElementById('studiosBody');
-
   if (!allStudios.length) {
     tbody.innerHTML = '<tr><td colspan="5"><div class="empty"><div class="empty-icon">🏢</div>Нет студий</div></td></tr>';
     return;
   }
-
-  // Получаем email владельцев через studio_members
   tbody.innerHTML = allStudios.map(s => `
     <tr>
       <td>
         <div class="studio-name">${s.name}</div>
         <div class="studio-email" id="email-${s.id}">загрузка...</div>
-        ${s.settings?.phone ? `<div style="font-size:0.75rem;color:#2563eb;margin-top:1px">${s.settings.phone}</div>` : `<div style="font-size:0.75rem;color:#94a3b8;margin-top:1px" id="phone-${s.id}"></div>`}
-        ${s.settings?.city ? `<div style="font-size:0.75rem;color:#64748b">${s.settings.city}</div>` : ''}
+        ${s.settings?.phone ? `<div style="font-size:0.72rem;color:var(--primary);margin-top:1px">${s.settings.phone}</div>` : `<div style="font-size:0.72rem;color:var(--dim);margin-top:1px" id="phone-${s.id}"></div>`}
+        ${s.settings?.city ? `<div style="font-size:0.72rem;color:var(--muted)">${s.settings.city}</div>` : ''}
       </td>
-      <td>
-        ${s.referral_code
-          ? `<span class="ref-code">${s.referral_code}</span>`
-          : `<button class="btn btn-ghost" style="font-size:0.72rem" onclick="genRefCode('${s.id}')">Создать</button>`
-        }
-      </td>
+      <td>${s.referral_code ? `<span class="ref-code">${s.referral_code}</span>` : `<button class="btn btn-ghost btn-sm" onclick="genRefCode('${s.id}')">Создать</button>`}</td>
       <td>${subBadge(s)}</td>
       <td>${expireText(s)}</td>
       <td>
         <div class="actions">
-          <!-- pending студии в табе Заявки -->
-          <button class="btn btn-primary" onclick="openSubModal('${s.id}')">⚙️ Подписка</button>
-          <button class="btn btn-danger" onclick="blockStudio('${s.id}', '${s.name}')">🚫</button>
+          <button class="btn btn-primary btn-sm" onclick="openSubModal('${s.id}')">⚙️ Подписка</button>
+          <button class="btn btn-danger btn-sm" onclick="blockStudio('${s.id}','${s.name}')">🚫</button>
         </div>
       </td>
     </tr>
   `).join('');
 
-  // Подгружаем email для каждой студии
   allStudios.forEach(async s => {
-    const { data } = await sb
-      .from('studio_members')
-      .select('user_id, role')
-      .eq('studio_id', s.id)
-      .eq('role', 'owner')
-      .single();
-
+    const { data } = await sb.from('studio_members').select('user_id, role').eq('studio_id', s.id).eq('role', 'owner').single();
     const el = document.getElementById(`email-${s.id}`);
     if (!el) return;
-
     if (data) {
-      const { data: userData } = await sb.auth.admin?.getUserById(data.user_id).catch(() => ({ data: null })) || { data: null };
-      // Fallback — показываем user_id сокращённо
       el.textContent = data.user_id.slice(0, 8) + '...';
-    // Телефон из settings
-    const phone = s.settings?.phone;
-    if (phone) {
-      const phoneEl = document.getElementById('phone-' + s.id);
-      if (phoneEl) phoneEl.textContent = phone;
-    }
-    } else {
-      el.textContent = 'нет владельца';
-    }
+      const phone = s.settings?.phone;
+      if (phone) { const phoneEl = document.getElementById('phone-' + s.id); if (phoneEl) phoneEl.textContent = phone; }
+    } else { el.textContent = 'нет владельца'; }
   });
 }
 
-// ── Рендер рефералов ──────────────────────────────────────────
 function renderReferrals() {
-  const tbody = document.getElementById('referralsBody');
+  const tbody    = document.getElementById('referralsBody');
   const referred = allStudios.filter(s => s.referred_by_studio_id);
-
   if (!referred.length) {
     tbody.innerHTML = '<tr><td colspan="5"><div class="empty"><div class="empty-icon">🔗</div>Реферальных регистраций пока нет</div></td></tr>';
     return;
   }
-
   tbody.innerHTML = referred.map(s => {
     const referrer = allStudios.find(r => r.id === s.referred_by_studio_id);
-    return `
-      <tr>
-        <td><div class="studio-name">${referrer ? referrer.name : '—'}</div></td>
-        <td><div class="studio-name">${s.name}</div></td>
-        <td>${referrer ? `<span class="ref-code">${referrer.referral_code || '—'}</span>` : '—'}</td>
-        <td>${fmtDate(s.created_at)}</td>
-        <td>${subBadge(s)}</td>
-      </tr>
-    `;
+    return `<tr>
+      <td><div class="studio-name">${referrer ? referrer.name : '—'}</div></td>
+      <td><div class="studio-name">${s.name}</div></td>
+      <td>${referrer ? `<span class="ref-code">${referrer.referral_code || '—'}</span>` : '—'}</td>
+      <td>${fmtDate(s.created_at)}</td>
+      <td>${subBadge(s)}</td>
+    </tr>`;
   }).join('');
 }
 
-// ── Рендер комиссий ───────────────────────────────────────────
 function renderCommissions(comms) {
   const tbody = document.getElementById('commissionsBody');
-
   if (!comms.length) {
     tbody.innerHTML = '<tr><td colspan="7"><div class="empty"><div class="empty-icon">💰</div>Комиссий нет</div></td></tr>';
     return;
   }
-
   tbody.innerHTML = comms.map(c => `
     <tr>
       <td><div class="studio-name">${c.referrer?.name || '—'}</div></td>
@@ -1047,25 +1216,15 @@ function renderCommissions(comms) {
       <td>${fmt(c.payment_amount)} ₽</td>
       <td><strong>${fmt(c.amount)} ₽</strong></td>
       <td>${fmtDate(c.payment_date)}</td>
-      <td>
-        ${c.paid_to_referrer
-          ? `<span class="badge badge-paid">✅ Выплачено ${fmtDate(c.paid_date)}</span>`
-          : `<span class="badge badge-pending">⏳ Ожидает</span>`
-        }
-      </td>
-      <td>
-        ${!c.paid_to_referrer
-          ? `<button class="btn btn-success" onclick="markCommissionPaid('${c.id}')">Выплатить</button>`
-          : '—'
-        }
-      </td>
+      <td>${c.paid_to_referrer ? `<span class="badge badge-paid">✅ Выплачено ${fmtDate(c.paid_date)}</span>` : `<span class="badge badge-pending">⏳ Ожидает</span>`}</td>
+      <td>${!c.paid_to_referrer ? `<button class="btn btn-success btn-sm" onclick="markCommissionPaid('${c.id}')">Выплатить</button>` : '—'}</td>
     </tr>
   `).join('');
 }
 
-// ── Табы ─────────────────────────────────────────────────────
+// ── Переключение табов ────────────────────────────
 window.switchTab = function(tab) {
-  ['requests', 'trial', 'studios', 'referrals', 'commissions', 'calcs', 'blacklist'].forEach(t => {
+  ['requests','trial','studios','referrals','commissions','calcs','blacklist'].forEach(t => {
     const el = document.getElementById('tab-' + t);
     if (el) el.style.display = t === tab ? 'block' : 'none';
   });
@@ -1073,39 +1232,28 @@ window.switchTab = function(tab) {
     const onclick = btn.getAttribute('onclick') || '';
     btn.classList.toggle('active', onclick.includes("'" + tab + "'"));
   });
-  if (tab === 'calcs' && !window._calcsLoaded) {
-    window._calcsLoaded = true;
-    loadCalcs();
-  }
+  if (tab === 'calcs' && !window._calcsLoaded) { window._calcsLoaded = true; loadCalcs(); }
   if (tab === 'blacklist') loadBlacklist();
 };
 
-// ── Подписка: модалка ─────────────────────────────────────────
+// ── Подписка ──────────────────────────────────────
 window.openSubModal = function(studioId) {
   activeStudioId = studioId;
   const studio = allStudios.find(s => s.id === studioId);
-  document.getElementById('subModalTitle').textContent = 'Подписка: ' + studio.name;
-  document.getElementById('subModalStudio').textContent =
-    'Текущий статус: ' + subStatus(studio).toUpperCase() + ' · ' + expireText(studio).replace(/<[^>]+>/g, '');
+  document.getElementById('subModalTitle').textContent    = 'Подписка: ' + studio.name;
+  document.getElementById('subModalStudio').textContent   = 'Текущий статус: ' + subStatus(studio).toUpperCase() + ' · ' + expireText(studio).replace(/<[^>]+>/g, '');
   document.getElementById('subAction').value = 'month';
   updatePaymentHint();
   document.getElementById('subModal').classList.add('active');
 };
 
 document.getElementById('subAction').addEventListener('change', updatePaymentHint);
-
 function updatePaymentHint() {
   const action = document.getElementById('subAction').value;
   const hint   = document.getElementById('subModalPayment');
   const customGroup = document.getElementById('customDaysGroup');
   customGroup.style.display = action === 'custom' ? 'block' : 'none';
-  const hints = {
-    trial: '72 часа бесплатного доступа',
-    month: 'Оплата 4 900 ₽ — создаст запись комиссии для реферрера',
-    year:  'Оплата 51 900 ₽ — создаст запись комиссии для реферрера',
-    custom: 'Произвольный срок без создания комиссии',
-    block: 'Немедленно заблокирует доступ к CRM',
-  };
+  const hints = { trial: '72 часа бесплатного доступа', month: 'Оплата 4 900 ₽', year: 'Оплата 51 900 ₽', custom: 'Произвольный срок без комиссии', block: 'Немедленно заблокирует доступ' };
   hint.textContent = hints[action] || '';
 }
 
@@ -1113,113 +1261,59 @@ window.saveSubscription = async function() {
   const action = document.getElementById('subAction').value;
   const btn    = document.getElementById('subSaveBtn');
   btn.disabled = true; btn.textContent = 'Сохраняем...';
-
   try {
     const studio = allStudios.find(s => s.id === activeStudioId);
     const now    = new Date();
-    // Берём максимум из текущей даты истечения и сейчас (чтобы не потерять остаток)
-    const base   = studio.subscription_expires_at && new Date(studio.subscription_expires_at) > now
-      ? new Date(studio.subscription_expires_at)
-      : now;
-
+    const base   = studio.subscription_expires_at && new Date(studio.subscription_expires_at) > now ? new Date(studio.subscription_expires_at) : now;
     let tier, expires, paymentAmount = 0;
-
-    if (action === 'trial') {
-      tier    = 'trial';
-      expires = new Date(now.getTime() + 72 * 3600 * 1000).toISOString();
-    } else if (action === 'month') {
-      tier    = 'active';
-      expires = new Date(base.getTime() + 30 * 86400000).toISOString();
-      paymentAmount = 4900;
-    } else if (action === 'year') {
-      tier    = 'active';
-      expires = new Date(base.getTime() + 365 * 86400000).toISOString();
-      paymentAmount = 51900;
-    } else if (action === 'custom') {
+    if (action === 'trial')        { tier = 'trial';  expires = new Date(now.getTime() + 72 * 3600 * 1000).toISOString(); }
+    else if (action === 'month')   { tier = 'active'; expires = new Date(base.getTime() + 30 * 86400000).toISOString(); paymentAmount = 4900; }
+    else if (action === 'year')    { tier = 'active'; expires = new Date(base.getTime() + 365 * 86400000).toISOString(); paymentAmount = 51900; }
+    else if (action === 'custom')  {
       const days = parseInt(document.getElementById('customDays').value);
       if (!days || days < 1) { alert('Укажите количество дней'); btn.disabled = false; btn.textContent = 'Применить'; return; }
-      tier    = 'active';
-      expires = new Date(base.getTime() + days * 86400000).toISOString();
+      tier = 'active'; expires = new Date(base.getTime() + days * 86400000).toISOString();
     } else if (action === 'block') {
       if (!confirm(`Заблокировать студию "${studio.name}"?`)) { btn.disabled = false; btn.textContent = 'Применить'; return; }
-      tier    = 'expired';
-      expires = now.toISOString();
+      tier = 'expired'; expires = now.toISOString();
     }
-
-    // Обновляем подписку
-    const { error } = await sb
-      .from('studios')
-      .update({ subscription_tier: tier, subscription_expires_at: expires })
-      .eq('id', activeStudioId);
-
+    const { error } = await sb.from('studios').update({ subscription_tier: tier, subscription_expires_at: expires }).eq('id', activeStudioId);
     if (error) throw error;
-
-    // Создаём комиссию если реферрер есть и это оплата
     if (paymentAmount > 0 && studio.referred_by_studio_id) {
       await sb.from('referral_commissions').insert({
-        referrer_studio_id: studio.referred_by_studio_id,
-        referred_studio_id: activeStudioId,
-        amount: Math.round(paymentAmount * 0.2),
-        payment_amount: paymentAmount,
-        payment_date: new Date().toISOString().split('T')[0],
-        paid_to_referrer: false
+        referrer_studio_id: studio.referred_by_studio_id, referred_studio_id: activeStudioId,
+        amount: Math.round(paymentAmount * 0.2), payment_amount: paymentAmount,
+        payment_date: new Date().toISOString().split('T')[0], paid_to_referrer: false
       });
     }
-
-    closeModal('subModal');
-    await loadAll();
-  } catch (e) {
-    alert('Ошибка: ' + e.message);
-  } finally {
-    btn.disabled = false; btn.textContent = 'Применить';
-  }
+    closeModal('subModal'); await loadAll();
+  } catch (e) { alert('Ошибка: ' + e.message); }
+  finally { btn.disabled = false; btn.textContent = 'Применить'; }
 };
 
-// ── Блокировка ────────────────────────────────────────────────
 window.approveStudio = async function(studioId, name) {
   if (!confirm(`Одобрить заявку студии "${name}" и дать пробный доступ на 72 часа?`)) return;
   const trialEnds = new Date(Date.now() + 72 * 3600 * 1000).toISOString();
-  
-  const { data, error } = await sb.from('studios')
-    .update({ subscription_tier: 'trial', subscription_expires_at: trialEnds })
-    .eq('id', studioId)
-    .select('id, subscription_tier, subscription_expires_at');
-  
-  if (error) {
-    alert('❌ Ошибка RLS/DB: ' + error.message + '\nКод: ' + error.code + '\n\nВыполни в SQL Editor:\nUPDATE studios SET subscription_tier=\'trial\', subscription_expires_at=\'' + trialEnds + '\' WHERE id=\'' + studioId + '\';');
-    console.error('approveStudio error:', error);
-    return;
-  }
-  
-  if (!data || data.length === 0) {
-    alert('⚠️ RLS заблокировал обновление (нет ошибки но и данные не вернулись).\n\nВыполни вручную в SQL Editor:\nUPDATE studios SET subscription_tier=\'trial\', subscription_expires_at=\'' + trialEnds + '\' WHERE id=\'' + studioId + '\';');
-    return;
-  }
-  
+  const { data, error } = await sb.from('studios').update({ subscription_tier: 'trial', subscription_expires_at: trialEnds }).eq('id', studioId).select('id, subscription_tier, subscription_expires_at');
+  if (error) { alert('❌ Ошибка RLS/DB: ' + error.message); return; }
+  if (!data || data.length === 0) { alert('⚠️ RLS заблокировал обновление — выполни вручную в SQL Editor.'); return; }
   alert(`✅ Студия "${name}" одобрена!\nТриал до: ${new Date(trialEnds).toLocaleString('ru')}`);
-  await loadStudios();
-  switchTab('trial');
+  await loadStudios(); switchTab('trial');
 };
 
 window.blockStudio = async function(studioId, name) {
   if (!confirm('Заблокировать студию "'+name+'" и добавить в блок-лист?')) return;
-  var { error } = await sb.from('studios').update({
-    subscription_tier: 'blocked',
-    subscription_expires_at: new Date().toISOString()
-  }).eq('id', studioId);
+  const { error } = await sb.from('studios').update({ subscription_tier: 'blocked', subscription_expires_at: new Date().toISOString() }).eq('id', studioId);
   if (error) { alert('❌ ' + error.message); return; }
-  await loadStudios();
-  await loadRequests();
+  await loadStudios(); await loadRequests();
 };
 
-// ── Генерация реф. кода ───────────────────────────────────────
 window.genRefCode = async function(studioId) {
   const code = Math.random().toString(36).substring(2, 10).toUpperCase();
   await sb.from('studios').update({ referral_code: code }).eq('id', studioId);
   await loadStudios();
 };
 
-// ── Добавить студию ───────────────────────────────────────────
 window.openAddModal = function() {
   document.getElementById('newStudioName').value = '';
   document.getElementById('newStudioEmail').value = '';
@@ -1234,108 +1328,55 @@ window.saveNewStudio = async function() {
   const tier  = document.getElementById('newStudioTier').value;
   const btn   = document.getElementById('addSaveBtn');
   const errEl = document.getElementById('addError');
-
   if (!name || !email) { errEl.textContent = 'Заполните все поля'; errEl.style.display = 'block'; return; }
-
-  btn.disabled = true; btn.textContent = 'Создаём...';
-  errEl.style.display = 'none';
-
+  btn.disabled = true; btn.textContent = 'Создаём...'; errEl.style.display = 'none';
   try {
     const now = new Date();
     let expiresAt, subTier;
-
-    if (tier === 'trial') {
-      subTier   = 'trial';
-      expiresAt = new Date(now.getTime() + 72 * 3600 * 1000).toISOString();
-    } else if (tier === 'active_month') {
-      subTier   = 'active';
-      expiresAt = new Date(now.getTime() + 30 * 86400000).toISOString();
-    } else {
-      subTier   = 'active';
-      expiresAt = new Date(now.getTime() + 365 * 86400000).toISOString();
-    }
-
+    if (tier === 'trial')        { subTier = 'trial';  expiresAt = new Date(now.getTime() + 72 * 3600 * 1000).toISOString(); }
+    else if (tier === 'active_month') { subTier = 'active'; expiresAt = new Date(now.getTime() + 30 * 86400000).toISOString(); }
+    else                         { subTier = 'active'; expiresAt = new Date(now.getTime() + 365 * 86400000).toISOString(); }
     const refCode = Math.random().toString(36).substring(2, 10).toUpperCase();
-
-    // Создаём студию (без владельца — они сами зарегаются)
-    const { data: studio, error: studioErr } = await sb
-      .from('studios')
-      .insert({
-        name,
-        subscription_tier: subTier,
-        subscription_expires_at: expiresAt,
-        referral_code: refCode,
-        settings: { contact_email: email }
-      })
-      .select('id')
-      .single();
-
+    const { data: studio, error: studioErr } = await sb.from('studios').insert({
+      name, subscription_tier: subTier, subscription_expires_at: expiresAt,
+      referral_code: refCode, settings: { contact_email: email }
+    }).select('id').single();
     if (studioErr) throw studioErr;
-
-    // Генерируем пригласительную ссылку
     const inviteLink = `${window.location.origin}/welcome.html?studio=${studio.id}`;
-    alert(`✅ Студия "${name}" создана!\n\nОтправь клиенту ссылку для регистрации:\n${inviteLink}\n\nЛибо они могут зарегаться сами — потом привяжи их вручную.`);
-
-    closeModal('addModal');
-    await loadStudios();
-  } catch (e) {
-    errEl.textContent = 'Ошибка: ' + e.message;
-    errEl.style.display = 'block';
-  } finally {
-    btn.disabled = false; btn.textContent = 'Создать';
-  }
+    alert(`✅ Студия "${name}" создана!\n\nОтправь клиенту ссылку:\n${inviteLink}`);
+    closeModal('addModal'); await loadStudios();
+  } catch (e) { errEl.textContent = 'Ошибка: ' + e.message; errEl.style.display = 'block'; }
+  finally { btn.disabled = false; btn.textContent = 'Создать'; }
 };
 
-// ── Комиссии ─────────────────────────────────────────────────
 window.markCommissionPaid = async function(id) {
-  await sb.from('referral_commissions').update({
-    paid_to_referrer: true,
-    paid_date: new Date().toISOString().split('T')[0]
-  }).eq('id', id);
+  await sb.from('referral_commissions').update({ paid_to_referrer: true, paid_date: new Date().toISOString().split('T')[0] }).eq('id', id);
   await loadCommissions();
 };
 
 window.markAllPaid = async function() {
   if (!confirm('Отметить все неоплаченные комиссии как выплаченные?')) return;
-  await sb.from('referral_commissions').update({
-    paid_to_referrer: true,
-    paid_date: new Date().toISOString().split('T')[0]
-  }).eq('paid_to_referrer', false);
+  await sb.from('referral_commissions').update({ paid_to_referrer: true, paid_date: new Date().toISOString().split('T')[0] }).eq('paid_to_referrer', false);
   await loadCommissions();
 };
 
-// ── Утилиты ───────────────────────────────────────────────────
-window.closeModal = function(id) {
-  document.getElementById(id).classList.remove('active');
-};
+window.closeModal = function(id) { document.getElementById(id).classList.remove('active'); };
 document.querySelectorAll('.modal-overlay').forEach(m => {
   m.addEventListener('click', e => { if (e.target === m) m.classList.remove('active'); });
 });
 
-// ── Init ──────────────────────────────────────────────────────
+// ── Init ──────────────────────────────────────────
 async function init() {
   initNav({ hideAction: true });
   const ok = await checkAdminAuth();
   if (!ok) return;
   await loadAll();
-  switchTab('requests'); // открываем на Заявках
+  switchTab('requests');
 }
 
 init();
 })();
 </script>
-<script src="footer.js"></script>
 
-<!-- Модал просмотра расчёта -->
-<div id="calcViewModal">
-  <div class="modal-box">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
-      <h2 id="calcViewTitle">Расчёт</h2>
-      <button onclick="document.getElementById('calcViewModal').classList.remove('active')" 
-              style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:#94a3b8;line-height:1">×</button>
-    </div>
-    <div id="calcViewContent">Загрузка...</div>
-  </div>
-</div>
 </body>
 </html>
