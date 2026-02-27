@@ -174,59 +174,31 @@ function initBindings() {
   qa('input[name=payMode]').forEach(r => r.addEventListener('change', () => { renderAll(); scheduleSave(); }));
 
   // Управляющие кнопки
-  q('#btnRecalc')?.addEventListener('click', renderAll);
-  q('#btnReset')?.addEventListener('click', () => {
-    if (confirm('Вы уверены, что хотите сбросить все данные?')) location.reload();
-  });
   q('#btnSaveCalc')?.addEventListener('click', async () => {
     const btn = q('#btnSaveCalc');
-    const originalText = btn?.textContent;
+    const orig = btn?.textContent;
     if (btn) { btn.textContent = '⏳ Сохранение...'; btn.disabled = true; }
     await saveCalculation();
-    if (btn) { btn.textContent = originalText; btn.disabled = false; }
+    if (btn) { btn.textContent = orig; btn.disabled = false; }
   });
 
-  // Экспорт PDF
-  if (q('#btnShareKP')) q('#btnShareKP').style.display = 'inline-block';
+  // "Новый расчёт" — сохраняет текущий и сбрасывает форму
+  q('#btnReset')?.addEventListener('click', async () => {
+    const btn = q('#btnReset');
+    if (!confirm('Сохранить текущий расчёт и начать новый?')) return;
+    if (btn) { btn.textContent = '⏳ Сохраняем...'; btn.disabled = true; }
+    await saveCalculation();
+    // Сбрасываем ID чтобы следующий расчёт создался новым
+    if (typeof currentCalculationId !== 'undefined') {
+      try { window._calcNewMode = true; } catch(e) {}
+    }
+    location.href = location.pathname; // перезагрузка без ?load=
+  });
+
+  // Экспорт PDF — только скачать КП
   q('#btnDownloadKP')?.addEventListener('click', () => {
     prepKP();
     setTimeout(() => exportPDF('#pdfKP', 'Коммерческое_предложение.pdf'), 100);
-  });
-  q('#btnShareKP')?.addEventListener('click', async () => {
-    const btn = q('#btnShareKP');
-    const origText = btn.textContent;
-    btn.textContent = '⏳ Генерация...'; btn.disabled = true;
-    const fallbackDownload = () => { prepKP(); setTimeout(() => exportPDF('#pdfKP', 'КП_оклейка.pdf'), 100); };
-    try {
-      prepKP();
-      await new Promise(resolve => setTimeout(resolve, 400));
-      const { jsPDF } = window.jspdf || {};
-      if (!jsPDF || !window.html2canvas) { fallbackDownload(); return; }
-      const block = q('#pdfKP');
-      let canvas;
-      try { canvas = await window.html2canvas(block, { scale: 2, useCORS: true, allowTaint: true, backgroundColor: '#fff', logging: false }); }
-      catch(canvasErr) { fallbackDownload(); return; }
-      const pdf  = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
-      const pw   = pdf.internal.pageSize.getWidth(), ph = pdf.internal.pageSize.getHeight();
-      const ratio = Math.min(pw / canvas.width, ph / canvas.height);
-      pdf.addImage(canvas.toDataURL('image/png'), 'PNG', (pw - canvas.width * ratio) / 2, 20, canvas.width * ratio, Math.min(canvas.height * ratio, ph - 40));
-      const pdfBlob = pdf.output('blob');
-      const pdfFile = new File([pdfBlob], 'КП_оклейка.pdf', { type: 'application/pdf' });
-      if (navigator.share && navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
-        await navigator.share({ title: 'Коммерческое предложение', files: [pdfFile] });
-      } else {
-        const url = URL.createObjectURL(pdfBlob);
-        const a   = document.createElement('a');
-        a.href = url; a.download = 'КП_оклейка.pdf'; a.click();
-        setTimeout(() => URL.revokeObjectURL(url), 1000);
-      }
-    } catch(err) {
-      if (err.name !== 'AbortError') fallbackDownload();
-    } finally { btn.textContent = origText; btn.disabled = false; }
-  });
-  q('#btnExportCost')?.addEventListener('click', () => {
-    prepCost();
-    setTimeout(() => exportPDF('#pdfCost', 'Себестоимость.pdf'), 100);
   });
   q('#btnExportExecutors')?.addEventListener('click', () => {
     prepExecutors();
