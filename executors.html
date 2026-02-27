@@ -3,886 +3,423 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Сотрудники — CRM</title>
-<script>document.documentElement.setAttribute('data-theme', 'light');</script>
+<title>Сотрудники — Keep1R CRM</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="stylesheet" href="nav.css">
 <script src="nav.js"></script>
 <style>
 :root {
-  --bg-primary: #0f172a;
-  --bg-secondary: #1e293b;
-  --bg-tertiary: #334155;
-  --card: rgba(255, 255, 255, 0.05);
-  --card-hover: rgba(255, 255, 255, 0.08);
-  --text: #f1f5f9;
-  --text-primary: #f1f5f9;
-  --text-muted: #94a3b8;
-  --border: rgba(148, 163, 184, 0.1);
-  --border-hover: rgba(148, 163, 184, 0.2);
-  --primary: #3b82f6;
-  --primary-dark: #2563eb;
-  --success: #10b981;
-  --success-dark: #059669;
-  --danger: #ef4444;
-  --warning: #f59e0b;
-  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.15);
-  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.2);
+  --font:       -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
+  --bg:         #eef2f9;
+  --surface:    #ffffff;
+  --border:     rgba(15,23,42,0.08);
+  --text:       #0f172a;
+  --text-muted: #64748b;
+  --text-dim:   #94a3b8;
+  --primary:    #2563eb;
+  --primary-dk: #1d4ed8;
+  --success:    #059669;
+  --danger:     #dc2626;
+  --warning:    #d97706;
+  --radius:     14px;
+  --radius-sm:  9px;
+  --shadow:     0 1px 3px rgba(0,0,0,0.04), 0 4px 14px rgba(0,0,0,0.06);
+  --shadow-modal: 0 8px 40px rgba(0,0,0,0.14);
 }
 
-[data-theme="light"] {
-  --bg-primary: #f8fafc;
-  --bg-secondary: #f1f5f9;
-  --bg-tertiary: #e2e8f0;
-  --card: rgba(255, 255, 255, 0.9);
-  --card-hover: rgba(255, 255, 255, 1);
-  --text: #0f172a;
-  --text-primary: #0f172a;
-  --text-muted: #475569;
-  --border: rgba(15, 23, 42, 0.08);
-  --border-hover: rgba(15, 23, 42, 0.15);
-}
-
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  background: var(--bg-primary);
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+  background: var(--bg);
   color: var(--text);
-  line-height: 1.6;
-  transition: background-color 0.3s ease;
-  min-height: 100vh;
-}
-
-body::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: 
-    radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
-    radial-gradient(circle at 80% 70%, rgba(16, 185, 129, 0.15) 0%, transparent 50%);
-  pointer-events: none;
-  z-index: 0;
+  min-height: 100svh;
 }
 
 .container {
-  max-width: 1200px;
+  max-width: 1100px;
   margin: 0 auto;
-  padding: 20px;
-  position: relative;
-  z-index: 1;
+  padding: 24px 20px 48px;
 }
 
-.top-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 32px;
-  padding: 24px 32px;
-  background: var(--card);
-  backdrop-filter: blur(20px);
-  border-radius: 20px;
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-lg);
-  gap: 20px;
-}
+/* ── Кнопка добавить (скрытая — навешивается JS-ом) ── */
+#btnAddExecutor { display: none; }
 
-.top-bar-left {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.menu-toggle {
-  background: var(--bg-input);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 10px 14px;
-  cursor: pointer;
-  font-size: 1.2rem;
-  transition: all 0.2s;
-  color: var(--text);
-}
-
-.menu-toggle:hover {
-  background: var(--primary);
-  color: #fff;
-  transform: scale(1.05);
-}
-
-.top-bar h1 {
-  font-size: 1.5rem;
-  font-weight: 700;
-  background: linear-gradient(135deg, var(--primary), var(--success));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.actions {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-
-.global-nav {
-  display: flex;
-  gap: 6px;
-  align-items: center;
-}
-
-.nav-link {
-  padding: 8px 16px;
-  border-radius: 8px;
-  font-size: 0.88rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  text-decoration: none;
-  transition: all 0.2s;
-  border: 1px solid transparent;
-  white-space: nowrap;
-}
-
-.nav-link:hover {
-  background: var(--bg-input);
-  color: var(--text);
-}
-
-.nav-link.active {
-  background: var(--primary);
-  color: #fff;
-  border-color: var(--primary);
-}
-
-.action-btn {
-  background: var(--primary);
-  color: #fff;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 10px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.action-btn:hover {
-  background: var(--primary-dark);
-  transform: translateY(-1px);
-}
-
-/* Drawer Menu */
-.drawer-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 999;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s;
-}
-
-.drawer-overlay.active {
-  opacity: 1;
-  pointer-events: all;
-}
-
-.drawer {
-  position: fixed;
-  top: 0;
-  left: -300px;
-  width: 300px;
-  height: 100vh;
-  background: var(--bg-card);
-  box-shadow: var(--shadow-lg);
-  z-index: 1000;
-  transition: left 0.3s;
-  overflow-y: auto;
-}
-
-.drawer.active {
-  left: 0;
-}
-
-.drawer-header {
-  padding: 24px 20px;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.drawer-title {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--text);
-}
-
-.drawer-close {
-  background: var(--bg-input);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 6px 10px;
-  cursor: pointer;
-  font-size: 1.2rem;
-  color: var(--text);
-  transition: all 0.2s;
-}
-
-.drawer-close:hover {
-  background: var(--danger);
-  color: #fff;
-}
-
-.drawer-menu {
-  padding: 20px 0;
-}
-
-.drawer-link {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 14px 20px;
-  color: var(--text);
-  text-decoration: none;
-  transition: all 0.2s;
-  font-size: 0.95rem;
-  font-weight: 500;
-}
-
-.drawer-link:hover {
-  background: var(--bg-input);
-  color: var(--primary);
-}
-
-.drawer-link.disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.drawer-badge {
-  margin-left: auto;
-  padding: 2px 8px;
-  background: var(--warning);
-  color: #000;
-  border-radius: 6px;
-  font-size: 0.7rem;
-  font-weight: 700;
-}
-
-.btn {
-  background: var(--primary);
-  color: #fff;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 10px;
-  font-size: 0.95rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.btn:hover {
-  background: var(--primary-dark);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-}
-
-.btn-success {
-  background: var(--success);
-}
-
-.btn-success:hover {
-  background: var(--success-dark);
-}
-
-.btn-danger {
-  background: rgba(239, 68, 68, 0.15);
-  color: var(--danger);
-  border: 1px solid var(--danger);
-  padding: 8px 16px;
-  font-size: 0.85rem;
-}
-
-.btn-danger:hover {
-  background: var(--danger);
-  color: #fff;
-  transform: translateY(-2px);
-}
-
-.btn-secondary {
-  background: var(--bg-tertiary);
-  color: var(--text);
-  border: 1px solid var(--border);
-}
-
-.btn-secondary:hover {
-  background: var(--card-hover);
-  border-color: var(--border-hover);
-}
-
-.btn-icon {
-  padding: 8px 12px;
-  font-size: 0.9rem;
-}
-
-.theme-toggle {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 8px 16px;
-  cursor: pointer;
-  font-size: 1.2rem;
-  transition: all 0.3s;
-}
-
-.theme-toggle:hover {
-  transform: scale(1.1);
-}
-
+/* ── Карточка-контейнер ─────────────────────────── */
 .card {
-  background: var(--card);
-  backdrop-filter: blur(20px);
-  border-radius: 16px;
+  background: var(--surface);
   border: 1px solid var(--border);
-  padding: 24px;
-  margin-bottom: 24px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
 }
 
 .card-header {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--border);
+  gap: 14px;
+  flex-wrap: wrap;
 }
 
-.card-header h2 {
-  font-size: 1.2rem;
-  font-weight: 600;
+.card-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: -0.1px;
 }
 
-.filters {
+.card-actions-row {
   display: flex;
-  gap: 12px;
   align-items: center;
-  margin-bottom: 20px;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
+/* ── Чекбокс фильтр ─────────────────────────────── */
 .checkbox-label {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   cursor: pointer;
-  user-select: none;
-  font-size: 0.9rem;
+  font-size: 0.82rem;
+  font-weight: 600;
   color: var(--text-muted);
+  user-select: none;
 }
-
 .checkbox-label input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
+  width: 16px; height: 16px;
   cursor: pointer;
   accent-color: var(--primary);
 }
+.checkbox-label:hover { color: var(--text); }
 
+/* ── Таблица сотрудников ────────────────────────── */
 .executors-table {
   width: 100%;
   border-collapse: collapse;
 }
 
 .executors-table thead {
-  border-bottom: 2px solid var(--border);
-}
-
-.executors-table th {
-  text-align: left;
-  padding: 12px 16px;
-  font-weight: 600;
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--text-muted);
-}
-
-.executors-table td {
-  padding: 16px;
+  background: var(--bg);
   border-bottom: 1px solid var(--border);
 }
 
-.executors-table tr:hover {
-  background: var(--card-hover);
+.executors-table th {
+  padding: 11px 16px;
+  text-align: left;
+  font-size: 0.67rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.executors-table tbody tr {
+  border-bottom: 1px solid var(--border);
+  transition: background 0.12s;
+}
+.executors-table tbody tr:last-child { border-bottom: none; }
+.executors-table tbody tr:hover { background: #f8fafc; }
+
+.executors-table td {
+  padding: 14px 16px;
+  font-size: 0.85rem;
+  vertical-align: middle;
 }
 
 .executor-name {
-  font-weight: 600;
-  font-size: 1rem;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--text);
 }
 
 .executor-role {
   display: inline-block;
-  padding: 4px 12px;
+  padding: 3px 10px;
   border-radius: 6px;
-  font-size: 0.85rem;
-  font-weight: 500;
-  background: var(--bg-tertiary);
-  color: var(--text);
+  font-size: 0.73rem;
+  font-weight: 700;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
 }
 
 .executor-phone {
   color: var(--text-muted);
-  font-size: 0.9rem;
+  font-size: 0.82rem;
 }
 
+/* Бейджи */
 .badge {
   display: inline-block;
-  padding: 4px 10px;
-  border-radius: 6px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  padding: 3px 9px;
+  border-radius: 20px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
 }
-
-.badge-success {
-  background: rgba(16, 185, 129, 0.2);
-  color: var(--success);
-}
-
-.badge-inactive {
-  background: rgba(148, 163, 184, 0.2);
-  color: var(--text-muted);
-}
+.badge-success  { background: rgba(5,150,105,0.10); color: var(--success); border: 1px solid rgba(5,150,105,0.2); }
+.badge-inactive { background: var(--bg); color: var(--text-dim); border: 1px solid var(--border); }
 
 .row-actions {
   display: flex;
-  gap: 8px;
+  gap: 6px;
+  align-items: center;
 }
 
+/* ── Кнопки ─────────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 0.81rem; font-weight: 700;
+  font-family: var(--font); cursor: pointer;
+  border: none; transition: all 0.15s; text-decoration: none;
+  white-space: nowrap;
+}
+.btn-primary   { background: var(--primary); color: #fff; }
+.btn-primary:hover   { background: var(--primary-dk); }
+.btn-success   { background: var(--success); color: #fff; }
+.btn-success:hover   { background: #047857; }
+.btn-secondary {
+  background: transparent; color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+.btn-secondary:hover { background: var(--bg); color: var(--text); }
+.btn-danger {
+  background: rgba(220,38,38,0.07);
+  color: var(--danger);
+  border: 1px solid rgba(220,38,38,0.15);
+}
+.btn-danger:hover { background: var(--danger); color: #fff; border-color: var(--danger); }
+.btn-icon { padding: 7px 10px; font-size: 0.85rem; }
+
+/* ── Добавить кнопка в шапке карточки ──────────── */
+.btn-add {
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 0.81rem;
+  font-weight: 700;
+  font-family: var(--font);
+  cursor: pointer;
+  transition: all 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.btn-add:hover { background: var(--primary-dk); }
+
+/* ── Состояния ──────────────────────────────────── */
+.loading {
+  text-align: center;
+  padding: 52px 20px;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+}
 .empty-state {
   text-align: center;
-  padding: 60px 20px;
+  padding: 56px 20px;
   color: var(--text-muted);
 }
+.empty-state-icon { font-size: 2.5rem; margin-bottom: 10px; opacity: 0.3; }
+.empty-state h3   { font-size: 0.95rem; font-weight: 700; color: var(--text); }
+.empty-state p    { font-size: 0.82rem; margin-top: 4px; }
 
-.empty-state-icon {
-  font-size: 4rem;
-  margin-bottom: 16px;
-  opacity: 0.5;
-}
-
-/* Modal */
+/* ── Модал ──────────────────────────────────────── */
 .modal {
   display: none;
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(8px);
+  inset: 0;
+  background: rgba(15,23,42,0.5);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   z-index: 1000;
   align-items: center;
   justify-content: center;
   padding: 20px;
 }
+.modal.active { display: flex; animation: fadeIn 0.15s ease; }
 
-.modal.active {
-  display: flex;
-}
+@keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { transform: translateY(12px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
 .modal-content {
-  background: var(--bg-secondary);
-  border-radius: 16px;
+  background: var(--surface);
+  border-radius: var(--radius);
   border: 1px solid var(--border);
-  padding: 32px;
-  max-width: 500px;
+  padding: 26px 28px 24px;
+  max-width: 460px;
   width: 100%;
-  max-height: 90vh;
+  max-height: 90svh;
   overflow-y: auto;
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-modal);
+  animation: slideUp 0.18s ease;
 }
 
 .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 .modal-header h3 {
-  font-size: 1.3rem;
+  font-size: 1.05rem;
   font-weight: 700;
+  letter-spacing: -0.2px;
 }
 
 .modal-close {
   background: none;
   border: none;
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   cursor: pointer;
-  color: var(--text-muted);
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 8px;
-  transition: all 0.3s;
+  color: var(--text-dim);
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 7px;
+  transition: all 0.15s;
+  line-height: 1;
 }
+.modal-close:hover { background: var(--bg); color: var(--text); }
 
-.modal-close:hover {
-  background: var(--card-hover);
-  color: var(--text);
-}
-
-.form-group {
-  margin-bottom: 20px;
-}
+.form-group { margin-bottom: 14px; }
 
 .form-group label {
   display: block;
-  margin-bottom: 8px;
-  font-weight: 500;
-  font-size: 0.9rem;
+  font-size: 0.69rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-muted);
+  margin-bottom: 5px;
 }
 
 .form-group input,
 .form-group select {
   width: 100%;
-  padding: 12px 16px;
-  background: var(--bg-tertiary);
+  padding: 10px 13px;
+  background: var(--bg);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   color: var(--text);
-  font-size: 0.95rem;
-  transition: all 0.3s;
+  font-size: 16px;
+  font-family: var(--font);
+  transition: border-color 0.15s, box-shadow 0.15s;
+  outline: none;
+  -webkit-appearance: none;
 }
-
 .form-group input:focus,
 .form-group select:focus {
-  outline: none;
   border-color: var(--primary);
-  background: var(--card);
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.10);
+  background: var(--surface);
 }
 
 .form-group small {
   display: block;
-  margin-top: 6px;
-  color: var(--text-muted);
-  font-size: 0.85rem;
+  margin-top: 4px;
+  color: var(--text-dim);
+  font-size: 0.72rem;
 }
 
 .checkbox-group {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 16px;
-  background: var(--bg-tertiary);
-  border-radius: 10px;
+  gap: 10px;
+  padding: 12px 14px;
+  background: var(--bg);
+  border-radius: var(--radius-sm);
   border: 1px solid var(--border);
+  cursor: pointer;
 }
-
 .checkbox-group input[type="checkbox"] {
-  width: 20px;
-  height: 20px;
+  width: 17px; height: 17px;
   cursor: pointer;
   accent-color: var(--success);
+  flex-shrink: 0;
 }
-
 .checkbox-group label {
-  margin: 0;
+  font-size: 0.83rem;
+  font-weight: 600;
   cursor: pointer;
-  font-weight: 500;
+  color: var(--text);
+  text-transform: none;
+  letter-spacing: 0;
+  margin: 0;
 }
 
 .modal-footer {
   display: flex;
-  gap: 12px;
-  margin-top: 32px;
+  gap: 8px;
+  margin-top: 20px;
   justify-content: flex-end;
 }
 
-.loading {
-  text-align: center;
-  padding: 40px;
-  color: var(--text-muted);
-}
-
+/* ── Адаптив ────────────────────────────────────── */
 @media (max-width: 768px) {
-  .container {
-    padding: 16px;
-  }
+  .container { padding: 16px 14px 40px; }
 
-  .top-bar {
-    flex-wrap: wrap;
-    padding: 14px 16px;
-    gap: 12px;
-  }
-
-  .top-bar-left {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .top-bar h1 {
-    font-size: 1.15rem;
-  }
-
-  .global-nav {
-    width: 100%;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    flex-wrap: nowrap;
-    padding: 8px 0;
-  }
-
-  .global-nav::-webkit-scrollbar {
-    display: none;
-  }
-
-  .nav-link {
-    font-size: 0.8rem;
-    padding: 6px 12px;
-    flex-shrink: 0;
-  }
-
-  .action-btn {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .header {
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .header h1 {
-    font-size: 1.3rem;
-    text-align: center;
-  }
-
-  .header-actions {
-    flex-direction: column;
-    width: 100%;
-    gap: 8px;
-  }
-
-  .header-actions .btn {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .filters {
-    flex-direction: column;
-  }
-
-  .search-box,
-  .filter-group select {
-    width: 100%;
-  }
-
-  .executors-table {
-    font-size: 0.85rem;
-    display: block;
-    overflow-x: auto;
-  }
-
-  .executors-table thead {
-    display: none;
-  }
-
-  .executors-table tbody {
-    display: block;
-  }
-
+  /* Мобильные карточки вместо таблицы */
+  .executors-table thead { display: none; }
+  .executors-table, .executors-table tbody { display: block; }
   .executors-table tr {
     display: block;
-    margin-bottom: 16px;
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 12px;
-    background: var(--bg-card);
+    margin: 0;
+    border-bottom: 1px solid var(--border);
+    padding: 14px 16px;
   }
-
+  .executors-table tr:last-child { border-bottom: none; }
   .executors-table td {
-    display: block;
-    padding: 8px 0;
-    border: none;
-    text-align: left !important;
-  }
-
-  .executors-table td::before {
-    content: attr(data-label);
-    font-weight: 600;
     display: inline-block;
-    width: 120px;
-    color: var(--text-muted);
+    padding: 0;
+    border: none;
+    font-size: 0.82rem;
   }
+  .executors-table td[data-label="ФИО"]      { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .executors-table td[data-label="Роль"]     { margin-right: 8px; }
+  .executors-table td[data-label="Телефон"]  { display: block; color: var(--text-muted); font-size: 0.78rem; margin-bottom: 6px; }
+  .executors-table td[data-label="Статус"]   { display: inline-block; margin-bottom: 10px; }
+  .executors-table td[data-label="Действия"] { display: flex; gap: 6px; }
 
-  .row-actions {
-    flex-direction: row;
-    justify-content: flex-end;
-    gap: 8px;
-    margin-top: 12px;
-  }
-
-  .modal-content {
-    padding: 20px;
-    max-width: 95%;
-  }
-
-  .modal-body {
-    max-height: calc(100vh - 200px);
-    overflow-y: auto;
-  }
-
-  .form-row {
-    flex-direction: column;
-  }
-
-  .form-group {
-    width: 100%;
-  }
-
-  .form-group input,
-  .form-group select,
-  .search-box input {
-    font-size: 16px; /* Prevent iOS zoom */
-    padding: 12px 14px;
-    min-height: 44px;
-  }
-
-  .btn {
-    min-height: 48px;
-    font-size: 0.9rem;
-  }
+  .modal-content { padding: 22px 18px 20px; }
+  .modal-footer  { flex-direction: column-reverse; gap: 7px; }
+  .modal-footer .btn { width: 100%; justify-content: center; }
 }
-
-@media (max-width: 480px) {
-  .header h1 {
-    font-size: 1.05rem;
-  }
-
-  .executors-table {
-    font-size: 0.85rem;
-  }
-
-  .executors-table td::before {
-    width: 110px;
-    font-size: 0.78rem;
-  }
-
-  .row-actions .btn {
-    font-size: 0.78rem;
-    padding: 8px 12px;
-    min-height: 40px;
-  }
-}
-
-/* Footer */
-.page-footer {
-  margin-top: 60px;
-  padding: 32px 24px;
-  background: var(--bg-card);
-  border-top: 1px solid var(--border);
-  text-align: center;
-}
-
-.footer-content {
-  max-width: 800px;
-  margin: 0 auto;
-}
-
-.footer-theme {
-  margin-bottom: 20px;
-}
-
-.footer-theme button {
-  background: var(--bg-input);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 10px 20px;
-  cursor: pointer;
-  font-size: 1.1rem;
-  transition: all 0.2s;
-  font-family: 'Inter', sans-serif;
-  color: var(--text);
-}
-
-.footer-theme button:hover {
-  border-color: var(--border-focus);
-  transform: translateY(-2px);
-}
-
-.footer-desc {
-  color: var(--text-muted);
-  font-size: 0.9rem;
-  line-height: 1.6;
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-.footer-desc strong {
-  color: var(--text);
-  font-weight: 600;
-}
-
-@media (max-width: 600px) {
-  .page-footer {
-    padding: 24px 16px;
-    margin-top: 40px;
-  }
-
-  .footer-desc {
-    font-size: 0.85rem;
-  }
-}
-
 </style>
 </head>
 <body>
 
 <div class="container">
-  <button class="action-btn" id="btnAddExecutor" style="display:none">➕ Добавить</button>
+  <!-- Скрытая кнопка — js навешивает через btnAddExecutor -->
+  <button class="btn btn-primary" id="btnAddExecutor" style="display:none">➕ Добавить</button>
 
   <div class="card">
     <div class="card-header">
-      <h2>Список сотрудников</h2>
-    </div>
-
-    <div class="filters">
-      <label class="checkbox-label">
-        <input type="checkbox" id="showInactive">
-        <span>Показать неактивных</span>
-      </label>
+      <span class="card-title">👥 Список сотрудников</span>
+      <div class="card-actions-row">
+        <label class="checkbox-label">
+          <input type="checkbox" id="showInactive">
+          <span>Показать неактивных</span>
+        </label>
+        <button class="btn-add" onclick="document.getElementById('btnAddExecutor').click()">➕ Добавить</button>
+      </div>
     </div>
 
     <div id="executorsContainer">
-      <div class="loading">Загрузка...</div>
+      <div class="loading">⏳ Загрузка...</div>
     </div>
   </div>
 </div>
 
-<!-- Modal -->
+<!-- Модал: добавить / редактировать -->
 <div class="modal" id="executorModal">
   <div class="modal-content">
     <div class="modal-header">
@@ -895,7 +432,7 @@ body::before {
 
       <div class="form-group">
         <label for="executorName">ФИО *</label>
-        <input type="text" id="executorName" required placeholder="Иванов Иван Иванович">
+        <input type="text" id="executorName" required placeholder="Иванов Иван Иванович" autocomplete="name">
       </div>
 
       <div class="form-group">
@@ -912,8 +449,8 @@ body::before {
 
       <div class="form-group">
         <label for="executorPhone">Телефон</label>
-        <input type="tel" id="executorPhone" placeholder="+7 (999) 123-45-67">
-        <small>Опционально</small>
+        <input type="tel" id="executorPhone" placeholder="+7 (999) 123-45-67" autocomplete="tel">
+        <small>Необязательно</small>
       </div>
 
       <div class="checkbox-group">
@@ -929,15 +466,7 @@ body::before {
   </div>
 </div>
 
-<footer class="page-footer">
-  <div class="footer-content">
-    <div class="footer-desc">
-      <strong>Сотрудники</strong> — управление командой студии. 
-      Добавляйте сотрудников, назначайте роли, деактивируйте уволенных.
-    </div>
-  </div>
-</footer>
-
+<script src="footer.js"></script>
 <script>
 (function() {
 'use strict';
@@ -953,25 +482,20 @@ let currentStudio = null;
 let editingExecutorId = null;
 
 const roleNames = {
-  wrapper: 'Оклейщик',
-  preparer: 'Подготовщик',
-  armature: 'Арматурщик',
-  detailer: 'Детейлер',
+  wrapper:   'Оклейщик',
+  preparer:  'Подготовщик',
+  armature:  'Арматурщик',
+  detailer:  'Детейлер',
   universal: 'Универсал'
 };
 
-// Auth check
 async function checkAuth() {
   const { data: { session } } = await sb.auth.getSession();
-  if (!session) {
-    window.location.href = 'welcome.html';
-    return false;
-  }
+  if (!session) { window.location.href = 'welcome.html'; return false; }
   currentUser = session.user;
   return true;
 }
 
-// Get studio
 async function getStudio() {
   const { data, error } = await sb
     .from('studio_members')
@@ -979,67 +503,56 @@ async function getStudio() {
     .eq('user_id', currentUser.id)
     .eq('is_active', true)
     .single();
-  
-  if (error || !data) {
-    alert('❌ Студия не найдена');
-    return null;
-  }
-  
+  if (error || !data) { alert('❌ Студия не найдена'); return null; }
   currentStudio = data;
   return data;
 }
 
-// Load executors
 async function loadExecutors() {
   const container = document.getElementById('executorsContainer');
   const showInactive = document.getElementById('showInactive').checked;
-  
-  container.innerHTML = '<div class="loading">Загрузка...</div>';
-  
+
+  container.innerHTML = '<div class="loading">⏳ Загрузка...</div>';
+
   try {
     let query = sb
       .from('executors')
       .select('*')
       .eq('studio_id', currentStudio.studio_id)
       .order('full_name', { ascending: true });
-    
-    if (!showInactive) {
-      query = query.eq('is_active', true);
-    }
-    
+
+    if (!showInactive) query = query.eq('is_active', true);
+
     const { data, error } = await query;
-    
+
     if (error) {
       console.error('Error loading executors:', error);
-      console.error('Studio ID:', currentStudio?.studio_id);
-      console.error('Full error details:', JSON.stringify(error, null, 2));
-      container.innerHTML = '<div class="empty-state">❌ Ошибка загрузки<br><small style="color:var(--text-muted);font-size:0.8rem">Проверьте консоль</small></div>';
+      container.innerHTML = '<div class="empty-state">❌ Ошибка загрузки<br><small style="color:var(--text-muted)">Проверьте консоль</small></div>';
       return;
     }
-    
+
     if (!data || data.length === 0) {
       container.innerHTML = `
         <div class="empty-state">
           <div class="empty-state-icon">👥</div>
           <h3>Нет сотрудников</h3>
-          <p style="margin-top:8px">Добавьте первого исполнителя</p>
+          <p>Добавьте первого исполнителя</p>
         </div>
       `;
       return;
     }
-    
+
     renderExecutorsTable(data);
-    
+
   } catch (e) {
     console.error('Error:', e);
     container.innerHTML = '<div class="empty-state">❌ Ошибка загрузки</div>';
   }
 }
 
-// Render table
 function renderExecutorsTable(executors) {
   const container = document.getElementById('executorsContainer');
-  
+
   let html = `
     <table class="executors-table">
       <thead>
@@ -1048,24 +561,23 @@ function renderExecutorsTable(executors) {
           <th>Роль</th>
           <th>Телефон</th>
           <th>Статус</th>
-          <th style="width: 200px;">Действия</th>
+          <th style="width:200px"></th>
         </tr>
       </thead>
       <tbody>
   `;
-  
+
   executors.forEach(exec => {
-    const roleName = roleNames[exec.role] || exec.role;
-    const isAdmin = exec.is_admin ? '<span class="badge badge-success">Админ</span>' : '';
-    const statusBadge = exec.is_active 
+    const roleName    = roleNames[exec.role] || exec.role;
+    const isAdmin     = exec.is_admin ? '&nbsp;<span class="badge badge-success">% продажа</span>' : '';
+    const statusBadge = exec.is_active
       ? '<span class="badge badge-success">Активен</span>'
       : '<span class="badge badge-inactive">Неактивен</span>';
-    
+
     html += `
       <tr>
         <td data-label="ФИО">
-          <div class="executor-name">${exec.full_name}</div>
-          ${isAdmin}
+          <div class="executor-name">${exec.full_name}${isAdmin}</div>
         </td>
         <td data-label="Роль">
           <span class="executor-role">${roleName}</span>
@@ -1076,33 +588,27 @@ function renderExecutorsTable(executors) {
         <td data-label="Статус">${statusBadge}</td>
         <td data-label="Действия">
           <div class="row-actions">
-            <button class="btn btn-secondary btn-icon" onclick="editExecutor('${exec.id}')">✏️</button>
-            ${exec.is_active 
-              ? `<button class="btn btn-danger btn-icon" style="font-size:0.75rem;padding:4px 10px" onclick="deactivateExecutor('${exec.id}', '${exec.full_name}')">Деактивировать</button>`
-              : `<button class="btn btn-success btn-icon" style="font-size:0.75rem;padding:4px 10px" onclick="activateExecutor('${exec.id}', '${exec.full_name}')">Активировать</button>`
+            <button class="btn btn-secondary btn-icon" onclick="editExecutor('${exec.id}')">✏️ Изменить</button>
+            ${exec.is_active
+              ? `<button class="btn btn-danger btn-icon" onclick="deactivateExecutor('${exec.id}','${exec.full_name.replace(/'/g,"\\'")}')">Деактивировать</button>`
+              : `<button class="btn btn-success btn-icon" onclick="activateExecutor('${exec.id}','${exec.full_name.replace(/'/g,"\\'")}')">Активировать</button>`
             }
           </div>
         </td>
       </tr>
     `;
   });
-  
-  html += `
-      </tbody>
-    </table>
-  `;
-  
+
+  html += '</tbody></table>';
   container.innerHTML = html;
 }
 
-// Open modal
 function openModal(title = 'Добавить сотрудника') {
   document.getElementById('modalTitle').textContent = title;
   document.getElementById('executorModal').classList.add('active');
   document.body.style.overflow = 'hidden';
 }
 
-// Close modal
 function closeModal() {
   document.getElementById('executorModal').classList.remove('active');
   document.body.style.overflow = '';
@@ -1111,169 +617,95 @@ function closeModal() {
   editingExecutorId = null;
 }
 
-// Edit executor
 window.editExecutor = async function(executorId) {
   try {
-    const { data, error } = await sb
-      .from('executors')
-      .select('*')
-      .eq('id', executorId)
-      .single();
-    
-    if (error || !data) {
-      alert('❌ Ошибка загрузки данных');
-      return;
-    }
-    
+    const { data, error } = await sb.from('executors').select('*').eq('id', executorId).single();
+    if (error || !data) { alert('❌ Ошибка загрузки данных'); return; }
+
     editingExecutorId = executorId;
-    document.getElementById('executorId').value = executorId;
-    document.getElementById('executorName').value = data.full_name;
-    document.getElementById('executorRole').value = data.role;
-    document.getElementById('executorPhone').value = data.phone || '';
-    document.getElementById('executorIsAdmin').checked = data.is_admin || false;
-    
+    document.getElementById('executorId').value         = executorId;
+    document.getElementById('executorName').value       = data.full_name;
+    document.getElementById('executorRole').value       = data.role;
+    document.getElementById('executorPhone').value      = data.phone || '';
+    document.getElementById('executorIsAdmin').checked  = data.is_admin || false;
+
     openModal('Редактировать исполнителя');
-    
   } catch (e) {
     console.error('Error:', e);
     alert('❌ Ошибка загрузки данных');
   }
 };
 
-// Deactivate executor
 window.deactivateExecutor = async function(executorId, name) {
-  if (!confirm(`Деактивировать сотрудника "${name}"?\n\nОн не будет отображаться в списке активных, но его история работ сохранится.`)) {
-    return;
-  }
-  
+  if (!confirm(`Деактивировать сотрудника «${name}»?\nОн не будет отображаться в активных, но история работ сохранится.`)) return;
   try {
-    const { error } = await sb
-      .from('executors')
-      .update({ is_active: false })
-      .eq('id', executorId);
-    
-    if (error) {
-      console.error('Error:', error);
-      alert('❌ Ошибка деактивации');
-      return;
-    }
-    
+    const { error } = await sb.from('executors').update({ is_active: false }).eq('id', executorId);
+    if (error) { console.error('Error:', error); alert('❌ Ошибка деактивации'); return; }
     loadExecutors();
-    
-  } catch (e) {
-    console.error('Error:', e);
-    alert('❌ Ошибка деактивации');
-  }
+  } catch (e) { console.error('Error:', e); alert('❌ Ошибка деактивации'); }
 };
 
-// Activate executor
 window.activateExecutor = async function(executorId, name) {
-  if (!confirm(`Активировать исполнителя "${name}"?`)) {
-    return;
-  }
-  
+  if (!confirm(`Активировать исполнителя «${name}»?`)) return;
   try {
-    const { error } = await sb
-      .from('executors')
-      .update({ is_active: true })
-      .eq('id', executorId);
-    
-    if (error) {
-      console.error('Error:', error);
-      alert('❌ Ошибка активации');
-      return;
-    }
-    
+    const { error } = await sb.from('executors').update({ is_active: true }).eq('id', executorId);
+    if (error) { console.error('Error:', error); alert('❌ Ошибка активации'); return; }
     loadExecutors();
-    
-  } catch (e) {
-    console.error('Error:', e);
-    alert('❌ Ошибка активации');
-  }
+  } catch (e) { console.error('Error:', e); alert('❌ Ошибка активации'); }
 };
 
-// Save executor
 async function saveExecutor(e) {
   e.preventDefault();
-  
+
   const executorData = {
     studio_id: currentStudio.studio_id,
-    full_name: document.getElementById("executorName").value.trim(),
-    role: document.getElementById('executorRole').value,
-    phone: document.getElementById('executorPhone').value.trim() || null,
-    is_admin: document.getElementById('executorIsAdmin').checked,
-    is_active: true
+    full_name:  document.getElementById('executorName').value.trim(),
+    role:       document.getElementById('executorRole').value,
+    phone:      document.getElementById('executorPhone').value.trim() || null,
+    is_admin:   document.getElementById('executorIsAdmin').checked,
+    is_active:  true
   };
-  
-  if (!executorData.full_name || !executorData.role) {
-    alert('❌ Заполните обязательные поля');
-    return;
-  }
-  
+
+  if (!executorData.full_name || !executorData.role) { alert('❌ Заполните обязательные поля'); return; }
+
   try {
     let error;
-    
     if (editingExecutorId) {
-      // Update
-      ({ error } = await sb
-        .from('executors')
-        .update(executorData)
-        .eq('id', editingExecutorId));
+      ({ error } = await sb.from('executors').update(executorData).eq('id', editingExecutorId));
     } else {
-      // Insert
-      ({ error } = await sb
-        .from('executors')
-        .insert(executorData));
+      ({ error } = await sb.from('executors').insert(executorData));
     }
-    
-    if (error) {
-      console.error('Error:', error);
-      alert('❌ Ошибка сохранения');
-      return;
-    }
-    
+    if (error) { console.error('Error:', error); alert('❌ Ошибка сохранения'); return; }
     closeModal();
     loadExecutors();
-    
   } catch (e) {
     console.error('Error:', e);
     alert('❌ Ошибка сохранения');
   }
 }
 
-// Drawer Menu
-
-
-
-
-// Init
 document.addEventListener('DOMContentLoaded', async () => {
   initNav({ actionLabel: '➕ Добавить сотрудника', actionHref: '#', hideAction: false });
   if (!await checkAuth()) return;
   if (!await getStudio()) return;
   await loadExecutors();
 
-  // После initNav навешиваем кнопку добавления через nav action
   const navAction = document.querySelector('#navTopBar .btn-nav-action');
   if (navAction) navAction.addEventListener('click', (e) => { e.preventDefault(); openModal(); });
 
-  // Events
   document.getElementById('btnAddExecutor').addEventListener('click', () => openModal());
   document.getElementById('modalClose').addEventListener('click', closeModal);
   document.getElementById('btnCancel').addEventListener('click', closeModal);
   document.getElementById('executorForm').addEventListener('submit', saveExecutor);
   document.getElementById('showInactive').addEventListener('change', loadExecutors);
-  
-  // Close modal on backdrop click
+
   document.getElementById('executorModal').addEventListener('click', (e) => {
-    if (e.target.id === 'executorModal') {
-      closeModal();
-    }
+    if (e.target.id === 'executorModal') closeModal();
   });
 });
 
 })();
 </script>
-<script src="footer.js"></script>
+
 </body>
 </html>
