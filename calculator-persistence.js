@@ -41,17 +41,18 @@ async function checkAuth() {
       currentUser = session.user;
       const { data: member } = await sb
         .from('studio_members')
-        .select('studio_id, studios(name, subscription_tier, subscription_expires_at)')
+        .select('studio_id, studios(name, subscription_tier, subscription_expires_at, settings)')
         .eq('user_id', session.user.id)
         .eq('is_active', true)
         .single();
       if (member) {
         currentProfile = {
-          id:          session.user.id,
-          studio_name: member.studios?.name || 'Студия',
-          studio_id:   member.studio_id,
-          is_paid:     ['active','trial'].includes(member.studios?.subscription_tier),
-          trial_ends_at: member.studios?.subscription_expires_at,
+          id:             session.user.id,
+          studio_name:    member.studios?.name || 'Студия',
+          studio_id:      member.studio_id,
+          is_paid:        ['active','trial'].includes(member.studios?.subscription_tier),
+          trial_ends_at:  member.studios?.subscription_expires_at,
+          studio_settings: member.studios?.settings || {},
         };
       } else {
         currentProfile = null;
@@ -82,7 +83,9 @@ function displayUserInfo() {
 
   // Применяем брендинг КП в зависимости от тарифа
   const isTrial = !currentProfile.is_paid;
-  if (typeof window.applyKPBranding === 'function') window.applyKPBranding(isTrial);
+  if (typeof window.applyKPBranding === 'function') {
+    window.applyKPBranding(isTrial, currentProfile.studio_settings || {});
+  }
   // Имя студии в КП-шапке
   const studioNameEl = document.getElementById('kpStudioName');
   if (studioNameEl && currentProfile.studio_name) studioNameEl.textContent = currentProfile.studio_name;
