@@ -575,6 +575,7 @@ let currentUser = null;
 let currentStudio = null;
 let allCalcs = [];
 let activeCalcId = null;
+let assignmentsMap = {}; // calcId → [{executor_name, salary, is_admin_sale}]
 
 const COLUMNS = [
   { key: 'new',         label: 'Расчёт',      icon: '📋' },
@@ -626,6 +627,21 @@ async function loadBoard() {
 
   if (error) { console.error(error); return; }
   allCalcs = data || [];
+
+  // Загружаем назначения исполнителей для всех расчётов
+  assignmentsMap = {};
+  if (allCalcs.length > 0) {
+    const calcIds = allCalcs.map(c => c.id);
+    const { data: assignments } = await sb
+      .from('work_assignments')
+      .select('calculation_id, executor_name, salary, is_admin_sale')
+      .in('calculation_id', calcIds);
+    (assignments || []).forEach(a => {
+      if (!assignmentsMap[a.calculation_id]) assignmentsMap[a.calculation_id] = [];
+      assignmentsMap[a.calculation_id].push(a);
+    });
+  }
+
   renderBoard();
 }
 
@@ -672,6 +688,30 @@ function renderCard(calc, status) {
     note = `<div class="card-note">💬 ${calc.schedule_note}</div>`;
   }
 
+  // Блок исполнителей (показываем для in_progress, done, delivered)
+  let executorsBlock = '';
+  if (['in_progress', 'done', 'delivered'].includes(status)) {
+    const asgns = assignmentsMap[calc.id] || [];
+    if (asgns.length > 0) {
+      const workers = asgns.filter(a => !a.is_admin_sale);
+      const totalSalary = workers.reduce((s, a) => s + (parseFloat(a.salary) || 0), 0);
+      const names = workers.map(a => a.executor_name).filter(Boolean);
+      const uniqueNames = [...new Set(names)];
+      executorsBlock = `
+        <div style="margin-bottom:8px;padding:7px 9px;background:rgba(37,99,235,0.05);border-radius:7px;border:1px solid rgba(37,99,235,0.12)">
+          <div style="font-size:0.67rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#64748b;margin-bottom:4px">👥 Исполнители</div>
+          ${uniqueNames.length > 0
+            ? `<div style="font-size:0.75rem;color:#0f172a;font-weight:600;line-height:1.5;margin-bottom:3px">${uniqueNames.join(', ')}</div>`
+            : `<div style="font-size:0.73rem;color:#94a3b8;font-style:italic">Не назначены</div>`
+          }
+          ${totalSalary > 0
+            ? `<div style="font-size:0.75rem;font-weight:700;color:#7c3aed">💸 ${fmt(totalSalary)} ₽</div>`
+            : ''
+          }
+        </div>`;
+    }
+  }
+
   let actions = '';
   if (status === 'new') {
     actions = `
@@ -704,6 +744,7 @@ function renderCard(calc, status) {
       ${checkin}
       ${note}
       <div class="card-price">${price} ₽</div>
+      ${executorsBlock}
       <div class="card-actions" onclick="event.stopPropagation()">
         ${actions}
       </div>
