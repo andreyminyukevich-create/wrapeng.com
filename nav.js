@@ -54,7 +54,8 @@
     }).join('');
 
     var actionBtn = hideAction ? '' :
-      '<a href="' + actionHref + '" class="btn-nav-action">' + actionLabel + '</a>';
+      '<a href="' + actionHref + '" class="btn-nav-action">' + actionLabel + '</a>' +
+      '<button class="btn-nav-action" style="background:rgba(245,158,11,0.12);color:#b45309;border:1.5px solid rgba(245,158,11,0.3)" onclick="BookingPopup&&BookingPopup.open({studioId:window._boardStudioId||window._studioId,onSaved:function(){location.reload()}})">📅 Записать авто</button>';
     var logoutBtn = '<button class="btn-nav-logout" onclick="(async()=>{const s=window._crmSb||window.supabase.createClient(\'https://hdghijgrrnzmntistdvw.supabase.co\',\'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkZ2hpamdycm56bW50aXN0ZHZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMzMyNzksImV4cCI6MjA3NTYwOTI3OX0.D9EDTmVrFRVp0B8_5tCJM29gbFdtadsom0Ihsf4uQ8Q\');await s.auth.signOut();window.location.href=\'welcome.html\';})()" style="background:transparent;border:1.5px solid rgba(124,58,237,0.3);color:#7c6fa0;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:0.82rem;font-weight:700;font-family:inherit;transition:all 0.2s" onmouseover="this.style.borderColor=\'#7c3aed\';this.style.color=\'#7c3aed\'" onmouseout="this.style.borderColor=\'rgba(124,58,237,0.3)\';this.style.color=\'#7c6fa0\'">Выйти →</button>';
 
     // Проверяем текущего пользователя для показа пункта Админ
