@@ -282,26 +282,56 @@ body {
 /* ── Print ────────────────────────────────────────── */
 @media print {
   * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-  body { background: #fff !important; }
+  body { background: #fff !important; font-size: 11px !important; }
   #navTopBar, .no-print, .page-header .btn-group { display: none !important; }
   .container { padding: 0 !important; max-width: 100% !important; }
-  .card { box-shadow: none !important; break-inside: avoid; }
-  .page-title { font-size: 1.1rem; }
-  .diagram-wrap { border: 1px solid #cbd5e1 !important; }
-  .defect-marker {
-    position: absolute;
-    width: 20px; height: 20px;
-    font-size: 0.6rem;
-  }
-  .check-item { border: 1px solid #cbd5e1 !important; background: #f8fafc !important; }
-  .check-item:has(input:checked) { border: 1.5px solid #2563eb !important; background: #eff6ff !important; }
-  .form-group input, .form-group textarea {
-    border: 1px solid #cbd5e1 !important;
-    background: #fff !important;
-  }
 
-  /* Print header with studio info */
+  /* Компактные отступы */
+  .card { box-shadow: none !important; margin-bottom: 6px !important; break-inside: avoid; }
+  .card-head { padding: 7px 12px 6px !important; font-size: 0.68rem !important; }
+  .card-body { padding: 8px 12px !important; }
+  .form-row { gap: 6px !important; margin-bottom: 6px !important; }
+  .form-group input, .form-group textarea {
+    padding: 5px 8px !important; font-size: 0.8rem !important;
+    border: 1px solid #cbd5e1 !important; background: #fff !important;
+  }
+  .form-group label { font-size: 0.63rem !important; }
+  .form-group textarea { min-height: 36px !important; }
+
+  /* Чекбоксы компактнее */
+  .check-item { padding: 5px 8px !important; border: 1px solid #cbd5e1 !important; background: #f8fafc !important; }
+  .check-item:has(input:checked) { border: 1.5px solid #2563eb !important; background: #eff6ff !important; }
+  .check-item-text { font-size: 0.78rem !important; }
+  .check-item-text strong { margin-bottom: 0 !important; }
+  .check-item-text span { font-size: 0.7rem !important; }
+  .check-list { gap: 4px !important; }
+
+  /* Схема авто — меньше */
+  .diagram-wrap {
+    border: 1px solid #cbd5e1 !important;
+    min-height: 160px !important;
+    padding: 6px !important;
+  }
+  #carSvg { width: 160px !important; height: 280px !important; }
+  .defect-marker { width: 18px !important; height: 18px !important; font-size: 0.55rem !important; }
+  .defect-legend-input { padding: 3px 6px !important; font-size: 0.75rem !important; }
+  .defect-legend { gap: 3px !important; margin-top: 6px !important; }
+
+  /* Таблица услуг */
+  .services-table th, .services-table td { padding: 5px 8px !important; font-size: 0.8rem !important; }
+
+  /* Подписи */
+  .sign-row { gap: 16px !important; }
+  .sign-label { font-size: 0.65rem !important; }
+  .sign-line { height: 30px !important; }
+  .disclaimer { padding: 7px 10px !important; font-size: 0.72rem !important; margin-top: 8px !important; }
+
+  /* Разрывы страниц: блок дефектов+услуги+подписи на стр.2 */
+  .card:nth-of-type(3) { break-before: page !important; }
+
+  /* Print header */
   #printStudioHeader { display: flex !important; }
+  #printStudioHeader { padding-bottom: 8px !important; margin-bottom: 10px !important; }
 }
 
 /* Studio header (print only) */
