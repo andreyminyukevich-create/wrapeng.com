@@ -216,13 +216,13 @@ body {
 /* ── Мини-канбан ────────────────────────────────── */
 .mini-kanban {
   display: grid;
-  grid-template-columns: repeat(5, minmax(140px, 1fr));
+  grid-template-columns: repeat(6, minmax(130px, 1fr));
   gap: 10px;
   overflow-x: auto;
   padding-bottom: 4px;
 }
 
-.mini-col { min-width: 140px; }
+.mini-col { min-width: 130px; }
 
 .mini-col-header {
   display: flex;
@@ -301,7 +301,6 @@ body {
   padding: 16px 4px;
 }
 
-/* Цвета колонок */
 .mini-col-new         .mini-dot { background: #94a3b8; }
 .mini-col-new         .mini-col-header { color: #64748b; border-bottom-color: #94a3b8; }
 .mini-col-scheduled   .mini-dot { background: #f59e0b; }
@@ -312,6 +311,8 @@ body {
 .mini-col-done        .mini-col-header { color: #5b21b6; border-bottom-color: #7c3aed; }
 .mini-col-delivered   .mini-dot { background: #059669; }
 .mini-col-delivered   .mini-col-header { color: #065f46; border-bottom-color: #059669; }
+.mini-col-cancelled   .mini-dot { background: #dc2626; }
+.mini-col-cancelled   .mini-col-header { color: #991b1b; border-bottom-color: #dc2626; }
 
 /* ── Результаты поиска ──────────────────────────── */
 .calc-grid {
@@ -398,10 +399,10 @@ body {
   .container { padding: 16px 14px 40px; }
   .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
   .stat-value { font-size: 1.4rem; }
-  .mini-kanban { grid-template-columns: repeat(5, minmax(130px, 1fr)); }
+  .mini-kanban { grid-template-columns: repeat(6, minmax(120px, 1fr)); }
 }
 @media (max-width: 480px) {
-  .mini-kanban { grid-template-columns: repeat(5, minmax(120px, 1fr)); }
+  .mini-kanban { grid-template-columns: repeat(6, minmax(110px, 1fr)); }
   .search-input { max-width: 100%; }
   .stats-grid { gap: 8px; }
 }
@@ -543,8 +544,8 @@ const MINI_COLS = Object.entries(window.STATUSES || {
   in_progress: { short: 'В работе',  icon: '🔧' },
   done:        { short: 'Завершено', icon: '✅' },
   delivered:   { short: 'Выдано',    icon: '🚗' },
-}).filter(([key]) => key !== 'cancelled')
-  .map(([key, s]) => ({ key, label: s.short, icon: s.icon }));
+  cancelled:   { short: 'Отказ',     icon: '❌' },
+}).map(([key, s]) => ({ key, label: s.short, icon: s.icon }));
 
 async function loadMiniKanban(studioId) {
   const container = document.getElementById('miniKanban');
