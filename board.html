@@ -536,8 +536,8 @@ html, body {
         <!-- Заголовок таблицы -->
         <div style="display:grid;grid-template-columns:1fr 110px 110px;gap:6px;margin-bottom:6px;padding:0 2px">
           <div style="font-size:0.67rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted)">Услуга</div>
-          <div style="font-size:0.67rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);text-align:right">План, ₽</div>
-          <div style="font-size:0.67rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#7c3aed;text-align:right">Факт, ₽</div>
+          <div style="font-size:0.67rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);text-align:right">План,</div>
+          <div style="font-size:0.67rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#7c3aed;text-align:right">Факт,</div>
         </div>
         <div id="doneMaterialsList" style="display:flex;flex-direction:column;gap:5px"></div>
         <!-- Итого -->
@@ -691,7 +691,7 @@ function renderBoard() {
           </div>
           <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px">
             <div class="column-count">${cards.length} авто</div>
-            ${colSum > 0 ? `<div class="column-sum">${fmt(colSum)} ₽</div>` : ''}
+            ${colSum > 0 ? `<div class="column-sum">${fmt(colSum)}</div>` : ''}
           </div>
         </div>
         <div class="column-cards">
@@ -766,7 +766,7 @@ function renderCard(calc, status) {
             : `<div style="font-size:0.73rem;color:#94a3b8;font-style:italic">Не назначены</div>`
           }
           ${totalSalary > 0
-            ? `<div style="font-size:0.75rem;font-weight:700;color:#7c3aed">${salaryLabel}: ${fmt(totalSalary)} ₽</div>`
+            ? `<div style="font-size:0.75rem;font-weight:700;color:#7c3aed">${salaryLabel}: ${fmt(totalSalary)}</div>`
             : ''
           }
         </div>`;
@@ -817,7 +817,7 @@ function renderCard(calc, status) {
       <div class="card-car">${calc.car_name || 'Без названия'}</div>
       ${checkin}
       ${note}
-      <div class="card-price">${price} ₽</div>
+      <div class="card-price">${price}</div>
       ${executorsBlock}
       <div class="card-actions" onclick="event.stopPropagation()">
         ${actions}
@@ -862,7 +862,7 @@ window.openModalInfo = function(calcId, carName, status, price, checkinDate, che
 
   document.getElementById('infoCarName').textContent  = carName;
   document.getElementById('infoStatus').textContent   = STATUS_LABELS[status] || status;
-  document.getElementById('infoPrice').textContent    = fmt(price) + ' ₽';
+  document.getElementById('infoPrice').textContent    = fmt(price) ;
 
   const checkinBlock = document.getElementById('infoCheckinBlock');
   if (checkinDate) {
@@ -1034,8 +1034,8 @@ window.updateDoneTotals = function() {
     factSum += parseFloat(inp.value) || 0;
   });
 
-  document.getElementById('donePlanTotal').textContent = fmt(planSum) + ' ₽';
-  document.getElementById('doneFactTotal').textContent = fmt(factSum) + ' ₽';
+  document.getElementById('donePlanTotal').textContent = fmt(planSum) ;
+  document.getElementById('doneFactTotal').textContent = fmt(factSum) ;
 
   const delta    = factSum - planSum;
   const deltaEl  = document.getElementById('doneDelta');
@@ -1043,10 +1043,10 @@ window.updateDoneTotals = function() {
     deltaEl.textContent = 'Факт совпал с планом';
     deltaEl.style.color = 'var(--text-muted)';
   } else if (delta > 0) {
-    deltaEl.textContent = `Перерасход: +${fmt(delta)} ₽`;
+    deltaEl.textContent = `Перерасход: +${fmt(delta)}`;
     deltaEl.style.color = 'var(--danger)';
   } else {
-    deltaEl.textContent = `Экономия: ${fmt(Math.abs(delta))} ₽`;
+    deltaEl.textContent = `Экономия: ${fmt(Math.abs(delta))}`;
     deltaEl.style.color = 'var(--success)';
   }
 };
