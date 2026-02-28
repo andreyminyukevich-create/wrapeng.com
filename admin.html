@@ -244,6 +244,14 @@ tbody tr:hover { background: #f8fafc; }
   flex-wrap: wrap;
   align-items: center;
 }
+.toolbar-title {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -0.2px;
+  white-space: nowrap;
+  margin-right: 4px;
+}
 .calcs-toolbar select,
 .calcs-toolbar input[type="text"] {
   padding: 8px 12px;
@@ -470,8 +478,11 @@ tbody tr:hover { background: #f8fafc; }
 
   <!-- Таб: Заявки -->
   <div id="tab-requests" style="display:none">
+    <div class="calcs-toolbar">
+      <span class="toolbar-title">📋 Новые заявки</span>
+      <div class="calcs-stats" id="statsRequests"></div>
+    </div>
     <div class="card">
-      <div class="card-head"><h2>Новые заявки</h2></div>
       <div class="table-wrap">
         <table>
           <thead><tr>
@@ -486,8 +497,11 @@ tbody tr:hover { background: #f8fafc; }
 
   <!-- Таб: На тесте -->
   <div id="tab-trial" style="display:none">
+    <div class="calcs-toolbar">
+      <span class="toolbar-title">🧪 Студии на триале</span>
+      <div class="calcs-stats" id="statsTrial"></div>
+    </div>
     <div class="card">
-      <div class="card-head"><h2>Студии на триале</h2></div>
       <div class="table-wrap">
         <table>
           <thead><tr>
@@ -501,11 +515,12 @@ tbody tr:hover { background: #f8fafc; }
 
   <!-- Таб: Студии -->
   <div id="tab-studios">
+    <div class="calcs-toolbar">
+      <span class="toolbar-title">🏢 Список студий</span>
+      <button class="btn btn-primary" onclick="openAddModal()">➕ Добавить студию</button>
+      <div class="calcs-stats" id="statsStudios"></div>
+    </div>
     <div class="card">
-      <div class="card-head">
-        <h2>Список студий</h2>
-        <button class="btn btn-primary" onclick="openAddModal()">➕ Добавить студию</button>
-      </div>
       <div class="table-wrap">
         <table>
           <thead><tr>
@@ -519,8 +534,11 @@ tbody tr:hover { background: #f8fafc; }
 
   <!-- Таб: Рефералы -->
   <div id="tab-referrals" style="display:none">
+    <div class="calcs-toolbar">
+      <span class="toolbar-title">🔗 Реферальные связи</span>
+      <div class="calcs-stats" id="statsReferrals"></div>
+    </div>
     <div class="card">
-      <div class="card-head"><h2>Реферальные связи</h2></div>
       <div class="table-wrap">
         <table>
           <thead><tr>
@@ -534,11 +552,12 @@ tbody tr:hover { background: #f8fafc; }
 
   <!-- Таб: Комиссии -->
   <div id="tab-commissions" style="display:none">
+    <div class="calcs-toolbar">
+      <span class="toolbar-title">💰 Комиссии к выплате</span>
+      <button class="btn btn-success" onclick="markAllPaid()">✅ Отметить все выплаченными</button>
+      <div class="calcs-stats" id="statsCommissions"></div>
+    </div>
     <div class="card">
-      <div class="card-head">
-        <h2>Комиссии к выплате</h2>
-        <button class="btn btn-success" onclick="markAllPaid()">✅ Отметить все выплаченными</button>
-      </div>
       <div class="table-wrap">
         <table>
           <thead><tr>
@@ -553,6 +572,7 @@ tbody tr:hover { background: #f8fafc; }
   <!-- Таб: Расчёты -->
   <div id="tab-calcs" style="display:none">
     <div class="calcs-toolbar">
+      <span class="toolbar-title">📊 Расчёты</span>
       <select id="calcsStudioFilter">
         <option value="">Все студии</option>
       </select>
@@ -574,7 +594,6 @@ tbody tr:hover { background: #f8fafc; }
         </div>
       </div>
     </div>
-
     <div class="card">
       <div class="table-wrap">
         <table>
@@ -597,8 +616,11 @@ tbody tr:hover { background: #f8fafc; }
 
   <!-- Таб: Блок-лист -->
   <div id="tab-blacklist" style="display:none">
+    <div class="calcs-toolbar">
+      <span class="toolbar-title">🚫 Заблокированные студии</span>
+      <div class="calcs-stats" id="statsBlacklist"></div>
+    </div>
     <div class="card">
-      <div class="card-head"><h2>Заблокированные студии</h2></div>
       <div class="table-wrap">
         <table>
           <thead><tr>
@@ -753,8 +775,13 @@ async function loadBlacklist() {
 
   if (error || !data || !data.length) {
     if (tbody) tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--dim)">Блок-лист пуст</td></tr>';
+    setPills('statsBlacklist', [{ label: 'Заблокировано', val: 0 }]);
     return;
   }
+
+  setPills('statsBlacklist', [
+    { label: 'Заблокировано', val: data.length, style: 'color:var(--danger)' },
+  ]);
 
   tbody.innerHTML = data.map(s => `
     <tr>
@@ -989,6 +1016,17 @@ async function loadAll() {
   await loadRequests();
 }
 
+// ── Хелпер: заполнить пилюли тулбара ─────────────
+function setPills(containerId, pills) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = pills.map(p => `
+    <div class="calcs-stat-pill">
+      <div class="s-label">${p.label}</div>
+      <div class="s-val" style="${p.style || ''}">${p.val}</div>
+    </div>`).join('');
+}
+
 async function loadRequests() {
   let accessReqs = [], pendingStudios = [];
   try {
@@ -1010,6 +1048,10 @@ async function loadRequests() {
   if (badge) badge.textContent = totalNew > 0 ? '(' + totalNew + ')' : '';
   const sNew = document.getElementById('sNewRequests');
   if (sNew) sNew.textContent = totalNew;
+
+  setPills('statsRequests', [
+    { label: 'Заявок', val: totalNew, style: totalNew > 0 ? 'color:var(--warning)' : '' },
+  ]);
 
   const tbody = document.getElementById('requestsBody');
   if (!tbody) return;
@@ -1104,6 +1146,13 @@ async function loadStudios() {
   document.getElementById('sTrial').textContent   = trial;
   document.getElementById('sExpired').textContent = expired;
 
+  setPills('statsStudios', [
+    { label: 'Всего', val: allStudios.length },
+    { label: 'Активных', val: active, style: 'color:var(--success)' },
+    { label: 'Триал', val: trial, style: 'color:var(--primary)' },
+    { label: 'Истёк', val: expired, style: expired > 0 ? 'color:var(--danger)' : '' },
+  ]);
+
   renderStudios(); renderTrialStudios(); renderReferrals();
 }
 
@@ -1115,8 +1164,14 @@ async function loadCommissions() {
 
   if (error) { console.error(error); return; }
   const comms = data || [];
-  const pending = comms.filter(c => !c.paid_to_referrer).reduce((s, c) => s + Number(c.amount), 0);
+  const pendingComms = comms.filter(c => !c.paid_to_referrer);
+  const pending = pendingComms.reduce((s, c) => s + Number(c.amount), 0);
   document.getElementById('sCommission').textContent = fmt(pending);
+
+  setPills('statsCommissions', [
+    { label: 'К выплате', val: pendingComms.length, style: pendingComms.length > 0 ? 'color:var(--warning)' : '' },
+    { label: 'Сумма', val: fmt(pending), style: 'color:var(--purple)' },
+  ]);
   renderCommissions(comms);
 }
 
@@ -1124,6 +1179,15 @@ function renderTrialStudios() {
   const trial = allStudios.filter(s => s.subscription_tier === 'trial');
   const badge = document.getElementById('badgeTrial');
   if (badge) badge.textContent = trial.length > 0 ? `(${trial.length})` : '';
+
+  const expiringSoon = trial.filter(s => {
+    const exp = s.subscription_expires_at ? new Date(s.subscription_expires_at) : null;
+    return exp && (exp - new Date()) / 3600000 < 12;
+  }).length;
+  setPills('statsTrial', [
+    { label: 'На тесте', val: trial.length, style: 'color:var(--primary)' },
+    { label: 'Истекают <12ч', val: expiringSoon, style: expiringSoon > 0 ? 'color:var(--danger)' : '' },
+  ]);
   const tbody = document.getElementById('trialBody');
   if (!tbody) return;
   if (!trial.length) {
@@ -1205,6 +1269,9 @@ function renderStudios() {
 function renderReferrals() {
   const tbody    = document.getElementById('referralsBody');
   const referred = allStudios.filter(s => s.referred_by_studio_id);
+  setPills('statsReferrals', [
+    { label: 'Связей', val: referred.length, style: 'color:var(--purple)' },
+  ]);
   if (!referred.length) {
     tbody.innerHTML = '<tr><td colspan="5"><div class="empty"><div class="empty-icon">🔗</div>Реферальных регистраций пока нет</div></td></tr>';
     return;
