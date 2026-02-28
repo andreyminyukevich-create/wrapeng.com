@@ -216,11 +216,13 @@ body {
 /* ── Мини-канбан ────────────────────────────────── */
 .mini-kanban {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(5, minmax(140px, 1fr));
   gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 4px;
 }
 
-.mini-col { min-width: 0; }
+.mini-col { min-width: 140px; }
 
 .mini-col-header {
   display: flex;
@@ -396,10 +398,10 @@ body {
   .container { padding: 16px 14px 40px; }
   .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
   .stat-value { font-size: 1.4rem; }
-  .mini-kanban { grid-template-columns: repeat(3, 1fr); }
+  .mini-kanban { grid-template-columns: repeat(5, minmax(130px, 1fr)); }
 }
 @media (max-width: 480px) {
-  .mini-kanban { grid-template-columns: repeat(2, 1fr); }
+  .mini-kanban { grid-template-columns: repeat(5, minmax(120px, 1fr)); }
   .search-input { max-width: 100%; }
   .stats-grid { gap: 8px; }
 }
@@ -415,7 +417,10 @@ body {
       <div class="studio-name" id="studioNameHeader">Загрузка...</div>
       <div class="studio-sub" id="studioSubheader">Keep1R CRM</div>
     </div>
-    <button class="btn-logout" onclick="logout()">Выйти →</button>
+    <div style="display:flex;gap:8px;align-items:center">
+      <a href="settings.html" class="btn-logout" style="display:inline-flex;align-items:center;gap:5px;text-decoration:none;color:#64748b">⚙️ Настройки</a>
+      <button class="btn-logout" onclick="logout()">Выйти →</button>
+    </div>
   </div>
 
   <!-- Стат-карточки -->
@@ -523,9 +528,9 @@ function updateStats(calculations) {
   const avg        = total > 0 ? sum / total : 0;
 
   document.getElementById('statMonthTotal').textContent     = total;
-  document.getElementById('statMonthSum').textContent       = fmt(sum) + ' ₽';
-  document.getElementById('statMonthDone').textContent      = fmt(doneSum) + ' ₽';
-  document.getElementById('statMonthAvg').textContent       = fmt(avg) + ' ₽';
+  document.getElementById('statMonthSum').textContent       = fmt(sum);
+  document.getElementById('statMonthDone').textContent      = fmt(doneSum);
+  document.getElementById('statMonthAvg').textContent       = fmt(avg);
   document.getElementById('statMonthDoneCount').textContent = done.length + ' машин';
   document.getElementById('statMonthTotalChange').textContent = 'Текущий месяц';
 }
@@ -575,7 +580,7 @@ async function loadMiniKanban(studioId) {
       visible.forEach(c => {
         html += `<div class="mini-card" onclick="location.href='board.html'">
           <div class="mini-card-car">${c.car_name || 'Без названия'}</div>
-          <div class="mini-card-price">${fmt(c.final_price || c.total_price || 0)} ₽</div>
+          <div class="mini-card-price">${fmt(c.final_price || c.total_price || 0)}</div>
         </div>`;
       });
       if (rest > 0) {
@@ -612,7 +617,7 @@ window.handleSearch = function() {
     box.innerHTML = `<div class="calc-grid">` + found.map(c => `
       <div class="calc-card" onclick="location.href='calculator.html?load=${c.id}'">
         <h3>${c.car_name || 'Без названия'}</h3>
-        <div class="calc-price">${fmt(c.final_price || c.total_price || 0)} ₽</div>
+        <div class="calc-price">${fmt(c.final_price || c.total_price || 0)}</div>
         <div class="calc-actions">
           <a class="btn btn-primary" href="calculator.html?load=${c.id}" onclick="event.stopPropagation()">📂 Открыть</a>
           <a class="btn btn-success" href="assign-work.html?calc_id=${c.id}" onclick="event.stopPropagation()">👥 Работы</a>
@@ -624,9 +629,9 @@ window.handleSearch = function() {
 function showLockedDashboard() {
   const fakeStats = [
     { icon: '🚗', label: 'Расчётов за месяц', value: '██', change: '+██%' },
-    { icon: '💰', label: 'Сумма расчётов',     value: '███ ███ ₽', change: '+██%' },
+    { icon: '💰', label: 'Сумма расчётов',     value: '███ ███', change: '+██%' },
     { icon: '✅', label: 'Завершённые работы', value: '██', change: '' },
-    { icon: '📊', label: 'Средний чек',        value: '██ ██ ₽', change: '+██%' },
+    { icon: '📊', label: 'Средний чек',        value: '██ ██', change: '+██%' },
   ];
 
   const grid = document.getElementById('statsGrid');
