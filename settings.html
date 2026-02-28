@@ -308,6 +308,51 @@ body {
   line-height: 1.6;
 }
 
+/* ── Posts ────────────────────────────────────── */
+.posts-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+.post-row {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 10px; padding: 10px 14px;
+  transition: border-color 0.15s;
+}
+.post-row:hover { border-color: rgba(37,99,235,0.25); }
+.post-color-dot {
+  width: 14px; height: 14px; border-radius: 50%;
+  flex-shrink: 0; cursor: pointer;
+  border: 2px solid rgba(0,0,0,0.1);
+}
+.post-name-input {
+  flex: 1; border: none; background: transparent;
+  font-size: 0.88rem; font-weight: 600; font-family: var(--font);
+  color: var(--text); outline: none; min-width: 0;
+}
+.post-type-select {
+  font-size: 0.75rem; padding: 4px 8px;
+  border: 1px solid var(--border); border-radius: 7px;
+  background: var(--surface); font-family: var(--font);
+  color: var(--muted); outline: none; cursor: pointer;
+  -webkit-appearance: none;
+}
+.post-cap-input {
+  width: 44px; text-align: center;
+  border: 1px solid var(--border); border-radius: 7px;
+  padding: 4px 6px; font-size: 0.8rem; font-family: var(--font);
+  background: var(--surface); color: var(--text); outline: none;
+}
+.post-del-btn {
+  background: none; border: none; cursor: pointer;
+  color: var(--dim); font-size: 1rem; padding: 2px 4px;
+  border-radius: 5px; line-height: 1; transition: all 0.15s;
+  flex-shrink: 0;
+}
+.post-del-btn:hover { color: var(--danger); background: rgba(220,38,38,0.07); }
+.post-labels {
+  display: flex; gap: 10px; padding: 0 14px 6px;
+  font-size: 0.62rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.06em; color: var(--dim);
+}
+
 /* ── Loading ──────────────────────────────────── */
 .loading { text-align: center; padding: 60px; color: var(--muted); font-size: 0.9rem; }
 
@@ -508,7 +553,29 @@ async function renderAll() {
       ` : ''}
     </div>
 
-    <!-- ── 3. Участники студии ────────────────────── -->
+    <!-- ── 3. Посты (рабочие места) ─────────────── -->
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">🔧 Рабочие посты</div>
+          <div class="card-subtitle">Боксы, подъёмники и другие рабочие места студии</div>
+        </div>
+      </div>
+      <div class="post-labels">
+        <span style="flex:0 0 14px"></span>
+        <span style="flex:1">Название</span>
+        <span style="width:110px">Тип</span>
+        <span style="width:44px;text-align:center" title="Вместимость — сколько авто одновременно">Авто</span>
+        <span style="width:24px"></span>
+      </div>
+      <div class="posts-list" id="postsList"></div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <button class="btn btn-secondary btn-sm" onclick="addPost()">➕ Добавить пост</button>
+        <button class="btn btn-primary btn-sm" onclick="savePosts()">💾 Сохранить посты</button>
+      </div>
+    </div>
+
+    <!-- ── 4. Участники студии ────────────────────── -->
     <div class="card">
       <div class="card-header">
         <div>
@@ -651,6 +718,130 @@ async function loadMembers() {
   `;
 }
 
+// ── Posts ─────────────────────────────────────────────
+const POST_TYPES = [
+  { value: 'wrap',      label: 'Оклейка / PPF' },
+  { value: 'detailing', label: 'Детейлинг' },
+  { value: 'wash',      label: 'Мойка' },
+  { value: 'chem',      label: 'Химчистка' },
+  { value: 'universal', label: 'Универсальный' },
+];
+
+const POST_COLORS = [
+  '#2563eb','#7c3aed','#059669','#d97706','#dc2626',
+  '#0891b2','#be185d','#65a30d','#9333ea','#0f172a'
+];
+
+let postsData = []; // [{id, name, type, color, capacity, is_active, _new}]
+
+async function loadPosts() {
+  const { data, error } = await sb
+    .from('posts')
+    .select('*')
+    .eq('studio_id', studio.id)
+    .eq('is_active', true)
+    .order('created_at');
+
+  if (error && error.code !== 'PGRST116') {
+    // Таблица может не существовать ещё — показываем пустой список
+    postsData = [];
+  } else {
+    postsData = data || [];
+  }
+  renderPosts();
+}
+
+function renderPosts() {
+  const list = document.getElementById('postsList');
+  if (!list) return;
+  if (!postsData.length) {
+    list.innerHTML = '<div style="color:var(--muted);font-size:0.82rem;padding:10px 14px">Постов пока нет. Нажмите «Добавить пост».</div>';
+    return;
+  }
+  list.innerHTML = postsData.map((p, i) => {
+    const typeOptions = POST_TYPES.map(t =>
+      `<option value="${t.value}" ${p.type === t.value ? 'selected' : ''}>${t.label}</option>`
+    ).join('');
+    return `
+      <div class="post-row" data-idx="${i}">
+        <div class="post-color-dot" style="background:${p.color || POST_COLORS[i % POST_COLORS.length]}"
+          onclick="cycleColor(${i})" title="Сменить цвет"></div>
+        <input class="post-name-input" value="${esc(p.name || '')}" placeholder="Бокс ${i+1}"
+          oninput="postsData[${i}].name=this.value">
+        <select class="post-type-select" onchange="postsData[${i}].type=this.value">${typeOptions}</select>
+        <input class="post-cap-input" type="number" min="1" max="10" value="${p.capacity || 1}"
+          oninput="postsData[${i}].capacity=parseInt(this.value)||1" title="Вместимость">
+        <button class="post-del-btn" onclick="deletePost(${i})" title="Удалить">✕</button>
+      </div>`;
+  }).join('');
+}
+
+window.addPost = function() {
+  const idx = postsData.length;
+  postsData.push({
+    _new: true,
+    name: '',
+    type: 'universal',
+    color: POST_COLORS[idx % POST_COLORS.length],
+    capacity: 1,
+    is_active: true,
+  });
+  renderPosts();
+  // Фокус на последний input
+  const inputs = document.querySelectorAll('.post-name-input');
+  if (inputs.length) inputs[inputs.length - 1].focus();
+};
+
+window.deletePost = async function(idx) {
+  const p = postsData[idx];
+  if (!p._new && p.id) {
+    if (!confirm(`Удалить пост «${p.name || 'без названия'}»?`)) return;
+    await sb.from('posts').update({ is_active: false }).eq('id', p.id);
+  }
+  postsData.splice(idx, 1);
+  renderPosts();
+};
+
+window.cycleColor = function(idx) {
+  const p = postsData[idx];
+  const cur = POST_COLORS.indexOf(p.color);
+  p.color = POST_COLORS[(cur + 1) % POST_COLORS.length];
+  renderPosts();
+};
+
+window.savePosts = async function() {
+  const btn = document.querySelector('[onclick="savePosts()"]');
+  if (btn) { btn.textContent = '⏳ Сохранение...'; btn.disabled = true; }
+
+  let hasError = false;
+  for (const p of postsData) {
+    if (!p.name?.trim()) continue; // пропускаем без названия
+    const payload = {
+      studio_id: studio.id,
+      name:      p.name.trim(),
+      type:      p.type || 'universal',
+      color:     p.color || '#2563eb',
+      capacity:  p.capacity || 1,
+      is_active: true,
+    };
+    if (p._new) {
+      const { error } = await sb.from('posts').insert(payload);
+      if (error) { hasError = true; console.error(error); }
+    } else if (p.id) {
+      const { error } = await sb.from('posts').update(payload).eq('id', p.id);
+      if (error) { hasError = true; console.error(error); }
+    }
+  }
+
+  if (btn) { btn.textContent = '💾 Сохранить посты'; btn.disabled = false; }
+  if (hasError) {
+    alert('❌ Ошибка при сохранении. Возможно, таблица posts ещё не создана в БД.');
+  } else {
+    toast('✅ Посты сохранены');
+    await loadPosts(); // перечитать из БД чтобы получить ID
+  }
+};
+
 // ── Save main ─────────────────────────────────────────
 window.saveMain = async function() {
   const name    = document.getElementById('studioName')?.value.trim();
@@ -734,6 +925,7 @@ async function init() {
   if (!await checkAuth()) return;
   if (!await loadStudio()) return;
   await renderAll();
+  await loadPosts();
 }
 
 init();
