@@ -66,81 +66,86 @@ body {
 }
 .legend-dot { width: 10px; height: 10px; border-radius: 3px; }
 
-/* ── Calendar Grid ─────────────────────────────── */
+/* ── Calendar Grid — 2 колонки ─────────────────── */
 .calendar-wrap {
-  display: flex; flex-direction: column; gap: 12px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
 }
+@media (max-width: 900px) { .calendar-wrap { grid-template-columns: 1fr; } }
 
 /* ── Post Block ────────────────────────────────── */
 .post-block {
   background: #fff;
   border: 1px solid rgba(15,23,42,0.07);
-  border-radius: 16px;
+  border-radius: 14px;
   overflow: hidden;
   box-shadow: 0 1px 3px rgba(0,0,0,0.04);
 }
 .post-header {
   display: flex; align-items: center; gap: 10px;
-  padding: 12px 18px;
+  padding: 10px 14px;
   border-bottom: 1px solid rgba(15,23,42,0.06);
   background: #f8fafc;
 }
 .post-color-bar {
-  width: 4px; height: 24px;
+  width: 4px; height: 20px;
   border-radius: 3px; flex-shrink: 0;
 }
 .post-name {
-  font-size: 0.9rem; font-weight: 800;
+  font-size: 0.85rem; font-weight: 800;
   color: #0f172a; letter-spacing: -0.1px;
 }
 .post-type-badge {
-  font-size: 0.68rem; font-weight: 700;
-  padding: 2px 8px; border-radius: 20px;
+  font-size: 0.65rem; font-weight: 700;
+  padding: 2px 7px; border-radius: 20px;
   background: rgba(100,116,139,0.1);
   color: #64748b; border: 1px solid rgba(100,116,139,0.15);
 }
 .post-cap-badge {
-  font-size: 0.68rem; font-weight: 700;
-  padding: 2px 8px; border-radius: 20px;
+  font-size: 0.65rem; font-weight: 700;
+  padding: 2px 7px; border-radius: 20px;
   background: rgba(37,99,235,0.07);
   color: #2563eb; border: 1px solid rgba(37,99,235,0.15);
   margin-left: auto;
 }
 
-/* ── Month Grid ────────────────────────────────── */
-.month-grid-wrap { overflow-x: auto; padding: 14px 18px 18px; }
+/* ── Month Grid — компактный квадратный ────────── */
+.month-grid-wrap { overflow-x: auto; padding: 10px 12px 14px; }
 .month-grid {
   display: grid;
-  grid-template-columns: repeat(7, minmax(68px, 1fr));
-  gap: 4px;
-  min-width: 480px;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+  min-width: 0;
 }
 .day-header {
-  text-align: center; font-size: 0.62rem;
+  text-align: center; font-size: 0.55rem;
   font-weight: 700; text-transform: uppercase;
-  letter-spacing: 0.06em; color: #94a3b8;
-  padding: 4px 0 6px;
+  letter-spacing: 0.04em; color: #94a3b8;
+  padding: 2px 0 4px;
 }
 .day-header.weekend { color: #f87171; }
 
 /* ── Day Cell ──────────────────────────────────── */
 .day-cell {
-  min-height: 68px; border-radius: 10px;
+  aspect-ratio: 1;
+  min-height: 0;
+  border-radius: 8px;
   border: 1.5px solid rgba(15,23,42,0.06);
   background: #f8fafc;
   position: relative; overflow: hidden;
   cursor: pointer; transition: all 0.15s;
   display: flex; flex-direction: column;
 }
-.day-cell:hover { border-color: #2563eb; box-shadow: 0 2px 10px rgba(37,99,235,0.1); }
+.day-cell:hover { border-color: #2563eb; box-shadow: 0 2px 8px rgba(37,99,235,0.12); }
 .day-cell.today { border-color: #2563eb; background: rgba(37,99,235,0.04); }
-.day-cell.other-month { opacity: 0.3; cursor: default; }
+.day-cell.other-month { opacity: 0.25; cursor: default; }
 .day-cell.other-month:hover { border-color: rgba(15,23,42,0.06); box-shadow: none; }
 .day-cell.weekend-cell { background: #fafbfd; }
 
 .day-num {
-  font-size: 0.72rem; font-weight: 700;
-  color: #64748b; padding: 5px 7px 2px;
+  font-size: 0.62rem; font-weight: 700;
+  color: #64748b; padding: 3px 5px 1px;
   line-height: 1; flex-shrink: 0;
 }
 .day-cell.today .day-num {
@@ -262,6 +267,27 @@ body {
   display: none;
 }
 .conflict-warn.show { display: block; }
+
+/* ── Detail: услуги + исполнители ──────────────── */
+.detail-section-title {
+  font-size: 0.65rem; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.07em; color: #94a3b8; margin: 14px 0 8px;
+}
+.service-row {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  padding: 8px 10px; border-radius: 8px;
+  background: #f8fafc; border: 1px solid rgba(15,23,42,0.06);
+  margin-bottom: 4px; gap: 10px;
+}
+.service-name  { font-size: 0.82rem; font-weight: 700; color: #0f172a; flex: 1; line-height: 1.3; }
+.service-exec  { font-size: 0.7rem; color: #64748b; font-weight: 600; margin-top: 2px; }
+.service-price { font-size: 0.8rem; font-weight: 800; color: #7c3aed; white-space: nowrap; }
+.exec-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.exec-tag {
+  font-size: 0.68rem; font-weight: 700; padding: 2px 8px;
+  border-radius: 20px; background: rgba(37,99,235,0.08);
+  color: #2563eb; border: 1px solid rgba(37,99,235,0.15);
+}
 
 /* ── Booking detail modal ──────────────────────── */
 .booking-detail-grid {
@@ -728,19 +754,58 @@ window.saveAssignment = async function() {
   renderCalendar();
 };
 
+// ── Helpers для услуг ─────────────────────────────
+function extractServices(calcData) {
+  const d = calcData || {};
+  const items = [];
+  const seen = new Set();
+
+  function add(key, name, price) {
+    const p = parseFloat(price) || 0;
+    if (p > 0 && !seen.has(key)) { seen.add(key); items.push({ key, name, price: p }); }
+  }
+
+  if (d.package) {
+    add('pkg_wrap', 'Оклейка (полная защита)',       d.package.wrapPrice || d.package.wrap);
+    add('pkg_prep', 'Подготовка (полная защита)',    d.package.prepPrice || d.package.prep);
+    add('pkg_arm',  'Арматурные работы (полная)',    d.package.armPrice  || d.package.arm);
+  }
+  if (d.impact) {
+    add('imp_wrap', 'Оклейка (ударная часть)',       d.impact.wrapPrice || d.impact.wrap);
+    add('imp_prep', 'Подготовка (ударная часть)',    d.impact.prepPrice || d.impact.prep);
+    add('imp_arm',  'Арматурные (ударная часть)',    d.impact.armPrice  || d.impact.arm);
+  }
+  if (d.services_detail) {
+    const gn = { arm:'Арматурные работы', det:'Детейлинг', gl:'Стёкла', ms:'Доп. услуги', wrap:'Оклейка' };
+    Object.entries(gn).forEach(([key, gName]) => {
+      (d.services_detail[key] || []).forEach((item, idx) => {
+        const p = parseFloat(item.price || item.cost || 0);
+        if (p > 0) add(`${key}_${idx}`, item.name || gName, p);
+      });
+    });
+  }
+  // Fallback — старый формат
+  if (!items.length) {
+    const cats = { arm:'Арматурные работы', wrap:'Оклейка', det:'Детейлинг', gl:'Стёкла', ms:'Прочие' };
+    Object.entries(cats).forEach(([key, name]) => {
+      if (d[key]) add(key, name, d[key].price || d[key].cost || d[key].total);
+    });
+  }
+  return items;
+}
+
 // ── Detail modal ──────────────────────────────────
-window.openDetail = function(bookingId) {
-  const b    = bookings.find(x => x.id === bookingId);
+window.openDetail = async function(bookingId) {
+  const b = bookings.find(x => x.id === bookingId);
   if (!b) return;
   activeBookingId = bookingId;
   activeCalcId    = b.calc_id;
 
   const calc = getCalcById(b.calc_id);
   const post = posts.find(p => p.id === b.post_id);
-  const status = STATUS_LABEL[calc?.status] || '—';
-  const price  = fmt(calc?.final_price || calc?.total_price || 0);
+  const price = fmt(calc?.final_price || calc?.total_price || 0);
 
-  document.getElementById('detailModalTitle').textContent = calc?.car_name || 'Авто';
+  document.getElementById('detailModalTitle').textContent = b.car_name || calc?.car_name || 'Авто';
   document.getElementById('detailModalContent').innerHTML = `
     <div class="booking-detail-grid">
       <div class="bd-item">
@@ -749,7 +814,7 @@ window.openDetail = function(bookingId) {
       </div>
       <div class="bd-item">
         <div class="bd-label">Статус</div>
-        <div class="bd-value" style="color:${STATUS_COLOR[calc?.status] || '#64748b'}">${status}</div>
+        <div class="bd-value" style="color:${STATUS_COLOR[calc?.status]||'#64748b'}">${STATUS_LABEL[calc?.status]||'—'}</div>
       </div>
       <div class="bd-item">
         <div class="bd-label">Заезд</div>
@@ -768,9 +833,56 @@ window.openDetail = function(bookingId) {
         <div class="bd-value">${daysBetween(b.date_from, b.date_to)}</div>
       </div>
     </div>
-    ${b.note ? `<div style="font-size:0.82rem;color:#64748b;background:#f8fafc;border-radius:8px;padding:10px 12px;border:1px solid rgba(15,23,42,0.07)">💬 ${b.note}</div>` : ''}
+    ${b.note ? `<div style="font-size:0.8rem;color:#64748b;background:#f8fafc;border-radius:8px;padding:9px 12px;border:1px solid rgba(15,23,42,0.07);margin-top:12px">💬 ${b.note}</div>` : ''}
+    <div class="detail-section-title">Услуги и исполнители</div>
+    <div id="detailServicesBlock"><div style="color:#94a3b8;font-size:0.8rem;padding:8px 0">⏳ Загрузка...</div></div>
   `;
   document.getElementById('detailModal').classList.add('active');
+
+  // Загружаем полные данные расчёта + исполнителей
+  if (!b.calc_id) {
+    document.getElementById('detailServicesBlock').innerHTML =
+      '<div style="color:#94a3b8;font-size:0.8rem;padding:8px 0">Расчёт не привязан</div>';
+    return;
+  }
+
+  const [calcRes, assignRes] = await Promise.all([
+    sb.from('calculations').select('calculation_data, final_price, total_price').eq('id', b.calc_id).single(),
+    sb.from('work_assignments').select('executor_name, salary, is_admin_sale').eq('calculation_id', b.calc_id),
+  ]);
+
+  const calcData = calcRes.data?.calculation_data || {};
+  const services = extractServices(calcData);
+  const workers  = (assignRes.data || []).filter(a => !a.is_admin_sale);
+
+  const execNames = workers.map(a => a.executor_name).filter(Boolean);
+
+  const block = document.getElementById('detailServicesBlock');
+  if (!block) return;
+
+  if (!services.length && !execNames.length) {
+    block.innerHTML = '<div style="color:#94a3b8;font-size:0.8rem;padding:4px 0">Нет данных об услугах</div>';
+    return;
+  }
+
+  let html = '';
+
+  if (services.length) {
+    html += services.map(s => `
+      <div class="service-row">
+        <div>
+          <div class="service-name">${s.name}</div>
+        </div>
+        <div class="service-price">${fmt(s.price)} ₽</div>
+      </div>`).join('');
+  }
+
+  if (execNames.length) {
+    html += `<div class="detail-section-title" style="margin-top:10px">Назначены</div>
+      <div class="exec-tags">${execNames.map(n => `<span class="exec-tag">👤 ${n}</span>`).join('')}</div>`;
+  }
+
+  block.innerHTML = html;
 };
 
 function formatDate(s) {
