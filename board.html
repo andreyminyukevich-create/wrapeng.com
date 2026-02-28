@@ -758,11 +758,15 @@ function renderCard(calc, status) {
     `;
   } else if (status === 'done') {
     actions = `
+      <button class="card-btn card-btn-secondary" onclick="event.stopPropagation();window.location.href='calc-view.html?id=${calc.id}'">📊 Расчёт</button>
+      <button class="card-btn card-btn-secondary" onclick="event.stopPropagation();window.location.href='acceptance-act.html?calc_id=${calc.id}'">📄 Акт приёмки</button>
+      <button class="card-btn card-btn-secondary" onclick="event.stopPropagation();window.location.href='work-order.html?calc_id=${calc.id}'">🖨️ Заказ-наряд</button>
       <button class="card-btn card-btn-primary" onclick="event.stopPropagation();openModalDeliver('${calc.id}','${escStr(calc.car_name)}',${calc.total_price || 0})" style="background:var(--success)">🚗 Выдать клиенту</button>
     `;
   } else if (status === 'delivered') {
     actions = `
-      <button class="card-btn card-btn-secondary" onclick="event.stopPropagation();openCalc('${calc.id}')">📂 Открыть</button>
+      <button class="card-btn card-btn-secondary" onclick="event.stopPropagation();window.location.href='calc-view.html?id=${calc.id}'">📊 Расчёт</button>
+      <button class="card-btn card-btn-secondary" onclick="event.stopPropagation();window.location.href='acceptance-act.html?calc_id=${calc.id}'">📄 Акт приёмки</button>
       <button class="card-btn card-btn-primary" onclick="event.stopPropagation();window.location.href='work-order.html?calc_id=${calc.id}'" style="background:#0f172a">🖨️ Акт передачи</button>
     `;
   }
