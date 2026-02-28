@@ -732,7 +732,7 @@ const POST_COLORS = [
   '#0891b2','#be185d','#65a30d','#9333ea','#0f172a'
 ];
 
-let postsData = []; // [{id, name, type, color, capacity, is_active, _new}]
+window._postsData = []; // глобально, чтобы inline-хендлеры видели
 
 async function loadPosts() {
   const { data, error } = await sb
@@ -743,42 +743,58 @@ async function loadPosts() {
     .order('created_at');
 
   if (error && error.code !== 'PGRST116') {
-    // Таблица может не существовать ещё — показываем пустой список
-    postsData = [];
+    window._postsData = [];
   } else {
-    postsData = data || [];
+    window._postsData = data || [];
   }
   renderPosts();
+}
+
+function syncPostsFromDOM() {
+  // Считываем текущие значения из DOM перед перерисовкой
+  const rows = document.querySelectorAll('#postsList .post-row');
+  rows.forEach(row => {
+    const idx = parseInt(row.dataset.idx);
+    if (isNaN(idx) || !window._postsData[idx]) return;
+    const nameEl = row.querySelector('.post-name-input');
+    const typeEl = row.querySelector('.post-type-select');
+    const capEl  = row.querySelector('.post-cap-input');
+    if (nameEl) window._postsData[idx].name     = nameEl.value;
+    if (typeEl) window._postsData[idx].type     = typeEl.value;
+    if (capEl)  window._postsData[idx].capacity = parseInt(capEl.value) || 1;
+  });
 }
 
 function renderPosts() {
   const list = document.getElementById('postsList');
   if (!list) return;
-  if (!postsData.length) {
+  if (!window._postsData.length) {
     list.innerHTML = '<div style="color:var(--muted);font-size:0.82rem;padding:10px 14px">Постов пока нет. Нажмите «Добавить пост».</div>';
     return;
   }
-  list.innerHTML = postsData.map((p, i) => {
+  list.innerHTML = window._postsData.map((p, i) => {
     const typeOptions = POST_TYPES.map(t =>
       `<option value="${t.value}" ${p.type === t.value ? 'selected' : ''}>${t.label}</option>`
     ).join('');
+    const color = p.color || POST_COLORS[i % POST_COLORS.length];
     return `
       <div class="post-row" data-idx="${i}">
-        <div class="post-color-dot" style="background:${p.color || POST_COLORS[i % POST_COLORS.length]}"
-          onclick="cycleColor(${i})" title="Сменить цвет"></div>
+        <div class="post-color-dot" style="background:${color}"
+          onclick="window._cycleColor(${i})" title="Сменить цвет"></div>
         <input class="post-name-input" value="${esc(p.name || '')}" placeholder="Бокс ${i+1}"
-          oninput="postsData[${i}].name=this.value">
-        <select class="post-type-select" onchange="postsData[${i}].type=this.value">${typeOptions}</select>
+          oninput="window._postsData[${i}].name=this.value">
+        <select class="post-type-select" onchange="window._postsData[${i}].type=this.value">${typeOptions}</select>
         <input class="post-cap-input" type="number" min="1" max="10" value="${p.capacity || 1}"
-          oninput="postsData[${i}].capacity=parseInt(this.value)||1" title="Вместимость">
-        <button class="post-del-btn" onclick="deletePost(${i})" title="Удалить">✕</button>
+          oninput="window._postsData[${i}].capacity=parseInt(this.value)||1" title="Вместимость">
+        <button class="post-del-btn" onclick="window._deletePost(${i})" title="Удалить">✕</button>
       </div>`;
   }).join('');
 }
 
 window.addPost = function() {
-  const idx = postsData.length;
-  postsData.push({
+  syncPostsFromDOM(); // сохраняем что уже введено
+  const idx = window._postsData.length;
+  window._postsData.push({
     _new: true,
     name: '',
     type: 'universal',
@@ -792,30 +808,33 @@ window.addPost = function() {
   if (inputs.length) inputs[inputs.length - 1].focus();
 };
 
-window.deletePost = async function(idx) {
-  const p = postsData[idx];
+window._deletePost = async function(idx) {
+  syncPostsFromDOM();
+  const p = window._postsData[idx];
   if (!p._new && p.id) {
     if (!confirm(`Удалить пост «${p.name || 'без названия'}»?`)) return;
     await sb.from('posts').update({ is_active: false }).eq('id', p.id);
   }
-  postsData.splice(idx, 1);
+  window._postsData.splice(idx, 1);
   renderPosts();
 };
 
-window.cycleColor = function(idx) {
-  const p = postsData[idx];
+window._cycleColor = function(idx) {
+  syncPostsFromDOM();
+  const p = window._postsData[idx];
   const cur = POST_COLORS.indexOf(p.color);
   p.color = POST_COLORS[(cur + 1) % POST_COLORS.length];
   renderPosts();
 };
 
 window.savePosts = async function() {
+  syncPostsFromDOM(); // финальный снимок перед сохранением
   const btn = document.querySelector('[onclick="savePosts()"]');
   if (btn) { btn.textContent = '⏳ Сохранение...'; btn.disabled = true; }
 
   let hasError = false;
-  for (const p of postsData) {
-    if (!p.name?.trim()) continue; // пропускаем без названия
+  for (const p of window._postsData) {
+    if (!p.name?.trim()) continue;
     const payload = {
       studio_id: studio.id,
       name:      p.name.trim(),
@@ -838,7 +857,7 @@ window.savePosts = async function() {
     alert('❌ Ошибка при сохранении. Возможно, таблица posts ещё не создана в БД.');
   } else {
     toast('✅ Посты сохранены');
-    await loadPosts(); // перечитать из БД чтобы получить ID
+    await loadPosts();
   }
 };
 
