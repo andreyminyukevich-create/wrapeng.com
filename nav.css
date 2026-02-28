@@ -124,6 +124,29 @@
   flex-shrink: 0;
 }
 
+#navTopBar .btn-nav-book {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 16px;
+  background: #f59e0b;
+  color: #fff !important;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  white-space: nowrap;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: var(--font);
+  box-shadow: 0 2px 8px rgba(245,158,11,0.3);
+}
+#navTopBar .btn-nav-book:hover {
+  background: #d97706;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(245,158,11,0.4);
+}
+
 #navTopBar .btn-nav-action {
   display: inline-flex;
   align-items: center;
