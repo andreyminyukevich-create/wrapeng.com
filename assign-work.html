@@ -506,6 +506,20 @@ window.goBack = function() {
   }
 };
 
+window.showSavedBanner = function(calcId, count) {
+  // Hide save button, show success banner
+  const btn = document.getElementById('btnSave');
+  if (btn) btn.style.display = 'none';
+
+  const banner = document.getElementById('savedBanner');
+  if (banner) {
+    document.getElementById('savedCount').textContent = count;
+    document.getElementById('woLink').href = 'work-order.html?calc_id=' + calcId;
+    banner.style.display = 'flex';
+    banner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+};
+
 const SUPABASE_URL     = 'https://hdghijgrrnzmntistdvw.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkZ2hpamdycm56bW50aXN0ZHZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMzMyNzksImV4cCI6MjA3NTYwOTI3OX0.D9EDTmVrFRVp0B8_5tCJM29gbFdtadsom0Ihsf4uQ8Q';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -907,8 +921,7 @@ window.saveAssignments = async function() {
 
     await sb.from('calculations').update({ work_assigned: true, status: 'in_progress' }).eq('id', calcId);
 
-    alert(`✅ Сохранено! Назначено ${assignments.length} записей.`);
-    goBack();
+    showSavedBanner(calcId, assignments.length);
   } catch (e) {
     console.error('Error:', e);
     alert('❌ Ошибка сохранения');
@@ -1020,7 +1033,18 @@ function renderContent(services, existingAssignments = []) {
       </div>
       <div style="display:flex;gap:10px;margin-top:16px;justify-content:flex-end;flex-wrap:wrap">
         <button class="btn btn-secondary" onclick="window.history.back()">← Отмена</button>
-        <button class="btn btn-success" onclick="saveAssignments()">💾 Сохранить распределение</button>
+        <button class="btn btn-success" id="btnSave" onclick="saveAssignments()">💾 Сохранить распределение</button>
+      </div>
+
+      <!-- Баннер после сохранения -->
+      <div id="savedBanner" style="display:none;margin-top:16px;padding:16px 20px;background:#f0fdf4;border:1.5px solid #86efac;border-radius:12px;align-items:center;gap:12px;flex-wrap:wrap">
+        <div style="font-size:1.2rem">✅</div>
+        <div style="flex:1">
+          <div style="font-weight:800;color:#065f46;font-size:0.95rem">Сохранено! Назначено <span id="savedCount">0</span> записей.</div>
+          <div style="font-size:0.8rem;color:#059669;margin-top:2px">Статус заказа переведён в «Принято в работу»</div>
+        </div>
+        <a id="woLink" href="#" style="display:inline-flex;align-items:center;gap:6px;padding:10px 18px;background:#0f172a;color:#fff;border-radius:9px;font-size:0.85rem;font-weight:700;text-decoration:none">🖨️ Скачать заказ-наряд</a>
+        <a href="board.html" style="display:inline-flex;align-items:center;gap:6px;padding:10px 18px;background:#f1f5f9;color:#0f172a;border-radius:9px;font-size:0.85rem;font-weight:700;text-decoration:none;border:1px solid rgba(15,23,42,0.10)">← На доску</a>
       </div>
     </div>
   `;
