@@ -88,9 +88,30 @@
   };
 
   // ── Кнопка «Записать авто» — динамическая загрузка попапа ──────
-  window._openNavBooking = function() {
+  window._openNavBooking = async function() {
+    // Получаем studioId — сначала из глобальных переменных, потом из БД
+    var sid = window._boardStudioId || window._studioId || null;
+
+    if (!sid) {
+      var _sb = window._crmSb;
+      if (_sb) {
+        var sess = await _sb.auth.getSession();
+        var uid  = sess && sess.data && sess.data.session && sess.data.session.user && sess.data.session.user.id;
+        if (uid) {
+          var res = await _sb.from('studio_members')
+            .select('studio_id')
+            .eq('user_id', uid)
+            .eq('is_active', true)
+            .single();
+          if (res.data) {
+            sid = res.data.studio_id;
+            window._studioId = sid; // кэшируем
+          }
+        }
+      }
+    }
+
     function doOpen() {
-      var sid = window._boardStudioId || window._studioId || null;
       BookingPopup.open({
         studioId: sid,
         onSaved: function() { location.reload(); }
@@ -106,7 +127,7 @@
     var s = document.createElement('script');
     s.src = 'booking-popup.js';
     s.onload = function() { doOpen(); };
-    s.onerror = function() { alert('Не удалось загрузить модуль записи. Попробуйте со страницы Доски или Календаря.'); };
+    s.onerror = function() { alert('Не удалось загрузить модуль записи.'); };
     document.head.appendChild(s);
   };
 
