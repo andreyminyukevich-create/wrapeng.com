@@ -303,6 +303,7 @@ body {
       <button onclick="shiftMonth(1)">›</button>
     </div>
     <button class="btn-today" onclick="goToday()">Сегодня</button>
+    <button class="btn-today" style="background:rgba(245,158,11,0.1);color:#b45309;border-color:rgba(245,158,11,0.3)" onclick="BookingPopup.open({studioId:studioId,onSaved:function(){loadBookings().then(renderCalendar)}})">📅 Записать авто</button>
     <div class="legend">
       <div class="legend-item"><div class="legend-dot" style="background:#2563eb"></div> В работе</div>
       <div class="legend-item"><div class="legend-dot" style="background:#7c3aed"></div> Готово</div>
@@ -364,6 +365,7 @@ body {
 </div>
 
 <script src="footer.js"></script>
+<script src="booking-popup.js"></script>
 <script>
 (function() {
 'use strict';
