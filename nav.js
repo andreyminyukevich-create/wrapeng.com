@@ -1,938 +1,154 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Настройки — Keep1R CRM</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<link rel="stylesheet" href="nav.css">
-<script src="nav.js"></script>
-<style>
-:root {
-  --font:      -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
-  --bg:        #eef2f9;
-  --surface:   #ffffff;
-  --border:    rgba(15,23,42,0.08);
-  --text:      #0f172a;
-  --muted:     #64748b;
-  --dim:       #94a3b8;
-  --primary:   #2563eb;
-  --primary-dk:#1d4ed8;
-  --success:   #059669;
-  --danger:    #dc2626;
-  --warning:   #d97706;
-  --radius:    14px;
-  --radius-sm: 9px;
-  --shadow:    0 1px 3px rgba(0,0,0,0.04), 0 4px 14px rgba(0,0,0,0.06);
-}
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-  font-family: var(--font);
-  -webkit-font-smoothing: antialiased;
-  background: var(--bg);
-  color: var(--text);
-  min-height: 100svh;
-}
+/**
+ * nav.js — Единая навигация CRM
+ * Светлая тема, без переключателя.
+ * Включает проверку подписки студии.
+ */
+(function () {
+  'use strict';
 
-/* ── Layout ───────────────────────────────────── */
-.page-wrap {
-  max-width: 760px;
-  margin: 0 auto;
-  padding: 24px 18px 60px;
-}
-.page-title {
-  font-size: 1.3rem;
-  font-weight: 800;
-  letter-spacing: -0.5px;
-  margin-bottom: 20px;
-}
+  document.documentElement.setAttribute('data-theme', 'light');
 
-/* ── Cards / Sections ─────────────────────────── */
-.card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 22px 24px;
-  margin-bottom: 16px;
-  box-shadow: var(--shadow);
-}
-.card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 18px;
-  gap: 12px;
-}
-.card-title {
-  font-size: 0.9rem;
-  font-weight: 800;
-  letter-spacing: -0.1px;
-  display: flex;
-  align-items: center;
-  gap: 7px;
-}
-.card-subtitle {
-  font-size: 0.78rem;
-  color: var(--muted);
-  margin-top: 2px;
-}
-
-/* ── Form ─────────────────────────────────────── */
-.form-grid {
-  display: grid;
-  gap: 14px;
-}
-.form-grid-2 { grid-template-columns: 1fr 1fr; }
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-.form-group label {
-  font-size: 0.67rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--muted);
-}
-.form-group input,
-.form-group select,
-.form-group textarea {
-  padding: 9px 12px;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  font-size: 14px;
-  font-family: var(--font);
-  color: var(--text);
-  outline: none;
-  transition: border-color 0.15s, box-shadow 0.15s;
-  -webkit-appearance: none;
-  width: 100%;
-}
-.form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(37,99,235,0.08);
-  background: var(--surface);
-}
-.form-group textarea { min-height: 80px; resize: vertical; }
-.form-hint {
-  font-size: 0.72rem;
-  color: var(--dim);
-  margin-top: 2px;
-}
-
-/* ── Logo upload ──────────────────────────────── */
-.logo-upload-wrap {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-.logo-preview {
-  width: 80px;
-  height: 80px;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  background: var(--bg);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  flex-shrink: 0;
-}
-.logo-preview img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  padding: 4px;
-}
-.logo-preview-placeholder {
-  font-size: 1.6rem;
-  opacity: 0.3;
-}
-.logo-actions { display: flex; flex-direction: column; gap: 7px; }
-.logo-filename {
-  font-size: 0.75rem;
-  color: var(--muted);
-  max-width: 200px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* ── Subscription badge ───────────────────────── */
-.sub-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  border: 1px solid;
-}
-.sub-badge.paid   { background: rgba(5,150,105,0.08); color: var(--success); border-color: rgba(5,150,105,0.2); }
-.sub-badge.trial  { background: rgba(217,119,6,0.08); color: var(--warning); border-color: rgba(217,119,6,0.2); }
-.sub-badge.expired{ background: rgba(220,38,38,0.08); color: var(--danger);  border-color: rgba(220,38,38,0.2); }
-
-/* ── Buttons ──────────────────────────────────── */
-.btn {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 9px 18px;
-  border-radius: var(--radius-sm);
-  font-size: 0.82rem;
-  font-weight: 700;
-  font-family: var(--font);
-  cursor: pointer;
-  border: none;
-  transition: all 0.15s;
-  white-space: nowrap;
-}
-.btn-primary  { background: var(--primary); color: #fff; }
-.btn-primary:hover  { background: var(--primary-dk); }
-.btn-secondary {
-  background: transparent;
-  color: var(--muted);
-  border: 1px solid var(--border);
-}
-.btn-secondary:hover { background: var(--bg); color: var(--text); }
-.btn-danger   { background: rgba(220,38,38,0.07); color: var(--danger); border: 1px solid rgba(220,38,38,0.15); }
-.btn-danger:hover { background: var(--danger); color: #fff; }
-.btn-sm       { padding: 6px 12px; font-size: 0.75rem; }
-
-/* ── Save toast ───────────────────────────────── */
-#saveToast {
-  position: fixed;
-  bottom: 24px;
-  right: 24px;
-  background: #0f172a;
-  color: #fff;
-  padding: 10px 18px;
-  border-radius: 10px;
-  font-size: 0.82rem;
-  font-weight: 600;
-  font-family: var(--font);
-  opacity: 0;
-  transform: translateY(8px);
-  transition: all 0.2s;
-  z-index: 100;
-  pointer-events: none;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-}
-#saveToast.show { opacity: 1; transform: translateY(0); }
-
-/* ── Members table ────────────────────────────── */
-.members-table { width: 100%; border-collapse: collapse; }
-.members-table th {
-  text-align: left;
-  font-size: 0.67rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--muted);
-  padding: 8px 10px;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg);
-}
-.members-table td {
-  padding: 10px 10px;
-  font-size: 0.82rem;
-  border-bottom: 1px solid var(--border);
-  vertical-align: middle;
-}
-.members-table tr:last-child td { border-bottom: none; }
-.member-avatar {
-  width: 30px; height: 30px;
-  border-radius: 50%;
-  background: rgba(37,99,235,0.1);
-  color: var(--primary);
-  font-size: 0.72rem;
-  font-weight: 700;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  margin-right: 8px;
-}
-.role-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px 9px;
-  border-radius: 20px;
-  font-size: 0.68rem;
-  font-weight: 700;
-  border: 1px solid;
-}
-.role-badge.owner   { background: rgba(37,99,235,0.07); color: var(--primary); border-color: rgba(37,99,235,0.2); }
-.role-badge.manager { background: rgba(5,150,105,0.07); color: var(--success); border-color: rgba(5,150,105,0.2); }
-.role-badge.staff   { background: rgba(148,163,184,0.15); color: var(--muted); border-color: rgba(148,163,184,0.25); }
-
-/* ── Divider ──────────────────────────────────── */
-.divider { height: 1px; background: var(--border); margin: 16px 0; }
-
-/* ── KP Preview ───────────────────────────────── */
-.kp-preview {
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 16px;
-  background: var(--bg);
-  margin-top: 14px;
-}
-.kp-preview-label {
-  font-size: 0.67rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--muted);
-  margin-bottom: 10px;
-}
-.kp-header-preview {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-.kp-logo-preview {
-  height: 40px;
-  max-width: 140px;
-  object-fit: contain;
-}
-.kp-contact-preview {
-  text-align: right;
-  font-size: 0.75rem;
-  color: var(--text);
-  line-height: 1.6;
-}
-
-/* ── Posts ────────────────────────────────────── */
-.posts-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
-.post-row {
-  display: flex; align-items: center; gap: 10px;
-  background: var(--bg); border: 1px solid var(--border);
-  border-radius: 10px; padding: 10px 14px;
-  transition: border-color 0.15s;
-}
-.post-row:hover { border-color: rgba(37,99,235,0.25); }
-.post-color-dot {
-  width: 14px; height: 14px; border-radius: 50%;
-  flex-shrink: 0; cursor: pointer;
-  border: 2px solid rgba(0,0,0,0.1);
-}
-.post-name-input {
-  flex: 1; border: none; background: transparent;
-  font-size: 0.88rem; font-weight: 600; font-family: var(--font);
-  color: var(--text); outline: none; min-width: 0;
-}
-.post-type-select {
-  font-size: 0.75rem; padding: 4px 8px;
-  border: 1px solid var(--border); border-radius: 7px;
-  background: var(--surface); font-family: var(--font);
-  color: var(--muted); outline: none; cursor: pointer;
-  -webkit-appearance: none;
-}
-.post-cap-input {
-  width: 44px; text-align: center;
-  border: 1px solid var(--border); border-radius: 7px;
-  padding: 4px 6px; font-size: 0.8rem; font-family: var(--font);
-  background: var(--surface); color: var(--text); outline: none;
-}
-.post-del-btn {
-  background: none; border: none; cursor: pointer;
-  color: var(--dim); font-size: 1rem; padding: 2px 4px;
-  border-radius: 5px; line-height: 1; transition: all 0.15s;
-  flex-shrink: 0;
-}
-.post-del-btn:hover { color: var(--danger); background: rgba(220,38,38,0.07); }
-.post-labels {
-  display: flex; gap: 10px; padding: 0 14px 6px;
-  font-size: 0.62rem; font-weight: 700; text-transform: uppercase;
-  letter-spacing: 0.06em; color: var(--dim);
-}
-
-/* ── Loading ──────────────────────────────────── */
-.loading { text-align: center; padding: 60px; color: var(--muted); font-size: 0.9rem; }
-
-/* ── Responsive ───────────────────────────────── */
-@media (max-width: 600px) {
-  .page-wrap { padding: 16px 14px 48px; }
-  .card { padding: 16px 16px; }
-  .form-grid-2 { grid-template-columns: 1fr; }
-}
-</style>
-</head>
-<body>
-
-<div id="topNav"></div>
-
-<div class="page-wrap">
-  <div id="mainContent">
-    <div class="loading">⏳ Загрузка настроек...</div>
-  </div>
-</div>
-
-<div id="saveToast">✅ Сохранено</div>
-
-<script>
-(function() {
-'use strict';
-
-const SUPABASE_URL      = 'https://hdghijgrrnzmntistdvw.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkZ2hpamdycm56bW50aXN0ZHZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMzMyNzksImV4cCI6MjA3NTYwOTI3OX0.D9EDTmVrFRVp0B8_5tCJM29gbFdtadsom0Ihsf4uQ8Q';
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-window._crmSb = sb;
-
-let currentUser    = null;
-let currentProfile = null;  // studio_members row
-let studio         = null;  // studios row
-let logoBase64     = null;  // current logo as base64 string or null
-
-// ── Auth ─────────────────────────────────────────────
-async function checkAuth() {
-  const { data: { session } } = await sb.auth.getSession();
-  if (!session) { window.location.href = 'welcome.html'; return false; }
-  currentUser = session.user;
-  return true;
-}
-
-async function loadStudio() {
-  const { data: member, error } = await sb
-    .from('studio_members')
-    .select('studio_id, role')
-    .eq('user_id', currentUser.id)
-    .eq('is_active', true)
-    .single();
-  if (error || !member) { showError('Студия не найдена'); return false; }
-  currentProfile = member;
-
-  const { data: studioData, error: stErr } = await sb
-    .from('studios')
-    .select('*')
-    .eq('id', member.studio_id)
-    .single();
-  if (stErr || !studioData) { showError('Ошибка загрузки данных студии'); return false; }
-  studio = studioData;
-  return true;
-}
-
-// ── Render ────────────────────────────────────────────
-async function renderAll() {
-  const s = studio;
-  const cfg = s.settings || {};
-  const isOwner = currentProfile.role === 'owner';
-
-  logoBase64 = cfg.kp_logo || null;
-
-  const subExpires = s.subscription_expires_at ? new Date(s.subscription_expires_at) : null;
-  const now = new Date();
-  const isPaid = s.is_paid || (subExpires && subExpires > now);
-  const tierLabel = isPaid ? 'Pro' : 'Trial';
-  const subClass  = isPaid ? 'paid' : (subExpires && subExpires < now ? 'expired' : 'trial');
-  const subText   = subExpires
-    ? `до ${subExpires.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })}`
-    : 'без ограничений';
-
-  document.getElementById('mainContent').innerHTML = `
-    <div class="page-title">⚙️ Настройки студии</div>
-
-    <!-- ── 1. Основная информация ────────────────── -->
-    <div class="card">
-      <div class="card-header">
-        <div>
-          <div class="card-title">🏢 Основная информация</div>
-          <div class="card-subtitle">Название, контакты, город</div>
-        </div>
-        <span class="sub-badge ${subClass}">
-          ${isPaid ? '💎' : '🔓'} ${tierLabel} ${subText}
-        </span>
-      </div>
-
-      <div class="form-grid">
-        <div class="form-group">
-          <label>Название студии</label>
-          <input id="studioName" type="text" value="${esc(s.name || '')}" placeholder="Детейлинг Студия Нейм" ${!isOwner ? 'disabled' : ''}>
-        </div>
-        <div class="form-grid form-grid-2">
-          <div class="form-group">
-            <label>Телефон</label>
-            <input id="studioPhone" type="tel" value="${esc(cfg.phone || '')}" placeholder="+7 000 000 00 00">
-          </div>
-          <div class="form-group">
-            <label>Город</label>
-            <input id="studioCity" type="text" value="${esc(cfg.city || '')}" placeholder="Москва">
-          </div>
-        </div>
-        <div class="form-grid form-grid-2">
-          <div class="form-group">
-            <label>Сайт</label>
-            <input id="studioWebsite" type="url" value="${esc(cfg.website || '')}" placeholder="https://mystudio.ru">
-          </div>
-          <div class="form-group">
-            <label>E-mail</label>
-            <input id="studioEmail" type="email" value="${esc(cfg.contact_email || '')}" placeholder="info@mystudio.ru">
-          </div>
-        </div>
-        <div class="form-group">
-          <label>Адрес</label>
-          <input id="studioAddress" type="text" value="${esc(cfg.address || '')}" placeholder="ул. Примерная, д. 1">
-        </div>
-      </div>
-
-      <div style="margin-top:16px;display:flex;justify-content:flex-end">
-        <button class="btn btn-primary" onclick="saveMain()">💾 Сохранить</button>
-      </div>
-    </div>
-
-    <!-- ── 2. Брендинг КП ────────────────────────── -->
-    <div class="card">
-      <div class="card-header">
-        <div>
-          <div class="card-title">🎨 Брендинг коммерческих предложений</div>
-          <div class="card-subtitle">Логотип и контакты в шапке КП для клиентов</div>
-        </div>
-        ${!isPaid ? '<span class="sub-badge trial">Только Pro</span>' : ''}
-      </div>
-
-      ${!isPaid ? `
-        <div style="padding:24px;text-align:center;color:var(--muted);font-size:0.85rem;background:var(--bg);border-radius:10px">
-          🔒 Логотип студии в КП доступен только на тарифе <strong>Pro</strong>.<br>
-          На Trial все КП выдаются с брендингом Keep1R.
-        </div>
-      ` : `
-        <!-- Логотип -->
-        <div class="form-group" style="margin-bottom:16px">
-          <label>Логотип студии</label>
-          <div class="logo-upload-wrap">
-            <div class="logo-preview" id="logoPreviewBox">
-              ${logoBase64
-                ? `<img src="${logoBase64}" id="logoPreviewImg" alt="logo">`
-                : `<span class="logo-preview-placeholder">🏢</span>`}
-            </div>
-            <div class="logo-actions">
-              <button class="btn btn-secondary btn-sm" onclick="document.getElementById('logoFileInput').click()">📂 Загрузить логотип</button>
-              ${logoBase64 ? '<button class="btn btn-danger btn-sm" onclick="removeLogo()">✕ Удалить</button>' : ''}
-              <div class="logo-filename" id="logoFilename">${cfg.kp_logo_name || (logoBase64 ? 'Логотип загружен' : 'PNG, SVG, WEBP — до 200KB')}</div>
-            </div>
-          </div>
-          <input type="file" id="logoFileInput" accept="image/*" style="display:none" onchange="handleLogoChange(event)">
-        </div>
-
-        <!-- КП контакты -->
-        <div class="form-grid form-grid-2">
-          <div class="form-group">
-            <label>Телефон в КП</label>
-            <input id="kpPhone" type="tel" value="${esc(cfg.kp_phone || cfg.phone || '')}" placeholder="+7 000 000 00 00">
-          </div>
-          <div class="form-group">
-            <label>Сайт в КП</label>
-            <input id="kpWebsite" type="url" value="${esc(cfg.kp_website || cfg.website || '')}" placeholder="https://mystudio.ru">
-          </div>
-        </div>
-
-        <!-- Предпросмотр КП-шапки -->
-        <div class="kp-preview" id="kpPreviewBox">
-          <div class="kp-preview-label">Предпросмотр шапки КП</div>
-          <div class="kp-header-preview">
-            ${logoBase64
-              ? `<img src="${logoBase64}" class="kp-logo-preview" id="kpLogoPreview" alt="logo">`
-              : `<div style="font-size:1.1rem;font-weight:800;color:var(--text)" id="kpNamePreview">${esc(s.name || 'Название студии')}</div>`}
-            <div class="kp-contact-preview" id="kpContactPreview">
-              ${esc(cfg.kp_phone || cfg.phone || '')}${(cfg.kp_phone || cfg.phone) && (cfg.kp_website || cfg.website) ? '<br>' : ''}${esc(cfg.kp_website || cfg.website || '')}
-            </div>
-          </div>
-        </div>
-      `}
-
-      ${isPaid ? `
-        <div style="margin-top:16px;display:flex;justify-content:flex-end">
-          <button class="btn btn-primary" onclick="saveBranding()">💾 Сохранить</button>
-        </div>
-      ` : ''}
-    </div>
-
-    <!-- ── 3. Посты (рабочие места) ─────────────── -->
-    <div class="card">
-      <div class="card-header">
-        <div>
-          <div class="card-title">🔧 Рабочие посты</div>
-          <div class="card-subtitle">Боксы, подъёмники и другие рабочие места студии</div>
-        </div>
-      </div>
-      <div class="post-labels">
-        <span style="flex:0 0 14px"></span>
-        <span style="flex:1">Название</span>
-        <span style="width:110px">Тип</span>
-        <span style="width:44px;text-align:center" title="Вместимость — сколько авто одновременно">Авто</span>
-        <span style="width:24px"></span>
-      </div>
-      <div class="posts-list" id="postsList"></div>
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-        <button class="btn btn-secondary btn-sm" onclick="addPost()">➕ Добавить пост</button>
-        <button class="btn btn-primary btn-sm" onclick="savePosts()">💾 Сохранить посты</button>
-      </div>
-    </div>
-
-    <!-- ── 4. Участники студии ────────────────────── -->
-    <div class="card">
-      <div class="card-header">
-        <div>
-          <div class="card-title">👥 Участники студии</div>
-          <div class="card-subtitle">Пользователи с доступом к CRM</div>
-        </div>
-      </div>
-      <div id="membersBlock">
-        <div class="loading" style="padding:20px">⏳ Загрузка...</div>
-      </div>
-    </div>
-
-    <!-- ── 4. Сброс (только для владельца) ──────── -->
-    ${isOwner ? `
-      <div class="card" style="border-color:rgba(220,38,38,0.15)">
-        <div class="card-title" style="color:var(--danger);margin-bottom:10px">⚠️ Опасная зона</div>
-        <div style="font-size:0.82rem;color:var(--muted);margin-bottom:14px">
-          Выход из CRM завершит текущую сессию.
-        </div>
-        <button class="btn btn-danger" onclick="logout()">🚪 Выйти из аккаунта</button>
-      </div>
-    ` : ''}
-  `;
-
-  // Слушатели для live-preview КП
-  if (isPaid) {
-    document.getElementById('kpPhone')?.addEventListener('input', updateKPPreview);
-    document.getElementById('kpWebsite')?.addEventListener('input', updateKPPreview);
-  }
-
-  // Загружаем участников
-  await loadMembers();
-}
-
-// ── KP Preview live update ────────────────────────────
-function updateKPPreview() {
-  const phone   = document.getElementById('kpPhone')?.value || '';
-  const website = document.getElementById('kpWebsite')?.value || '';
-  const el = document.getElementById('kpContactPreview');
-  if (el) el.innerHTML = `${esc(phone)}${phone && website ? '<br>' : ''}${esc(website)}`;
-}
-
-// ── Logo handling ─────────────────────────────────────
-window.handleLogoChange = function(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  if (file.size > 200 * 1024) {
-    alert('❌ Файл слишком большой. Максимум — 200KB.');
-    return;
-  }
-  const reader = new FileReader();
-  reader.onload = function(ev) {
-    logoBase64 = ev.target.result;
-    const box = document.getElementById('logoPreviewBox');
-    if (box) box.innerHTML = `<img src="${logoBase64}" id="logoPreviewImg" alt="logo">`;
-    const fn = document.getElementById('logoFilename');
-    if (fn) fn.textContent = file.name;
-    // Update KP preview
-    updateKPLogoPreview();
+  // ── Единый справочник статусов ─────────────────────────────────
+  // Используйте window.STATUSES везде вместо хардкода меток.
+  // Ключи соответствуют полю status в таблице calculations.
+  window.STATUSES = {
+    new:         { label: 'Расчёт произведён',      short: 'Расчёт',    icon: '📋', cls: 'status-new' },
+    scheduled:   { label: 'Назначена дата и время', short: 'Дата',      icon: '📅', cls: 'status-scheduled' },
+    in_progress: { label: 'Принято в работу',       short: 'В работе',  icon: '🔧', cls: 'status-in_progress' },
+    done:        { label: 'Завершено',               short: 'Готово',    icon: '✅', cls: 'status-done' },
+    delivered:   { label: 'Выдано',                  short: 'Выдано',    icon: '🚗', cls: 'status-delivered' },
+    cancelled:   { label: 'Отказ',                   short: 'Отказ',     icon: '❌', cls: 'status-cancelled' },
   };
-  reader.readAsDataURL(file);
-};
 
-window.removeLogo = function() {
-  logoBase64 = null;
-  const box = document.getElementById('logoPreviewBox');
-  if (box) box.innerHTML = `<span class="logo-preview-placeholder">🏢</span>`;
-  const fn = document.getElementById('logoFilename');
-  if (fn) fn.textContent = 'PNG, SVG, WEBP — до 200KB';
-  updateKPLogoPreview();
-};
 
-function updateKPLogoPreview() {
-  const preview = document.getElementById('kpPreviewBox');
-  if (!preview) return;
-  const ph = preview.querySelector('.kp-header-preview');
-  if (!ph) return;
-  // Update left side
-  const existing = ph.querySelector('img.kp-logo-preview, #kpNamePreview');
-  if (existing) {
-    if (logoBase64) {
-      existing.outerHTML = `<img src="${logoBase64}" class="kp-logo-preview" id="kpLogoPreview" alt="logo">`;
-    } else {
-      existing.outerHTML = `<div style="font-size:1.1rem;font-weight:800;color:var(--text)" id="kpNamePreview">${esc(studio.name || 'Название студии')}</div>`;
+  var ADMIN_ID = 'c5db87ec-8e4a-4c48-bad3-5747513224d9';
+
+  var PAGES = [
+    { href: 'dashboard.html',   icon: '🏠', label: 'Главная' },
+    { href: 'board.html',       icon: '📋', label: 'Доска' },
+    { href: 'executors.html',   icon: '👥', label: 'Сотрудники' },
+    { href: 'payouts.html',     icon: '💰', label: 'Зарплаты' },
+    { href: 'analytics.html',   icon: '📊', label: 'Аналитика',  soon: true },
+    { href: 'calendar.html',    icon: '🗓', label: 'Календарь' },
+    { href: 'inventory.html',   icon: '📦', label: 'Закупки',    soon: true },
+    { href: 'settings.html',    icon: '⚙️', label: 'Настройки' },
+  ];
+
+  function currentPage() {
+    return window.location.pathname.split('/').pop() || 'dashboard.html';
+  }
+
+  window.initNav = function (config) {
+    config = config || {};
+    var actionHref  = config.actionHref  !== undefined ? config.actionHref  : 'calculator.html';
+    var actionLabel = config.actionLabel !== undefined ? config.actionLabel : '➕ Новый расчёт';
+    var hideAction  = config.hideAction  || false;
+    var page = currentPage();
+
+    var links = PAGES.map(function (p) {
+      var isActive = p.href === page;
+      var cls = 'nav-link' + (isActive ? ' active' : '') + (p.soon ? ' nav-soon' : '');
+      var badge = p.soon ? ' <span class="nav-soon-badge">скоро</span>' : '';
+      return '<a href="' + (p.soon ? '#' : p.href) + '" class="' + cls + '">'
+        + p.icon + ' ' + p.label + badge + '</a>';
+    }).join('');
+
+    var actionBtn = hideAction ? '' :
+      '<a href="' + actionHref + '" class="btn-nav-action">' + actionLabel + '</a>';
+    var logoutBtn = '<button class="btn-nav-logout" onclick="(async()=>{const s=window._crmSb||window.supabase.createClient(\'https://hdghijgrrnzmntistdvw.supabase.co\',\'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkZ2hpamdycm56bW50aXN0ZHZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMzMyNzksImV4cCI6MjA3NTYwOTI3OX0.D9EDTmVrFRVp0B8_5tCJM29gbFdtadsom0Ihsf4uQ8Q\');await s.auth.signOut();window.location.href=\'welcome.html\';})()" style="background:transparent;border:1.5px solid rgba(124,58,237,0.3);color:#7c6fa0;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:0.82rem;font-weight:700;font-family:inherit;transition:all 0.2s" onmouseover="this.style.borderColor=\'#7c3aed\';this.style.color=\'#7c3aed\'" onmouseout="this.style.borderColor=\'rgba(124,58,237,0.3)\';this.style.color=\'#7c6fa0\'">Выйти →</button>';
+
+    // Проверяем текущего пользователя для показа пункта Админ
+    var SUPABASE_URL = 'https://hdghijgrrnzmntistdvw.supabase.co';
+    var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkZ2hpamdycm56bW50aXN0ZHZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMzMyNzksImV4cCI6MjA3NTYwOTI3OX0.D9EDTmVrFRVp0B8_5tCJM29gbFdtadsom0Ihsf4uQ8Q';
+    var _sb = window._crmSb || window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    _sb.auth.getSession().then(function(res) {
+      var session = res.data && res.data.session;
+      if (session && session.user && session.user.id === ADMIN_ID) {
+        var adminLink = document.createElement('a');
+        adminLink.href = 'admin.html';
+        adminLink.className = 'nav-link' + (page === 'admin.html' ? ' active' : '');
+        adminLink.textContent = '⚙️ Админ';
+        adminLink.style.color = '#7c3aed';
+        var navLinks = document.querySelector('#navTopBar .nav-links');
+        if (navLinks) navLinks.appendChild(adminLink);
+      }
+    });
+
+    var html =
+      '<div id="navTopBar">' +
+        '<a href="dashboard.html" class="nav-brand">Keep1R CRM</a>' +
+        '<nav class="nav-links">' + links + '</nav>' +
+        '<div class="nav-right">' + actionBtn + logoutBtn + '</div>' +
+      '</div>';
+
+    var wrap = document.createElement('div');
+    wrap.innerHTML = html;
+    document.body.insertBefore(wrap.firstElementChild, document.body.firstChild);
+  };
+
+  // ── Проверка подписки ──────────────────────────────────────────
+  // Возвращает: 'active' | 'trial' | 'expired' | 'none'
+  window.checkSubscription = async function(studioId) {
+    var sb = window._crmSb;
+    if (!sb) return 'none';
+
+    var res = await sb
+      .from('studios')
+      .select('subscription_tier, subscription_expires_at')
+      .eq('id', studioId)
+      .single();
+
+    if (res.error || !res.data) return 'none';
+
+    var tier    = res.data.subscription_tier;
+    var expires = res.data.subscription_expires_at;
+    var now     = new Date();
+
+    if (tier === 'active') {
+      return (!expires || new Date(expires) > now) ? 'active' : 'expired';
     }
-  }
-}
-
-// ── Members ───────────────────────────────────────────
-async function loadMembers() {
-  const { data: members, error } = await sb
-    .from('studio_members')
-    .select('id, role, is_active, user_id')
-    .eq('studio_id', studio.id)
-    .eq('is_active', true)
-    .order('created_at');
-
-  const el = document.getElementById('membersBlock');
-  if (error || !members?.length) {
-    el.innerHTML = '<div style="color:var(--muted);font-size:0.82rem;padding:10px 0">Участники не найдены.</div>';
-    return;
-  }
-
-  const ROLE_LABELS = { owner: 'Владелец', manager: 'Менеджер', staff: 'Сотрудник' };
-  const ROLE_CLASS  = { owner: 'owner', manager: 'manager', staff: 'staff' };
-
-  el.innerHTML = `
-    <table class="members-table">
-      <thead>
-        <tr>
-          <th>Пользователь</th>
-          <th>Роль</th>
-          <th>Статус</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${members.map(m => {
-          const isMe = m.user_id === currentUser.id;
-          const initials = m.user_id.slice(0, 2).toUpperCase();
-          const roleClass = ROLE_CLASS[m.role] || 'staff';
-          const roleLabel = ROLE_LABELS[m.role] || m.role;
-          return `
-            <tr>
-              <td>
-                <div style="display:flex;align-items:center">
-                  <span class="member-avatar">${initials}</span>
-                  <span style="font-size:0.8rem;color:var(--muted)">${m.user_id.slice(0, 8)}…${isMe ? ' <strong style="color:var(--primary)">(вы)</strong>' : ''}</span>
-                </div>
-              </td>
-              <td><span class="role-badge ${roleClass}">${roleLabel}</span></td>
-              <td><span style="font-size:0.75rem;color:var(--success)">● Активен</span></td>
-            </tr>
-          `;
-        }).join('')}
-      </tbody>
-    </table>
-    <div style="margin-top:12px;font-size:0.75rem;color:var(--muted)">
-      Для добавления новых участников обратитесь в поддержку Keep1R.
-    </div>
-  `;
-}
-
-// ── Posts ─────────────────────────────────────────────
-const POST_TYPES = [
-  { value: 'wrap',      label: 'Оклейка / PPF' },
-  { value: 'detailing', label: 'Детейлинг' },
-  { value: 'wash',      label: 'Мойка' },
-  { value: 'chem',      label: 'Химчистка' },
-  { value: 'universal', label: 'Универсальный' },
-];
-
-const POST_COLORS = [
-  '#2563eb','#7c3aed','#059669','#d97706','#dc2626',
-  '#0891b2','#be185d','#65a30d','#9333ea','#0f172a'
-];
-
-let postsData = []; // [{id, name, type, color, capacity, is_active, _new}]
-
-async function loadPosts() {
-  const { data, error } = await sb
-    .from('posts')
-    .select('*')
-    .eq('studio_id', studio.id)
-    .eq('is_active', true)
-    .order('created_at');
-
-  if (error && error.code !== 'PGRST116') {
-    // Таблица может не существовать ещё — показываем пустой список
-    postsData = [];
-  } else {
-    postsData = data || [];
-  }
-  renderPosts();
-}
-
-function renderPosts() {
-  const list = document.getElementById('postsList');
-  if (!list) return;
-  if (!postsData.length) {
-    list.innerHTML = '<div style="color:var(--muted);font-size:0.82rem;padding:10px 14px">Постов пока нет. Нажмите «Добавить пост».</div>';
-    return;
-  }
-  list.innerHTML = postsData.map((p, i) => {
-    const typeOptions = POST_TYPES.map(t =>
-      `<option value="${t.value}" ${p.type === t.value ? 'selected' : ''}>${t.label}</option>`
-    ).join('');
-    return `
-      <div class="post-row" data-idx="${i}">
-        <div class="post-color-dot" style="background:${p.color || POST_COLORS[i % POST_COLORS.length]}"
-          onclick="cycleColor(${i})" title="Сменить цвет"></div>
-        <input class="post-name-input" value="${esc(p.name || '')}" placeholder="Бокс ${i+1}"
-          oninput="postsData[${i}].name=this.value">
-        <select class="post-type-select" onchange="postsData[${i}].type=this.value">${typeOptions}</select>
-        <input class="post-cap-input" type="number" min="1" max="10" value="${p.capacity || 1}"
-          oninput="postsData[${i}].capacity=parseInt(this.value)||1" title="Вместимость">
-        <button class="post-del-btn" onclick="deletePost(${i})" title="Удалить">✕</button>
-      </div>`;
-  }).join('');
-}
-
-window.addPost = function() {
-  const idx = postsData.length;
-  postsData.push({
-    _new: true,
-    name: '',
-    type: 'universal',
-    color: POST_COLORS[idx % POST_COLORS.length],
-    capacity: 1,
-    is_active: true,
-  });
-  renderPosts();
-  // Фокус на последний input
-  const inputs = document.querySelectorAll('.post-name-input');
-  if (inputs.length) inputs[inputs.length - 1].focus();
-};
-
-window.deletePost = async function(idx) {
-  const p = postsData[idx];
-  if (!p._new && p.id) {
-    if (!confirm(`Удалить пост «${p.name || 'без названия'}»?`)) return;
-    await sb.from('posts').update({ is_active: false }).eq('id', p.id);
-  }
-  postsData.splice(idx, 1);
-  renderPosts();
-};
-
-window.cycleColor = function(idx) {
-  const p = postsData[idx];
-  const cur = POST_COLORS.indexOf(p.color);
-  p.color = POST_COLORS[(cur + 1) % POST_COLORS.length];
-  renderPosts();
-};
-
-window.savePosts = async function() {
-  const btn = document.querySelector('[onclick="savePosts()"]');
-  if (btn) { btn.textContent = '⏳ Сохранение...'; btn.disabled = true; }
-
-  let hasError = false;
-  for (const p of postsData) {
-    if (!p.name?.trim()) continue; // пропускаем без названия
-    const payload = {
-      studio_id: studio.id,
-      name:      p.name.trim(),
-      type:      p.type || 'universal',
-      color:     p.color || '#2563eb',
-      capacity:  p.capacity || 1,
-      is_active: true,
-    };
-    if (p._new) {
-      const { error } = await sb.from('posts').insert(payload);
-      if (error) { hasError = true; console.error(error); }
-    } else if (p.id) {
-      const { error } = await sb.from('posts').update(payload).eq('id', p.id);
-      if (error) { hasError = true; console.error(error); }
+    if (tier === 'trial') {
+      return (expires && new Date(expires) > now) ? 'trial' : 'expired';
     }
-  }
-
-  if (btn) { btn.textContent = '💾 Сохранить посты'; btn.disabled = false; }
-  if (hasError) {
-    alert('❌ Ошибка при сохранении. Возможно, таблица posts ещё не создана в БД.');
-  } else {
-    toast('✅ Посты сохранены');
-    await loadPosts(); // перечитать из БД чтобы получить ID
-  }
-};
-
-// ── Save main ─────────────────────────────────────────
-window.saveMain = async function() {
-  const name    = document.getElementById('studioName')?.value.trim();
-  const phone   = document.getElementById('studioPhone')?.value.trim();
-  const city    = document.getElementById('studioCity')?.value.trim();
-  const website = document.getElementById('studioWebsite')?.value.trim();
-  const email   = document.getElementById('studioEmail')?.value.trim();
-  const address = document.getElementById('studioAddress')?.value.trim();
-
-  if (!name) { alert('Введите название студии'); return; }
-
-  const newSettings = {
-    ...(studio.settings || {}),
-    phone, city, website, contact_email: email, address
+    return 'expired';
   };
 
-  const { error } = await sb
-    .from('studios')
-    .update({ name, settings: newSettings })
-    .eq('id', studio.id);
+  // ── Paywall оверлей ────────────────────────────────────────────
+  window.showPaywall = function(trialExpired) {
+    // Блюрим весь контент кроме nav
+    Array.from(document.body.children).forEach(function(el) {
+      if (el.id !== 'navTopBar') el.style.filter = 'blur(6px)';
+    });
 
-  if (error) { alert('❌ Ошибка: ' + error.message); return; }
+    var icon = trialExpired ? '⏰' : '🔒';
+    var title = trialExpired ? 'Пробный период завершён' : 'Требуется подписка';
+    var desc  = trialExpired
+      ? '72 часа бесплатного доступа истекли. Оформите подписку, чтобы продолжить работу.'
+      : 'Для доступа к CRM необходимо оформить подписку.';
 
-  studio.name = name;
-  studio.settings = newSettings;
-  toast('✅ Основная информация сохранена');
-};
-
-// ── Save branding ─────────────────────────────────────
-window.saveBranding = async function() {
-  const kpPhone   = document.getElementById('kpPhone')?.value.trim();
-  const kpWebsite = document.getElementById('kpWebsite')?.value.trim();
-
-  const newSettings = {
-    ...(studio.settings || {}),
-    kp_logo:    logoBase64 || null,
-    kp_logo_name: logoBase64 ? (document.getElementById('logoFilename')?.textContent || '') : null,
-    kp_phone:   kpPhone,
-    kp_website: kpWebsite
+    var overlay = document.createElement('div');
+    overlay.innerHTML =
+      '<div style="position:fixed;inset:0;z-index:9000;display:flex;align-items:center;justify-content:center;' +
+      'background:rgba(240,244,251,0.75);backdrop-filter:blur(8px);padding:20px;font-family:-apple-system,BlinkMacSystemFont,sans-serif">' +
+        '<div style="background:#fff;border-radius:20px;box-shadow:0 16px 64px rgba(37,99,235,0.15);' +
+        'padding:44px 36px;max-width:400px;width:100%;text-align:center">' +
+          '<div style="font-size:3rem;margin-bottom:14px">' + icon + '</div>' +
+          '<div style="font-size:1.35rem;font-weight:800;color:#0f172a;margin-bottom:10px">' + title + '</div>' +
+          '<div style="font-size:0.88rem;color:#64748b;line-height:1.6;margin-bottom:24px">' + desc + '</div>' +
+          '<div style="background:#f8faff;border:1px solid rgba(37,99,235,0.1);border-radius:12px;padding:18px;margin-bottom:22px">' +
+            '<div style="font-size:0.72rem;color:#94a3b8;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px">Тариф CRM</div>' +
+            '<div style="font-size:2rem;font-weight:800;color:#0f172a;line-height:1">2 900 ₽' +
+              '<span style="font-size:0.95rem;font-weight:500;color:#64748b">/мес</span></div>' +
+            '<div style="font-size:0.8rem;color:#94a3b8;margin-top:6px">Сотрудники · Зарплаты · Аналитика · Заказы</div>' +
+          '</div>' +
+          '<a href="https://t.me/keeper_wrap" target="_blank" ' +
+          'style="display:block;background:#2563eb;color:#fff;padding:13px;border-radius:10px;' +
+          'font-weight:700;font-size:0.92rem;text-decoration:none;margin-bottom:10px;' +
+          'box-shadow:0 4px 14px rgba(37,99,235,0.3)">Написать для оформления</a>' +
+          '<a href="calculator.html" style="font-size:0.83rem;color:#94a3b8;text-decoration:none">Вернуться к калькулятору →</a>' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(overlay.firstElementChild);
   };
-
-  const { error } = await sb
-    .from('studios')
-    .update({ settings: newSettings })
-    .eq('id', studio.id);
-
-  if (error) { alert('❌ Ошибка: ' + error.message); return; }
-
-  studio.settings = newSettings;
-  toast('✅ Брендинг сохранён');
-};
-
-// ── Logout ────────────────────────────────────────────
-window.logout = async function() {
-  if (!confirm('Выйти из аккаунта?')) return;
-  await sb.auth.signOut();
-  window.location.href = 'welcome.html';
-};
-
-// ── Helpers ───────────────────────────────────────────
-function esc(s) {
-  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-let toastTimer = null;
-function toast(msg) {
-  const el = document.getElementById('saveToast');
-  el.textContent = msg;
-  el.classList.add('show');
-  if (toastTimer) clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.classList.remove('show'), 2500);
-}
-
-function showError(msg) {
-  document.getElementById('mainContent').innerHTML = `<div class="loading">❌ ${msg}</div>`;
-}
-
-// ── Init ──────────────────────────────────────────────
-async function init() {
-  initNav({ actionHref: 'dashboard.html', actionLabel: '← Панель' });
-  if (!await checkAuth()) return;
-  if (!await loadStudio()) return;
-  await renderAll();
-  await loadPosts();
-}
-
-init();
 
 })();
-</script>
-
-<script src="footer.js"></script>
-</body>
-</html>
