@@ -104,8 +104,8 @@
   color: var(--text);
 }
 #navTopBar .nav-link.active {
-  background: var(--primary-light);
-  color: var(--primary) !important;
+  background: rgba(37,99,235,0.10);
+  color: #2563eb !important;
   font-weight: 700;
 }
 #navTopBar .nav-link.nav-soon {
@@ -182,13 +182,66 @@ body {
 }
 
 /* ── Автомобиль + Форма оплаты — два блока в ряд ── */
-.top-pair-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 0; }
+.top-pair-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
 .top-pair-grid .card { margin-bottom: 0 !important; height: 100%; }
-.top-pair-grid .toggle-group { flex-direction: column; gap: 6px; }
-.top-pair-grid .toggle-btn  { width: 100%; justify-content: flex-start; }
+.top-pair-grid .toggle-group { flex-direction: column; gap: 8px; }
+.top-pair-grid .toggle-btn  { width: 100%; justify-content: flex-start; padding: 10px 14px; }
 @media (max-width: 640px) {
   .top-pair-grid { grid-template-columns: 1fr; }
 }
+
+/* ── Block Summary ─────────────────────────────── */
+.block-summary {
+  display: flex;
+  gap: 0;
+  border-top: 1px solid var(--border);
+  margin-top: 8px;
+  padding-top: 8px;
+}
+.block-summary-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 6px 8px;
+  border-right: 1px solid var(--border);
+}
+.block-summary-item:last-child { border-right: none; }
+.block-summary-label {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  margin-bottom: 3px;
+}
+.block-summary-value {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+}
+.block-summary-value.markup { color: var(--success); }
+
+/* ── Toast «Сохранено» ─────────────────────────── */
+#saveToast {
+  position: fixed;
+  bottom: 24px;
+  left: 24px;
+  background: #0f172a;
+  color: #fff;
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  z-index: 9999;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.2s, transform 0.2s;
+  pointer-events: none;
+}
+#saveToast.show { opacity: 1; transform: translateY(0); }
 
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -246,7 +299,7 @@ body {
 }
 
 html {
-  overflow-x: hidden;
+  overflow-x: clip;
   scroll-behavior: smooth;
 }
 
@@ -258,7 +311,7 @@ body {
   line-height: 1.6;
   transition: background-color 0.3s ease, color 0.3s ease;
   -webkit-tap-highlight-color: transparent;
-  overflow-x: hidden;
+  overflow-x: clip;
   position: relative;
 }
 
@@ -2195,23 +2248,21 @@ window.addEventListener('unhandledrejection', function(e) {
       </div>
     </div>
 
+
+    <button onclick="window.scrollTo({top:0,behavior:'smooth'})"
+      style="width:100%;margin-top:12px;padding:11px;border-radius:10px;
+             border:1px solid rgba(15,23,42,0.09);background:#fff;
+             color:#94a3b8;font-size:0.82rem;font-weight:700;cursor:pointer;
+             font-family:inherit;transition:all 0.18s;letter-spacing:0.01em"
+      onmouseover="this.style.color='#2563eb';this.style.borderColor='rgba(37,99,235,0.3)';this.style.background='rgba(37,99,235,0.04)'"
+      onmouseout="this.style.color='#94a3b8';this.style.borderColor='rgba(15,23,42,0.09)';this.style.background='#fff'">
+      ↑ Наверх
+    </button>
+
   </div>
 
   <div class="right-column">
     
-    <div class="card">
-      <h2>🎁 Скидки</h2>
-      <div class="card-content">
-        <div class="discount-grid">
-          <div class="discount-btn" data-discount="0">Без скидки</div>
-          <div class="discount-btn" data-discount="10">Дружеская 10%</div>
-        </div>
-        <div style="margin-top:8px">
-          <input type="number" id="customDiscount" placeholder="Своя скидка %" min="0" max="100" step="0.01">
-        </div>
-      </div>
-    </div>
-
     <div class="card">
       <h2>💎 Итоги</h2>
       <div class="card-content">
@@ -2232,14 +2283,11 @@ window.addEventListener('unhandledrejection', function(e) {
         <div id="telegramWarning">
           ⚠️ <b>Telegram WebView:</b> Для скачивания PDF откройте в браузере (••• → Открыть в браузере)
         </div>
-        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px">
-          <button type="button" class="btn btn-primary" id="btnRecalc" style="flex:1;min-width:140px">🔄 Пересчитать</button>
-          <button type="button" class="btn btn-secondary" id="btnReset" style="flex:1;min-width:140px">🔃 Сброс</button>
-        </div>
+
         <div class="export-buttons">
-          <button type="button" class="btn btn-primary" id="btnSaveCalc" style="margin-bottom:12px">💾 Сохранить расчет</button>
+          <button type="button" class="btn btn-secondary" id="btnNewCalc" style="margin-bottom:8px;width:100%">🆕 Новый расчёт</button>
+          <button type="button" class="btn btn-primary" id="btnSaveCalc" style="margin-bottom:12px">💾 Сохранить расчёт</button>
           <button type="button" class="btn btn-success" id="btnDownloadKP">📥 Скачать КП</button>
-          <button type="button" class="btn btn-success" id="btnShareKP" style="display:none">📤 Поделиться КП</button>
           <button type="button" class="btn btn-success" id="btnExportCost">💰 Себес (PDF)</button>
         </div>
       </div>
@@ -2705,6 +2753,7 @@ async function saveCalculation() {
     if (btn) {
       const originalText = btn.textContent;
       btn.textContent = '✅ Сохранено';
+      showToast();
       btn.style.background = 'linear-gradient(135deg, var(--success), var(--success-dark))';
       setTimeout(() => {
         btn.textContent = originalText;
@@ -4664,11 +4713,30 @@ document.addEventListener('DOMContentLoaded', async () => {
   await loadCalculationFromUrl();
 });
 
+  // Новый расчёт — сохраняем и перезагружаем
+  const btnNew = q('#btnNewCalc');
+  if (btnNew) {
+    btnNew.addEventListener('click', async () => {
+      if (confirm('Сохранить текущий расчёт перед созданием нового?')) {
+        await saveCalculation();
+      }
+      window.location.href = 'calculator.html';
+    });
+  }
+
   
 // Экспортируем функции в глобальный scope для inline handlers
 window.fillModels = fillModels;
 window.onBrandChange = onBrandChange;
 window.onModelChange = onModelChange;
 window.renderAll = renderAll;
+
+function showToast() {
+  const t = document.getElementById('saveToast');
+  if (!t) return;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
 
 </script>
