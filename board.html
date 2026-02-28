@@ -578,11 +578,11 @@ let activeCalcId = null;
 let assignmentsMap = {}; // calcId → [{executor_name, salary, is_admin_sale}]
 
 const COLUMNS = [
-  { key: 'new',         label: 'Расчёт',      icon: '📋' },
-  { key: 'scheduled',   label: 'Дата заезда',  icon: '📅' },
-  { key: 'in_progress', label: 'В работе',     icon: '🔧' },
-  { key: 'done',        label: 'Завершено',    icon: '✅' },
-  { key: 'delivered',   label: 'Выдано',       icon: '🚗' },
+  { key: 'new',         label: 'Расчёт произведён',      icon: '📋' },
+  { key: 'scheduled',   label: 'Назначена дата и время', icon: '📅' },
+  { key: 'in_progress', label: 'Принято в работу',       icon: '🔧' },
+  { key: 'done',        label: 'Завершено',               icon: '✅' },
+  { key: 'delivered',   label: 'Выдано',                  icon: '🚗' },
 ];
 
 function fmt(n) {
@@ -634,7 +634,7 @@ async function loadBoard() {
     const calcIds = allCalcs.map(c => c.id);
     const { data: assignments } = await sb
       .from('work_assignments')
-      .select('calculation_id, executor_name, salary, is_admin_sale')
+      .select('calculation_id, executor_name, salary, is_admin_sale, admin_percent')
       .in('calculation_id', calcIds);
     (assignments || []).forEach(a => {
       if (!assignmentsMap[a.calculation_id]) assignmentsMap[a.calculation_id] = [];
@@ -694,9 +694,36 @@ function renderCard(calc, status) {
     const asgns = assignmentsMap[calc.id] || [];
     if (asgns.length > 0) {
       const workers = asgns.filter(a => !a.is_admin_sale);
-      const totalSalary = workers.reduce((s, a) => s + (parseFloat(a.salary) || 0), 0);
-      const names = workers.map(a => a.executor_name).filter(Boolean);
-      const uniqueNames = [...new Set(names)];
+      const adminSales = asgns.filter(a => a.is_admin_sale);
+
+      // Для "Выдано" — пересчитываем продажника от реальной суммы
+      let adminSalary = 0;
+      if (adminSales.length > 0) {
+        if (status === 'delivered' && calc.final_price) {
+          // Пересчёт от факта: берём admin_percent первого продажника
+          const pct = parseFloat(adminSales[0].admin_percent) || 0;
+          adminSalary = pct > 0
+            ? Math.round(calc.final_price * pct / 100)
+            : adminSales.reduce((s, a) => s + (parseFloat(a.salary) || 0), 0);
+        } else {
+          adminSalary = adminSales.reduce((s, a) => s + (parseFloat(a.salary) || 0), 0);
+        }
+      }
+
+      const workersSalary = workers.reduce((s, a) => s + (parseFloat(a.salary) || 0), 0);
+      const totalSalary = workersSalary + adminSalary;
+
+      const allNames = [
+        ...workers.map(a => a.executor_name),
+        ...adminSales.map(a => a.executor_name)
+      ].filter(Boolean);
+      const uniqueNames = [...new Set(allNames)];
+
+      // Подсказка об источнике суммы для delivered
+      const salaryLabel = (status === 'delivered' && adminSales.length > 0 && calc.final_price)
+        ? '💸 ЗП (от факта)'
+        : '💸 ЗП (план)';
+
       executorsBlock = `
         <div style="margin-bottom:8px;padding:7px 9px;background:rgba(37,99,235,0.05);border-radius:7px;border:1px solid rgba(37,99,235,0.12)">
           <div style="font-size:0.67rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#64748b;margin-bottom:4px">👥 Исполнители</div>
@@ -705,7 +732,7 @@ function renderCard(calc, status) {
             : `<div style="font-size:0.73rem;color:#94a3b8;font-style:italic">Не назначены</div>`
           }
           ${totalSalary > 0
-            ? `<div style="font-size:0.75rem;font-weight:700;color:#7c3aed">💸 ${fmt(totalSalary)} ₽</div>`
+            ? `<div style="font-size:0.75rem;font-weight:700;color:#7c3aed">${salaryLabel}: ${fmt(totalSalary)} ₽</div>`
             : ''
           }
         </div>`;
@@ -721,20 +748,22 @@ function renderCard(calc, status) {
   } else if (status === 'scheduled') {
     actions = `
       <button class="card-btn card-btn-secondary" onclick="event.stopPropagation();openModal('modalSchedule','${calc.id}','${escStr(calc.car_name)}')">✏️ Изменить дату</button>
-      <button class="card-btn card-btn-primary" onclick="event.stopPropagation();goAssign('${calc.id}')">🔧 В работу</button>
+      <button class="card-btn card-btn-secondary" onclick="event.stopPropagation();window.location.href='acceptance-act.html?calc_id=${calc.id}'">📋 Принять авто</button>
+      <button class="card-btn card-btn-primary" onclick="event.stopPropagation();goAssign('${calc.id}')">🔧 Взять в работу</button>
     `;
   } else if (status === 'in_progress') {
     actions = `
-      <button class="card-btn card-btn-secondary" onclick="event.stopPropagation();goAssign('${calc.id}')">👥 Работы</button>
-      <button class="card-btn card-btn-primary" onclick="event.stopPropagation();openModal('modalDone','${calc.id}','${escStr(calc.car_name)}')" style="background:var(--purple)">✅ Готово</button>
+      <button class="card-btn card-btn-secondary" onclick="event.stopPropagation();goAssign('${calc.id}')">👥 Задачи</button>
+      <button class="card-btn card-btn-primary" onclick="event.stopPropagation();openModal('modalDone','${calc.id}','${escStr(calc.car_name)}')" style="background:var(--purple)">✅ Завершить</button>
     `;
   } else if (status === 'done') {
     actions = `
-      <button class="card-btn card-btn-primary" onclick="event.stopPropagation();openModalDeliver('${calc.id}','${escStr(calc.car_name)}',${calc.total_price || 0})" style="background:var(--success)">🚗 Выдать</button>
+      <button class="card-btn card-btn-primary" onclick="event.stopPropagation();openModalDeliver('${calc.id}','${escStr(calc.car_name)}',${calc.total_price || 0})" style="background:var(--success)">🚗 Выдать клиенту</button>
     `;
   } else if (status === 'delivered') {
     actions = `
       <button class="card-btn card-btn-secondary" onclick="event.stopPropagation();openCalc('${calc.id}')">📂 Открыть</button>
+      <button class="card-btn card-btn-primary" onclick="event.stopPropagation();window.location.href='work-order.html?calc_id=${calc.id}'" style="background:#0f172a">🖨️ Акт передачи</button>
     `;
   }
 
@@ -783,9 +812,9 @@ window.openModalInfo = function(calcId, carName, status, price, checkinDate, che
   activeCalcId = calcId;
 
   const STATUS_LABELS = {
-    new: '📋 Расчёт',
-    scheduled: '📅 Заезд назначен',
-    in_progress: '🔧 В работе',
+    new: '📋 Расчёт произведён',
+    scheduled: '📅 Назначена дата и время',
+    in_progress: '🔧 Принято в работу',
     done: '✅ Завершено',
     delivered: '🚗 Выдано'
   };
