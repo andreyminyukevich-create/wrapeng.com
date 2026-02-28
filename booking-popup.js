@@ -228,8 +228,8 @@ function roleRu(r){ return ROLE_RU[r] || r || 'Сотрудник'; }
 const MONTHS = ['Январь','Февраль','Март','Апрель','Май','Июнь',
                 'Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
 const STATUS_LABEL = {
-  new:'Расчёт', scheduled:'Запись', in_progress:'В работе',
-  done:'Готово', delivered:'Выдано', draft:'Черновик'
+  new:'Расчёт', draft:'Первичный', scheduled:'Запись', in_progress:'В работе',
+  done:'Готово', delivered:'Выдано'
 };
 
 // ── Хелперы — ЛОКАЛЬНОЕ время, не UTC! ────────────────
@@ -350,7 +350,8 @@ async function loadData(){
     sb.from('executors').select('id,full_name,role').eq('studio_id',_studioId).eq('is_active',true).order('full_name'),
     sb.from('calendar_bookings').select('*').eq('studio_id',_studioId),
     sb.from('calculations').select('id,car_name,status,final_price,total_price')
-      .eq('studio_id',_studioId).not('status','eq','cancelled')
+      .eq('studio_id',_studioId)
+      .in('status',['new','draft'])
       .order('created_at',{ascending:false}),
   ]);
 
@@ -480,11 +481,11 @@ function renderCalendar(){
   if(pt) pt.classList.toggle('active', _picking==='to');
 
   if(hint){
-    if(!_dateFrom)      hint.innerHTML='Кликните на <span>дату заезда</span>';
-    else if(!_dateTo)   hint.innerHTML='Теперь выберите <span>дату выезда</span>';
+    if(!_dateFrom&&!_dateTo) hint.innerHTML='Кликните на <span>дату заезда</span>';
+    else if(_dateFrom&&!_dateTo) hint.innerHTML='Теперь выберите <span>дату выезда</span>';
     else {
       const days=Math.round((parseDate(_dateTo)-parseDate(_dateFrom))/86400000)+1;
-      hint.innerHTML=`<span>${formatRu(_dateFrom)}</span> — <span>${formatRu(_dateTo)}</span> · ${days} дн.`;
+      hint.innerHTML=`<span>${formatRu(_dateFrom)}</span> — <span>${formatRu(_dateTo)}</span> · ${days} дн. · кликните чтобы скорректировать`;
     }
   }
   checkConflict();
@@ -553,11 +554,27 @@ window.BookingPopup = {
   },
 
   _pickDate: function(ds){
-    if(_picking==='from'){
-      _dateFrom=ds; _dateTo=null; _picking='to';
+    if(!_dateFrom && !_dateTo){
+      // Ничего нет — ставим заезд
+      _dateFrom=ds; _picking='to';
+    } else if(_dateFrom && !_dateTo){
+      // Есть заезд, нет выезда
+      if(ds===_dateFrom){ _dateFrom=null; _picking='from'; }
+      else if(ds<_dateFrom){ _dateFrom=ds; } // кликнули раньше — сдвигаем заезд
+      else { _dateTo=ds; _picking='from'; }
     } else {
-      if(ds<_dateFrom){ _dateFrom=ds; _dateTo=null; _picking='to'; }
-      else{ _dateTo=ds; _picking='from'; }
+      // Оба выбраны — меняем ближайший к клику
+      const diffFrom = Math.abs(parseDate(ds)-parseDate(_dateFrom));
+      const diffTo   = Math.abs(parseDate(ds)-parseDate(_dateTo));
+      if(diffFrom<=diffTo){
+        // Меняем заезд
+        if(ds>_dateTo){ _dateFrom=_dateTo; _dateTo=ds; } // swap
+        else _dateFrom=ds;
+      } else {
+        // Меняем выезд
+        if(ds<_dateFrom){ _dateTo=_dateFrom; _dateFrom=ds; } // swap
+        else _dateTo=ds;
+      }
     }
     renderCalendar(); renderPosts(); renderExecutors();
   },
