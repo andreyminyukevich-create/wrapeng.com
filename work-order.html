@@ -11,158 +11,104 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
   --font: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
-  --bg: #eef2f9;
-  --card: #fff;
-  --border: rgba(15,23,42,0.10);
-  --text: #0f172a;
-  --muted: #64748b;
-  --primary: #2563eb;
-  --success: #059669;
-  --radius: 12px;
+  --bg: #eef2f9; --card: #fff;
+  --border: rgba(15,23,42,0.10); --text: #0f172a;
+  --muted: #64748b; --primary: #2563eb; --success: #059669; --radius: 12px;
 }
-body {
-  font-family: var(--font);
-  background: var(--bg);
-  color: var(--text);
-  min-height: 100svh;
-  -webkit-font-smoothing: antialiased;
-}
+body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100svh; -webkit-font-smoothing: antialiased; }
 .container { max-width: 900px; margin: 0 auto; padding: 24px 20px 60px; }
 
-/* ── Screen UI ─────────────────────────────────── */
-.page-header {
-  display: flex; align-items: flex-start; justify-content: space-between;
-  margin-bottom: 20px; flex-wrap: wrap; gap: 12px;
-}
-.page-title { font-size: 1.3rem; font-weight: 800; letter-spacing: -0.3px; }
-.page-sub   { font-size: 0.8rem; color: var(--muted); margin-top: 3px; }
-.btn {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 9px 18px; border-radius: 9px; border: none;
-  font-size: 0.85rem; font-weight: 700; cursor: pointer;
-  font-family: var(--font); transition: all 0.15s;
-}
-.btn-primary   { background: var(--primary); color: #fff; }
-.btn-primary:hover { background: #1d4ed8; }
+.page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+.page-title  { font-size: 1.3rem; font-weight: 800; letter-spacing: -0.3px; }
+.page-sub    { font-size: 0.8rem; color: var(--muted); margin-top: 3px; }
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px; border-radius: 9px; border: none; font-size: 0.85rem; font-weight: 700; cursor: pointer; font-family: var(--font); transition: all 0.15s; }
 .btn-secondary { background: #f1f5f9; color: var(--text); border: 1px solid var(--border); }
 .btn-secondary:hover { background: #e2e8f0; }
-.btn-dark   { background: #0f172a; color: #fff; }
+.btn-dark { background: #0f172a; color: #fff; }
 .btn-dark:hover { background: #1e293b; }
-.btn-group  { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
 
-.card {
-  background: var(--card); border-radius: var(--radius);
-  border: 1px solid var(--border); box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-  margin-bottom: 16px; overflow: hidden;
-}
-.card-head {
-  padding: 12px 18px 10px; border-bottom: 1px solid var(--border);
-  font-size: 0.76rem; font-weight: 800; text-transform: uppercase;
-  letter-spacing: 0.06em; color: var(--muted);
-}
+.card { background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: 0 1px 4px rgba(0,0,0,0.06); margin-bottom: 14px; overflow: hidden; }
+.card-head { padding: 11px 18px 9px; border-bottom: 1px solid var(--border); font-size: 0.74rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); background: #f8fafc; }
 .card-body { padding: 16px 18px; }
 
-/* ── Table ────────────────────────────────────── */
-.wo-table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
-.wo-table th {
-  text-align: left; padding: 8px 12px; background: #f8fafc;
-  font-size: 0.71rem; font-weight: 700; text-transform: uppercase;
-  letter-spacing: 0.05em; color: var(--muted);
-  border-bottom: 1.5px solid var(--border);
-}
-.wo-table td {
-  padding: 10px 12px; border-bottom: 1px solid var(--border);
-  vertical-align: top; line-height: 1.4;
-}
-.wo-table tr:last-child td  { border-bottom: none; }
-.wo-table .total-row td {
-  font-weight: 800; border-top: 2px solid #0f172a; border-bottom: none;
-  background: #f8fafc; padding-top: 11px;
-}
-.right { text-align: right; white-space: nowrap; }
-.execs { display: flex; flex-wrap: wrap; gap: 4px; }
-.exec-pill {
-  display: inline-flex; align-items: center; gap: 3px;
-  padding: 2px 8px; border-radius: 20px;
-  background: rgba(37,99,235,0.08); color: #1e40af;
-  font-size: 0.75rem; font-weight: 700;
-}
-.exec-pill.admin { background: rgba(124,58,237,0.08); color: #6d28d9; }
-
-/* ── Info grid ────────────────────────────────── */
-.info-grid {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 0; border: 1px solid var(--border); border-radius: 8px; overflow: hidden;
-}
-.info-cell {
-  padding: 10px 14px; border-right: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
-}
+.info-grid { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.info-cell { padding: 10px 14px; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); }
 .info-cell:nth-child(3n) { border-right: none; }
 .info-cell:nth-last-child(-n+3) { border-bottom: none; }
-.info-label { font-size: 0.69rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin-bottom: 3px; }
-.info-value { font-size: 0.88rem; font-weight: 600; color: var(--text); min-height: 1.2em; }
-.info-value.empty { color: var(--muted); font-style: italic; font-weight: 400; }
+.info-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin-bottom: 3px; }
+.info-value { font-size: 0.88rem; font-weight: 600; }
+.info-value.empty { color: var(--muted); font-weight: 400; font-style: italic; }
+@media (max-width: 540px) {
+  .info-grid { grid-template-columns: repeat(2, 1fr); }
+  .info-cell:nth-child(3n) { border-right: 1px solid var(--border); }
+  .info-cell:nth-child(2n) { border-right: none; }
+  .info-cell:nth-last-child(-n+3) { border-bottom: 1px solid var(--border); }
+  .info-cell:nth-last-child(-n+2) { border-bottom: none; }
+}
 
-/* ── Sign ─────────────────────────────────────── */
+.wo-table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+.wo-table th { text-align: left; padding: 8px 12px; background: #f8fafc; font-size: 0.71rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); border-bottom: 1.5px solid var(--border); }
+.wo-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.wo-table tr:last-child td { border-bottom: none; }
+.total-row td { font-weight: 800; border-top: 2px solid #0f172a !important; border-bottom: none !important; background: #f8fafc; padding-top: 12px; }
+.right { text-align: right; white-space: nowrap; }
+.exec-pill { display: inline-flex; align-items: center; gap: 3px; padding: 2px 8px; border-radius: 20px; background: rgba(37,99,235,0.08); color: #1e40af; font-size: 0.74rem; font-weight: 700; margin: 2px; }
+.exec-pill.admin { background: rgba(124,58,237,0.08); color: #6d28d9; }
+.execs { display: flex; flex-wrap: wrap; }
+
+.totals-row { display: flex; justify-content: flex-end; gap: 40px; align-items: center; flex-wrap: wrap; }
+.total-item { text-align: right; }
+.total-item-label { font-size: 0.71rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin-bottom: 4px; }
+.total-item-value { font-size: 1.5rem; font-weight: 900; letter-spacing: -0.5px; }
+.total-item-value.sm { font-size: 0.95rem; font-weight: 700; }
+
 .sign-row { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
 .sign-block { display: flex; flex-direction: column; gap: 8px; }
-.sign-label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
+.sign-label { font-size: 0.71rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
 .sign-name  { font-size: 0.83rem; color: var(--muted); min-height: 1.1em; }
 .sign-line  { border-bottom: 1.5px solid #94a3b8; height: 44px; }
 .sign-cap   { font-size: 0.71rem; color: var(--muted); text-align: center; }
+.disclaimer { padding: 11px 14px; background: #fef9c3; border: 1px solid #fde68a; border-radius: 8px; font-size: 0.78rem; color: #78350f; line-height: 1.5; margin-top: 14px; }
 
-/* ── Disclaimer ───────────────────────────────── */
-.disclaimer {
-  padding: 11px 14px; background: #fef9c3; border: 1px solid #fde68a;
-  border-radius: 8px; font-size: 0.78rem; color: #78350f; line-height: 1.5; margin-top: 14px;
-}
-
-/* ── Loading ──────────────────────────────────── */
 #loadingMsg { text-align: center; padding: 60px 20px; color: var(--muted); }
-#errMsg { display: none; text-align: center; padding: 40px; color: #dc2626; }
+#errMsg     { display: none; text-align: center; padding: 40px; color: #dc2626; }
 
-/* ═══════════════════════════════════════════════
-   PRINT STYLES
-═══════════════════════════════════════════════ */
+/* ══ PRINT ══════════════════════════════════════════ */
 @media print {
   * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-
-  body { background: #fff !important; }
+  body { background: #fff !important; font-size: 11px !important; }
   #navTopBar, .no-print { display: none !important; }
   .container { padding: 0 !important; max-width: 100% !important; }
-
-  .card { box-shadow: none !important; border: 1px solid #e2e8f0 !important; break-inside: avoid; margin-bottom: 10px !important; }
-  .card-head { background: #f8fafc !important; }
-
-  .wo-table th { background: #f1f5f9 !important; }
-  .exec-pill { border: 1px solid rgba(37,99,235,0.2) !important; }
-
-  /* Studio print header */
-  #printHeader { display: flex !important; }
-
-  /* Compact page-title area */
-  .page-header { margin-bottom: 12px !important; }
-  .page-title { font-size: 1.1rem !important; }
+  .card { box-shadow: none !important; border: 1px solid #e2e8f0 !important; margin-bottom: 8px !important; break-inside: avoid; }
+  .card-head { padding: 7px 12px 6px !important; font-size: 0.67rem !important; background: #f1f5f9 !important; }
+  .card-body { padding: 10px 12px !important; }
+  .info-cell { padding: 7px 10px !important; }
+  .info-label { font-size: 0.62rem !important; }
+  .info-value { font-size: 0.82rem !important; }
+  .wo-table th { padding: 6px 10px !important; font-size: 0.64rem !important; background: #f1f5f9 !important; }
+  .wo-table td { padding: 7px 10px !important; font-size: 0.82rem !important; }
+  .exec-pill { font-size: 0.68rem !important; padding: 1px 6px !important; }
+  .total-item-value { font-size: 1.2rem !important; }
+  .totals-row { gap: 24px !important; }
+  .sign-line { height: 32px !important; }
+  .disclaimer { font-size: 0.71rem !important; padding: 7px 10px !important; margin-top: 8px !important; }
+  #printHeader { display: flex !important; padding-bottom: 10px !important; margin-bottom: 12px !important; }
+  @page { margin: 15mm; size: A4; }
 }
 
-/* ── Print header (studio branding) ──────────── */
+/* ── Print header ─────────────────────────────────── */
 #printHeader {
-  display: none;
-  align-items: center; justify-content: space-between;
-  padding-bottom: 14px; border-bottom: 2.5px solid #0f172a;
-  margin-bottom: 18px; gap: 16px;
+  display: none; align-items: center; justify-content: space-between;
+  padding-bottom: 14px; border-bottom: 2.5px solid #0f172a; margin-bottom: 18px; gap: 16px;
 }
 #ph-logo { max-height: 52px; max-width: 130px; object-fit: contain; }
 .ph-center { text-align: center; }
-.ph-doc-title {
-  font-size: 1.2rem; font-weight: 900; letter-spacing: -0.3px; color: #0f172a;
-  text-transform: uppercase;
-}
-.ph-doc-num { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+.ph-doc-title { font-size: 1.15rem; font-weight: 900; letter-spacing: 0.5px; color: #0f172a; text-transform: uppercase; }
+.ph-doc-num   { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
 .ph-right { text-align: right; }
-.ph-studio-name { font-size: 0.96rem; font-weight: 800; color: #0f172a; }
-.ph-studio-info { font-size: 0.75rem; color: var(--muted); line-height: 1.6; margin-top: 2px; }
+.ph-studio-name { font-size: 0.95rem; font-weight: 800; color: #0f172a; }
+.ph-studio-info { font-size: 0.74rem; color: var(--muted); line-height: 1.6; margin-top: 2px; }
 </style>
 </head>
 <body>
@@ -178,7 +124,7 @@ body {
 
 <div class="container">
 
-  <!-- Print studio header -->
+  <!-- Print header (hidden on screen) -->
   <div id="printHeader">
     <img id="ph-logo" src="" alt="" style="display:none">
     <div class="ph-center">
@@ -196,7 +142,6 @@ body {
 
   <div id="mainContent" style="display:none">
 
-    <!-- Screen page header -->
     <div class="page-header no-print">
       <div>
         <div class="page-title">🖨️ Заказ-наряд</div>
@@ -204,31 +149,29 @@ body {
       </div>
       <div class="btn-group">
         <button class="btn btn-secondary" onclick="history.back()">← Назад</button>
-        <button class="btn btn-dark" onclick="window.print()">🖨️ Распечатать / Сохранить PDF</button>
+        <button class="btn btn-dark" onclick="window.print()">🖨️ Распечатать / PDF</button>
       </div>
     </div>
 
-    <!-- ① Данные авто и клиента -->
+    <!-- ① Авто и клиент -->
     <div class="card">
       <div class="card-head">🚗 Автомобиль и клиент</div>
       <div class="card-body">
-        <div class="info-grid" id="carInfoGrid">
-          <!-- filled by JS -->
-        </div>
+        <div class="info-grid" id="carInfoGrid"></div>
       </div>
     </div>
 
-    <!-- ② Перечень работ + исполнители -->
+    <!-- ② Перечень работ -->
     <div class="card">
       <div class="card-head">🔧 Перечень работ и исполнители</div>
       <div class="card-body">
         <table class="wo-table">
           <thead>
             <tr>
-              <th style="width:30px">№</th>
+              <th style="width:32px">№</th>
               <th>Наименование работы</th>
               <th>Исполнитель(и)</th>
-              <th class="right">Стоимость</th>
+              <th class="right" style="width:110px">Стоимость</th>
             </tr>
           </thead>
           <tbody id="servicesTbody"></tbody>
@@ -236,22 +179,22 @@ body {
       </div>
     </div>
 
-    <!-- ③ Итог + оплата -->
+    <!-- ③ Итог -->
     <div class="card">
-      <div class="card-head">💰 Итоговая стоимость</div>
+      <div class="card-head">💰 Итог</div>
       <div class="card-body">
-        <div style="display:flex; justify-content:flex-end; gap:32px; align-items:center; flex-wrap:wrap">
-          <div style="text-align:right">
-            <div style="font-size:0.74rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);margin-bottom:4px">Итого к оплате</div>
-            <div id="totalAmount" style="font-size:1.6rem;font-weight:900;letter-spacing:-0.5px;color:#0f172a">— ₽</div>
+        <div class="totals-row">
+          <div class="total-item">
+            <div class="total-item-label">Форма оплаты</div>
+            <div class="total-item-value sm" id="paymentMethod">—</div>
           </div>
-          <div style="text-align:right">
-            <div style="font-size:0.74rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);margin-bottom:4px">Форма оплаты</div>
-            <div id="paymentMethod" style="font-size:0.96rem;font-weight:700">—</div>
+          <div class="total-item">
+            <div class="total-item-label">Статус</div>
+            <div class="total-item-value sm" id="paymentStatus">—</div>
           </div>
-          <div style="text-align:right">
-            <div style="font-size:0.74rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);margin-bottom:4px">Статус оплаты</div>
-            <div id="paymentStatus" style="font-size:0.96rem;font-weight:700">—</div>
+          <div class="total-item">
+            <div class="total-item-label">Итого к оплате</div>
+            <div class="total-item-value" id="totalAmount">— ₽</div>
           </div>
         </div>
       </div>
@@ -276,304 +219,197 @@ body {
           </div>
         </div>
         <div class="disclaimer">
-          Подписывая настоящий заказ-наряд, клиент подтверждает согласие с перечнем и стоимостью работ. 
+          Подписывая настоящий заказ-наряд, клиент подтверждает согласие с перечнем и стоимостью работ.
           После выполнения работ клиент обязуется принять автомобиль и произвести оплату в полном объёме.
+          Студия гарантирует качество выполненных работ согласно действующим стандартам.
         </div>
       </div>
     </div>
 
-  </div><!-- /mainContent -->
-</div><!-- /container -->
+  </div>
+</div>
 
 <script src="footer.js"></script>
 <script>
-(function() {
+(function(){
 'use strict';
 
 const SUPABASE_URL      = 'https://hdghijgrrnzmntistdvw.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkZ2hpamdycm56bW50aXN0ZHZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMzMyNzksImV4cCI6MjA3NTYwOTI3OX0.D9EDTmVrFRVp0B8_5tCJM29gbFdtadsom0Ihsf4uQ8Q';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
 let currentUser = null;
 
-function fmt(n) {
-  return new Intl.NumberFormat('ru-RU', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(n || 0);
-}
-function fmtDate(str) {
-  if (!str) return '—';
-  const d = new Date(str);
-  return d.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
-}
-function esc(s) {
-  return (s || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}
+function fmt(n) { return new Intl.NumberFormat('ru-RU').format(Math.round(n||0)); }
+function fmtDate(s) { if(!s) return '—'; return new Date(s).toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit',year:'numeric'}); }
+function esc(s)  { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-// ── Auth ──────────────────────────────────────────
 async function checkAuth() {
-  const { data: { session } } = await sb.auth.getSession();
-  if (!session) { window.location.href = 'welcome.html'; return false; }
-  currentUser = session.user;
-  return true;
+  const { data:{session} } = await sb.auth.getSession();
+  if (!session) { window.location.href='welcome.html'; return false; }
+  currentUser = session.user; return true;
 }
 
-// ── Load studio ───────────────────────────────────
 async function loadStudio() {
-  const { data: member } = await sb.from('studio_members')
-    .select('studio_id').eq('user_id', currentUser.id).eq('is_active', true).single();
-  if (!member) return null;
-
-  const { data: studio } = await sb.from('studios')
-    .select('id, name, settings').eq('id', member.studio_id).single();
-  if (!studio) return null;
-
-  const cfg = studio.settings || {};
-
-  // Print header
-  document.getElementById('ph-name').textContent = studio.name || '';
-  const infoLines = [
-    cfg.phone || cfg.kp_phone,
-    [cfg.city, cfg.address].filter(Boolean).join(', '),
-    cfg.website || cfg.kp_website,
-  ].filter(Boolean);
-  document.getElementById('ph-info').innerHTML = infoLines.map(esc).join('<br>');
-
-  if (cfg.kp_logo) {
-    const img = document.getElementById('ph-logo');
-    img.src = cfg.kp_logo;
-    img.style.display = 'block';
-  }
-
-  document.getElementById('signStudio').textContent = studio.name || '______________________________';
-
-  return studio;
+  const { data: m } = await sb.from('studio_members').select('studio_id').eq('user_id',currentUser.id).eq('is_active',true).single();
+  if (!m) return;
+  const { data: s } = await sb.from('studios').select('name,settings').eq('id',m.studio_id).single();
+  if (!s) return;
+  const cfg = s.settings||{};
+  document.getElementById('ph-name').textContent = s.name||'';
+  const lines = [cfg.phone||cfg.kp_phone, [cfg.city,cfg.address].filter(Boolean).join(', '), cfg.website||cfg.kp_website].filter(Boolean);
+  document.getElementById('ph-info').innerHTML = lines.map(esc).join('<br>');
+  if (cfg.kp_logo) { const img=document.getElementById('ph-logo'); img.src=cfg.kp_logo; img.style.display='block'; }
+  document.getElementById('signStudio').textContent = s.name||'______________________________';
 }
 
-// ── Build services list with executors ───────────
-function buildServicesWithExecutors(calc, assignments) {
-  // Group assignments by service_name
-  const byService = {};
-  const adminSale = [];
-
-  assignments.forEach(a => {
-    if (a.is_admin_sale) { adminSale.push(a); return; }
-    const key = a.service_name || 'Работы';
-    if (!byService[key]) byService[key] = { names: [], salary: 0 };
-    if (a.executor_name) byService[key].names.push(a.executor_name);
-    byService[key].salary += parseFloat(a.salary) || 0;
-  });
-
-  // Build rows from calculation_data if exists
-  const cd = calc.calculation_data || {};
-  const rows = [];
-
-  const SECTION_MAP = [
-    { keys: ['pkg_wrap','pkg_prep','pkg_arm'],       label: 'Полная защита вкруг',     priceField: 'pkgSumTotal' },
-    { keys: ['impact_wrap','impact_prep','impact_arm'], label: 'Защита ударной части',  priceField: 'impactSumTotal' },
-    { keys: ['arm'],                                  label: 'Арматурные работы',       priceField: 'armSumTotal' },
-    { keys: ['wrap'],                                 label: 'Оклейка плёнкой',         priceField: 'wrapSumTotal' },
-    { keys: ['det'],                                  label: 'Детейлинг',               priceField: 'detSumTotal' },
-    { keys: ['gl'],                                   label: 'Антигравийная защита',     priceField: 'glSumTotal' },
-    { keys: ['misc'],                                 label: 'Прочие работы',            priceField: 'miscSumTotal' },
-  ];
-
-  SECTION_MAP.forEach(sec => {
-    // Try to get price from calc_data totals
-    let price = parseFloat(cd[sec.priceField] || 0);
-
-    // Fallback: try to find matching service price from assignments
-    if (!price) {
-      sec.keys.forEach(k => {
-        const svcName = Object.keys(byService).find(n =>
-          n.toLowerCase().includes(sec.label.toLowerCase().slice(0,8)) ||
-          n.toLowerCase().includes(k.toLowerCase())
-        );
-        if (svcName) price = byService[svcName]?.salary || 0;
-      });
-    }
-
-    if (!price) return;
-
-    // Find executors: try exact match by service name keys
-    let execNames = [];
-    sec.keys.forEach(k => {
-      Object.keys(byService).forEach(svcName => {
-        if (svcName.toLowerCase().includes(k)) {
-          execNames.push(...byService[svcName].names);
-        }
-      });
-    });
-    // Also try matching by section label
-    Object.keys(byService).forEach(svcName => {
-      if (svcName.toLowerCase().includes(sec.label.toLowerCase().slice(0,6))) {
-        execNames.push(...byService[svcName].names);
-      }
-    });
-    execNames = [...new Set(execNames)];
-
-    rows.push({ label: sec.label, price, execNames, isAdmin: false });
-  });
-
-  // If no structured data — use assignments directly
-  if (rows.length === 0) {
-    Object.entries(byService).forEach(([name, data]) => {
-      rows.push({ label: name, price: 0, execNames: [...new Set(data.names)], isAdmin: false });
-    });
-  }
-
-  // Add manual misc services from calc_data
-  if (cd.miscItems && Array.isArray(cd.miscItems)) {
-    cd.miscItems.forEach(item => {
-      if (item.name) {
-        const svc = byService[item.name] || {};
-        rows.push({
-          label: item.name,
-          price: parseFloat(item.price) || 0,
-          execNames: [...new Set(svc.names || [])],
-          isAdmin: false
-        });
-      }
-    });
-  }
-
-  return { rows, adminSale };
-}
-
-// ── Render car info grid ──────────────────────────
 function renderCarInfo(calc) {
-  const cd = calc.calculation_data || {};
-  const car = cd.car || {};
-
-  const cells = [
-    { label: 'Автомобиль',   value: calc.car_name || '—' },
-    { label: 'Год выпуска',  value: car.year || calc.year || '—' },
-    { label: 'Дата приёмки', value: fmtDate(calc.checkin_date || calc.created_at) },
-    { label: 'Гос. номер',   value: cd.plate || '—' },
-    { label: 'VIN',          value: cd.vin   || '—', mono: true },
-    { label: 'Клиент',       value: cd.client_name || cd.clientName || '—' },
+  const cd=calc.calculation_data||{}, car=cd.car||{};
+  const cells=[
+    {label:'Автомобиль',     value: calc.car_name||'—'},
+    {label:'Год выпуска',    value: car.year||calc.year||'—'},
+    {label:'Дата',           value: fmtDate(calc.checkin_date||calc.created_at)},
+    {label:'Гос. номер',     value: cd.plate||'—'},
+    {label:'VIN / № кузова', value: cd.vin||'—'},
+    {label:'Клиент',         value: cd.client_name||cd.clientName||'—'},
   ];
-
-  document.getElementById('carInfoGrid').innerHTML = cells.map(c => `
+  document.getElementById('carInfoGrid').innerHTML = cells.map(c=>`
     <div class="info-cell">
       <div class="info-label">${c.label}</div>
-      <div class="info-value ${c.value === '—' ? 'empty' : ''}" style="${c.mono ? 'font-size:0.78rem;letter-spacing:0.02em' : ''}">${esc(c.value)}</div>
-    </div>
-  `).join('');
+      <div class="info-value${c.value==='—'?' empty':''}">${esc(c.value)}</div>
+    </div>`).join('');
 }
 
-// ── Render services table ─────────────────────────
 function renderServices(calc, assignments) {
-  const { rows, adminSale } = buildServicesWithExecutors(calc, assignments);
   const tbody = document.getElementById('servicesTbody');
+  const cd    = calc.calculation_data || {};
 
-  if (rows.length === 0 && adminSale.length === 0) {
+  // Ключ в formData: paymentMode (cash / card / ooo)
+  const PAY = {cash:'💵 Наличные', card:'💳 Карта / ИП', ooo:'🏢 ООО', transfer:'🏦 Перевод'};
+  document.getElementById('paymentMethod').textContent = PAY[cd.paymentMode||''] || '—';
+
+  const total = calc.final_price || calc.total_price || 0;
+  document.getElementById('totalAmount').textContent = fmt(total)+' ₽';
+  const isPaid = calc.status==='delivered';
+  const payEl = document.getElementById('paymentStatus');
+  payEl.textContent = isPaid?'✅ Оплачено':'⏳ Ожидает оплаты';
+  payEl.style.color = isPaid?'var(--success)':'var(--muted)';
+
+  if (assignments.length === 0) {
     tbody.innerHTML = `<tr><td colspan="4" style="color:var(--muted);font-style:italic;padding:14px 12px">Исполнители ещё не назначены</td></tr>`;
     return;
   }
 
-  let totalPrice = 0;
-  let html = rows.map((r, i) => {
-    totalPrice += r.price;
-    const execsHtml = r.execNames.length > 0
-      ? r.execNames.map(n => `<span class="exec-pill">👤 ${esc(n)}</span>`).join('')
-      : `<span style="color:var(--muted);font-style:italic;font-size:0.8rem">Не назначен</span>`;
+  // ── Соответствие service_name → ключ цены в calculation_data ──
+  // Цены хранятся в formData под теми же ключами что и в блоке block-summary
+  const PRICE_KEYS = {
+    'Оклейка (Полная защита)':           'pkgSumTotal',
+    'Подготовка (Полная защита)':        'pkgSumTotal',
+    'Арматурные работы (Полная защита)': 'pkgSumTotal',
+    'Оклейка (Ударная часть)':           'impactSumTotal',
+    'Подготовка (Ударная часть)':        'impactSumTotal',
+    'Арматурные работы (Ударная часть)': 'impactSumTotal',
+    'Арматурные работы':  'armSumTotal',
+    'Оклейка':            'wrapSumTotal',
+    'Детейлинг':          'detSumTotal',
+    'Полировка/Химчистка':'glSumTotal',
+  };
 
-    return `
-      <tr>
-        <td style="color:var(--muted);font-size:0.78rem">${i+1}</td>
-        <td style="font-weight:600">${esc(r.label)}</td>
-        <td><div class="execs">${execsHtml}</div></td>
-        <td class="right" style="font-weight:700">${r.price > 0 ? fmt(r.price) + ' ₽' : '—'}</td>
-      </tr>`;
-  }).join('');
+  // Группы нескольких service_name → одна строка документа
+  const GROUPS = {
+    pkgSumTotal:    { label:'Полная защита вкруг',  keys:['Оклейка (Полная защита)','Подготовка (Полная защита)','Арматурные работы (Полная защита)'] },
+    impactSumTotal: { label:'Защита ударной части', keys:['Оклейка (Ударная часть)','Подготовка (Ударная часть)','Арматурные работы (Ударная часть)'] },
+  };
 
-  // Admin sale row
-  if (adminSale.length > 0) {
-    const a = adminSale[0];
-    html += `
-      <tr>
-        <td style="color:var(--muted);font-size:0.78rem">${rows.length + 1}</td>
-        <td style="font-weight:600;color:#7c3aed">💼 Продажа (${a.admin_percent || 0}% от чека)</td>
-        <td><div class="execs"><span class="exec-pill admin">👔 ${esc(a.executor_name || '—')}</span></div></td>
-        <td class="right" style="font-weight:700;color:#7c3aed">—</td>
-      </tr>`;
-  }
+  // Собираем map: service_name → {names, isAdmin, adminPct}
+  const svcMap = new Map();
+  assignments.forEach(a => {
+    const key = a.service_name || 'Работы';
+    if (!svcMap.has(key)) svcMap.set(key, {names:new Set(), isAdmin:!!a.is_admin_sale, adminPct:a.admin_percent||0});
+    const e = svcMap.get(key);
+    if (a.executor_name) e.names.add(a.executor_name);
+  });
 
-  // Total row
-  const displayTotal = calc.final_price || calc.total_price || totalPrice;
-  html += `
-    <tr class="total-row">
-      <td></td>
-      <td colspan="2">ИТОГО</td>
-      <td class="right">${fmt(displayTotal)} ₽</td>
+  const rows = [];
+  const used = new Set();
+
+  // Блочные группы
+  Object.entries(GROUPS).forEach(([priceField, group]) => {
+    const present = group.keys.filter(k => svcMap.has(k));
+    if (!present.length) return;
+    const allNames = new Set();
+    present.forEach(k => { svcMap.get(k).names.forEach(n => allNames.add(n)); used.add(k); });
+    rows.push({ label: group.label, names: allNames, price: parseFloat(cd[priceField]||0), isAdmin: false });
+  });
+
+  // Одиночные сервисы
+  svcMap.forEach((entry, key) => {
+    if (used.has(key) || entry.isAdmin) return;
+    const pf = PRICE_KEYS[key];
+    rows.push({ label: key, names: entry.names, price: pf ? parseFloat(cd[pf]||0) : 0, isAdmin: false });
+  });
+
+  const execHtml = names => [...names].length
+    ? [...names].map(n => `<span class="exec-pill">👤 ${esc(n)}</span>`).join('')
+    : `<span style="color:var(--muted);font-style:italic;font-size:0.78rem">Не назначен</span>`;
+
+  let html = rows.map((r,i) => `<tr>
+    <td style="color:var(--muted);font-size:0.76rem">${i+1}</td>
+    <td style="font-weight:600">${esc(r.label)}</td>
+    <td><div class="execs">${execHtml(r.names)}</div></td>
+    <td class="right">${r.price>0 ? '<strong>'+fmt(r.price)+' ₽</strong>' : '<span style="color:var(--muted)">—</span>'}</td>
+  </tr>`).join('');
+
+  // Admin продажник
+  svcMap.forEach((entry, key) => {
+    if (!entry.isAdmin) return;
+    const names = [...entry.names].map(n=>`<span class="exec-pill admin">👔 ${esc(n)}</span>`).join('');
+    html += `<tr>
+      <td style="color:var(--muted);font-size:0.76rem">${rows.length+1}</td>
+      <td style="font-weight:600;color:#7c3aed">💼 Продажа (${entry.adminPct}% от чека)</td>
+      <td><div class="execs">${names||'<span style="color:var(--muted)">—</span>'}</div></td>
+      <td class="right" style="color:#7c3aed">—</td>
     </tr>`;
+  });
+
+  html += `<tr class="total-row">
+    <td></td><td colspan="2">ИТОГО</td>
+    <td class="right">${fmt(total)} ₽</td>
+  </tr>`;
 
   tbody.innerHTML = html;
-
-  // Update summary block
-  document.getElementById('totalAmount').textContent = fmt(displayTotal) + ' ₽';
 }
 
-// ── Main ──────────────────────────────────────────
-(async function init() {
-  const ok = await checkAuth();
-  if (!ok) return;
-
+(async function init(){
+  if (!await checkAuth()) return;
   const params = new URLSearchParams(window.location.search);
   const calcId = params.get('calc_id');
-
-  const loading = document.getElementById('loadingMsg');
-  const errMsg  = document.getElementById('errMsg');
-  const content = document.getElementById('mainContent');
+  const loading=document.getElementById('loadingMsg'), errMsg=document.getElementById('errMsg'), content=document.getElementById('mainContent');
 
   if (!calcId) {
-    loading.style.display = 'none';
-    errMsg.style.display  = '';
-    errMsg.textContent    = '❌ Не указан ID заказа. Откройте заказ-наряд со страницы доски.';
-    return;
+    loading.style.display='none'; errMsg.style.display='';
+    errMsg.textContent='❌ Не указан ID заказа. Откройте заказ-наряд со страницы доски.'; return;
   }
 
-  // Load everything in parallel
-  const [studioRes, calcRes, assignRes] = await Promise.all([
+  const [,calcRes,assignRes] = await Promise.all([
     loadStudio(),
-    sb.from('calculations').select('*').eq('id', calcId).single(),
-    sb.from('work_assignments')
-      .select('id, executor_name, executor_id, service_name, salary, is_admin_sale, admin_percent, status')
-      .eq('calculation_id', calcId)
+    sb.from('calculations').select('*').eq('id',calcId).single(),
+    sb.from('work_assignments').select('executor_name,service_name,salary,is_admin_sale,admin_percent').eq('calculation_id',calcId)
   ]);
 
-  if (calcRes.error || !calcRes.data) {
-    loading.style.display = 'none';
-    errMsg.style.display  = '';
-    return;
-  }
+  if (calcRes.error || !calcRes.data) { loading.style.display='none'; errMsg.style.display=''; return; }
 
-  const calc        = calcRes.data;
-  const assignments = assignRes.data || [];
-
-  // Document number: short calc id
-  const shortId = calcId.slice(0, 8).toUpperCase();
-  document.getElementById('ph-num').textContent   = '№ ' + shortId;
-  document.getElementById('headerSub').textContent = calc.car_name + ' · заказ-наряд ' + shortId;
-  document.title = `Заказ-наряд ${shortId} — ${calc.car_name}`;
-
-  // Payment method from calc_data
-  const payMethod = {
-    cash: '💵 Наличные', card: '💳 Карта', transfer: '🏦 Перевод'
-  }[calc.calculation_data?.paymentMethod || calc.payment_method] || '—';
-  document.getElementById('paymentMethod').textContent = payMethod;
-
-  const isPaid = calc.status === 'delivered';
-  const payEl  = document.getElementById('paymentStatus');
-  payEl.textContent = isPaid ? '✅ Оплачено' : '⏳ Ожидает оплаты';
-  payEl.style.color = isPaid ? 'var(--success)' : 'var(--muted)';
+  const calc = calcRes.data;
+  const shortId = calcId.slice(-8).toUpperCase();
+  document.getElementById('ph-num').textContent    = '№ '+shortId;
+  document.getElementById('headerSub').textContent = (calc.car_name||'Автомобиль')+' · '+shortId;
+  document.title = 'Заказ-наряд '+shortId;
 
   renderCarInfo(calc);
-  renderServices(calc, assignments);
+  renderServices(calc, assignRes.data||[]);
 
-  loading.style.display = 'none';
-  content.style.display = '';
-
-  if (window.initNav) window.initNav({ activePage: 'work-order.html' });
+  loading.style.display='none';
+  content.style.display='';
+  if (window.initNav) window.initNav({activePage:'work-order.html'});
 })();
 
 })();
