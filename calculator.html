@@ -104,8 +104,8 @@
   color: var(--text);
 }
 #navTopBar .nav-link.active {
-  background: rgba(37,99,235,0.10);
-  color: #2563eb !important;
+  background: var(--primary-light);
+  color: var(--primary) !important;
   font-weight: 700;
 }
 #navTopBar .nav-link.nav-soon {
@@ -181,6 +181,15 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* ── Автомобиль + Форма оплаты — два блока в ряд ── */
+.top-pair-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 0; }
+.top-pair-grid .card { margin-bottom: 0 !important; height: 100%; }
+.top-pair-grid .toggle-group { flex-direction: column; gap: 6px; }
+.top-pair-grid .toggle-btn  { width: 100%; justify-content: flex-start; }
+@media (max-width: 640px) {
+  .top-pair-grid { grid-template-columns: 1fr; }
+}
+
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -237,7 +246,7 @@ body {
 }
 
 html {
-  overflow-x: clip;
+  overflow-x: hidden;
   scroll-behavior: smooth;
 }
 
@@ -249,7 +258,7 @@ body {
   line-height: 1.6;
   transition: background-color 0.3s ease, color 0.3s ease;
   -webkit-tap-highlight-color: transparent;
-  overflow-x: clip;
+  overflow-x: hidden;
   position: relative;
 }
 
@@ -421,12 +430,10 @@ body::before {
     max-width: 420px;
     flex-shrink: 0;
     position: sticky;
-    top: 62px;
+    top: 60px;
     align-self: flex-start;
-    max-height: calc(100vh - 74px);
+    max-height: calc(100vh - 68px);
     overflow-y: auto;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(37,99,235,0.15) transparent;
   }
   
   .right-column .card {
@@ -1424,71 +1431,7 @@ tfoot th:first-child {
   box-shadow: var(--shadow-lg), 0 0 40px rgba(16, 185, 129, 0.5);
 }
 
-/* ── Block Summary (строка итогов под каждым блоком) ── */
-.block-summary {
-  display: flex;
-  gap: 0;
-  border-top: 1px solid var(--border);
-  margin-top: 8px;
-  padding-top: 8px;
-}
-.block-summary-item {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 6px 8px;
-  border-right: 1px solid var(--border);
-}
-.block-summary-item:last-child {
-  border-right: none;
-}
-.block-summary-label {
-  font-size: 0.68rem;
-  color: var(--text-muted);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  white-space: nowrap;
-  margin-bottom: 3px;
-}
-.block-summary-value {
-  font-size: 0.88rem;
-  font-weight: 700;
-  color: var(--text);
-  white-space: nowrap;
-}
-.block-summary-value.markup {
-  color: var(--success);
-}
-
-/* ── Toast «Сохранено» ───────────────────────────── */
-#saveToast {
-  position: fixed;
-  bottom: 24px;
-  left: 24px;
-  z-index: 9999;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 18px;
-  background: #0f172a;
-  color: #fff;
-  border-radius: 10px;
-  font-size: 0.82rem;
-  font-weight: 700;
-  font-family: var(--font, -apple-system, sans-serif);
-  box-shadow: 0 4px 20px rgba(0,0,0,0.22);
-  opacity: 0;
-  transform: translateY(10px);
-  pointer-events: none;
-  transition: opacity 0.2s, transform 0.2s;
-}
-#saveToast.visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-
+.export-buttons {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
@@ -1969,7 +1912,8 @@ window.addEventListener('unhandledrejection', function(e) {
 <div id="navTopBar">
   <a href="dashboard.html" class="nav-brand">Keep1R CRM</a>
   <div class="nav-links">
-    <a href="dashboard.html" class="nav-link">← Главная</a>
+    <a href="dashboard.html" class="nav-link">🏠 Главная</a>
+    <a id="navBackBtn" href="board.html" class="nav-link" style="display:none">← На доску</a>
     <a href="calculator.html" class="nav-link active">🧮 Калькулятор</a>
   </div>
   <div class="nav-right">
@@ -1984,6 +1928,8 @@ window.addEventListener('unhandledrejection', function(e) {
 <div class="main-container">
   <div class="left-column">
     
+    <!-- Авто + Форма оплаты — два квадратных блока в ряд -->
+    <div class="top-pair-grid">
     <div class="card">
       <h2>🚗 Автомобиль</h2>
       <div class="card-content">
@@ -2043,6 +1989,26 @@ window.addEventListener('unhandledrejection', function(e) {
 <input type="text" id="year" placeholder="2026" maxlength="4" inputmode="numeric">
         </div>
       </div>
+    </div>
+    <div class="card">
+      <h2>💳 Форма оплаты</h2>
+      <div class="card-content">
+        <div class="toggle-group">
+          <label class="toggle-btn active">
+            <input type="radio" name="payMode" value="cash" checked style="display:none">
+            <span>💵 Наличные</span>
+          </label>
+          <label class="toggle-btn">
+            <input type="radio" name="payMode" value="card" style="display:none">
+            <span>💳 Карта или ИП (+13%)</span>
+          </label>
+          <label class="toggle-btn">
+            <input type="radio" name="payMode" value="ooo" style="display:none">
+            <span>🏢 ООО (+22%)</span>
+          </label>
+        </div>
+      </div>
+    </div>
     </div>
 
     <div class="card">
@@ -2149,26 +2115,6 @@ window.addEventListener('unhandledrejection', function(e) {
       </div>
     </div>
 
-<div class="card">
-  <h2>💳 Форма оплаты</h2>
-  <div class="card-content">
-    <div class="toggle-group">
-      <label class="toggle-btn active">
-        <input type="radio" name="payMode" value="cash" checked style="display:none">
-        <span>💵 Наличные</span>
-      </label>
-      <label class="toggle-btn">
-        <input type="radio" name="payMode" value="card" style="display:none">
-        <span>💳 Карта или ИП (+13%)</span>
-      </label>
-      <label class="toggle-btn">
-        <input type="radio" name="payMode" value="ooo" style="display:none">
-        <span>🏢 ООО (+22%)</span>
-      </label>
-    </div>
-  </div>
-</div>
-
     <div class="card">
       <h2 class="collapsible collapsed">🔧 Арматурные работы</h2>
       <div class="card-content collapsed" id="armContent"></div>
@@ -2219,28 +2165,52 @@ window.addEventListener('unhandledrejection', function(e) {
       </div>
     </div>
 
-    <!-- kpTable / costTable hidden — нужны для PDF-экспорта -->
-    <div style="display:none">
-      <table id="kpTable"><thead><tr><th></th><th></th><th></th></tr></thead><tbody></tbody></table>
-      <span id="kpTotal"></span>
-      <table id="costTable"><thead><tr><th></th><th></th><th></th></tr></thead><tbody></tbody></table>
-      <span id="cMat"></span><span id="cMot"></span><span id="cTotal"></span>
+    <div class="card">
+      <h2>📄 Предпросмотр КП</h2>
+      <div class="card-content">
+        <div class="table-wrapper">
+          <table id="kpTable">
+            <thead><tr><th style="width:25%">Услуга</th><th style="width:50%">Описание</th><th style="width:25%">Стоимость</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div style="text-align:right;font-weight:bold;margin-top:10px">Итого: <span id="kpTotal">0,00</span> ₽</div>
+      </div>
     </div>
 
-    <button onclick="window.scrollTo({top:0,behavior:'smooth'})"
-      style="width:100%;margin-top:4px;padding:11px;border-radius:10px;
-             border:1px solid rgba(15,23,42,0.09);background:#fff;
-             color:#94a3b8;font-size:0.82rem;font-weight:700;cursor:pointer;
-             font-family:inherit;transition:all 0.18s;letter-spacing:0.01em"
-      onmouseover="this.style.color='#2563eb';this.style.borderColor='rgba(37,99,235,0.3)';this.style.background='rgba(37,99,235,0.04)'"
-      onmouseout="this.style.color='#94a3b8';this.style.borderColor='rgba(15,23,42,0.09)';this.style.background='#fff'">
-      ↑ Наверх
-    </button>
+    <div class="card">
+      <h2>💰 Предпросмотр себестоимости</h2>
+      <div class="card-content">
+        <div class="table-wrapper">
+          <table id="costTable">
+            <thead><tr><th style="width:50%">Услуга</th><th style="width:25%">Материалы</th><th style="width:25%">Мотивация</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-weight:bold;margin-top:10px;flex-wrap:wrap;gap:10px;font-size:.9rem">
+          <span>Материалы: <span id="cMat">0,00</span> ₽</span>
+          <span>Мотивация: <span id="cMot">0,00</span> ₽</span>
+          <span>Итого: <span id="cTotal">0,00</span> ₽</span>
+        </div>
+      </div>
+    </div>
 
   </div>
 
   <div class="right-column">
     
+    <div class="card">
+      <h2>🎁 Скидки</h2>
+      <div class="card-content">
+        <div class="discount-grid">
+          <div class="discount-btn" data-discount="0">Без скидки</div>
+          <div class="discount-btn" data-discount="10">Дружеская 10%</div>
+        </div>
+        <div style="margin-top:8px">
+          <input type="number" id="customDiscount" placeholder="Своя скидка %" min="0" max="100" step="0.01">
+        </div>
+      </div>
+    </div>
 
     <div class="card">
       <h2>💎 Итоги</h2>
@@ -2262,10 +2232,15 @@ window.addEventListener('unhandledrejection', function(e) {
         <div id="telegramWarning">
           ⚠️ <b>Telegram WebView:</b> Для скачивания PDF откройте в браузере (••• → Открыть в браузере)
         </div>
-        <div style="display:flex;flex-direction:column;gap:8px">
-          <button type="button" class="btn btn-secondary" id="btnReset">🆕 Новый расчёт</button>
-          <button type="button" class="btn btn-primary" id="btnSaveCalc">💾 Сохранить расчёт</button>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px">
+          <button type="button" class="btn btn-primary" id="btnRecalc" style="flex:1;min-width:140px">🔄 Пересчитать</button>
+          <button type="button" class="btn btn-secondary" id="btnReset" style="flex:1;min-width:140px">🔃 Сброс</button>
+        </div>
+        <div class="export-buttons">
+          <button type="button" class="btn btn-primary" id="btnSaveCalc" style="margin-bottom:12px">💾 Сохранить расчет</button>
           <button type="button" class="btn btn-success" id="btnDownloadKP">📥 Скачать КП</button>
+          <button type="button" class="btn btn-success" id="btnShareKP" style="display:none">📤 Поделиться КП</button>
+          <button type="button" class="btn btn-success" id="btnExportCost">💰 Себес (PDF)</button>
         </div>
       </div>
     </div>
@@ -2724,7 +2699,18 @@ async function saveCalculation() {
     
     lastSavedData = dataStr;
     console.log('✅ Saved successfully');
-    if (window.showSaveToast) window.showSaveToast();
+    
+    // Показываем индикатор сохранения
+    const btn = q('#btnSaveCalc');
+    if (btn) {
+      const originalText = btn.textContent;
+      btn.textContent = '✅ Сохранено';
+      btn.style.background = 'linear-gradient(135deg, var(--success), var(--success-dark))';
+      setTimeout(() => {
+        btn.textContent = originalText;
+        btn.style.background = '';
+      }, 2000);
+    }
   } catch (e) {
     console.error('Save error:', e);
   }
@@ -2743,7 +2729,14 @@ async function loadCalculationFromUrl() {
   // Получаем ID из URL параметров
   const urlParams = new URLSearchParams(window.location.search);
   const calcId = urlParams.get('load');
-  
+  const fromBoard = urlParams.get('from') === 'board' || !!calcId;
+
+  // Показываем кнопку «← На доску» если открыто из доски
+  if (fromBoard) {
+    const backBtn = document.getElementById('navBackBtn');
+    if (backBtn) backBtn.style.display = '';
+  }
+
   if (!calcId) return; // Нет ID - ничего не делаем
   
   try {
@@ -4556,12 +4549,9 @@ function initBindings() {
   }));
 
   // Управляющие кнопки
-  q('#btnReset')?.addEventListener('click', async () => {
-    const btn = q('#btnReset');
-    if (!confirm('Сохранить текущий расчёт и начать новый?')) return;
-    if (btn) { btn.textContent = '⏳ Сохраняем...'; btn.disabled = true; }
-    await saveCalculation();
-    location.href = location.pathname;
+  q('#btnRecalc')?.addEventListener('click', renderAll);
+  q('#btnReset')?.addEventListener('click', () => {
+    if (confirm('Вы уверены, что хотите сбросить все данные?')) location.reload();
   });
   q('#btnSaveCalc')?.addEventListener('click', async () => {
     const btn = q('#btnSaveCalc');
@@ -4572,9 +4562,55 @@ function initBindings() {
   });
 
   // Экспорт PDF
+  if (q('#btnShareKP')) q('#btnShareKP').style.display = 'inline-block';
   q('#btnDownloadKP')?.addEventListener('click', () => {
     prepKP();
     setTimeout(() => exportPDF('#pdfKP', 'Коммерческое_предложение.pdf'), 100);
+  });
+  q('#btnShareKP')?.addEventListener('click', async () => {
+    const btn = q('#btnShareKP');
+    const origText = btn.textContent;
+    btn.textContent = '⏳ Генерация...'; btn.disabled = true;
+    const fallbackDownload = () => { prepKP(); setTimeout(() => exportPDF('#pdfKP', 'КП_оклейка.pdf'), 100); };
+    try {
+      prepKP();
+      await new Promise(resolve => setTimeout(resolve, 400));
+      const { jsPDF } = window.jspdf || {};
+      if (!jsPDF || !window.html2canvas) { fallbackDownload(); return; }
+      const block = q('#pdfKP');
+      let canvas;
+      try {
+        canvas = await window.html2canvas(block, { scale: 2, useCORS: true, allowTaint: true, backgroundColor: '#fff', logging: false });
+      } catch(canvasErr) { fallbackDownload(); return; }
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
+      const pw = pdf.internal.pageSize.getWidth(), ph = pdf.internal.pageSize.getHeight();
+      const ratio = Math.min(pw / canvas.width, ph / canvas.height);
+      pdf.addImage(canvas.toDataURL('image/png'), 'PNG', (pw - canvas.width * ratio) / 2, 20, canvas.width * ratio, Math.min(canvas.height * ratio, ph - 40));
+      const pdfBlob = pdf.output('blob');
+      const pdfFile = new File([pdfBlob], 'КП_оклейка.pdf', { type: 'application/pdf' });
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
+        await navigator.share({ title: 'Коммерческое предложение', files: [pdfFile] });
+      } else {
+        const url = URL.createObjectURL(pdfBlob);
+        const a = document.createElement('a');
+        a.href = url; a.download = 'КП_оклейка.pdf'; a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      }
+    } catch(err) {
+      if (err.name !== 'AbortError') fallbackDownload();
+    } finally { btn.textContent = origText; btn.disabled = false; }
+  });
+  q('#btnExportCost')?.addEventListener('click', () => {
+    prepCost();
+    setTimeout(() => exportPDF('#pdfCost', 'Себестоимость.pdf'), 100);
+  });
+  q('#btnExportExecutors')?.addEventListener('click', () => {
+    prepExecutors();
+    setTimeout(() => exportPDF('#pdfExecutors', 'Список_исполнителей.pdf'), 100);
+  });
+  q('#btnExportExecutorsWithSalary')?.addEventListener('click', () => {
+    prepExecutorsWithSalary();
+    setTimeout(() => exportPDF('#pdfExecutorsWithSalary', 'Список_исполнителей_ЗП.pdf'), 100);
   });
 
   // Chips (наценки)
@@ -4635,16 +4671,4 @@ window.onBrandChange = onBrandChange;
 window.onModelChange = onModelChange;
 window.renderAll = renderAll;
 
-// ── Toast ─────────────────────────────────────────
-window._toastTimer = null;
-window.showSaveToast = function() {
-  const t = document.getElementById('saveToast');
-  if (!t) return;
-  t.classList.add('visible');
-  clearTimeout(window._toastTimer);
-  window._toastTimer = setTimeout(() => t.classList.remove('visible'), 2000);
-};
-
 </script>
-
-<div id="saveToast">✓ Сохранено</div>
