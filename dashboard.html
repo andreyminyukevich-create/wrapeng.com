@@ -510,7 +510,7 @@ function fmt(n) {
 
 function normalizeStatus(status) {
   if (!status || status === '' || status === 'draft' || status === 'pending') return 'new';
-  return status;
+  return status; // cancelled, delivered etc pass through as-is
 }
 
 function updateStats(calculations) {
@@ -530,13 +530,16 @@ function updateStats(calculations) {
   document.getElementById('statMonthTotalChange').textContent = 'Текущий месяц';
 }
 
-const MINI_COLS = [
-  { key: 'new',         label: 'Расчёт',    icon: '📋' },
-  { key: 'scheduled',   label: 'Заезд',     icon: '📅' },
-  { key: 'in_progress', label: 'В работе',  icon: '🔧' },
-  { key: 'done',        label: 'Завершено', icon: '✅' },
-  { key: 'delivered',   label: 'Выдано',    icon: '🚗' },
-];
+// Берём из nav.js — единый источник правды
+// Cancelled не показываем в мини-канбане — там только активные
+const MINI_COLS = Object.entries(window.STATUSES || {
+  new:         { short: 'Расчёт',    icon: '📋' },
+  scheduled:   { short: 'Дата',      icon: '📅' },
+  in_progress: { short: 'В работе',  icon: '🔧' },
+  done:        { short: 'Завершено', icon: '✅' },
+  delivered:   { short: 'Выдано',    icon: '🚗' },
+}).filter(([key]) => key !== 'cancelled')
+  .map(([key, s]) => ({ key, label: s.short, icon: s.icon }));
 
 async function loadMiniKanban(studioId) {
   const container = document.getElementById('miniKanban');
@@ -570,22 +573,9 @@ async function loadMiniKanban(studioId) {
       html += `<div class="mini-col-empty">Нет</div>`;
     } else {
       visible.forEach(c => {
-        const isInProgress = col.key === 'in_progress';
-        const assignBtn = isInProgress
-          ? `<a href="assign-work.html?calc_id=${c.id}" onclick="event.stopPropagation()"
-               style="display:block;margin-top:6px;padding:4px 8px;border-radius:6px;
-                      font-size:0.69rem;font-weight:700;text-align:center;text-decoration:none;
-                      background:rgba(37,99,235,0.08);color:#2563eb;
-                      border:1px solid rgba(37,99,235,0.2);transition:all 0.15s"
-               onmouseover="this.style.background='#2563eb';this.style.color='#fff'"
-               onmouseout="this.style.background='rgba(37,99,235,0.08)';this.style.color='#2563eb'">
-               👥 Распределить
-             </a>`
-          : '';
-        html += `<div class="mini-card" onclick="location.href='${isInProgress ? `assign-work.html?calc_id=${c.id}` : 'board.html'}'">
+        html += `<div class="mini-card" onclick="location.href='board.html'">
           <div class="mini-card-car">${c.car_name || 'Без названия'}</div>
           <div class="mini-card-price">${fmt(c.final_price || c.total_price || 0)} ₽</div>
-          ${assignBtn}
         </div>`;
       });
       if (rest > 0) {
@@ -616,10 +606,9 @@ window.handleSearch = function() {
       return;
     }
 
-    const STATUS = {
-      new: '📋 Расчёт', scheduled: '📅 Заезд',
-      in_progress: '🔧 В работе', done: '✅ Завершено', delivered: '🚗 Выдано'
-    };
+    const STATUS = Object.fromEntries(
+      Object.entries(window.STATUSES || {}).map(([k,s]) => [k, s.icon + ' ' + s.short])
+    );
     box.innerHTML = `<div class="calc-grid">` + found.map(c => `
       <div class="calc-card" onclick="location.href='calculator.html?load=${c.id}'">
         <h3>${c.car_name || 'Без названия'}</h3>
