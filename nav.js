@@ -31,7 +31,7 @@
     { href: 'analytics.html',   icon: '📊', label: 'Аналитика',  soon: true },
     { href: 'calendar.html',    icon: '🗓', label: 'Календарь',  soon: true },
     { href: 'inventory.html',   icon: '📦', label: 'Закупки',    soon: true },
-    { href: 'settings.html',    icon: '⚙️', label: 'Настройки',  soon: true },
+    { href: 'settings.html',    icon: '⚙️', label: 'Настройки' },
   ];
 
   function currentPage() {
