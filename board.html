@@ -728,7 +728,7 @@ function renderCard(calc, status) {
         <div style="margin-bottom:8px;padding:7px 9px;background:rgba(37,99,235,0.05);border-radius:7px;border:1px solid rgba(37,99,235,0.12)">
           <div style="font-size:0.67rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#64748b;margin-bottom:4px">👥 Исполнители</div>
           ${uniqueNames.length > 0
-            ? `<div style="font-size:0.75rem;color:#0f172a;font-weight:600;line-height:1.5;margin-bottom:3px">${uniqueNames.join(', ')}</div>`
+            ? `<div style="font-size:0.75rem;color:#0f172a;font-weight:600;line-height:1.5;margin-bottom:3px">${uniqueNames.join('<br>')}</div>`
             : `<div style="font-size:0.73rem;color:#94a3b8;font-style:italic">Не назначены</div>`
           }
           ${totalSalary > 0
