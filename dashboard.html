@@ -664,27 +664,46 @@ async function init() {
   initNav();
   if (!await checkAuth()) return;
 
-  const { data: member } = await sb
+  const kanban = document.getElementById('miniKanban');
+
+  // Шаг 1: studio_members
+  kanban.innerHTML = '<div class="loading">⏳ Загрузка студии...</div>';
+  const { data: member, error: memberErr } = await sb
     .from('studio_members')
     .select('studio_id')
     .eq('user_id', currentUser.id)
     .eq('is_active', true)
     .single();
 
+  if (memberErr) {
+    kanban.innerHTML = `<div class="loading" style="color:#dc2626">❌ Ошибка studio_members: ${memberErr.message}<br><small style="color:#94a3b8">(код: ${memberErr.code})</small></div>`;
+    return;
+  }
   if (!member) {
-    document.getElementById('miniKanban').innerHTML =
-      `<div class="loading" style="color:#dc2626">⚠️ Студия не найдена. Обратитесь к администратору.</div>`;
+    kanban.innerHTML = `<div class="loading" style="color:#dc2626">⚠️ Студия не найдена для вашего аккаунта. Обратитесь к администратору.</div>`;
     return;
   }
 
   const studioId = member.studio_id;
 
-  const { data: studioInfo } = await sb.from('studios').select('name').eq('id', studioId).single();
+  // Шаг 2: название студии
+  const { data: studioInfo, error: studioErr } = await sb
+    .from('studios')
+    .select('name')
+    .eq('id', studioId)
+    .single();
+
+  if (studioErr) {
+    kanban.innerHTML = `<div class="loading" style="color:#dc2626">❌ Ошибка загрузки студии: ${studioErr.message}</div>`;
+    return;
+  }
   if (studioInfo) {
     document.getElementById('studioNameHeader').textContent = studioInfo.name;
     document.getElementById('studioSubheader').textContent  = 'Keep1R CRM';
   }
 
+  // Шаг 3: подписка
+  kanban.innerHTML = '<div class="loading">⏳ Проверка доступа...</div>';
   const subStatus = await checkSubscription(studioId);
   if (subStatus === 'expired' || subStatus === 'none') {
     showPaywall(subStatus === 'expired');
@@ -692,11 +711,18 @@ async function init() {
     return;
   }
 
-  const { data: calcs } = await sb
+  // Шаг 4: расчёты
+  kanban.innerHTML = '<div class="loading">⏳ Загрузка данных...</div>';
+  const { data: calcs, error: calcsErr } = await sb
     .from('calculations')
     .select('id, car_name, total_price, final_price, status, work_assigned, created_at')
     .eq('studio_id', studioId)
     .order('created_at', { ascending: false });
+
+  if (calcsErr) {
+    kanban.innerHTML = `<div class="loading" style="color:#dc2626">❌ Ошибка загрузки расчётов: ${calcsErr.message}</div>`;
+    return;
+  }
 
   allCalcsForSearch = calcs || [];
   updateStats(allCalcsForSearch);
