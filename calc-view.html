@@ -3,676 +3,704 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Расчёт — Keep1R CRM</title>
+<title>Keep1R CRM — Главная</title>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <link rel="stylesheet" href="nav.css">
 <script src="nav.js"></script>
 <style>
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
-:root {
-  --font: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
-  --bg: #eef2f9; --card: #fff;
-  --border: rgba(15,23,42,0.10); --text: #0f172a;
-  --muted: #64748b; --primary: #2563eb; --success: #059669;
-  --purple: #7c3aed; --warning: #f59e0b; --danger: #dc2626;
-  --radius: 14px;
-}
-body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100svh; -webkit-font-smoothing: antialiased; }
-.container { max-width: 960px; margin: 0 auto; padding: 24px 20px 80px; }
 
-/* ── Header ────────────────────────────────────── */
-.page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 22px; flex-wrap: wrap; gap: 12px; }
-.page-title  { font-size: 1.35rem; font-weight: 900; letter-spacing: -0.4px; }
-.page-sub    { font-size: 0.8rem; color: var(--muted); margin-top: 4px; }
-.status-badge {
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  background: #eef2f9;
+  color: #0f172a;
+  min-height: 100svh;
+}
+
+.container {
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 28px 24px 48px;
+}
+
+/* ── Шапка страницы ─────────────────────────────── */
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.page-greeting {
+  display: flex;
+  flex-direction: column;
+}
+
+.studio-name {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.3px;
+  line-height: 1.2;
+}
+
+.studio-sub {
+  font-size: 0.78rem;
+  color: #64748b;
+  margin-top: 2px;
+  font-weight: 500;
+}
+
+.btn-logout {
+  padding: 8px 16px;
+  background: #fff;
+  color: #64748b;
+  border: 1px solid rgba(15,23,42,0.10);
+  border-radius: 9px;
+  font-size: 0.81rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.btn-logout:hover {
+  background: #fee2e2;
+  color: #dc2626;
+  border-color: rgba(220,38,38,0.2);
+}
+
+/* ── Стат-карточки ──────────────────────────────── */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.stat-card {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid rgba(15,23,42,0.07);
+  padding: 22px 20px 18px;
+  position: relative;
+  overflow: hidden;
+  transition: box-shadow 0.18s, transform 0.18s;
+  text-decoration: none;
+  display: block;
+  color: inherit;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.stat-card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--accent, #2563eb);
+  opacity: 0.7;
+}
+
+.stat-card:hover {
+  box-shadow: 0 6px 24px rgba(37,99,235,0.10);
+  transform: translateY(-2px);
+}
+
+.stat-icon {
+  font-size: 1.5rem;
+  line-height: 1;
+  margin-bottom: 14px;
+  display: block;
+}
+
+.stat-label {
+  font-size: 0.7rem;
+  color: #64748b;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 6px;
+}
+
+.stat-value {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1;
+  margin-bottom: 6px;
+  letter-spacing: -0.5px;
+}
+
+.stat-change {
+  font-size: 0.75rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+/* Цветовые акценты карточек */
+.stat-card:nth-child(1) { --accent: #2563eb; }
+.stat-card:nth-child(2) { --accent: #059669; }
+.stat-card:nth-child(3) { --accent: #7c3aed; }
+.stat-card:nth-child(4) { --accent: #d97706; }
+
+/* ── Карточка-контейнер ─────────────────────────── */
+.card {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid rgba(15,23,42,0.07);
+  padding: 20px 22px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.card-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.1px;
+}
+
+.card-link {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #2563eb;
+  text-decoration: none;
+  padding: 5px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(37,99,235,0.25);
+  background: rgba(37,99,235,0.04);
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.card-link:hover {
+  background: #2563eb;
+  color: #fff;
+  border-color: #2563eb;
+}
+
+/* ── Поиск ──────────────────────────────────────── */
+.search-wrap { margin-bottom: 16px; }
+
+.search-input {
+  width: 100%;
+  max-width: 400px;
+  padding: 10px 16px;
+  border: 1px solid rgba(15,23,42,0.10);
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-family: inherit;
+  color: #0f172a;
+  background: #fff;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+}
+.search-input::placeholder { color: #94a3b8; }
+.search-input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.08);
+}
+
+/* ── Мини-канбан ────────────────────────────────── */
+.mini-kanban {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+}
+
+.mini-col { min-width: 0; }
+
+.mini-col-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #64748b;
+  padding-bottom: 8px;
+  border-bottom: 2px solid rgba(15,23,42,0.06);
+}
+
+.mini-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.mini-cards { display: flex; flex-direction: column; gap: 5px; }
+
+.mini-card {
+  background: #f8fafc;
+  border: 1px solid rgba(15,23,42,0.07);
+  border-radius: 10px;
+  padding: 10px 11px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.mini-card:hover {
+  border-color: #2563eb;
+  background: #fff;
+  box-shadow: 0 2px 10px rgba(37,99,235,0.08);
+  transform: translateY(-1px);
+}
+
+.mini-card-car {
+  font-size: 0.82rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #0f172a;
+  margin-bottom: 3px;
+}
+
+.mini-card-price {
+  font-size: 0.78rem;
+  color: #059669;
+  font-weight: 700;
+}
+
+.mini-col-more {
+  font-size: 0.68rem;
+  color: #94a3b8;
+  text-align: center;
+  padding: 5px;
+  cursor: pointer;
+  border-radius: 7px;
+  border: 1px dashed rgba(15,23,42,0.1);
+  margin-top: 2px;
+  transition: all 0.15s;
+}
+.mini-col-more:hover {
+  color: #2563eb;
+  border-color: rgba(37,99,235,0.3);
+  background: rgba(37,99,235,0.03);
+}
+
+.mini-col-empty {
+  font-size: 0.7rem;
+  color: #94a3b8;
+  text-align: center;
+  padding: 16px 4px;
+}
+
+/* Цвета колонок */
+.mini-col-new         .mini-dot { background: #94a3b8; }
+.mini-col-new         .mini-col-header { color: #64748b; border-bottom-color: #94a3b8; }
+.mini-col-scheduled   .mini-dot { background: #f59e0b; }
+.mini-col-scheduled   .mini-col-header { color: #92400e; border-bottom-color: #f59e0b; }
+.mini-col-in_progress .mini-dot { background: #2563eb; }
+.mini-col-in_progress .mini-col-header { color: #1e40af; border-bottom-color: #2563eb; }
+.mini-col-done        .mini-dot { background: #7c3aed; }
+.mini-col-done        .mini-col-header { color: #5b21b6; border-bottom-color: #7c3aed; }
+.mini-col-delivered   .mini-dot { background: #059669; }
+.mini-col-delivered   .mini-col-header { color: #065f46; border-bottom-color: #059669; }
+
+/* ── Результаты поиска ──────────────────────────── */
+.calc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+.calc-card {
+  background: #f8fafc;
+  border: 1px solid rgba(15,23,42,0.07);
+  border-radius: 12px;
+  padding: 15px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.calc-card:hover {
+  border-color: #2563eb;
+  box-shadow: 0 4px 16px rgba(37,99,235,0.08);
+  transform: translateY(-1px);
+}
+.calc-card h3 {
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+  color: #0f172a;
+}
+.calc-price {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #059669;
+  margin-bottom: 12px;
+  letter-spacing: -0.3px;
+}
+
+.calc-actions { display: flex; gap: 7px; }
+
+/* ── Кнопки ─────────────────────────────────────── */
+.btn {
   display: inline-flex; align-items: center; gap: 5px;
-  padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700;
-  margin-top: 6px;
+  padding: 7px 12px; border-radius: 8px;
+  font-size: 0.78rem; font-weight: 700;
+  font-family: inherit; cursor: pointer;
+  border: none; transition: all 0.15s; text-decoration: none;
 }
-.status-new        { background: #f1f5f9; color: #64748b; }
-.status-scheduled  { background: #fef3c7; color: #92400e; }
-.status-in_progress{ background: #dbeafe; color: #1e40af; }
-.status-done       { background: #ede9fe; color: #5b21b6; }
-.status-delivered  { background: #d1fae5; color: #065f46; }
-
-/* ── Buttons ───────────────────────────────────── */
-.btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px; border-radius: 9px; border: none; font-size: 0.83rem; font-weight: 700; cursor: pointer; font-family: var(--font); transition: all 0.15s; white-space: nowrap; }
-.btn-secondary { background: #f1f5f9; color: var(--text); border: 1px solid var(--border); }
-.btn-secondary:hover { background: #e2e8f0; }
-.btn-primary   { background: var(--primary); color: #fff; }
+.btn-primary { background: #2563eb; color: #fff; }
 .btn-primary:hover { background: #1d4ed8; }
-.btn-success   { background: var(--success); color: #fff; }
-.btn-success:hover { background: #047857; }
-.btn-dark      { background: #0f172a; color: #fff; }
-.btn-dark:hover { background: #1e293b; }
-.btn-warning   { background: #f59e0b; color: #fff; }
-.btn-warning:hover { background: #d97706; }
-.btn-danger    { background: var(--danger); color: #fff; }
-.btn-danger:hover { background: #b91c1c; }
-.btn-group     { display: flex; gap: 8px; flex-wrap: wrap; }
-
-/* ── Card ──────────────────────────────────────── */
-.card { background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: 0 1px 4px rgba(0,0,0,0.06); margin-bottom: 14px; overflow: hidden; }
-.card-head { padding: 12px 18px 10px; border-bottom: 1px solid var(--border); font-size: 0.74rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); background: #f8fafc; display: flex; align-items: center; justify-content: space-between; }
-.card-body { padding: 16px 18px; }
-
-/* ── Info grid ─────────────────────────────────── */
-.info-grid { display: grid; grid-template-columns: repeat(3, 1fr); }
-.info-cell { padding: 10px 14px; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); }
-.info-cell:nth-child(3n) { border-right: none; }
-.info-cell:nth-last-child(-n+3) { border-bottom: none; }
-.info-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin-bottom: 3px; }
-.info-value { font-size: 0.9rem; font-weight: 600; }
-.info-value.empty { color: var(--muted); font-weight: 400; font-style: italic; }
-.info-value.accent { color: var(--primary); }
-.info-value.success { color: var(--success); }
-@media (max-width: 540px) { .info-grid { grid-template-columns: 1fr 1fr; } }
-
-/* ── Block sections ────────────────────────────── */
-.block-section { margin-bottom: 2px; }
-.block-title { font-size: 0.84rem; font-weight: 800; color: var(--text); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
-
-.detail-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
-.detail-table th { text-align: left; padding: 6px 10px; background: #f8fafc; font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); border-bottom: 1.5px solid var(--border); }
-.detail-table td { padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
-.detail-table tr:last-child td { border-bottom: none; }
-.detail-table .subtotal-row td { font-weight: 700; background: #f8fafc; color: var(--text); }
-.right { text-align: right; white-space: nowrap; }
-.muted-num { color: var(--muted); font-size: 0.78rem; }
-
-/* Editable input */
-.edit-input {
-  display: none; width: 100%; padding: 4px 8px; border: 1.5px solid var(--primary);
-  border-radius: 6px; font-size: 0.82rem; font-family: var(--font);
-  color: var(--text); background: #eff6ff; text-align: right; outline: none;
+.btn-success {
+  background: rgba(5,150,105,0.08);
+  color: #059669;
+  border: 1px solid rgba(5,150,105,0.2);
 }
-body.editing .edit-input  { display: block; }
-body.editing .view-val    { display: none; }
+.btn-success:hover { background: #059669; color: #fff; }
 
-/* ── Financials ────────────────────────────────── */
-.fin-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
-.fin-cell { background: #fff; padding: 12px 14px; text-align: center; }
-.fin-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); margin-bottom: 4px; }
-.fin-value { font-size: 1rem; font-weight: 800; }
-.fin-value.big { font-size: 1.4rem; letter-spacing: -0.5px; }
-.fin-value.green { color: var(--success); }
-.fin-value.purple { color: var(--purple); }
-.fin-value.blue { color: var(--primary); }
-@media (max-width: 600px) { .fin-grid { grid-template-columns: 1fr 1fr; } }
-
-/* ── Executors ─────────────────────────────────── */
-.exec-pill { display: inline-flex; align-items: center; gap: 3px; padding: 2px 9px; border-radius: 20px; background: rgba(37,99,235,0.08); color: #1e40af; font-size: 0.74rem; font-weight: 700; margin: 2px; }
-.exec-pill.admin { background: rgba(124,58,237,0.08); color: #6d28d9; }
-
-/* ── Edit mode banner ──────────────────────────── */
-#editBanner { display: none; padding: 11px 18px; background: #fef3c7; border: 1.5px solid #fde68a; border-radius: 10px; margin-bottom: 14px; font-size: 0.84rem; color: #78350f; font-weight: 600; align-items: center; gap: 10px; }
-body.editing #editBanner { display: flex; }
-#editBanner .spacer { flex: 1; }
-
-/* ── Loading ───────────────────────────────────── */
-#loadingMsg { text-align: center; padding: 60px 20px; color: var(--muted); font-size: 1rem; }
-#errMsg     { display: none; text-align: center; padding: 40px; color: var(--danger); }
-
-/* ══ PRINT ═════════════════════════════════════ */
-@media print {
-  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-  body { background: #fff !important; }
-  #navTopBar, .no-print, #editBanner { display: none !important; }
-  .container { padding: 0 !important; max-width: 100% !important; }
-  .card { box-shadow: none !important; border: 1px solid #e2e8f0 !important; margin-bottom: 8px !important; break-inside: avoid; }
-  .card-head { background: #f1f5f9 !important; padding: 7px 12px 6px !important; }
-  .card-body { padding: 10px 12px !important; }
-  .fin-grid { background: #e2e8f0 !important; }
-  .fin-cell { padding: 8px 10px !important; }
-  @page { margin: 15mm; size: A4; }
+/* ── Состояния ──────────────────────────────────── */
+.loading {
+  text-align: center;
+  padding: 40px;
+  color: #64748b;
+  font-size: 0.88rem;
 }
 
-/* ── Print header ──────────────────────────────── */
-#printHeader { display: none; align-items: center; justify-content: space-between; padding-bottom: 12px; border-bottom: 2.5px solid #0f172a; margin-bottom: 16px; gap: 16px; }
-#ph-logo { max-height: 48px; max-width: 120px; object-fit: contain; }
-.ph-doc-title { font-size: 1.1rem; font-weight: 900; text-transform: uppercase; text-align: center; }
-.ph-doc-sub   { font-size: 0.76rem; color: var(--muted); text-align: center; margin-top: 2px; }
-.ph-right { text-align: right; }
-.ph-studio-name { font-size: 0.9rem; font-weight: 800; }
-.ph-studio-info { font-size: 0.72rem; color: var(--muted); line-height: 1.5; }
-@media print { #printHeader { display: flex !important; } }
+.empty-state {
+  text-align: center;
+  padding: 48px 20px;
+  color: #64748b;
+}
+.empty-state-icon {
+  font-size: 2.2rem;
+  margin-bottom: 10px;
+  opacity: 0.35;
+}
+.empty-state h3 {
+  font-size: 0.95rem;
+  color: #0f172a;
+  font-weight: 700;
+}
+
+/* ── Адаптив ────────────────────────────────────── */
+@media (max-width: 1100px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 768px) {
+  .container { padding: 16px 14px 40px; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .stat-value { font-size: 1.4rem; }
+  .mini-kanban { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 480px) {
+  .mini-kanban { grid-template-columns: repeat(2, 1fr); }
+  .search-input { max-width: 100%; }
+  .stats-grid { gap: 8px; }
+}
 </style>
 </head>
 <body>
 
-<div id="navTopBar">
-  <a href="board.html" class="nav-brand">Keep1R CRM</a>
-  <div class="nav-links">
-    <a href="board.html" class="nav-link">📋 Доска</a>
-    <span class="nav-link active">📊 Расчёт</span>
-  </div>
-  <div class="nav-right"></div>
-</div>
-
 <div class="container">
 
-  <!-- Print header -->
-  <div id="printHeader">
-    <img id="ph-logo" src="" alt="" style="display:none">
-    <div>
-      <div class="ph-doc-title">Расчёт заказа</div>
-      <div class="ph-doc-sub" id="ph-sub"></div>
+  <!-- Шапка -->
+  <div class="page-header">
+    <div class="page-greeting">
+      <div class="studio-name" id="studioNameHeader">Загрузка...</div>
+      <div class="studio-sub" id="studioSubheader">Keep1R CRM</div>
     </div>
-    <div class="ph-right">
-      <div class="ph-studio-name" id="ph-name"></div>
-      <div class="ph-studio-info" id="ph-info"></div>
+    <button class="btn-logout" onclick="logout()">Выйти →</button>
+  </div>
+
+  <!-- Стат-карточки -->
+  <div class="stats-grid" id="statsGrid">
+    <a class="stat-card" href="analytics.html">
+      <span class="stat-icon">🚗</span>
+      <div class="stat-label">Расчётов за месяц</div>
+      <div class="stat-value" id="statMonthTotal">—</div>
+      <div class="stat-change" id="statMonthTotalChange">Текущий месяц</div>
+    </a>
+    <a class="stat-card" href="analytics.html">
+      <span class="stat-icon">💰</span>
+      <div class="stat-label">Сумма расчётов</div>
+      <div class="stat-value" id="statMonthSum">—</div>
+      <div class="stat-change">Текущий месяц</div>
+    </a>
+    <a class="stat-card" href="analytics.html">
+      <span class="stat-icon">✅</span>
+      <div class="stat-label">Завершённые работы</div>
+      <div class="stat-value" id="statMonthDone">—</div>
+      <div class="stat-change" id="statMonthDoneCount">0 машин</div>
+    </a>
+    <a class="stat-card" href="analytics.html">
+      <span class="stat-icon">📊</span>
+      <div class="stat-label">Средний чек</div>
+      <div class="stat-value" id="statMonthAvg">—</div>
+      <div class="stat-change">За месяц</div>
+    </a>
+  </div>
+
+  <!-- Поиск -->
+  <div class="search-wrap">
+    <input
+      type="text"
+      class="search-input"
+      id="searchInput"
+      placeholder="🔍 Поиск по машине..."
+      oninput="handleSearch()"
+      autocomplete="off"
+    >
+  </div>
+
+  <!-- Результаты поиска -->
+  <div class="card" id="searchResultsCard" style="display:none">
+    <div class="card-header">
+      <span class="card-title">🔍 Результаты поиска</span>
+    </div>
+    <div id="searchResults"></div>
+  </div>
+
+  <!-- Мини-канбан -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">📋 В работе</span>
+      <a href="board.html" class="card-link">Открыть всё →</a>
+    </div>
+    <div class="mini-kanban" id="miniKanban">
+      <div class="loading">⏳ Загрузка...</div>
     </div>
   </div>
 
-  <div id="loadingMsg">⏳ Загружаем расчёт…</div>
-  <div id="errMsg">❌ Расчёт не найден. <a href="board.html">← Доска</a></div>
-
-  <!-- Edit mode banner -->
-  <div id="editBanner">
-    ✏️ Режим редактирования — изменяйте значения прямо в таблице
-    <span class="spacer"></span>
-    <button class="btn btn-success" onclick="saveEdits()">💾 Сохранить</button>
-    <button class="btn btn-secondary" onclick="cancelEdits()">✕ Отмена</button>
-  </div>
-
-  <div id="mainContent" style="display:none">
-
-    <!-- Screen header -->
-    <div class="page-header no-print">
-      <div>
-        <div class="page-title" id="pageTitle">—</div>
-        <div class="page-sub" id="pageSub"></div>
-        <div id="statusBadge"></div>
-      </div>
-      <div class="btn-group">
-        <button class="btn btn-secondary" onclick="history.back()">← Назад</button>
-        <button class="btn btn-secondary" onclick="window.location.href='acceptance-act.html?calc_id='+calcId">📄 Акт приёмки</button>
-        <button class="btn btn-secondary" onclick="window.location.href='work-order.html?calc_id='+calcId">🖨️ Заказ-наряд</button>
-        <button class="btn btn-success" onclick="exportExcel()">📥 Excel</button>
-        <button class="btn btn-dark" onclick="window.print()">📄 PDF</button>
-        <button class="btn btn-warning" id="btnEdit" onclick="startEdit()" style="display:none">✏️ Редактировать</button>
-      </div>
-    </div>
-
-    <!-- ① Автомобиль и клиент -->
-    <div class="card">
-      <div class="card-head">🚗 Автомобиль и клиент</div>
-      <div class="card-body" style="padding:0">
-        <div class="info-grid" id="carGrid"></div>
-      </div>
-    </div>
-
-    <!-- ② Работы -->
-    <div class="card" id="servicesCard">
-      <div class="card-head">🔧 Перечень работ</div>
-      <div class="card-body" id="servicesBody"></div>
-    </div>
-
-    <!-- ③ Финансы -->
-    <div class="card">
-      <div class="card-head">💰 Финансовый итог</div>
-      <div class="card-body">
-        <div class="fin-grid" id="finGrid"></div>
-      </div>
-    </div>
-
-    <!-- ④ Исполнители -->
-    <div class="card" id="execCard" style="display:none">
-      <div class="card-head">👥 Исполнители</div>
-      <div class="card-body">
-        <table class="detail-table">
-          <thead><tr>
-            <th>Имя</th>
-            <th>Услуга</th>
-            <th class="right">ЗП план</th>
-            <th class="right">ЗП факт</th>
-          </tr></thead>
-          <tbody id="execBody"></tbody>
-        </table>
-      </div>
-    </div>
-
-  </div><!-- /mainContent -->
 </div>
 
 <script src="footer.js"></script>
 <script>
-(function(){
+(function() {
 'use strict';
 
 const SUPABASE_URL      = 'https://hdghijgrrnzmntistdvw.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkZ2hpamdycm56bW50aXN0ZHZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMzMyNzksImV4cCI6MjA3NTYwOTI3OX0.D9EDTmVrFRVp0B8_5tCJM29gbFdtadsom0Ihsf4uQ8Q';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+window._crmSb = sb;
 
-let currentUser = null;
-let currentStudio = null;
-let calcData = null; // full calculation row
-window.calcId = null;
-let isAdmin = false;
-let originalFormData = null; // for cancel
+let currentUser       = null;
+let allCalcsForSearch = [];
 
-// ── Helpers ──────────────────────────────────────
-function fmt(n) { return new Intl.NumberFormat('ru-RU').format(Math.round(n||0)); }
-function fmtDate(s) { if(!s) return '—'; return new Date(s).toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit',year:'numeric'}); }
-function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-function p(v) { return parseFloat(v||0)||0; }
-
-const STATUS_MAP = {
-  new:         { label:'Расчёт произведён',    cls:'status-new' },
-  scheduled:   { label:'Назначена дата',        cls:'status-scheduled' },
-  in_progress: { label:'Принято в работу',      cls:'status-in_progress' },
-  done:        { label:'Завершено',             cls:'status-done' },
-  delivered:   { label:'Выдано',               cls:'status-delivered' },
-};
-
-const PAY_MAP = { cash:'💵 Наличные', card:'💳 Карта / ИП (+13%)', ooo:'🏢 ООО (+22%)' };
-
-// ── Auth & Studio ────────────────────────────────
 async function checkAuth() {
-  const { data:{ session } } = await sb.auth.getSession();
+  const { data: { session } } = await sb.auth.getSession();
   if (!session) { window.location.href = 'welcome.html'; return false; }
   currentUser = session.user;
   return true;
 }
 
-async function loadStudio() {
-  const { data: m } = await sb.from('studio_members')
-    .select('studio_id, role').eq('user_id', currentUser.id).eq('is_active', true).single();
-  if (!m) return;
-  isAdmin = m.role === 'admin' || m.role === 'owner';
-  const { data: s } = await sb.from('studios').select('name, settings').eq('id', m.studio_id).single();
-  if (!s) return;
-  currentStudio = { ...m, studioName: s.name, settings: s.settings||{} };
+window.logout = async function() {
+  await sb.auth.signOut();
+  window.location.href = 'welcome.html';
+};
 
-  // Print header
-  document.getElementById('ph-name').textContent = s.name||'';
-  const cfg = s.settings||{};
-  const lines = [cfg.phone||cfg.kp_phone, [cfg.city,cfg.address].filter(Boolean).join(', '), cfg.website||cfg.kp_website].filter(Boolean);
-  document.getElementById('ph-info').innerHTML = lines.map(esc).join('<br>');
-  if (cfg.kp_logo) { const img=document.getElementById('ph-logo'); img.src=cfg.kp_logo; img.style.display='block'; }
-
-  // Show edit button for admins
-  if (isAdmin) document.getElementById('btnEdit').style.display = '';
+function fmt(n) {
+  return new Intl.NumberFormat('ru-RU', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(n || 0);
 }
 
-// ── Compute block totals from raw formData ────────
-function computeBlock(block, markupPct, taxK) {
-  if (!block) return null;
-  const mat = p(block.wrapMat) + p(block.prepMat) + p(block.armMat);
-  const mot = p(block.wrapMot) + p(block.prepMot) + p(block.armMot);
-  // extra costs
-  const extraMat = (block.costs||[]).reduce((s,c) => s + p(c.value), 0);
-  const base     = mat + mot + extraMat;
-  if (base === 0) return null;
-  const markup   = Math.round(base * (p(markupPct)||0) / 100);
-  const subtotal = base + markup;
-  return { mat: mat + extraMat, mot, base, markup, subtotal,
-    rows: [
-      { name: 'Оклейка',       mat: p(block.wrapMat), mot: p(block.wrapMot) },
-      { name: 'Подготовка',    mat: p(block.prepMat), mot: p(block.prepMot) },
-      { name: 'Арматурные',    mat: p(block.armMat),  mot: p(block.armMot) },
-    ].filter(r => r.mat + r.mot > 0)
-  };
+function normalizeStatus(status) {
+  if (!status || status === '' || status === 'draft' || status === 'pending') return 'new';
+  return status; // cancelled, delivered etc pass through as-is
 }
 
-function computeServiceDetail(items, markupPct) {
-  if (!items || !items.length) return null;
-  const markup = p(markupPct)||0;
-  const rows = items.filter(d => p(d.mat) + p(d.mot) > 0);
-  if (!rows.length) return null;
-  const base    = rows.reduce((s,d) => s + p(d.mat) + p(d.mot), 0);
-  const markupAmt = Math.round(base * markup / 100);
-  return { rows, base, markup: markupAmt, subtotal: base + markupAmt };
+function updateStats(calculations) {
+  const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+  const month      = calculations.filter(c => new Date(c.created_at) >= monthStart);
+  const total      = month.length;
+  const sum        = month.reduce((a, c) => a + (c.total_price || 0), 0);
+  const done       = month.filter(c => ['done','delivered'].includes(normalizeStatus(c.status)));
+  const doneSum    = done.reduce((a, c) => a + (c.final_price || c.total_price || 0), 0);
+  const avg        = total > 0 ? sum / total : 0;
+
+  document.getElementById('statMonthTotal').textContent     = total;
+  document.getElementById('statMonthSum').textContent       = fmt(sum) + ' ₽';
+  document.getElementById('statMonthDone').textContent      = fmt(doneSum) + ' ₽';
+  document.getElementById('statMonthAvg').textContent       = fmt(avg) + ' ₽';
+  document.getElementById('statMonthDoneCount').textContent = done.length + ' машин';
+  document.getElementById('statMonthTotalChange').textContent = 'Текущий месяц';
 }
 
-// ── Render car info ───────────────────────────────
-function renderCarInfo(calc) {
-  const cd = calc.calculation_data||{};
-  const car = cd.car||{};
-  const st = STATUS_MAP[calc.status]||{ label: calc.status||'—', cls:'status-new' };
+// Берём из nav.js — единый источник правды
+// Cancelled не показываем в мини-канбане — там только активные
+const MINI_COLS = Object.entries(window.STATUSES || {
+  new:         { short: 'Расчёт',    icon: '📋' },
+  scheduled:   { short: 'Дата',      icon: '📅' },
+  in_progress: { short: 'В работе',  icon: '🔧' },
+  done:        { short: 'Завершено', icon: '✅' },
+  delivered:   { short: 'Выдано',    icon: '🚗' },
+}).filter(([key]) => key !== 'cancelled')
+  .map(([key, s]) => ({ key, label: s.short, icon: s.icon }));
 
-  document.getElementById('pageTitle').textContent = calc.car_name || 'Расчёт';
-  document.getElementById('pageSub').textContent   = `Создан: ${fmtDate(calc.created_at)}`;
-  document.getElementById('ph-sub').textContent    = calc.car_name||'';
-  document.getElementById('statusBadge').innerHTML = `<span class="status-badge ${st.cls}">${st.label}</span>`;
-  document.title = (calc.car_name||'Расчёт') + ' — Keep1R';
+async function loadMiniKanban(studioId) {
+  const container = document.getElementById('miniKanban');
 
-  const cells = [
-    { label:'Автомобиль',     value: calc.car_name||'—' },
-    { label:'Год',            value: car.year||calc.year||'—' },
-    { label:'Дата приёмки',   value: fmtDate(calc.checkin_date||calc.created_at) },
-    { label:'Гос. номер',     value: cd.plate||'—' },
-    { label:'VIN / кузов',    value: cd.vin||'—' },
-    { label:'Клиент',         value: cd.client_name||cd.clientName||'—' },
-    { label:'Форма оплаты',   value: PAY_MAP[cd.paymentMode||''] || '—' },
-    { label:'Статус',         value: st.label },
-    { label:'Дата создания',  value: fmtDate(calc.created_at) },
-  ];
+  const { data, error } = await sb
+    .from('calculations')
+    .select('id, car_name, total_price, final_price, status')
+    .eq('studio_id', studioId)
+    .order('created_at', { ascending: false });
 
-  document.getElementById('carGrid').innerHTML = cells.map(c => `
-    <div class="info-cell">
-      <div class="info-label">${c.label}</div>
-      <div class="info-value${c.value==='—'?' empty':''}">${esc(c.value)}</div>
-    </div>`).join('');
-}
-
-// ── Render services ───────────────────────────────
-function renderServices(calc) {
-  const cd  = calc.calculation_data||{};
-  const mu  = cd.markups||{};
-  const sd  = cd.services_detail || cd.servicesDetail || {};
-  const taxK = cd.paymentMode==='card' ? 0.13 : cd.paymentMode==='ooo' ? 0.22 : 0;
-  const body = document.getElementById('servicesBody');
-
-  const sections = [];
-
-  // ── Полная защита вкруг ──
-  const pkg = computeBlock(cd.package, cd.package?.markup, taxK);
-  if (pkg) sections.push({ icon:'📦', title:'Полная защита вкруг', data: pkg, editKey: 'package' });
-
-  // ── Ударная часть ──
-  const imp = computeBlock(cd.impact, cd.impact?.markup, taxK);
-  if (imp) sections.push({ icon:'🛡️', title:'Защита ударной части', data: imp, editKey: 'impact' });
-
-  // ── Арматурные (из services_detail) ──
-  const arm = computeServiceDetail(sd.arm, mu.arm);
-  if (arm) sections.push({ icon:'🔩', title:'Арматурные работы', data: arm, editKey: 'arm' });
-
-  // ── Оклейка ──
-  const wrap = computeServiceDetail(sd.wrap, mu.wrap);
-  if (wrap) sections.push({ icon:'🎨', title:'Оклейка плёнкой', data: wrap, editKey: 'wrap' });
-
-  // ── Детейлинг ──
-  const det = computeServiceDetail(sd.det, mu.det);
-  if (det) sections.push({ icon:'✨', title:'Детейлинг', data: det, editKey: 'det' });
-
-  // ── Полировка / Химчистка ──
-  const gl = computeServiceDetail(sd.gl, mu.gl);
-  if (gl) sections.push({ icon:'💎', title:'Полировка / Химчистка', data: gl, editKey: 'gl' });
-
-  // ── Прочее ──
-  const ms = computeServiceDetail(sd.ms, mu.misc);
-  if (ms) sections.push({ icon:'📋', title:'Прочие работы', data: ms, editKey: 'ms' });
-
-  if (sections.length === 0) {
-    body.innerHTML = '<div style="color:var(--muted);font-style:italic;font-size:0.84rem">Детализация по блокам недоступна — данные не сохранились в расчёте.</div>';
+  if (error) {
+    container.innerHTML = `<div class="loading" style="color:#dc2626">❌ Ошибка: ${error.message}</div>`;
+    return;
+  }
+  if (!data || data.length === 0) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📭</div><h3>Заказов пока нет</h3></div>`;
     return;
   }
 
-  body.innerHTML = sections.map(sec => `
-    <div class="block-section" style="margin-bottom:20px">
-      <div class="block-title">${sec.icon} ${sec.title}
-        <span style="margin-left:auto;font-size:0.78rem;font-weight:700;color:var(--primary)">${fmt(sec.data.subtotal)} ₽</span>
-      </div>
-      <table class="detail-table">
-        <thead><tr>
-          <th>Позиция</th>
-          <th class="right">Материалы</th>
-          <th class="right">Мотивация</th>
-          <th class="right">Итого</th>
-        </tr></thead>
-        <tbody>
-          ${sec.data.rows.map(r => `<tr>
-            <td>${esc(r.name||r[0]||'—')}</td>
-            <td class="right">
-              <span class="view-val muted-num">${fmt(r.mat||r[1]||0)} ₽</span>
-              <input class="edit-input" data-field="mat" data-sec="${sec.editKey}" data-name="${esc(r.name||r[0]||'')}" value="${Math.round(r.mat||r[1]||0)}">
-            </td>
-            <td class="right">
-              <span class="view-val muted-num">${fmt(r.mot||r[2]||0)} ₽</span>
-              <input class="edit-input" data-field="mot" data-sec="${sec.editKey}" data-name="${esc(r.name||r[0]||'')}" value="${Math.round(r.mot||r[2]||0)}">
-            </td>
-            <td class="right"><strong>${fmt((r.mat||r[1]||0)+(r.mot||r[2]||0))} ₽</strong></td>
-          </tr>`).join('')}
-          <tr class="subtotal-row">
-            <td>Наценка ${cd[sec.editKey]?.markup || mu[sec.editKey] || 0}%</td>
-            <td colspan="2" class="right muted-num">${fmt(sec.data.markup)} ₽</td>
-            <td class="right" style="color:var(--success)">${fmt(sec.data.subtotal)} ₽</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>`).join('<hr style="border:none;border-top:1px solid var(--border);margin:4px 0 20px">');
+  let html = '';
+  MINI_COLS.forEach(col => {
+    const cards   = data.filter(c => normalizeStatus(c.status) === col.key);
+    const visible = cards.slice(0, 5);
+    const rest    = cards.length - 5;
+
+    html += `<div class="mini-col mini-col-${col.key}">`;
+    html += `<div class="mini-col-header"><div class="mini-dot"></div>${col.icon} ${col.label}</div>`;
+    html += `<div class="mini-cards">`;
+
+    if (cards.length === 0) {
+      html += `<div class="mini-col-empty">Нет</div>`;
+    } else {
+      visible.forEach(c => {
+        html += `<div class="mini-card" onclick="location.href='board.html'">
+          <div class="mini-card-car">${c.car_name || 'Без названия'}</div>
+          <div class="mini-card-price">${fmt(c.final_price || c.total_price || 0)} ₽</div>
+        </div>`;
+      });
+      if (rest > 0) {
+        html += `<div class="mini-col-more" onclick="location.href='board.html'">+ ещё ${rest}</div>`;
+      }
+    }
+    html += `</div></div>`;
+  });
+  container.innerHTML = html;
 }
 
-// ── Render financials ─────────────────────────────
-function renderFinancials(calc) {
-  const cd   = calc.calculation_data||{};
-  const taxK = cd.paymentMode==='card' ? 0.13 : cd.paymentMode==='ooo' ? 0.22 : 0;
-  const total = calc.final_price || calc.total_price || 0;
+let searchTimeout;
 
-  // Try to get base/markup from stored data or estimate
-  const sd  = cd.services_detail||{};
-  const mu  = cd.markups||{};
-  let baseCmp = 0, markupCmp = 0;
+window.handleSearch = function() {
+  clearTimeout(searchTimeout);
+  const term = document.getElementById('searchInput').value.trim().toLowerCase();
+  const card = document.getElementById('searchResultsCard');
+  const box  = document.getElementById('searchResults');
+  if (!term) { card.style.display = 'none'; return; }
 
-  // Sum up block bases from computeBlock / computeServiceDetail
-  const tryBlock = (block, mkp) => {
-    const b = computeBlock(block, mkp);
-    if (b) { baseCmp += b.base; markupCmp += b.markup; }
-  };
-  const trySvc = (items, mkp) => {
-    const s = computeServiceDetail(items, mkp);
-    if (s) { baseCmp += s.base; markupCmp += s.markup; }
-  };
-  tryBlock(cd.package, cd.package?.markup);
-  tryBlock(cd.impact,  cd.impact?.markup);
-  trySvc(sd.arm, mu.arm); trySvc(sd.wrap, mu.wrap);
-  trySvc(sd.det, mu.det); trySvc(sd.gl,  mu.gl);
-  trySvc(sd.ms,  mu.misc);
+  searchTimeout = setTimeout(() => {
+    const found = allCalcsForSearch.filter(c => (c.car_name || '').toLowerCase().includes(term));
+    card.style.display = 'block';
 
-  const afterMarkup = baseCmp + markupCmp;
-  const tax = taxK > 0 ? Math.round(afterMarkup * taxK) : 0;
+    if (found.length === 0) {
+      box.innerHTML = `<div class="empty-state" style="padding:30px">
+        <div class="empty-state-icon">🔍</div><h3>Ничего не найдено</h3></div>`;
+      return;
+    }
 
-  const cells = [
-    { label:'Себестоимость', value: fmt(baseCmp||Math.round(total/(1+taxK)/1.3)) + ' ₽', cls: '' },
-    { label:'Наценка',       value: fmt(markupCmp) + ' ₽',                                cls:'purple' },
-    { label:'Налог',         value: tax > 0 ? fmt(tax) + ' ₽' : '—',                     cls:'' },
-    { label:'Итого к оплате',value: fmt(total) + ' ₽',                                   cls:'big green' },
+    const STATUS = Object.fromEntries(
+      Object.entries(window.STATUSES || {}).map(([k,s]) => [k, s.icon + ' ' + s.short])
+    );
+    box.innerHTML = `<div class="calc-grid">` + found.map(c => `
+      <div class="calc-card" onclick="location.href='calculator.html?load=${c.id}'">
+        <h3>${c.car_name || 'Без названия'}</h3>
+        <div class="calc-price">${fmt(c.final_price || c.total_price || 0)} ₽</div>
+        <div class="calc-actions">
+          <a class="btn btn-primary" href="calculator.html?load=${c.id}" onclick="event.stopPropagation()">📂 Открыть</a>
+          <a class="btn btn-success" href="assign-work.html?calc_id=${c.id}" onclick="event.stopPropagation()">👥 Работы</a>
+        </div>
+      </div>`).join('') + `</div>`;
+  }, 300);
+};
+
+function showLockedDashboard() {
+  const fakeStats = [
+    { icon: '🚗', label: 'Расчётов за месяц', value: '██', change: '+██%' },
+    { icon: '💰', label: 'Сумма расчётов',     value: '███ ███ ₽', change: '+██%' },
+    { icon: '✅', label: 'Завершённые работы', value: '██', change: '' },
+    { icon: '📊', label: 'Средний чек',        value: '██ ██ ₽', change: '+██%' },
   ];
 
-  document.getElementById('finGrid').innerHTML = cells.map(c => `
-    <div class="fin-cell">
-      <div class="fin-label">${c.label}</div>
-      <div class="fin-value ${c.cls}">${c.value}</div>
-    </div>`).join('');
+  const grid = document.getElementById('statsGrid');
+  if (grid) {
+    grid.innerHTML = fakeStats.map(s => `
+      <div class="stat-card" style="cursor:default">
+        <span class="stat-icon">${s.icon}</span>
+        <div class="stat-label">${s.label}</div>
+        <div class="stat-value" style="filter:blur(5px);user-select:none">${s.value}</div>
+        ${s.change ? `<div class="stat-change" style="filter:blur(4px);user-select:none">${s.change}</div>` : ''}
+      </div>`).join('');
+  }
 
-  // Final price if delivered
-  if (calc.final_price && calc.status === 'delivered') {
-    document.getElementById('finGrid').innerHTML += `
-      <div class="fin-cell" style="grid-column:1/-1;background:#f0fdf4">
-        <div class="fin-label">Фактически получено (при выдаче)</div>
-        <div class="fin-value big green">${fmt(calc.final_price)} ₽</div>
+  const kanban = document.getElementById('miniKanban');
+  if (kanban) {
+    kanban.innerHTML = `
+      <div style="grid-column:1/-1;text-align:center;padding:32px 16px;color:#94a3b8">
+        <div style="font-size:2rem;margin-bottom:10px">📋</div>
+        <div style="font-size:0.88rem;font-weight:600;color:#64748b;margin-bottom:4px">Здесь будут ваши заказы</div>
+        <div style="font-size:0.8rem">Оформите подписку, чтобы увидеть доску</div>
       </div>`;
   }
+
+  const search = document.getElementById('searchInput');
+  if (search) { search.disabled = true; search.placeholder = '🔒 Доступно после оплаты'; }
 }
 
-// ── Render executors ──────────────────────────────
-async function renderExecutors() {
-  const { data: assigns } = await sb.from('work_assignments')
-    .select('executor_name, service_name, salary, is_admin_sale, admin_percent, status')
-    .eq('calculation_id', window.calcId);
-
-  if (!assigns || assigns.length === 0) return;
-  document.getElementById('execCard').style.display = '';
-
-  const isPaid = calcData.status === 'delivered';
-  const finalPrice = calcData.final_price || 0;
-
-  document.getElementById('execBody').innerHTML = assigns.map(a => {
-    const isAdminSale = !!a.is_admin_sale;
-    const planSalary  = a.salary || 0;
-    const factSalary  = (isPaid && isAdminSale && a.admin_percent)
-      ? Math.round(finalPrice * a.admin_percent / 100)
-      : planSalary;
-    return `<tr>
-      <td>
-        <span class="exec-pill${isAdminSale?' admin':''}">
-          ${isAdminSale ? '👔' : '👤'} ${esc(a.executor_name||'—')}
-        </span>
-      </td>
-      <td style="font-size:0.82rem;color:var(--muted)">${esc(a.service_name || (isAdminSale ? `Продажа (${a.admin_percent}%)` : '—'))}</td>
-      <td class="right"><strong>${fmt(planSalary)} ₽</strong></td>
-      <td class="right" style="color:${factSalary!==planSalary?'var(--success)':'var(--muted)'}">
-        ${factSalary !== planSalary ? '<strong>' + fmt(factSalary) + ' ₽</strong>' : '—'}
-      </td>
-    </tr>`;
-  }).join('');
-}
-
-// ── Edit mode ─────────────────────────────────────
-window.startEdit = function() {
-  originalFormData = JSON.parse(JSON.stringify(calcData.calculation_data||{}));
-  document.body.classList.add('editing');
-};
-
-window.cancelEdits = function() {
-  document.body.classList.remove('editing');
-};
-
-window.saveEdits = async function() {
-  const cd  = JSON.parse(JSON.stringify(calcData.calculation_data||{}));
-  const sd  = cd.services_detail || {};
-  const mu  = cd.markups || {};
-
-  // Collect edited values from inputs
-  document.querySelectorAll('.edit-input').forEach(inp => {
-    const sec  = inp.dataset.sec;
-    const field= inp.dataset.field; // mat or mot
-    const name = inp.dataset.name;
-    const val  = parseFloat(inp.value)||0;
-
-    if (sec === 'package' || sec === 'impact') {
-      const block = cd[sec] || {};
-      if (name === 'Оклейка')    { if (field==='mat') block.wrapMat = val; else block.wrapMot = val; }
-      if (name === 'Подготовка') { if (field==='mat') block.prepMat = val; else block.prepMot = val; }
-      if (name === 'Арматурные') { if (field==='mat') block.armMat  = val; else block.armMot  = val; }
-      cd[sec] = block;
-    } else {
-      // services_detail
-      const items = sd[sec] || [];
-      const item  = items.find(d => d.name === name);
-      if (item) { item[field] = val; }
-      sd[sec] = items;
-    }
-  });
-
-  cd.services_detail = sd;
-
-  // Recalculate total_price
-  const taxK = cd.paymentMode==='card' ? 0.13 : cd.paymentMode==='ooo' ? 0.22 : 0;
-  let base = 0, markup = 0;
-  const tryB = (block, mkp) => { const r = computeBlock(block, mkp); if(r){base+=r.base;markup+=r.markup;} };
-  const tryS = (items, mkp) => { const r = computeServiceDetail(items, mkp); if(r){base+=r.base;markup+=r.markup;} };
-  tryB(cd.package, cd.package?.markup); tryB(cd.impact, cd.impact?.markup);
-  tryS(sd.arm, mu.arm); tryS(sd.wrap, mu.wrap); tryS(sd.det, mu.det); tryS(sd.gl, mu.gl); tryS(sd.ms, mu.misc);
-  const afterMarkup = base + markup;
-  const tax          = Math.round(afterMarkup * taxK);
-  const newTotal     = afterMarkup + tax;
-
-  const { error } = await sb.from('calculations')
-    .update({ calculation_data: cd, total_price: newTotal, updated_at: new Date().toISOString() })
-    .eq('id', window.calcId);
-
-  if (error) { alert('❌ Ошибка сохранения: ' + error.message); return; }
-
-  // Reload
-  window.location.reload();
-};
-
-// ── Excel export ──────────────────────────────────
-window.exportExcel = function() {
-  const cd   = calcData.calculation_data||{};
-  const sd   = cd.services_detail||{};
-  const mu   = cd.markups||{};
-  const car  = cd.car||{};
-  const wb   = XLSX.utils.book_new();
-
-  // Sheet 1: Summary
-  const summaryData = [
-    ['Автомобиль', calcData.car_name||'—'],
-    ['Год', car.year||'—'],
-    ['Гос. номер', cd.plate||'—'],
-    ['VIN', cd.vin||'—'],
-    ['Клиент', cd.client_name||cd.clientName||'—'],
-    ['Форма оплаты', PAY_MAP[cd.paymentMode]||'—'],
-    ['Итого к оплате', calcData.final_price||calcData.total_price||0],
-    ['Дата создания', fmtDate(calcData.created_at)],
-    ['Дата приёмки',  fmtDate(calcData.checkin_date)],
-  ];
-
-  // Sheet 2: Services
-  const servRows = [['Блок','Позиция','Материалы','Мотивация','Итого','Наценка','Итого с наценкой']];
-  const addBlock = (title, block, mkp) => {
-    const b = computeBlock(block, mkp);
-    if (!b) return;
-    b.rows.forEach(r => servRows.push([title, r.name, r.mat, r.mot, r.mat+r.mot, '', '']));
-    servRows.push([title, 'ИТОГО блока', b.mat, b.mot, b.base, b.markup, b.subtotal]);
-  };
-  const addSvc = (title, items, mkp) => {
-    const s = computeServiceDetail(items, mkp);
-    if (!s) return;
-    s.rows.forEach(r => servRows.push([title, r.name||r[0], r.mat||r[1]||0, r.mot||r[2]||0, (r.mat||r[1]||0)+(r.mot||r[2]||0), '', '']));
-    servRows.push([title, 'ИТОГО блока', '', '', s.base, s.markup, s.subtotal]);
-  };
-  addBlock('Полная защита', cd.package, cd.package?.markup);
-  addBlock('Ударная часть', cd.impact,  cd.impact?.markup);
-  addSvc('Арматурные',  sd.arm,  mu.arm);
-  addSvc('Оклейка',     sd.wrap, mu.wrap);
-  addSvc('Детейлинг',   sd.det,  mu.det);
-  addSvc('Полировка',   sd.gl,   mu.gl);
-  addSvc('Прочее',      sd.ms,   mu.misc);
-
-  const ws1 = XLSX.utils.aoa_to_sheet(summaryData);
-  const ws2 = XLSX.utils.aoa_to_sheet(servRows);
-  ws1['!cols'] = [{wch:22},{wch:28}];
-  ws2['!cols'] = [{wch:18},{wch:26},{wch:14},{wch:14},{wch:14},{wch:14},{wch:18}];
-  XLSX.utils.book_append_sheet(wb, ws1, 'Расчёт');
-  XLSX.utils.book_append_sheet(wb, ws2, 'Детализация');
-
-  const safeCarName = (calcData.car_name||'Расчёт').replace(/[/\\?*\[\]:]/g,'');
-  XLSX.writeFile(wb, `${safeCarName}.xlsx`);
-};
-
-// ── Main ──────────────────────────────────────────
-(async function init() {
+async function init() {
+  initNav();
   if (!await checkAuth()) return;
 
-  const params = new URLSearchParams(window.location.search);
-  window.calcId = params.get('id');
+  const { data: member } = await sb
+    .from('studio_members')
+    .select('studio_id')
+    .eq('user_id', currentUser.id)
+    .eq('is_active', true)
+    .single();
 
-  const loading = document.getElementById('loadingMsg');
-  const errMsg  = document.getElementById('errMsg');
-  const content = document.getElementById('mainContent');
-
-  if (!window.calcId) {
-    loading.style.display = 'none'; errMsg.style.display = '';
-    errMsg.textContent = '❌ Не указан ID расчёта.'; return;
+  if (!member) {
+    document.getElementById('miniKanban').innerHTML =
+      `<div class="loading" style="color:#dc2626">⚠️ Студия не найдена. Обратитесь к администратору.</div>`;
+    return;
   }
 
-  await loadStudio();
+  const studioId = member.studio_id;
 
-  const [calcRes] = await Promise.all([
-    sb.from('calculations').select('*').eq('id', window.calcId).single()
-  ]);
-
-  if (calcRes.error || !calcRes.data) {
-    loading.style.display = 'none'; errMsg.style.display = ''; return;
+  const { data: studioInfo } = await sb.from('studios').select('name').eq('id', studioId).single();
+  if (studioInfo) {
+    document.getElementById('studioNameHeader').textContent = studioInfo.name;
+    document.getElementById('studioSubheader').textContent  = 'Keep1R CRM';
   }
 
-  calcData = calcRes.data;
+  const subStatus = await checkSubscription(studioId);
+  if (subStatus === 'expired' || subStatus === 'none') {
+    showPaywall(subStatus === 'expired');
+    showLockedDashboard();
+    return;
+  }
 
-  renderCarInfo(calcData);
-  renderServices(calcData);
-  renderFinancials(calcData);
-  await renderExecutors();
+  const { data: calcs } = await sb
+    .from('calculations')
+    .select('id, car_name, total_price, final_price, status, work_assigned, created_at')
+    .eq('studio_id', studioId)
+    .order('created_at', { ascending: false });
 
-  loading.style.display = 'none';
-  content.style.display = '';
-  if (window.initNav) window.initNav({ activePage: 'calc-view.html' });
-})();
+  allCalcsForSearch = calcs || [];
+  updateStats(allCalcsForSearch);
+  await loadMiniKanban(studioId);
+}
+
+document.addEventListener('DOMContentLoaded', init);
 
 })();
 </script>
+
 </body>
 </html>
