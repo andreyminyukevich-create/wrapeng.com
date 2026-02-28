@@ -359,11 +359,19 @@ async function loadData() {
   const sb = window._crmSb;
   if (!sb) return;
 
+  if (!_studioId) {
+    console.error('BookingPopup: studioId не задан!');
+    return;
+  }
+
   const [postsRes, execRes, bookRes] = await Promise.all([
     sb.from('posts').select('*').eq('studio_id', _studioId).eq('is_active', true).order('created_at'),
-    sb.from('executors').select('id, name, role, is_active').eq('studio_id', _studioId).eq('is_active', true).order('name'),
+    sb.from('executors').select('id, full_name, role, is_active').eq('studio_id', _studioId).eq('is_active', true).order('full_name'),
     sb.from('calendar_bookings').select('*').eq('studio_id', _studioId),
   ]);
+
+  if (postsRes.error) console.error('posts error:', postsRes.error);
+  if (execRes.error)  console.error('executors error:', execRes.error);
 
   _posts     = postsRes.data || [];
   _executors = execRes.data  || [];
@@ -414,11 +422,11 @@ function renderExecutors() {
   el.innerHTML = _executors.map(e => {
     const busy = execBusyInRange(e.id);
     const sel  = _selectedExecs.has(e.id) ? ' selected' : '';
-    const initials = (e.name||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const initials = (e.full_name||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
     return `<button class="bp-exec-btn${sel}" onclick="BookingPopup._toggleExec('${e.id}')">
       <div class="bp-exec-avatar">${initials}</div>
       <div>
-        <div class="bp-exec-name">${e.name}</div>
+        <div class="bp-exec-name">${e.full_name}</div>
         <div class="bp-exec-role">${e.role||'Сотрудник'}</div>
       </div>
       ${busy ? '<span class="bp-exec-warn">⚠️ Занят</span>' : ''}
