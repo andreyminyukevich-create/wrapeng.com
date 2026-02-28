@@ -8,17 +8,30 @@
 
   document.documentElement.setAttribute('data-theme', 'light');
 
+  // ── Единый справочник статусов ─────────────────────────────────
+  // Используйте window.STATUSES везде вместо хардкода меток.
+  // Ключи соответствуют полю status в таблице calculations.
+  window.STATUSES = {
+    new:         { label: 'Расчёт произведён',      short: 'Расчёт',    icon: '📋', cls: 'status-new' },
+    scheduled:   { label: 'Назначена дата и время', short: 'Дата',      icon: '📅', cls: 'status-scheduled' },
+    in_progress: { label: 'Принято в работу',       short: 'В работе',  icon: '🔧', cls: 'status-in_progress' },
+    done:        { label: 'Завершено',               short: 'Готово',    icon: '✅', cls: 'status-done' },
+    delivered:   { label: 'Выдано',                  short: 'Выдано',    icon: '🚗', cls: 'status-delivered' },
+    cancelled:   { label: 'Отказ',                   short: 'Отказ',     icon: '❌', cls: 'status-cancelled' },
+  };
+
+
   var ADMIN_ID = 'c5db87ec-8e4a-4c48-bad3-5747513224d9';
 
   var PAGES = [
     { href: 'dashboard.html',   icon: '🏠', label: 'Главная' },
-    { href: 'board.html',       icon: '🔧', label: 'В работе' },
+    { href: 'board.html',       icon: '📋', label: 'Доска' },
     { href: 'executors.html',   icon: '👥', label: 'Сотрудники' },
     { href: 'payouts.html',     icon: '💰', label: 'Зарплаты' },
     { href: 'analytics.html',   icon: '📊', label: 'Аналитика',  soon: true },
     { href: 'calendar.html',    icon: '🗓', label: 'Календарь',  soon: true },
     { href: 'inventory.html',   icon: '📦', label: 'Закупки',    soon: true },
-    { href: 'settings.html',    icon: '⚙️', label: 'Настройки' },
+    { href: 'settings.html',    icon: '⚙️', label: 'Настройки',  soon: true },
   ];
 
   function currentPage() {
