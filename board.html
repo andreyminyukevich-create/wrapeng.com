@@ -121,6 +121,15 @@ html, body {
   text-align: center;
 }
 
+.column-sum {
+  font-size: 0.78rem;
+  font-weight: 800;
+  padding: 3px 0 0;
+  letter-spacing: -0.2px;
+  opacity: 0.85;
+  white-space: nowrap;
+}
+
 .column-cards {
   padding: 10px;
   display: flex;
@@ -136,26 +145,38 @@ html, body {
 .col-new .column-dot        { background: #94a3b8; }
 .col-new .column-title      { color: #64748b; }
 .col-new .column-count      { background: rgba(148,163,184,0.12); }
+.col-new .column-sum        { color: #64748b; }
 
 .col-scheduled .column-dot   { background: #f59e0b; }
 .col-scheduled .column-title { color: #92400e; }
 .col-scheduled .column-count { background: rgba(245,158,11,0.1); color: #b45309; }
+.col-scheduled .column-sum   { color: #b45309; }
 .col-scheduled              { border-top: 3px solid #f59e0b; border-radius: var(--radius); }
 
 .col-in_progress .column-dot   { background: var(--primary); }
 .col-in_progress .column-title { color: var(--primary); }
 .col-in_progress .column-count { background: rgba(37,99,235,0.08); color: var(--primary); }
 .col-in_progress               { border-top: 3px solid var(--primary); border-radius: var(--radius); }
+.col-in_progress .column-sum   { color: var(--primary); }
 
 .col-done .column-dot   { background: var(--purple); }
 .col-done .column-title { color: var(--purple); }
 .col-done .column-count { background: rgba(124,58,237,0.08); color: var(--purple); }
 .col-done               { border-top: 3px solid var(--purple); border-radius: var(--radius); }
+.col-done .column-sum   { color: var(--purple); }
 
 .col-delivered .column-dot   { background: var(--success); }
 .col-delivered .column-title { color: #065f46; }
 .col-delivered .column-count { background: rgba(5,150,105,0.08); color: var(--success); }
 .col-delivered               { border-top: 3px solid var(--success); border-radius: var(--radius); }
+.col-delivered .column-sum   { color: var(--success); font-size: 0.9rem; }
+
+.col-cancelled .column-dot   { background: #dc2626; }
+.col-cancelled .column-title { color: #991b1b; }
+.col-cancelled .column-count { background: rgba(220,38,38,0.08); color: #dc2626; }
+.col-cancelled .column-sum   { color: #dc2626; }
+.col-cancelled               { border-top: 3px solid #dc2626; border-radius: var(--radius); opacity: 0.85; }
+
 
 /* ── Kanban card ─────────────────────────────────── */
 .kanban-card {
@@ -243,6 +264,13 @@ html, body {
   color: #fff;
 }
 .card-btn-primary:hover { background: var(--primary-dark); }
+
+.card-btn-cancel {
+  background: rgba(220,38,38,0.06);
+  color: #dc2626;
+  border: 1px solid rgba(220,38,38,0.15);
+}
+.card-btn-cancel:hover { background: rgba(220,38,38,0.12); }
 
 .card-btn-secondary {
   background: var(--bg);
@@ -577,13 +605,15 @@ let allCalcs = [];
 let activeCalcId = null;
 let assignmentsMap = {}; // calcId → [{executor_name, salary, is_admin_sale}]
 
-const COLUMNS = [
-  { key: 'new',         label: 'Расчёт произведён',      icon: '📋' },
-  { key: 'scheduled',   label: 'Назначена дата и время', icon: '📅' },
-  { key: 'in_progress', label: 'Принято в работу',       icon: '🔧' },
-  { key: 'done',        label: 'Завершено',               icon: '✅' },
-  { key: 'delivered',   label: 'Выдано',                  icon: '🚗' },
-];
+// Берём из nav.js — единый источник правды
+const COLUMNS = Object.entries(window.STATUSES || {
+  new:         { label: 'Расчёт произведён',      icon: '📋' },
+  scheduled:   { label: 'Назначена дата и время', icon: '📅' },
+  in_progress: { label: 'Принято в работу',       icon: '🔧' },
+  done:        { label: 'Завершено',               icon: '✅' },
+  delivered:   { label: 'Выдано',                  icon: '🚗' },
+  cancelled:   { label: 'Отказ',                   icon: '❌' },
+}).map(([key, s]) => ({ key, label: s.label, icon: s.icon }));
 
 function fmt(n) {
   return new Intl.NumberFormat('ru-RU', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(n || 0);
@@ -651,6 +681,7 @@ function renderBoard() {
   let html = '';
   COLUMNS.forEach(col => {
     const cards = allCalcs.filter(c => normalizeStatus(c.status) === col.key);
+    const colSum = cards.reduce((s, c) => s + (c.final_price || c.total_price || 0), 0);
     html += `
       <div class="column col-${col.key}">
         <div class="column-header">
@@ -658,7 +689,10 @@ function renderBoard() {
             <div class="column-dot"></div>
             ${col.icon} ${col.label}
           </div>
-          <div class="column-count">${cards.length}</div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px">
+            <div class="column-count">${cards.length} авто</div>
+            ${colSum > 0 ? `<div class="column-sum">${fmt(colSum)} ₽</div>` : ''}
+          </div>
         </div>
         <div class="column-cards">
           ${cards.length === 0
@@ -744,12 +778,14 @@ function renderCard(calc, status) {
     actions = `
       <button class="card-btn card-btn-secondary" onclick="event.stopPropagation();openCalc('${calc.id}')">📂 Открыть</button>
       <button class="card-btn card-btn-primary" onclick="event.stopPropagation();openModal('modalSchedule','${calc.id}','${escStr(calc.car_name)}')">📅 Назначить заезд</button>
+      <button class="card-btn card-btn-cancel" onclick="event.stopPropagation();cancelOrder('${calc.id}','${escStr(calc.car_name)}')">❌ Отказ</button>
     `;
   } else if (status === 'scheduled') {
     actions = `
       <button class="card-btn card-btn-secondary" onclick="event.stopPropagation();openModal('modalSchedule','${calc.id}','${escStr(calc.car_name)}')">✏️ Изменить дату</button>
       <button class="card-btn card-btn-secondary" onclick="event.stopPropagation();window.location.href='acceptance-act.html?calc_id=${calc.id}'">📋 Принять авто</button>
       <button class="card-btn card-btn-primary" onclick="event.stopPropagation();goAssign('${calc.id}')">🔧 Взять в работу</button>
+      <button class="card-btn card-btn-cancel" onclick="event.stopPropagation();cancelOrder('${calc.id}','${escStr(calc.car_name)}')">❌ Отказ</button>
     `;
   } else if (status === 'in_progress') {
     actions = `
@@ -768,6 +804,11 @@ function renderCard(calc, status) {
       <button class="card-btn card-btn-secondary" onclick="event.stopPropagation();window.location.href='calc-view.html?id=${calc.id}'">📊 Расчёт</button>
       <button class="card-btn card-btn-secondary" onclick="event.stopPropagation();window.location.href='acceptance-act.html?calc_id=${calc.id}'">📄 Акт приёмки</button>
       <button class="card-btn card-btn-primary" onclick="event.stopPropagation();window.location.href='work-order.html?calc_id=${calc.id}'" style="background:#0f172a">🖨️ Акт передачи</button>
+    `;
+  } else if (status === 'cancelled') {
+    actions = `
+      <button class="card-btn card-btn-secondary" onclick="event.stopPropagation();window.location.href='calc-view.html?id=${calc.id}'">📊 Расчёт</button>
+      <button class="card-btn card-btn-secondary" onclick="event.stopPropagation();restoreOrder('${calc.id}','${escStr(calc.car_name)}')">↩️ Восстановить</button>
     `;
   }
 
@@ -815,13 +856,9 @@ function openModalDeliver(calcId, carName, price) {
 window.openModalInfo = function(calcId, carName, status, price, checkinDate, checkinTime, note) {
   activeCalcId = calcId;
 
-  const STATUS_LABELS = {
-    new: '📋 Расчёт произведён',
-    scheduled: '📅 Назначена дата и время',
-    in_progress: '🔧 Принято в работу',
-    done: '✅ Завершено',
-    delivered: '🚗 Выдано'
-  };
+  const STATUS_LABELS = Object.fromEntries(
+    Object.entries(window.STATUSES || {}).map(([k, s]) => [k, s.icon + ' ' + s.label])
+  );
 
   document.getElementById('infoCarName').textContent  = carName;
   document.getElementById('infoStatus').textContent   = STATUS_LABELS[status] || status;
@@ -863,6 +900,25 @@ window.openModalDeliver  = openModalDeliver;
 
 window.openCalc = function(calcId) {
   window.location.href = `calculator.html?load=${calcId}`;
+};
+
+
+window.cancelOrder = async function(calcId, carName) {
+  if (!confirm('Перевести «' + carName + '» в отказ?')) return;
+  const { error } = await sb.from('calculations')
+    .update({ status: 'cancelled' })
+    .eq('id', calcId);
+  if (error) { alert('Ошибка: ' + error.message); return; }
+  await loadBoard();
+};
+
+window.restoreOrder = async function(calcId, carName) {
+  if (!confirm('Вернуть «' + carName + '» в расчёты?')) return;
+  const { error } = await sb.from('calculations')
+    .update({ status: 'new' })
+    .eq('id', calcId);
+  if (error) { alert('Ошибка: ' + error.message); return; }
+  await loadBoard();
 };
 
 window.goAssign = function(calcId) {
