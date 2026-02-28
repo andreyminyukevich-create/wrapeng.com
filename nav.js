@@ -12,8 +12,9 @@
   // Используйте window.STATUSES везде вместо хардкода меток.
   // Ключи соответствуют полю status в таблице calculations.
   window.STATUSES = {
-    new:         { label: 'Расчёт произведён',      short: 'Расчёт',    icon: '📋', cls: 'status-new' },
-    scheduled:   { label: 'Назначена дата и время', short: 'Дата',      icon: '📅', cls: 'status-scheduled' },
+    new:         { label: 'Расчёт произведён',      short: 'Расчёт',     icon: '📋', cls: 'status-new' },
+    draft:       { label: 'Первичный контакт',      short: 'Первичный',  icon: '🔖', cls: 'status-draft' },
+    scheduled:   { label: 'Назначена дата и время', short: 'Дата',       icon: '📅', cls: 'status-scheduled' },
     in_progress: { label: 'Принято в работу',       short: 'В работе',  icon: '🔧', cls: 'status-in_progress' },
     done:        { label: 'Завершено',               short: 'Готово',    icon: '✅', cls: 'status-done' },
     delivered:   { label: 'Выдано',                  short: 'Выдано',    icon: '🚗', cls: 'status-delivered' },
