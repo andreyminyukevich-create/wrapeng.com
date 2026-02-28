@@ -1966,7 +1966,7 @@ window.addEventListener('unhandledrejection', function(e) {
   <a href="dashboard.html" class="nav-brand">Keep1R CRM</a>
   <div class="nav-links">
     <a href="dashboard.html" class="nav-link">🏠 Главная</a>
-    <a id="navBackBtn" href="board.html" class="nav-link" style="display:none">← На доску</a>
+    <a href="board.html" class="nav-link">📋 Доска</a>
     <a href="calculator.html" class="nav-link active">🧮 Калькулятор</a>
   </div>
   <div class="nav-right">
@@ -2288,7 +2288,6 @@ window.addEventListener('unhandledrejection', function(e) {
           <button type="button" class="btn btn-secondary" id="btnNewCalc" style="margin-bottom:8px;width:100%">🆕 Новый расчёт</button>
           <button type="button" class="btn btn-primary" id="btnSaveCalc" style="margin-bottom:12px">💾 Сохранить расчёт</button>
           <button type="button" class="btn btn-success" id="btnDownloadKP">📥 Скачать КП</button>
-          <button type="button" class="btn btn-success" id="btnExportCost">💰 Себес (PDF)</button>
         </div>
       </div>
     </div>
@@ -2779,12 +2778,6 @@ async function loadCalculationFromUrl() {
   const urlParams = new URLSearchParams(window.location.search);
   const calcId = urlParams.get('load');
   const fromBoard = urlParams.get('from') === 'board' || !!calcId;
-
-  // Показываем кнопку «← На доску» если открыто из доски
-  if (fromBoard) {
-    const backBtn = document.getElementById('navBackBtn');
-    if (backBtn) backBtn.style.display = '';
-  }
 
   if (!calcId) return; // Нет ID - ничего не делаем
   
