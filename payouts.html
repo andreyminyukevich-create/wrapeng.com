@@ -367,11 +367,11 @@ td {
   <div class="summary">
     <div class="summary-card">
       <div class="summary-label">К выплате</div>
-      <div class="summary-value" id="summaryPending">0 ₽</div>
+      <div class="summary-value" id="summaryPending">0</div>
     </div>
     <div class="summary-card">
       <div class="summary-label">Выплачено</div>
-      <div class="summary-value" id="summaryPaid">0 ₽</div>
+      <div class="summary-value" id="summaryPaid">0</div>
     </div>
     <div class="summary-card">
       <div class="summary-label">Всего работ</div>
@@ -525,8 +525,8 @@ function updateSummary() {
   const paid    = allAssignments.filter(a => a.status === 'paid').reduce((acc, a) => acc + (a.salary || 0), 0);
   const total   = allAssignments.length;
 
-  document.getElementById('summaryPending').textContent = fmt(pending) + ' ₽';
-  document.getElementById('summaryPaid').textContent    = fmt(paid) + ' ₽';
+  document.getElementById('summaryPending').textContent = fmt(pending) ;
+  document.getElementById('summaryPaid').textContent    = fmt(paid) ;
   document.getElementById('summaryTotal').textContent   = total;
 
   document.getElementById('badgePending').textContent   = allAssignments.filter(a => a.status === 'pending').length;
@@ -581,7 +581,7 @@ function renderTab() {
       <td class="car-name">${a.car_display}</td>
       <td class="service-name">${a.service_name || (a.is_admin_sale ? `💰 Продажа (${a.admin_percent}%)` : '—')}</td>
       <td><span class="month-badge">${fmtMonth(a.payment_month)}</span></td>
-      <td class="salary">${fmt(a.salary)} ₽</td>
+      <td class="salary">${fmt(a.salary)}</td>
     `;
     if (currentTab === 'pending') {
       html += `<td><button class="btn btn-pay" onclick="paySingle('${a.id}')">💰 Выплатить</button></td>`;
