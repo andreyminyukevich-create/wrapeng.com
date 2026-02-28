@@ -454,7 +454,7 @@ tbody tr:hover { background: #f8fafc; }
     <div class="stat-card"><div class="stat-label">Активных</div><div class="stat-value" id="sActive" style="color:var(--success)">—</div></div>
     <div class="stat-card"><div class="stat-label">На триале</div><div class="stat-value" id="sTrial" style="color:var(--primary)">—</div></div>
     <div class="stat-card"><div class="stat-label">Истёк доступ</div><div class="stat-value" id="sExpired" style="color:var(--danger)">—</div></div>
-    <div class="stat-card"><div class="stat-label">Комиссий к выплате</div><div class="stat-value" id="sCommission" style="color:var(--purple)">—</div><div class="stat-sub">₽</div></div>
+    <div class="stat-card"><div class="stat-label">Комиссий к выплате</div><div class="stat-value" id="sCommission" style="color:var(--purple)">—</div></div>
   </div>
 
   <!-- Табы -->
@@ -558,7 +558,7 @@ tbody tr:hover { background: #f8fafc; }
       </select>
       <input type="text" id="calcsSearch" placeholder="🔍 Поиск по авто...">
       <span id="calcsCount" style="color:var(--muted);font-size:0.78rem;font-weight:600;white-space:nowrap"></span>
-      <button class="btn btn-excel" id="btnExcelExport" onclick="exportToExcel()">📥 Скачать в Excel</button>
+      <button class="btn btn-excel" id="btnExcelExport" onclick="exportToExcel()">📥 Скачать все</button>
       <div class="calcs-stats">
         <div class="calcs-stat-pill">
           <div class="s-label">Расчётов</div>
@@ -587,7 +587,7 @@ tbody tr:hover { background: #f8fafc; }
             <th>Статус</th>
             <th>В работу</th>
             <th>Дата</th>
-            <th></th>
+            <th>Действия</th>
           </tr></thead>
           <tbody id="calcsBody"><tr><td colspan="9" style="text-align:center;color:var(--dim)">Загрузка...</td></tr></tbody>
         </table>
@@ -797,11 +797,11 @@ window.openCalcView = async function(calcId) {
   let servicesRows = '';
   if (cd.package) {
     const b = ['wrapMat','wrapMot','prepMat','prepMot','armMat','armMot'].reduce((a,k) => a + (parseFloat(cd.package[k]) || 0), 0);
-    if (b > 0) servicesRows += `<tr><td>Полная защита</td><td>Пакет вкруг</td><td colspan="2">—</td><td><b>${fmt(b)} ₽</b></td></tr>`;
+    if (b > 0) servicesRows += `<tr><td>Полная защита</td><td>Пакет вкруг</td><td colspan="2">—</td><td><b>${fmt(b)} </b></td></tr>`;
   }
   if (cd.impact) {
     const bi = ['wrapMat','wrapMot','prepMat','prepMot','armMat','armMot'].reduce((a,k) => a + (parseFloat(cd.impact[k]) || 0), 0);
-    if (bi > 0) servicesRows += `<tr><td>Ударная часть</td><td>Защита</td><td colspan="2">—</td><td><b>${fmt(bi)} ₽</b></td></tr>`;
+    if (bi > 0) servicesRows += `<tr><td>Ударная часть</td><td>Защита</td><td colspan="2">—</td><td><b>${fmt(bi)} </b></td></tr>`;
   }
   Object.keys(sd).forEach(key => {
     const items = sd[key];
@@ -809,7 +809,7 @@ window.openCalcView = async function(calcId) {
     items.forEach(item => {
       const base = (item.mat || 0) + (item.mot || 0);
       if (base > 0) {
-        servicesRows += `<tr><td>${sectionNames[key] || key}</td><td>${item.name || '—'}</td><td>${fmt(item.mat||0)} ₽</td><td>${fmt(item.mot||0)} ₽</td><td><b>${fmt(base)} ₽</b></td></tr>`;
+        servicesRows += `<tr><td>${sectionNames[key] || key}</td><td>${item.name || '—'}</td><td>${fmt(item.mat||0)}</td><td>${fmt(item.mot||0)}</td><td><b>${fmt(base)} </b></td></tr>`;
       }
     });
   });
@@ -819,9 +819,9 @@ window.openCalcView = async function(calcId) {
     <div class="calc-detail-item"><div class="calc-detail-label">Статус</div><div class="calc-detail-value">${statusMap[data.status] || data.status || '—'}</div></div>
     <div class="calc-detail-item"><div class="calc-detail-label">Студия</div><div class="calc-detail-value">${data.studios ? data.studios.name : '—'}</div></div>
     <div class="calc-detail-item"><div class="calc-detail-label">Дата</div><div class="calc-detail-value">${new Date(data.created_at).toLocaleDateString('ru')}</div></div>
-    <div class="calc-detail-item"><div class="calc-detail-label">Себестоимость</div><div class="calc-detail-value">${fmt(data.total_price || 0)} ₽</div></div>
-    <div class="calc-detail-item"><div class="calc-detail-label">Итоговая сумма КП</div><div class="calc-detail-value accent">${fmt(data.final_price || data.total_price || 0)} ₽</div></div>
-    <div class="calc-detail-item"><div class="calc-detail-label">Сдано (выдача)</div><div class="calc-detail-value" style="color:var(--success)">${data.final_price ? fmt(data.final_price) + ' ₽' : '—'}</div></div>
+    <div class="calc-detail-item"><div class="calc-detail-label">Себестоимость</div><div class="calc-detail-value">${fmt(data.total_price || 0)}</div></div>
+    <div class="calc-detail-item"><div class="calc-detail-label">Итоговая сумма КП</div><div class="calc-detail-value accent">${fmt(data.final_price || data.total_price || 0)}</div></div>
+    <div class="calc-detail-item"><div class="calc-detail-label">Сдано (выдача)</div><div class="calc-detail-value" style="color:var(--success)">${data.final_price ? fmt(data.final_price)  : '—'}</div></div>
     <div class="calc-detail-item"><div class="calc-detail-label">В работу</div><div class="calc-detail-value">${data.work_assigned ? '✅ Да' : '—'}</div></div>
   </div>`;
 
@@ -832,11 +832,17 @@ window.openCalcView = async function(calcId) {
   content.innerHTML = grid + table;
 
   const closeDiv = document.createElement('div');
-  closeDiv.style.cssText = 'display:flex;justify-content:flex-end;margin-top:12px';
+  closeDiv.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-top:12px';
+  const openBtn = document.createElement('a');
+  openBtn.className = 'btn btn-primary';
+  openBtn.href = `calculator.html?load=${calcId}`;
+  openBtn.target = '_blank';
+  openBtn.textContent = '📂 Открыть в калькуляторе';
   const closeBtn = document.createElement('button');
   closeBtn.className = 'btn btn-ghost';
   closeBtn.textContent = 'Закрыть';
   closeBtn.onclick = () => modal.classList.remove('active');
+  closeDiv.appendChild(openBtn);
   closeDiv.appendChild(closeBtn);
   content.appendChild(closeDiv);
 };
@@ -887,8 +893,8 @@ function renderCalcs() {
   const avg   = total > 0 ? sum / total : 0;
 
   document.getElementById('calcsStatTotal').textContent = total;
-  document.getElementById('calcsStatSum').textContent   = fmt(sum) + ' ₽';
-  document.getElementById('calcsStatAvg').textContent   = fmt(avg) + ' ₽';
+  document.getElementById('calcsStatSum').textContent   = fmt(sum) ;
+  document.getElementById('calcsStatAvg').textContent   = fmt(avg) ;
   document.getElementById('calcsCount').textContent     = `Показано: ${total}`;
 
   const statusLabel = {
@@ -907,62 +913,74 @@ function renderCalcs() {
     <tr>
       <td><strong>${c.studios?.name || '—'}</strong></td>
       <td>${c.car_name || '—'}</td>
-      <td style="color:var(--muted)">${fmt(c.total_price || 0)} ₽</td>
-      <td style="color:var(--purple);font-weight:700">${fmt(c.final_price || c.total_price || 0)} ₽</td>
-      <td style="color:var(--success);font-weight:700">${c.final_price ? fmt(c.final_price) + ' ₽' : '—'}</td>
+      <td style="color:var(--muted)">${fmt(c.total_price || 0)}</td>
+      <td style="color:var(--purple);font-weight:700">${fmt(c.final_price || c.total_price || 0)}</td>
+      <td style="color:var(--success);font-weight:700">${c.final_price ? fmt(c.final_price)  : '—'}</td>
       <td><span style="font-size:0.75rem">${statusLabel[c.status] || c.status || '—'}</span></td>
       <td style="text-align:center"><input type="checkbox" class="work-check" ${c.work_assigned ? 'checked' : ''} title="${c.work_assigned ? 'Ушло в работу' : 'Не назначено'}"></td>
       <td style="color:var(--dim);font-size:0.78rem;white-space:nowrap">${new Date(c.created_at).toLocaleDateString('ru')}</td>
-      <td><button class="btn btn-ghost btn-sm" onclick="openCalcView('${c.id}')">🔍</button></td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-ghost btn-sm" onclick="openCalcView('${c.id}')" title="Просмотр">🔍</button>
+        <button class="btn btn-ghost btn-sm" onclick="exportOneCalc('${c.id}')" title="Скачать Excel" style="margin-left:2px">📥</button>
+      </td>
     </tr>
   `).join('');
 }
 
 // ── Excel экспорт ─────────────────────────────────
+function calcToRow(c) {
+  const statusMap = {
+    new: 'Новый', scheduled: 'Запись', in_progress: 'В работе',
+    done: 'Готово', delivered: 'Выдано', draft: 'Черновик', cancelled: 'Отказ'
+  };
+  return {
+    'Студия':        c.studios?.name || '—',
+    'Автомобиль':    c.car_name || '—',
+    'Себестоимость': c.total_price || 0,
+    'Итог КП':       c.final_price || c.total_price || 0,
+    'Выдано':        c.final_price || '',
+    'Статус':        statusMap[c.status] || c.status || '—',
+    'В работу':      c.work_assigned ? 'Да' : 'Нет',
+    'Дата':          new Date(c.created_at).toLocaleDateString('ru-RU'),
+    'ID':            c.id,
+  };
+}
+
+function writeXlsx(rows, filename) {
+  if (!rows.length) { alert('Нет данных для экспорта'); return; }
+  const ws = XLSX.utils.json_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Расчёты');
+  ws['!cols'] = [
+    {wch:22},{wch:24},{wch:16},{wch:14},{wch:14},{wch:14},{wch:10},{wch:14},{wch:36}
+  ];
+  XLSX.writeFile(wb, filename);
+}
+
 window.exportToExcel = function() {
   const studioFilter = document.getElementById('calcsStudioFilter')?.value || '';
   const searchVal    = (document.getElementById('calcsSearch')?.value || '').toLowerCase();
 
-  let filtered = allCalcs.filter(c => {
+  const filtered = allCalcs.filter(c => {
     if (studioFilter && c.studio_id !== studioFilter) return false;
     if (searchVal && !(c.car_name || '').toLowerCase().includes(searchVal)) return false;
     return true;
   });
 
-  if (!filtered.length) { alert('Нет данных для экспорта'); return; }
-
-  const statusMap = {
-    new: 'Новый', scheduled: 'Запись', in_progress: 'В работе',
-    done: 'Готово', delivered: 'Выдано', draft: 'Черновик'
-  };
-
-  const rows = filtered.map(c => ({
-    'Студия':           c.studios?.name || '—',
-    'Автомобиль':       c.car_name || '—',
-    'Себестоимость, ₽': c.total_price || 0,
-    'Итог КП, ₽':       c.final_price || c.total_price || 0,
-    'Сдано (выдача), ₽': c.final_price || '',
-    'Статус':           statusMap[c.status] || c.status || '—',
-    'В работу':         c.work_assigned ? 'Да' : 'Нет',
-    'Дата':             new Date(c.created_at).toLocaleDateString('ru-RU'),
-    'ID':               c.id,
-  }));
-
   const studioName = studioFilter
     ? (allCalcs.find(c => c.studio_id === studioFilter)?.studios?.name || 'студия')
     : 'все-студии';
-
-  const ws  = XLSX.utils.json_to_sheet(rows);
-  const wb  = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Расчёты');
-
-  // Ширина колонок
-  ws['!cols'] = [
-    {wch:22},{wch:24},{wch:18},{wch:16},{wch:18},{wch:14},{wch:10},{wch:14},{wch:36}
-  ];
-
   const date = new Date().toISOString().slice(0,10);
-  XLSX.writeFile(wb, `keep1r-calcs-${studioName}-${date}.xlsx`);
+
+  writeXlsx(filtered.map(calcToRow), `keep1r-${studioName}-${date}.xlsx`);
+};
+
+window.exportOneCalc = function(calcId) {
+  const c = allCalcs.find(x => x.id === calcId);
+  if (!c) { alert('Расчёт не найден'); return; }
+  const carName = (c.car_name || 'расчёт').replace(/[^\w\-а-яёА-ЯЁ ]/gi, '').trim();
+  const date    = new Date(c.created_at).toISOString().slice(0,10);
+  writeXlsx([calcToRow(c)], `keep1r-${carName}-${date}.xlsx`);
 };
 
 // ── Загрузка данных ───────────────────────────────
@@ -1213,8 +1231,8 @@ function renderCommissions(comms) {
     <tr>
       <td><div class="studio-name">${c.referrer?.name || '—'}</div></td>
       <td><div class="studio-name">${c.referred?.name || '—'}</div></td>
-      <td>${fmt(c.payment_amount)} ₽</td>
-      <td><strong>${fmt(c.amount)} ₽</strong></td>
+      <td>${fmt(c.payment_amount)}</td>
+      <td><strong>${fmt(c.amount)}</strong></td>
       <td>${fmtDate(c.payment_date)}</td>
       <td>${c.paid_to_referrer ? `<span class="badge badge-paid">✅ Выплачено ${fmtDate(c.paid_date)}</span>` : `<span class="badge badge-pending">⏳ Ожидает</span>`}</td>
       <td>${!c.paid_to_referrer ? `<button class="btn btn-success btn-sm" onclick="markCommissionPaid('${c.id}')">Выплатить</button>` : '—'}</td>
@@ -1253,7 +1271,7 @@ function updatePaymentHint() {
   const hint   = document.getElementById('subModalPayment');
   const customGroup = document.getElementById('customDaysGroup');
   customGroup.style.display = action === 'custom' ? 'block' : 'none';
-  const hints = { trial: '72 часа бесплатного доступа', month: 'Оплата 4 900 ₽', year: 'Оплата 51 900 ₽', custom: 'Произвольный срок без комиссии', block: 'Немедленно заблокирует доступ' };
+  const hints = { trial: '72 часа бесплатного доступа', month: 'Оплата 4 900', year: 'Оплата 51 900', custom: 'Произвольный срок без комиссии', block: 'Немедленно заблокирует доступ' };
   hint.textContent = hints[action] || '';
 }
 
