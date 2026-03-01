@@ -223,7 +223,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
         <div class="totals-row">
           <div class="total-item">
             <div class="total-item-label">Итого к оплате</div>
-            <div class="total-item-value" id="totalAmount">— ₽</div>
+            <div class="total-item-value" id="totalAmount">—</div>
           </div>
         </div>
       </div>
@@ -430,18 +430,18 @@ function renderClientMode(calc) {
   const services = buildClientServices(calc);
   const total    = calc.final_price || calc.total_price || services.reduce((s,x)=>s+x.price,0);
 
-  document.getElementById('totalAmount').textContent = fmt(total) + ' ₽';
+  document.getElementById('totalAmount').textContent = fmt(total) + '';
 
   let html = services.map((s,i) => `<tr>
     <td style="color:var(--muted);font-size:0.76rem">${i+1}</td>
     <td style="font-weight:600">${esc(s.name)}</td>
-    <td class="right"><strong>${fmt(s.price)} ₽</strong></td>
+    <td class="right"><strong>${fmt(s.price)}</strong></td>
   </tr>`).join('');
 
   html += `<tr class="total-row">
     <td></td>
     <td>ИТОГО:</td>
-    <td class="right">${fmt(total)} ₽</td>
+    <td class="right">${fmt(total)}</td>
   </tr>`;
 
   document.getElementById('clientServicesTbody').innerHTML = html;
