@@ -578,7 +578,7 @@ async function init {
   const {data:{session}} = await sb.auth.getSession;
   if(!session){window.location.href='welcome.html';return;}
 
-  const {data:member} = await sb.from('studio_members').select('studio_id').eq('user_id',session.user.id).eq('is_active',true).single;
+  const {data:member} = await sb.from('studio_members').select('studio_id').eq('user_id',session.user.id).eq('is_active',true).single();
   if(!member){document.querySelector('.container').innerHTML='<div class="loading-state">⚠️ Студия не найдена</div>';return;}
   studioId=member.studio_id; window._studioId=studioId;
 
