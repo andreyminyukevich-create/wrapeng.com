@@ -430,13 +430,13 @@ body {
       <span class="stat-icon">🚗</span>
       <div class="stat-label">Расчётов за месяц</div>
       <div class="stat-value" id="statMonthTotal">—</div>
-      <div class="stat-change" id="statMonthTotalChange">Текущий месяц</div>
+      <div class="stat-change" id="statMonthTotalChange">За 30 дней</div>
     </a>
     <a class="stat-card" href="analytics.html">
       <span class="stat-icon">💰</span>
       <div class="stat-label">Сумма расчётов</div>
       <div class="stat-value" id="statMonthSum">—</div>
-      <div class="stat-change">Текущий месяц</div>
+      <div class="stat-change">За 30 дней</div>
     </a>
     <a class="stat-card" href="analytics.html">
       <span class="stat-icon">✅</span>
@@ -448,7 +448,7 @@ body {
       <span class="stat-icon">📊</span>
       <div class="stat-label">Средний чек</div>
       <div class="stat-value" id="statMonthAvg">—</div>
-      <div class="stat-change">За месяц</div>
+      <div class="stat-change">За 30 дней</div>
     </a>
   </div>
 
@@ -520,20 +520,34 @@ function normalizeStatus(status) {
 }
 
 function updateStats(calculations) {
-  const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
-  const month      = calculations.filter(c => new Date(c.created_at) >= monthStart);
-  const total      = month.length;
-  const sum        = month.reduce((a, c) => a + (c.total_price || 0), 0);
-  const done       = month.filter(c => ['done','delivered'].includes(normalizeStatus(c.status)));
-  const doneSum    = done.reduce((a, c) => a + (c.final_price || c.total_price || 0), 0);
-  const avg        = total > 0 ? sum / total : 0;
+  const now        = new Date();
+  const d30ago     = new Date(now - 30 * 24 * 60 * 60 * 1000);
+  const d60ago     = new Date(now - 60 * 24 * 60 * 60 * 1000);
+  const period     = calculations.filter(c => new Date(c.created_at) >= d30ago);
+  const prevPeriod = calculations.filter(c => new Date(c.created_at) >= d60ago && new Date(c.created_at) < d30ago);
+
+  const total    = period.length;
+  const sum      = period.reduce((a, c) => a + (c.total_price || 0), 0);
+  const done     = period.filter(c => ['done','delivered'].includes(normalizeStatus(c.status)));
+  const doneSum  = done.reduce((a, c) => a + (c.final_price || c.total_price || 0), 0);
+  const avg      = total > 0 ? sum / total : 0;
+
+  const prevTotal = prevPeriod.length;
+  const prevSum   = prevPeriod.reduce((a, c) => a + (c.total_price || 0), 0);
+  const prevAvg   = prevTotal > 0 ? prevSum / prevTotal : 0;
+
+  function trend(cur, prev) {
+    if (prev === 0) return cur > 0 ? '↑ Новые данные' : 'Нет данных за предыдущий период';
+    const pct = Math.round((cur - prev) / prev * 100);
+    return (pct >= 0 ? '↑ +' : '↓ ') + Math.abs(pct) + '% к прошлым 30 дням';
+  }
 
   document.getElementById('statMonthTotal').textContent     = total;
   document.getElementById('statMonthSum').textContent       = fmt(sum);
   document.getElementById('statMonthDone').textContent      = fmt(doneSum);
   document.getElementById('statMonthAvg').textContent       = fmt(avg);
   document.getElementById('statMonthDoneCount').textContent = done.length + ' машин';
-  document.getElementById('statMonthTotalChange').textContent = 'Текущий месяц';
+  document.getElementById('statMonthTotalChange').textContent = trend(total, prevTotal);
 }
 
 // Берём из nav.js — единый источник правды
