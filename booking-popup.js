@@ -602,7 +602,7 @@ window.BookingPopup = {
     renderExecutors();
   },
 
-  _save: async function{
+  _save: async function() {
     if(!_dateFrom){ alert('Выберите дату заезда'); return; }
     if(!_dateTo) _dateTo=_dateFrom;
 
