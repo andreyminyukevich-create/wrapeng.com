@@ -609,6 +609,30 @@ window.BookingPopup = {
       if(!confirm('Пост не выбран. Продолжить?')) return;
     }
 
+    // Check executor conflicts
+    const busyWarnings = [];
+    for (const eid of _selectedExecs) {
+      const conflicts = _bookings.filter(b => {
+        if (!b.executor_ids) return false;
+        if (!datesOverlap(_dateFrom, _dateTo, b.date_from, b.date_to)) return false;
+        return b.executor_ids.includes(eid);
+      });
+      if (conflicts.length) {
+        const exec = _executors.find(e => e.id === eid);
+        const cars = conflicts.map(b => b.car_name || '—').join(', ');
+        busyWarnings.push(`• ${exec?.full_name || 'Сотрудник'}: занят на авто — ${cars}`);
+      }
+    }
+    if (busyWarnings.length) {
+      const msg = '⚠️ Внимание! Следующие сотрудники уже заняты в выбранный период:
+
+' + busyWarnings.join('
+') + '
+
+Всё равно записать?';
+      if (!confirm(msg)) return;
+    }
+
     const btn=document.getElementById('bpSaveBtn');
     if(btn){btn.disabled=true;btn.textContent='⏳ Сохранение...';}
 
