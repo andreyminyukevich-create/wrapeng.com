@@ -182,7 +182,7 @@
           '<div style="font-size:0.88rem;color:#64748b;line-height:1.6;margin-bottom:24px">' + desc + '</div>' +
           '<div style="background:#f8faff;border:1px solid rgba(37,99,235,0.1);border-radius:12px;padding:18px;margin-bottom:22px">' +
             '<div style="font-size:0.72rem;color:#94a3b8;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px">Тариф CRM</div>' +
-            '<div style="font-size:2rem;font-weight:800;color:#0f172a;line-height:1">2 900 ₽' +
+            '<div style="font-size:2rem;font-weight:800;color:#0f172a;line-height:1">2 900' +
               '<span style="font-size:0.95rem;font-weight:500;color:#64748b">/мес</span></div>' +
             '<div style="font-size:0.8rem;color:#94a3b8;margin-top:6px">Сотрудники · Зарплаты · Аналитика · Заказы</div>' +
           '</div>' +
