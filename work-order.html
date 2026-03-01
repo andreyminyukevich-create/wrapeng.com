@@ -156,7 +156,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
         <div class="page-sub" id="headerSub"></div>
       </div>
       <div class="btn-group">
-        <button class="btn btn-secondary" onclick="history.back()">← Назад</button>
+        <button class="btn btn-secondary" onclick="history.back">← Назад</button>
       </div>
     </div>
 
@@ -166,7 +166,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
       <button class="btn-mode active-client" id="modeClientBtn" onclick="setMode('client')">👤 Для клиента</button>
       <button class="btn-mode" id="modeWorkshopBtn" onclick="setMode('workshop')" id="btnWorkshop">🏭 Для цеха</button>
       <div style="flex:1"></div>
-      <button class="btn btn-dark" onclick="window.print()" id="btnPrint">🖨️ Распечатать / PDF</button>
+      <button class="btn btn-dark" onclick="window.print" id="btnPrint">🖨️ Распечатать / PDF</button>
     </div>
 
     <div id="noAssignWarn" class="no-assign-warn" style="display:none">
@@ -269,7 +269,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
 
 <script src="footer.js"></script>
 <script>
-(function(){
+(function{
 'use strict';
 
 const SUPABASE_URL      = 'https://hdghijgrrnzmntistdvw.supabase.co';
@@ -280,7 +280,7 @@ let currentUser  = null;
 let _mode        = 'client'; // 'client' | 'workshop'
 let _hasAssign   = false;
 
-function fmt(n)     { return new Intl.NumberFormat('ru-RU').format(Math.round(n||0)); }
+function fmt(n)     { return new Intl.NumberFormat('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:2}).format(Math.round(n||0)); }
 function fmtDate(s) { if(!s) return '—'; return new Date(s).toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit',year:'numeric'}); }
 function esc(s)     { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function n(v)       { return parseFloat(v||0)||0; }
@@ -314,13 +314,13 @@ window.setMode = function(mode) {
 };
 
 // ── Auth + studio ──────────────────────────────────────
-async function checkAuth() {
-  const { data:{session} } = await sb.auth.getSession();
+async function checkAuth {
+  const { data:{session} } = await sb.auth.getSession;
   if (!session) { window.location.href='welcome.html'; return false; }
   currentUser = session.user; return true;
 }
 
-async function loadStudio() {
+async function loadStudio {
   const { data: m } = await sb.from('studio_members').select('studio_id').eq('user_id',currentUser.id).eq('is_active',true).single();
   if (!m) return;
   const { data: s } = await sb.from('studios').select('name,settings').eq('id',m.studio_id).single();
@@ -447,7 +447,7 @@ function renderWorkshopMode(assignments) {
     .sort((a,b) => (a.service_name||'').localeCompare(b.service_name||''));
 
   // Deduplicate: same service + same executor → one row
-  const seen = new Set();
+  const seen = new Set;
   const unique = [];
   rows.forEach(a => {
     const key = (a.service_name||'') + '|' + (a.executor_name||'');
@@ -465,8 +465,8 @@ function renderWorkshopMode(assignments) {
 }
 
 // ── Main init ──────────────────────────────────────────
-(async function init(){
-  if (!await checkAuth()) return;
+(async function init{
+  if (!await checkAuth) return;
   const params  = new URLSearchParams(window.location.search);
   const calcId  = params.get('calc_id');
   const loading = document.getElementById('loadingMsg');
@@ -479,7 +479,7 @@ function renderWorkshopMode(assignments) {
   }
 
   const [,calcRes,assignRes] = await Promise.all([
-    loadStudio(),
+    loadStudio,
     sb.from('calculations').select('*').eq('id',calcId).single(),
     sb.from('work_assignments').select('executor_name,service_name,salary,is_admin_sale,admin_percent').eq('calculation_id',calcId)
   ]);
@@ -491,7 +491,7 @@ function renderWorkshopMode(assignments) {
   const calc   = calcRes.data;
   const assigns = (assignRes.data||[]).filter(a => !a.is_admin_sale);
   _hasAssign   = assigns.length > 0;
-  const shortId = calcId.slice(-8).toUpperCase();
+  const shortId = calcId.slice(-8).toUpperCase;
 
   document.getElementById('ph-num').textContent    = '№ ' + shortId;
   document.getElementById('headerSub').textContent = (calc.car_name||'Автомобиль') + ' · ' + shortId;
@@ -517,9 +517,9 @@ function renderWorkshopMode(assignments) {
   loading.style.display='none';
   content.style.display='';
   if (window.initNav) window.initNav({activePage:'work-order.html'});
-})();
+});
 
-})();
+});
 </script>
 </body>
 </html>
