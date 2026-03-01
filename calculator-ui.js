@@ -18,10 +18,10 @@ document.addEventListener('click', function(e) {
 });
 
 // ── Тема ──────────────────────────────────────────────────────────
-function initTheme() {
+function initTheme {
   document.body.setAttribute('data-theme', 'light');
   qa('.toggle-btn').forEach(b => {
-    b.addEventListener('click', () => {
+    b.addEventListener('click',  => {
       const r = b.querySelector('input[type=radio]');
       if (r) {
         r.checked = true;
@@ -34,9 +34,9 @@ function initTheme() {
 }
 
 // ── Скидки ───────────────────────────────────────────────────────
-function initDiscounts() {
+function initDiscounts {
   qa('.discount-btn').forEach(b => {
-    b.addEventListener('click', () => {
+    b.addEventListener('click',  => {
       disc = parseInt(b.dataset.discount) || 0;
       qa('.discount-btn').forEach(x => x.classList.toggle('active', parseInt(x.dataset.discount) === disc));
       q('#customDiscount').value = '';
@@ -52,7 +52,7 @@ function initDiscounts() {
 }
 
 // ── Бренды / Модели ───────────────────────────────────────────────
-function fillBrands() {
+function fillBrands {
   const s = q('#brand');
   if (s.options.length > 2) {
     const yearInput = q('#year');
@@ -60,7 +60,7 @@ function fillBrands() {
     return;
   }
   s.innerHTML = '<option value="">Выберите бренд</option><option value="manual">Ввести вручную</option>';
-  Object.keys(carDB).sort().forEach(b => {
+  Object.keys(carDB).sort.forEach(b => {
     const o = document.createElement('option');
     o.value = b; o.textContent = b;
     s.appendChild(o);
@@ -88,12 +88,12 @@ function fillModels(brandValue) {
   }
 }
 
-function onBrandChange() {
+function onBrandChange {
   fillModels(q('#brand').value);
   renderAll();
 }
 
-function onModelChange() {
+function onModelChange {
   const m = q('#model').value;
   q('#modelManual')?.classList.toggle('invis', m !== 'manual');
   renderAll();
@@ -111,7 +111,7 @@ function formatNumberInput(input) {
   if (!isNaN(val) && val >= 0) input.value = val.toFixed(2);
 }
 
-function setDefaultMarkups() {
+function setDefaultMarkups {
   ['#pkgMarkup','#impactMarkup','#armMarkup','#wrapMarkup','#detMarkup','#glMarkup','#miscMarkup'].forEach(id => {
     const field = q(id);
     if (field) field.value = 40;
@@ -119,7 +119,7 @@ function setDefaultMarkups() {
 }
 
 // ── Состояние страницы ────────────────────────────────────────────
-function initPageState() {
+function initPageState {
   const isTelegram = window.TelegramWebviewProxy !== undefined || navigator.userAgent.includes('Telegram');
   if (isTelegram) {
     const warning = q('#telegramWarning');
@@ -128,66 +128,66 @@ function initPageState() {
 }
 
 // ── Зоны инициализации ────────────────────────────────────────────
-function initUI() {
-  initTheme();
-  initDiscounts();
+function initUI {
+  initTheme;
+  initDiscounts;
 }
 
-function initDataSources() {
-  fillBrands();
+function initDataSources {
+  fillBrands;
   q('#brand')?.addEventListener('change', onBrandChange);
   q('#model')?.addEventListener('change', onModelChange);
 }
 
-function initRender() {
+function initRender {
   renderServiceList('#armContent',  armServices,    'arm');
-  renderWrapContent();
-  renderPartialLists();
+  renderWrapContent;
+  renderPartialLists;
   renderServiceList('#detContent',  detailServices, 'det');
   renderServiceList('#glContent',   glassServices,  'gl');
   renderServiceList('#miscContent', miscServices,   'misc');
-  initServiceToggles();
-  setDefaultMarkups();
-  initChart();
+  initServiceToggles;
+  setDefaultMarkups;
+  initChart;
   renderAll();
 }
 
-function initBindings() {
+function initBindings {
   // Добавление строк
   const addRowBindings = [
-    { sel: '#btnAddPkgCost',    action: () => addCostRow('pkg') },
-    { sel: '#btnAddImpactCost', action: () => addCostRow('impact') },
-    { sel: '#btnAddArm',        action: () => { addDynRow('#armDyn',  'arm');  initServiceToggles(); } },
-    { sel: '#btnAddArmCost',    action: () => addCostRow('arm') },
-    { sel: '#btnAddWrap',       action: () => { addDynRow('#wrapDyn', 'wrap'); initServiceToggles(); } },
-    { sel: '#btnAddWrapCost',   action: () => addCostRow('wrap') },
-    { sel: '#btnAddDet',        action: () => { addDynRow('#detDyn',  'det');  initServiceToggles(); } },
-    { sel: '#btnAddDetCost',    action: () => addCostRow('det') },
-    { sel: '#btnAddGl',         action: () => { addDynRow('#glDyn',   'gl');   initServiceToggles(); } },
-    { sel: '#btnAddGlCost',     action: () => addCostRow('gl') },
-    { sel: '#btnAddMisc',       action: () => { addDynRow('#miscDyn', 'misc'); initServiceToggles(); } },
-    { sel: '#btnAddMiscCost',   action: () => addCostRow('misc') },
+    { sel: '#btnAddPkgCost',    action:  => addCostRow('pkg') },
+    { sel: '#btnAddImpactCost', action:  => addCostRow('impact') },
+    { sel: '#btnAddArm',        action:  => { addDynRow('#armDyn',  'arm');  initServiceToggles; } },
+    { sel: '#btnAddArmCost',    action:  => addCostRow('arm') },
+    { sel: '#btnAddWrap',       action:  => { addDynRow('#wrapDyn', 'wrap'); initServiceToggles; } },
+    { sel: '#btnAddWrapCost',   action:  => addCostRow('wrap') },
+    { sel: '#btnAddDet',        action:  => { addDynRow('#detDyn',  'det');  initServiceToggles; } },
+    { sel: '#btnAddDetCost',    action:  => addCostRow('det') },
+    { sel: '#btnAddGl',         action:  => { addDynRow('#glDyn',   'gl');   initServiceToggles; } },
+    { sel: '#btnAddGlCost',     action:  => addCostRow('gl') },
+    { sel: '#btnAddMisc',       action:  => { addDynRow('#miscDyn', 'misc'); initServiceToggles; } },
+    { sel: '#btnAddMiscCost',   action:  => addCostRow('misc') },
   ];
   addRowBindings.forEach(({ sel, action }) => q(sel)?.addEventListener('click', action));
 
   // Форма оплаты
-  qa('input[name=payMode]').forEach(r => r.addEventListener('change', () => { renderAll(); scheduleSave(); }));
+  qa('input[name=payMode]').forEach(r => r.addEventListener('change',  => { renderAll(); scheduleSave; }));
 
   // Управляющие кнопки
-  q('#btnSaveCalc')?.addEventListener('click', async () => {
+  q('#btnSaveCalc')?.addEventListener('click', async  => {
     const btn = q('#btnSaveCalc');
     const orig = btn?.textContent;
     if (btn) { btn.textContent = '⏳ Сохранение...'; btn.disabled = true; }
-    await saveCalculation();
+    await saveCalculation;
     if (btn) { btn.textContent = orig; btn.disabled = false; }
   });
 
   // "Новый расчёт" — сохраняет текущий и сбрасывает форму
-  q('#btnReset')?.addEventListener('click', async () => {
+  q('#btnReset')?.addEventListener('click', async  => {
     const btn = q('#btnReset');
     if (!confirm('Сохранить текущий расчёт и начать новый?')) return;
     if (btn) { btn.textContent = '⏳ Сохраняем...'; btn.disabled = true; }
-    await saveCalculation();
+    await saveCalculation;
     // Сбрасываем ID чтобы следующий расчёт создался новым
     if (typeof currentCalculationId !== 'undefined') {
       try { window._calcNewMode = true; } catch(e) {}
@@ -196,76 +196,76 @@ function initBindings() {
   });
 
   // Экспорт PDF — только скачать КП
-  q('#btnDownloadKP')?.addEventListener('click', () => {
-    prepKP();
+  q('#btnDownloadKP')?.addEventListener('click',  => {
+    prepKP;
     setTimeout(() => exportPDF('#pdfKP', 'Коммерческое_предложение.pdf'), 100);
   });
-  q('#btnExportExecutors')?.addEventListener('click', () => {
-    prepExecutors();
+  q('#btnExportExecutors')?.addEventListener('click',  => {
+    prepExecutors;
     setTimeout(() => exportPDF('#pdfExecutors', 'Список_исполнителей.pdf'), 100);
   });
-  q('#btnExportExecutorsWithSalary')?.addEventListener('click', () => {
-    prepExecutorsWithSalary();
+  q('#btnExportExecutorsWithSalary')?.addEventListener('click',  => {
+    prepExecutorsWithSalary;
     setTimeout(() => exportPDF('#pdfExecutorsWithSalary', 'Список_исполнителей_ЗП.pdf'), 100);
   });
 
   // Chips (наценки)
   qa('.chip').forEach(ch => {
-    ch.addEventListener('click', () => {
+    ch.addEventListener('click',  => {
       const sel    = ch.getAttribute('data-markup-target');
       const ppfIdx = ch.getAttribute('data-ppf-markup');
       const pvcIdx = ch.getAttribute('data-pvc-markup');
       if (sel) {
         const tgt = q(sel);
-        if (tgt) { tgt.value = ch.textContent.trim(); renderAll(); }
+        if (tgt) { tgt.value = ch.textContent.trim; renderAll(); }
       } else if (ppfIdx !== null) {
         const inp = ch.closest('.service-item')?.querySelector('.ppf-part-markup');
-        if (inp) { inp.value = ch.textContent.trim(); renderAll(); }
+        if (inp) { inp.value = ch.textContent.trim; renderAll(); }
       } else if (pvcIdx !== null) {
         const inp = ch.closest('.service-item')?.querySelector('.pvc-part-markup');
-        if (inp) { inp.value = ch.textContent.trim(); renderAll(); }
+        if (inp) { inp.value = ch.textContent.trim; renderAll(); }
       }
     });
   });
 
   // Глобальные input-события
   document.addEventListener('input', e => {
-    if (e.target.id === 'year') { formatYearInput(e.target); renderAll(); scheduleSave(); return; }
+    if (e.target.id === 'year') { formatYearInput(e.target); renderAll(); scheduleSave; return; }
     if (e.target.id && e.target.id.includes('salary')) e.target.dataset.manuallySet = 'true';
     if (e.target.matches('input[type="number"]')) {
       const val = parseFloat(e.target.value);
       if (!isNaN(val) && val < 0) e.target.value = '';
     }
-    if (e.target.matches('input, select')) { renderAll(); scheduleSave(); }
+    if (e.target.matches('input, select')) { renderAll(); scheduleSave; }
   });
 
   document.addEventListener('blur', e => {
     if (e.target.matches('input[type="number"]') && e.target.value !== '') {
-      formatNumberInput(e.target); renderAll(); scheduleSave();
+      formatNumberInput(e.target); renderAll(); scheduleSave;
     }
   }, true);
 }
 
-async function initAuthAndAccess() {
-  return await checkAuth();
+async function initAuthAndAccess {
+  return await checkAuth;
 }
 
 // ── Точка входа ───────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', async () => {
-  const hasAccess = await initAuthAndAccess();
+document.addEventListener('DOMContentLoaded', async  => {
+  const hasAccess = await initAuthAndAccess;
   if (!hasAccess) return;
 
-  initPageState();
-  initUI();
-  initDataSources();
-  initRender();
-  initBindings();
+  initPageState;
+  initUI;
+  initDataSources;
+  initRender;
+  initBindings;
 
-  await loadCalculationFromUrl();
+  await loadCalculationFromUrl;
 });
 
 // ── Глобальный экспорт для inline handlers ────────────────────────
 window.fillModels    = fillModels;
 window.onBrandChange = onBrandChange;
 window.onModelChange = onModelChange;
-window.renderAll     = renderAll;
+window.renderAll     = renderAll();
