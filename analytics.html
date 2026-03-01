@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Аналитика — Keep1R CRM</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<link rel="stylesheet" href="nav.css">
+<script src="nav.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  background: #eef2f9;
+  color: #0f172a;
+  min-height: 100svh;
+}
+
+.container {
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 28px 24px 60px;
+}
+
+/* ── Page header ────────────────────────── */
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.page-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.4px;
+}
+
+.page-sub {
+  font-size: 0.78rem;
+  color: #64748b;
+  margin-top: 2px;
+  font-weight: 500;
+}
+
+/* ── Period selector ────────────────────── */
+.period-tabs {
+  display: flex;
+  gap: 4px;
+  background: #fff;
+  border: 1px solid rgba(15,23,42,0.09);
+  border-radius: 10px;
+  padding: 4px;
+}
+
+.period-tab {
+  padding: 6px 16px;
+  border-radius: 7px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  background: transparent;
+  color: #64748b;
+  font-family: inherit;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.period-tab.active {
+  background: #2563eb;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(37,99,235,0.25);
+}
+
+/* ── Stat cards ─────────────────────────── */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.kpi-card {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid rgba(15,23,42,0.07);
+  padding: 20px 20px 16px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.kpi-card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--accent, #2563eb);
+}
+
+.kpi-card:nth-child(1) { --accent: #2563eb; }
+.kpi-card:nth-child(2) { --accent: #059669; }
+.kpi-card:nth-child(3) { --accent: #7c3aed; }
+.kpi-card:nth-child(4) { --accent: #d97706; }
+
+.kpi-icon   { font-size: 1.3rem; margin-bottom: 12px; display: block; }
+.kpi-label  { font-size: 0.68rem; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 5px; }
+.kpi-value  { font-size: 1.7rem; font-weight: 800; color: #0f172a; line-height: 1; letter-spacing: -0.5px; margin-bottom: 5px; }
+.kpi-change {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 5px;
+}
+.kpi-change.up   { background: rgba(5,150,105,0.1); color: #059669; }
+.kpi-change.down { background: rgba(220,38,38,0.08); color: #dc2626; }
+.kpi-change.flat { background: rgba(100,116,139,0.08); color: #64748b; }
+
+/* ── Charts row ─────────────────────────── */
+.charts-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.chart-card {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid rgba(15,23,42,0.07);
+  padding: 20px 22px 18px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.chart-title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 16px;
+  letter-spacing: -0.1px;
+}
+
+.chart-wrap {
+  position: relative;
+  height: 200px;
+}
+
+/* ── Funnel + Bottom row ─────────────────── */
+.bottom-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+/* ── Funnel ─────────────────────────────── */
+.funnel-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.funnel-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.funnel-label {
+  width: 130px;
+  flex-shrink: 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #334155;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.funnel-bar-wrap {
+  flex: 1;
+  height: 22px;
+  background: rgba(15,23,42,0.04);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.funnel-bar {
+  height: 100%;
+  border-radius: 6px;
+  min-width: 4px;
+  transition: width 0.5s ease;
+}
+
+.funnel-count {
+  width: 36px;
+  text-align: right;
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #0f172a;
+  flex-shrink: 0;
+}
+
+.funnel-pct {
+  width: 36px;
+  text-align: right;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #64748b;
+  flex-shrink: 0;
+}
+
+/* ── Top cars table ─────────────────────── */
+.top-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.top-table th {
+  text-align: left;
+  padding: 6px 8px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #94a3b8;
+  border-bottom: 1px solid rgba(15,23,42,0.07);
+}
+
+.top-table td {
+  padding: 9px 8px;
+  color: #334155;
+  border-bottom: 1px solid rgba(15,23,42,0.04);
+  font-weight: 500;
+}
+
+.top-table tr:last-child td { border-bottom: none; }
+.top-table td:last-child { text-align: right; font-weight: 700; color: #0f172a; }
+
+.top-table .rank-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  background: rgba(37,99,235,0.08);
+  color: #2563eb;
+  margin-right: 6px;
+}
+
+/* ── Loading / empty ────────────────────── */
+.loading-state {
+  text-align: center;
+  padding: 48px 20px;
+  color: #94a3b8;
+  font-size: 0.88rem;
+}
+
+/* ── Conversion badge ───────────────────── */
+.conv-badge {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  background: rgba(5,150,105,0.1);
+  color: #059669;
+  margin-left: 8px;
+}
+
+/* ── Responsive ─────────────────────────── */
+@media (max-width: 1100px) {
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 900px) {
+  .charts-row { grid-template-columns: 1fr; }
+  .bottom-row  { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+  .container { padding: 16px 14px 40px; }
+  .kpi-grid  { gap: 10px; }
+  .kpi-value { font-size: 1.4rem; }
+  .page-header { flex-direction: column; align-items: flex-start; }
+  .period-tabs { width: 100%; justify-content: stretch; }
+  .period-tab  { flex: 1; text-align: center; font-size: 0.75rem; padding: 6px 8px; }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="page-header">
+    <div>
+      <div class="page-title">📊 Аналитика</div>
+      <div class="page-sub" id="periodLabel">Загрузка...</div>
+    </div>
+    <div class="period-tabs">
+      <button class="period-tab" data-days="7">7 дней</button>
+      <button class="period-tab active" data-days="30">30 дней</button>
+      <button class="period-tab" data-days="90">3 месяца</button>
+      <button class="period-tab" data-days="365">Год</button>
+      <button class="period-tab" data-days="0">Всё время</button>
+    </div>
+  </div>
+
+  <!-- KPI cards -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <span class="kpi-icon">🚗</span>
+      <div class="kpi-label">Расчётов</div>
+      <div class="kpi-value" id="kpiTotal">—</div>
+      <span class="kpi-change flat" id="kpiTotalChg">—</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-icon">💰</span>
+      <div class="kpi-label">Выручка (выдано)</div>
+      <div class="kpi-value" id="kpiRevenue">—</div>
+      <span class="kpi-change flat" id="kpiRevenueChg">—</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-icon">📊</span>
+      <div class="kpi-label">Средний чек</div>
+      <div class="kpi-value" id="kpiAvg">—</div>
+      <span class="kpi-change flat" id="kpiAvgChg">—</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-icon">✅</span>
+      <div class="kpi-label">Конверсия</div>
+      <div class="kpi-value" id="kpiConv">—</div>
+      <span class="kpi-change flat" id="kpiConvChg">расчёты → выдача</span>
+    </div>
+  </div>
+
+  <!-- Charts row -->
+  <div class="charts-row">
+    <div class="chart-card">
+      <div class="chart-title">📈 Выручка и расчёты по неделям</div>
+      <div class="chart-wrap">
+        <canvas id="revenueChart"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">🥧 Сумма по статусам</div>
+      <div class="chart-wrap">
+        <canvas id="statusChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom row -->
+  <div class="bottom-row">
+    <div class="chart-card">
+      <div class="chart-title">🔽 Воронка по статусам</div>
+      <div class="funnel-list" id="funnelList">
+        <div class="loading-state">⏳</div>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">🏆 Топ автомобилей по сумме</div>
+      <div id="topCarsWrap">
+        <div class="loading-state">⏳</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="footer.js"></script>
+<script>
+(function() {
+'use strict';
+
+const SUPABASE_URL      = 'https://hdghijgrrnzmntistdvw.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkZ2hpamdycm56bW50aXN0ZHZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMzMyNzksImV4cCI6MjA3NTYwOTI3OX0.D9EDTmVrFRVp0B8_5tCJM29gbFdtadsom0Ihsf4uQ8Q';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+window._crmSb = sb;
+
+let allCalcs   = [];
+let studioId   = null;
+let activeDays = 30;
+let revenueChart = null;
+let statusChart  = null;
+
+function fmt(n) {
+  return new Intl.NumberFormat('ru-RU', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(n || 0);
+}
+
+function normalizeStatus(s) {
+  if (!s || s === '' || s === 'draft' || s === 'pending') return 'new';
+  return s;
+}
+
+// ── Период ──────────────────────────────────────────
+function getPeriodFilter(days) {
+  if (days === 0) return { from: new Date(0), label: 'Всё время' };
+  const from = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+  const labels = { 7: 'За 7 дней', 30: 'За 30 дней', 90: 'За 3 месяца', 365: 'За год' };
+  return { from, label: labels[days] || `За ${days} дней` };
+}
+
+function filterByPeriod(calcs, days) {
+  if (days === 0) return calcs;
+  const from = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+  return calcs.filter(c => new Date(c.created_at) >= from);
+}
+
+function filterByPeriodPrev(calcs, days) {
+  if (days === 0) return [];
+  const from  = new Date(Date.now() - 2 * days * 24 * 60 * 60 * 1000);
+  const until = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+  return calcs.filter(c => {
+    const d = new Date(c.created_at);
+    return d >= from && d < until;
+  });
+}
+
+// ── KPI ─────────────────────────────────────────────
+function renderKPI(cur, prev) {
+  const total    = cur.length;
+  const prevTotal = prev.length;
+  const revenue  = cur.filter(c => ['done','delivered'].includes(normalizeStatus(c.status)))
+                      .reduce((s, c) => s + (c.final_price || c.total_price || 0), 0);
+  const prevRev  = prev.filter(c => ['done','delivered'].includes(normalizeStatus(c.status)))
+                       .reduce((s, c) => s + (c.final_price || c.total_price || 0), 0);
+  const avg      = total > 0 ? cur.reduce((s, c) => s + (c.total_price || 0), 0) / total : 0;
+  const prevAvg  = prevTotal > 0 ? prev.reduce((s, c) => s + (c.total_price || 0), 0) / prevTotal : 0;
+  const delivered = cur.filter(c => normalizeStatus(c.status) === 'delivered').length;
+  const conv = total > 0 ? Math.round(delivered / total * 100) : 0;
+  const prevDelivered = prev.filter(c => normalizeStatus(c.status) === 'delivered').length;
+  const prevConv = prevTotal > 0 ? Math.round(prevDelivered / prevTotal * 100) : 0;
+
+  setText('kpiTotal',   total);
+  setText('kpiRevenue', fmt(revenue) + ' ₽');
+  setText('kpiAvg',     fmt(avg) + ' ₽');
+  setText('kpiConv',    conv + '%');
+
+  setChange('kpiTotalChg',   total,   prevTotal);
+  setChange('kpiRevenueChg', revenue, prevRev,   true);
+  setChange('kpiAvgChg',     avg,     prevAvg,   true);
+  setChange('kpiConvChg',    conv,    prevConv,  false, '%');
+}
+
+function setText(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = val;
+}
+
+function setChange(id, cur, prev, isMoney, suffix) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (activeDays === 0 || prev === 0) {
+    el.textContent = cur > 0 ? 'Данные есть' : 'Нет данных';
+    el.className = 'kpi-change flat';
+    return;
+  }
+  const pct = Math.round((cur - prev) / (prev || 1) * 100);
+  const isUp = pct >= 0;
+  el.textContent = (isUp ? '↑ +' : '↓ ') + Math.abs(pct) + '% к пред. периоду';
+  el.className = 'kpi-change ' + (isUp ? 'up' : 'down');
+}
+
+// ── Revenue chart ────────────────────────────────────
+function renderRevenueChart(calcs, days) {
+  const ctx = document.getElementById('revenueChart');
+  if (!ctx) return;
+
+  // Группировка по неделям (или дням если < 14 дней)
+  const useWeeks  = days === 0 || days >= 14;
+  const buckets   = {};
+
+  calcs.forEach(c => {
+    const d = new Date(c.created_at);
+    let key;
+    if (useWeeks) {
+      const mon = new Date(d);
+      mon.setDate(d.getDate() - d.getDay() + (d.getDay() === 0 ? -6 : 1));
+      key = mon.toISOString().split('T')[0];
+    } else {
+      key = d.toISOString().split('T')[0];
+    }
+    if (!buckets[key]) buckets[key] = { revenue: 0, count: 0 };
+    buckets[key].revenue += c.final_price || c.total_price || 0;
+    buckets[key].count++;
+  });
+
+  const sortedKeys = Object.keys(buckets).sort();
+  const labels     = sortedKeys.map(k => {
+    const d = new Date(k);
+    return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
+  });
+
+  if (revenueChart) revenueChart.destroy();
+
+  revenueChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Выручка, ₽',
+          data: sortedKeys.map(k => buckets[k].revenue),
+          backgroundColor: 'rgba(37,99,235,0.75)',
+          borderRadius: 5,
+          yAxisID: 'y',
+          order: 2,
+        },
+        {
+          label: 'Расчётов',
+          data: sortedKeys.map(k => buckets[k].count),
+          type: 'line',
+          borderColor: '#f59e0b',
+          backgroundColor: 'rgba(245,158,11,0.1)',
+          borderWidth: 2,
+          pointRadius: 4,
+          pointBackgroundColor: '#f59e0b',
+          fill: false,
+          yAxisID: 'y2',
+          order: 1,
+          tension: 0.3,
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { position: 'top', labels: { font: { size: 11 }, padding: 12 } },
+        tooltip: {
+          callbacks: {
+            label: ctx => ctx.dataset.label === 'Выручка, ₽'
+              ? ' ' + fmt(ctx.parsed.y) + ' ₽'
+              : ' ' + ctx.parsed.y + ' шт.'
+          }
+        }
+      },
+      scales: {
+        y:  { position: 'left',  ticks: { callback: v => fmt(v), font: { size: 10 } }, grid: { color: 'rgba(0,0,0,0.04)' } },
+        y2: { position: 'right', ticks: { font: { size: 10 } }, grid: { display: false } },
+        x:  { ticks: { font: { size: 10 } } }
+      }
+    }
+  });
+}
+
+// ── Status donut chart ───────────────────────────────
+function renderStatusChart(calcs) {
+  const ctx = document.getElementById('statusChart');
+  if (!ctx) return;
+
+  const STATUSES = window.STATUSES || {};
+  const groups   = {};
+
+  calcs.forEach(c => {
+    const s = normalizeStatus(c.status);
+    if (!groups[s]) groups[s] = 0;
+    groups[s] += c.total_price || 0;
+  });
+
+  const keys    = Object.keys(groups).filter(k => groups[k] > 0);
+  const labels  = keys.map(k => (STATUSES[k] ? STATUSES[k].short : k));
+  const values  = keys.map(k => groups[k]);
+  const COLORS  = {
+    new:         '#94a3b8',
+    scheduled:   '#f59e0b',
+    in_progress: '#2563eb',
+    done:        '#7c3aed',
+    delivered:   '#059669',
+    cancelled:   '#ef4444',
+  };
+  const colors = keys.map(k => COLORS[k] || '#94a3b8');
+
+  if (statusChart) statusChart.destroy();
+
+  if (keys.length === 0) {
+    ctx.parentElement.innerHTML = '<div style="text-align:center;padding:60px 20px;color:#94a3b8;font-size:0.82rem">Нет данных</div>';
+    return;
+  }
+
+  statusChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels,
+      datasets: [{ data: values, backgroundColor: colors, borderWidth: 2, borderColor: '#fff' }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'right', labels: { font: { size: 11 }, padding: 10, boxWidth: 12 } },
+        tooltip: {
+          callbacks: {
+            label: ctx => ' ' + fmt(ctx.parsed) + ' ₽ (' + ctx.label + ')'
+          }
+        }
+      },
+      cutout: '65%',
+    }
+  });
+}
+
+// ── Funnel ───────────────────────────────────────────
+function renderFunnel(calcs) {
+  const container = document.getElementById('funnelList');
+  if (!container) return;
+
+  const STATUSES = window.STATUSES || {};
+  const order    = ['new', 'scheduled', 'in_progress', 'done', 'delivered', 'cancelled'];
+  const COLORS   = {
+    new:         '#94a3b8', scheduled: '#f59e0b', in_progress: '#2563eb',
+    done:        '#7c3aed', delivered: '#059669', cancelled:   '#ef4444'
+  };
+
+  const counts = {};
+  calcs.forEach(c => {
+    const s = normalizeStatus(c.status);
+    counts[s] = (counts[s] || 0) + 1;
+  });
+
+  const maxCount = Math.max(...Object.values(counts), 1);
+  const total    = calcs.length;
+
+  container.innerHTML = order.map(key => {
+    const cnt   = counts[key] || 0;
+    const pct   = total > 0 ? Math.round(cnt / total * 100) : 0;
+    const width = Math.round(cnt / maxCount * 100);
+    const label = STATUSES[key] ? STATUSES[key].label : key;
+    const color = COLORS[key] || '#94a3b8';
+    return `
+      <div class="funnel-row">
+        <div class="funnel-label" title="${label}">${label}</div>
+        <div class="funnel-bar-wrap">
+          <div class="funnel-bar" style="width:${width}%;background:${color}"></div>
+        </div>
+        <div class="funnel-count">${cnt}</div>
+        <div class="funnel-pct">${pct}%</div>
+      </div>`;
+  }).join('');
+}
+
+// ── Top cars ─────────────────────────────────────────
+function renderTopCars(calcs) {
+  const wrap = document.getElementById('topCarsWrap');
+  if (!wrap) return;
+
+  const brands = {};
+  calcs.forEach(c => {
+    const brand = (c.car_name || 'Неизвестно').split(' ')[0];
+    if (!brands[brand]) brands[brand] = { count: 0, sum: 0 };
+    brands[brand].count++;
+    brands[brand].sum += c.total_price || 0;
+  });
+
+  const sorted = Object.entries(brands)
+    .sort((a, b) => b[1].sum - a[1].sum)
+    .slice(0, 8);
+
+  if (sorted.length === 0) {
+    wrap.innerHTML = '<div class="loading-state">Нет данных</div>';
+    return;
+  }
+
+  wrap.innerHTML = `
+    <table class="top-table">
+      <thead>
+        <tr>
+          <th>Марка</th>
+          <th>Кол-во</th>
+          <th>Сумма</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${sorted.map(([brand, data], i) => `
+          <tr>
+            <td><span class="rank-num">${i + 1}</span>${brand}</td>
+            <td>${data.count} шт.</td>
+            <td>${fmt(data.sum)} ₽</td>
+          </tr>`).join('')}
+      </tbody>
+    </table>`;
+}
+
+// ── Main render ──────────────────────────────────────
+function render() {
+  const cur  = filterByPeriod(allCalcs, activeDays);
+  const prev = filterByPeriodPrev(allCalcs, activeDays);
+  const { label } = getPeriodFilter(activeDays);
+
+  const lbl = document.getElementById('periodLabel');
+  if (lbl) lbl.textContent = label + ' · ' + cur.length + ' расчётов';
+
+  renderKPI(cur, prev);
+  renderRevenueChart(cur, activeDays);
+  renderStatusChart(cur);
+  renderFunnel(cur);
+  renderTopCars(cur);
+}
+
+// ── Auth & Load ──────────────────────────────────────
+async function checkAuth() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = 'welcome.html'; return false; }
+  return session;
+}
+
+async function init() {
+  initNav();
+  const session = await checkAuth();
+  if (!session) return;
+
+  // studio_members
+  const { data: member } = await sb
+    .from('studio_members')
+    .select('studio_id')
+    .eq('user_id', session.user.id)
+    .eq('is_active', true)
+    .single();
+
+  if (!member) {
+    document.querySelector('.container').innerHTML =
+      '<div class="loading-state">⚠️ Студия не найдена. Обратитесь к администратору.</div>';
+    return;
+  }
+
+  studioId = member.studio_id;
+  window._studioId = studioId;
+
+  // Подписка
+  const subStatus = await checkSubscription(studioId);
+  if (subStatus === 'expired' || subStatus === 'none') {
+    showPaywall(subStatus === 'expired');
+    return;
+  }
+
+  // Загружаем все расчёты
+  const { data, error } = await sb
+    .from('calculations')
+    .select('id, car_name, total_price, final_price, status, created_at')
+    .eq('studio_id', studioId)
+    .order('created_at', { ascending: true });
+
+  if (error) {
+    document.querySelector('.container').innerHTML =
+      `<div class="loading-state">❌ Ошибка загрузки: ${error.message}</div>`;
+    return;
+  }
+
+  allCalcs = data || [];
+  render();
+
+  // Period tabs
+  document.querySelectorAll('.period-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.period-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeDays = parseInt(btn.dataset.days);
+      render();
+    });
+  });
+}
+
+document.addEventListener('DOMContentLoaded', init);
+
+})();
+</script>
+</body>
+</html>
