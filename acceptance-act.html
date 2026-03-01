@@ -668,7 +668,7 @@ let defects      = [];   // [{id, x%, y%, desc}]
 
 // ── Auth ────────────────────────────────────────────
 async function checkAuth {
-  const { data: { session } } = await sb.auth.getSession;
+  const { data: { session } } = await sb.auth.getSession();
   if (!session) { window.location.href = 'welcome.html'; return false; }
   currentUser = session.user;
   return true;
@@ -682,11 +682,11 @@ function fmt(n) {
 // ── Load studio settings ────────────────────────────
 async function loadStudio {
   const { data: member } = await sb.from('studio_members')
-    .select('studio_id').eq('user_id', currentUser.id).eq('is_active', true).single;
+    .select('studio_id').eq('user_id', currentUser.id).eq('is_active', true).single();
   if (!member) return {};
 
   const { data: studio } = await sb.from('studios')
-    .select('name, settings').eq('id', member.studio_id).single;
+    .select('name, settings').eq('id', member.studio_id).single();
   if (!studio) return {};
 
   const cfg = studio.settings || {};
@@ -854,7 +854,7 @@ function renderDefects {
 }
 
 // ── Take to work ────────────────────────────────────
-window.takeToWork = async function {
+window.takeToWork = async function() {
   if (!calcId) return;
   const btn = document.getElementById('btnTakeWork');
   if (btn) { btn.disabled = true; btn.textContent = '⏳...'; }
@@ -899,7 +899,7 @@ document.getElementById('clientName').addEventListener('input', function {
   // Load studio + calc in parallel
   const [studioInfo, calcResult] = await Promise.all([
     loadStudio,
-    sb.from('calculations').select('*').eq('id', calcId).single
+    sb.from('calculations').select('*').eq('id', calcId).single()
   ]);
 
   if (calcResult.error || !calcResult.data) {
