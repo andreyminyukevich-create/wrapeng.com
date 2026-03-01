@@ -523,9 +523,9 @@ function updateStats(calculations) {
   const avg        = total > 0 ? sum / total : 0;
 
   document.getElementById('statMonthTotal').textContent     = total;
-  document.getElementById('statMonthSum').textContent       = fmt(sum) + ' ₽';
-  document.getElementById('statMonthDone').textContent      = fmt(doneSum) + ' ₽';
-  document.getElementById('statMonthAvg').textContent       = fmt(avg) + ' ₽';
+  document.getElementById('statMonthSum').textContent       = fmt(sum) + '';
+  document.getElementById('statMonthDone').textContent      = fmt(doneSum) + '';
+  document.getElementById('statMonthAvg').textContent       = fmt(avg) + '';
   document.getElementById('statMonthDoneCount').textContent = done.length + ' машин';
   document.getElementById('statMonthTotalChange').textContent = 'Текущий месяц';
 }
@@ -575,7 +575,7 @@ async function loadMiniKanban(studioId) {
       visible.forEach(c => {
         html += `<div class="mini-card" onclick="location.href='board.html'">
           <div class="mini-card-car">${c.car_name || 'Без названия'}</div>
-          <div class="mini-card-price">${fmt(c.final_price || c.total_price || 0)} ₽</div>
+          <div class="mini-card-price">${fmt(c.final_price || c.total_price || 0)}</div>
         </div>`;
       });
       if (rest > 0) {
@@ -612,7 +612,7 @@ window.handleSearch = function() {
     box.innerHTML = `<div class="calc-grid">` + found.map(c => `
       <div class="calc-card" onclick="location.href='calculator.html?load=${c.id}'">
         <h3>${c.car_name || 'Без названия'}</h3>
-        <div class="calc-price">${fmt(c.final_price || c.total_price || 0)} ₽</div>
+        <div class="calc-price">${fmt(c.final_price || c.total_price || 0)}</div>
         <div class="calc-actions">
           <a class="btn btn-primary" href="calculator.html?load=${c.id}" onclick="event.stopPropagation()">📂 Открыть</a>
           <a class="btn btn-success" href="assign-work.html?calc_id=${c.id}" onclick="event.stopPropagation()">👥 Работы</a>
@@ -624,9 +624,9 @@ window.handleSearch = function() {
 function showLockedDashboard() {
   const fakeStats = [
     { icon: '🚗', label: 'Расчётов за месяц', value: '██', change: '+██%' },
-    { icon: '💰', label: 'Сумма расчётов',     value: '███ ███ ₽', change: '+██%' },
+    { icon: '💰', label: 'Сумма расчётов',     value: '███ ███', change: '+██%' },
     { icon: '✅', label: 'Завершённые работы', value: '██', change: '' },
-    { icon: '📊', label: 'Средний чек',        value: '██ ██ ₽', change: '+██%' },
+    { icon: '📊', label: 'Средний чек',        value: '██ ██', change: '+██%' },
   ];
 
   const grid = document.getElementById('statsGrid');
