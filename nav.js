@@ -3,7 +3,7 @@
  * Светлая тема, без переключателя.
  * Включает проверку подписки студии.
  */
-(function () {
+(function  {
   'use strict';
 
   document.documentElement.setAttribute('data-theme', 'light');
@@ -34,8 +34,8 @@
     { href: 'settings.html',    icon: '⚙️', label: 'Настройки' },
   ];
 
-  function currentPage() {
-    return window.location.pathname.split('/').pop() || 'dashboard.html';
+  function currentPage {
+    return window.location.pathname.split('/').pop || 'dashboard.html';
   }
 
   window.initNav = function (config) {
@@ -43,7 +43,7 @@
     var actionHref  = config.actionHref  !== undefined ? config.actionHref  : 'calculator.html';
     var actionLabel = config.actionLabel !== undefined ? config.actionLabel : '➕ Новый расчёт';
     var hideAction  = config.hideAction  || false;
-    var page = currentPage();
+    var page = currentPage;
 
     var links = PAGES.map(function (p) {
       var isActive = p.href === page;
@@ -55,8 +55,8 @@
 
     var actionBtn = hideAction ? '' :
       '<a href="' + actionHref + '" class="btn-nav-action">' + actionLabel + '</a>' +
-      '<button class="btn-nav-book" id="btnNavBook" onclick="window._openNavBooking()">📅 Записать авто</button>';
-    var logoutBtn = '<button class="btn-nav-logout" onclick="(async()=>{const s=window._crmSb||window.supabase.createClient(\'https://hdghijgrrnzmntistdvw.supabase.co\',\'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkZ2hpamdycm56bW50aXN0ZHZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMzMyNzksImV4cCI6MjA3NTYwOTI3OX0.D9EDTmVrFRVp0B8_5tCJM29gbFdtadsom0Ihsf4uQ8Q\');await s.auth.signOut();window.location.href=\'welcome.html\';})()" style="background:transparent;border:1.5px solid rgba(124,58,237,0.3);color:#7c6fa0;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:0.82rem;font-weight:700;font-family:inherit;transition:all 0.2s" onmouseover="this.style.borderColor=\'#7c3aed\';this.style.color=\'#7c3aed\'" onmouseout="this.style.borderColor=\'rgba(124,58,237,0.3)\';this.style.color=\'#7c6fa0\'">Выйти →</button>';
+      '<button class="btn-nav-book" id="btnNavBook" onclick="window._openNavBooking">📅 Записать авто</button>';
+    var logoutBtn = '<button class="btn-nav-logout" onclick="(async=>{const s=window._crmSb||window.supabase.createClient(\'https://hdghijgrrnzmntistdvw.supabase.co\',\'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkZ2hpamdycm56bW50aXN0ZHZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMzMyNzksImV4cCI6MjA3NTYwOTI3OX0.D9EDTmVrFRVp0B8_5tCJM29gbFdtadsom0Ihsf4uQ8Q\');await s.auth.signOut;window.location.href=\'welcome.html\';})" style="background:transparent;border:1.5px solid rgba(124,58,237,0.3);color:#7c6fa0;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:0.82rem;font-weight:700;font-family:inherit;transition:all 0.2s" onmouseover="this.style.borderColor=\'#7c3aed\';this.style.color=\'#7c3aed\'" onmouseout="this.style.borderColor=\'rgba(124,58,237,0.3)\';this.style.color=\'#7c6fa0\'">Выйти →</button>';
 
     // Проверяем текущего пользователя для показа пункта Админ
     var SUPABASE_URL = 'https://hdghijgrrnzmntistdvw.supabase.co';
@@ -111,23 +111,23 @@
       }
     }
 
-    function doOpen() {
+    function doOpen {
       BookingPopup.open({
         studioId: sid,
-        onSaved: function() { location.reload(); }
+        onSaved: function { location.reload; }
       });
     }
 
     if (window.BookingPopup) {
-      doOpen();
+      doOpen;
       return;
     }
 
     // Загружаем booking-popup.js если ещё не загружен
     var s = document.createElement('script');
     s.src = 'booking-popup.js';
-    s.onload = function() { doOpen(); };
-    s.onerror = function() { alert('Не удалось загрузить модуль записи.'); };
+    s.onload = function { doOpen; };
+    s.onerror = function { alert('Не удалось загрузить модуль записи.'); };
     document.head.appendChild(s);
   };
 
@@ -147,7 +147,7 @@
 
     var tier    = res.data.subscription_tier;
     var expires = res.data.subscription_expires_at;
-    var now     = new Date();
+    var now     = new Date;
 
     if (tier === 'active') {
       return (!expires || new Date(expires) > now) ? 'active' : 'expired';
@@ -196,4 +196,4 @@
     document.body.appendChild(overlay.firstElementChild);
   };
 
-})();
+});
