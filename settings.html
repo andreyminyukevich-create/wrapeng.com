@@ -377,7 +377,7 @@ body {
 <div id="saveToast">✅ Сохранено</div>
 
 <script>
-(function() {
+(function {
 'use strict';
 
 const SUPABASE_URL      = 'https://hdghijgrrnzmntistdvw.supabase.co';
@@ -391,14 +391,14 @@ let studio         = null;  // studios row
 let logoBase64     = null;  // current logo as base64 string or null
 
 // ── Auth ─────────────────────────────────────────────
-async function checkAuth() {
+async function checkAuth {
   const { data: { session } } = await sb.auth.getSession();
   if (!session) { window.location.href = 'welcome.html'; return false; }
   currentUser = session.user;
   return true;
 }
 
-async function loadStudio() {
+async function loadStudio {
   const { data: member, error } = await sb
     .from('studio_members')
     .select('studio_id, role')
@@ -419,7 +419,7 @@ async function loadStudio() {
 }
 
 // ── Render ────────────────────────────────────────────
-async function renderAll() {
+async function renderAll {
   const s = studio;
   const cfg = s.settings || {};
   const isOwner = currentProfile.role === 'owner';
@@ -427,7 +427,7 @@ async function renderAll() {
   logoBase64 = cfg.kp_logo || null;
 
   const subExpires = s.subscription_expires_at ? new Date(s.subscription_expires_at) : null;
-  const now = new Date();
+  const now = new Date;
   const isPaid = s.is_paid || (subExpires && subExpires > now);
   const tierLabel = isPaid ? 'Pro' : 'Trial';
   const subClass  = isPaid ? 'paid' : (subExpires && subExpires < now ? 'expired' : 'trial');
@@ -482,7 +482,7 @@ async function renderAll() {
       </div>
 
       <div style="margin-top:16px;display:flex;justify-content:flex-end">
-        <button class="btn btn-primary" onclick="saveMain()">💾 Сохранить</button>
+        <button class="btn btn-primary" onclick="saveMain">💾 Сохранить</button>
       </div>
     </div>
 
@@ -512,8 +512,8 @@ async function renderAll() {
                 : `<span class="logo-preview-placeholder">🏢</span>`}
             </div>
             <div class="logo-actions">
-              <button class="btn btn-secondary btn-sm" onclick="document.getElementById('logoFileInput').click()">📂 Загрузить логотип</button>
-              ${logoBase64 ? '<button class="btn btn-danger btn-sm" onclick="removeLogo()">✕ Удалить</button>' : ''}
+              <button class="btn btn-secondary btn-sm" onclick="document.getElementById('logoFileInput').click">📂 Загрузить логотип</button>
+              ${logoBase64 ? '<button class="btn btn-danger btn-sm" onclick="removeLogo">✕ Удалить</button>' : ''}
               <div class="logo-filename" id="logoFilename">${cfg.kp_logo_name || (logoBase64 ? 'Логотип загружен' : 'PNG, SVG, WEBP — до 200KB')}</div>
             </div>
           </div>
@@ -548,7 +548,7 @@ async function renderAll() {
 
       ${isPaid ? `
         <div style="margin-top:16px;display:flex;justify-content:flex-end">
-          <button class="btn btn-primary" onclick="saveBranding()">💾 Сохранить</button>
+          <button class="btn btn-primary" onclick="saveBranding">💾 Сохранить</button>
         </div>
       ` : ''}
     </div>
@@ -570,8 +570,8 @@ async function renderAll() {
       </div>
       <div class="posts-list" id="postsList"></div>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-        <button class="btn btn-secondary btn-sm" onclick="addPost()">➕ Добавить пост</button>
-        <button class="btn btn-primary btn-sm" onclick="savePosts()">💾 Сохранить посты</button>
+        <button class="btn btn-secondary btn-sm" onclick="addPost">➕ Добавить пост</button>
+        <button class="btn btn-primary btn-sm" onclick="savePosts">💾 Сохранить посты</button>
       </div>
     </div>
 
@@ -595,7 +595,7 @@ async function renderAll() {
         <div style="font-size:0.82rem;color:var(--muted);margin-bottom:14px">
           Выход из CRM завершит текущую сессию.
         </div>
-        <button class="btn btn-danger" onclick="logout()">🚪 Выйти из аккаунта</button>
+        <button class="btn btn-danger" onclick="logout">🚪 Выйти из аккаунта</button>
       </div>
     ` : ''}
   `;
@@ -607,11 +607,11 @@ async function renderAll() {
   }
 
   // Загружаем участников
-  await loadMembers();
+  await loadMembers;
 }
 
 // ── KP Preview live update ────────────────────────────
-function updateKPPreview() {
+function updateKPPreview {
   const phone   = document.getElementById('kpPhone')?.value || '';
   const website = document.getElementById('kpWebsite')?.value || '';
   const el = document.getElementById('kpContactPreview');
@@ -626,7 +626,7 @@ window.handleLogoChange = function(e) {
     alert('❌ Файл слишком большой. Максимум — 200KB.');
     return;
   }
-  const reader = new FileReader();
+  const reader = new FileReader;
   reader.onload = function(ev) {
     logoBase64 = ev.target.result;
     const box = document.getElementById('logoPreviewBox');
@@ -634,21 +634,21 @@ window.handleLogoChange = function(e) {
     const fn = document.getElementById('logoFilename');
     if (fn) fn.textContent = file.name;
     // Update KP preview
-    updateKPLogoPreview();
+    updateKPLogoPreview;
   };
   reader.readAsDataURL(file);
 };
 
-window.removeLogo = function() {
+window.removeLogo = function {
   logoBase64 = null;
   const box = document.getElementById('logoPreviewBox');
   if (box) box.innerHTML = `<span class="logo-preview-placeholder">🏢</span>`;
   const fn = document.getElementById('logoFilename');
   if (fn) fn.textContent = 'PNG, SVG, WEBP — до 200KB';
-  updateKPLogoPreview();
+  updateKPLogoPreview;
 };
 
-function updateKPLogoPreview() {
+function updateKPLogoPreview {
   const preview = document.getElementById('kpPreviewBox');
   if (!preview) return;
   const ph = preview.querySelector('.kp-header-preview');
@@ -665,7 +665,7 @@ function updateKPLogoPreview() {
 }
 
 // ── Members ───────────────────────────────────────────
-async function loadMembers() {
+async function loadMembers {
   const { data: members, error } = await sb
     .from('studio_members')
     .select('id, role, is_active, user_id')
@@ -694,7 +694,7 @@ async function loadMembers() {
       <tbody>
         ${members.map(m => {
           const isMe = m.user_id === currentUser.id;
-          const initials = m.user_id.slice(0, 2).toUpperCase();
+          const initials = m.user_id.slice(0, 2).toUpperCase;
           const roleClass = ROLE_CLASS[m.role] || 'staff';
           const roleLabel = ROLE_LABELS[m.role] || m.role;
           return `
@@ -734,7 +734,7 @@ const POST_COLORS = [
 
 window._postsData = []; // глобально, чтобы inline-хендлеры видели
 
-async function loadPosts() {
+async function loadPosts {
   const { data, error } = await sb
     .from('posts')
     .select('*')
@@ -750,7 +750,7 @@ async function loadPosts() {
   renderPosts();
 }
 
-function syncPostsFromDOM() {
+function syncPostsFromDOM {
   // Считываем текущие значения из DOM перед перерисовкой
   const rows = document.querySelectorAll('#postsList .post-row');
   rows.forEach(row => {
@@ -765,7 +765,7 @@ function syncPostsFromDOM() {
   });
 }
 
-function renderPosts() {
+function renderPosts {
   const list = document.getElementById('postsList');
   if (!list) return;
   if (!window._postsData.length) {
@@ -791,8 +791,8 @@ function renderPosts() {
   }).join('');
 }
 
-window.addPost = function() {
-  syncPostsFromDOM(); // сохраняем что уже введено
+window.addPost = function {
+  syncPostsFromDOM; // сохраняем что уже введено
   const idx = window._postsData.length;
   window._postsData.push({
     _new: true,
@@ -805,11 +805,11 @@ window.addPost = function() {
   renderPosts();
   // Фокус на последний input
   const inputs = document.querySelectorAll('.post-name-input');
-  if (inputs.length) inputs[inputs.length - 1].focus();
+  if (inputs.length) inputs[inputs.length - 1].focus;
 };
 
 window._deletePost = async function(idx) {
-  syncPostsFromDOM();
+  syncPostsFromDOM;
   const p = window._postsData[idx];
   if (!p._new && p.id) {
     if (!confirm(`Удалить пост «${p.name || 'без названия'}»?`)) return;
@@ -820,7 +820,7 @@ window._deletePost = async function(idx) {
 };
 
 window._cycleColor = function(idx) {
-  syncPostsFromDOM();
+  syncPostsFromDOM;
   const p = window._postsData[idx];
   const cur = POST_COLORS.indexOf(p.color);
   p.color = POST_COLORS[(cur + 1) % POST_COLORS.length];
@@ -828,16 +828,16 @@ window._cycleColor = function(idx) {
 };
 
 window.savePosts = async function() {
-  syncPostsFromDOM(); // финальный снимок перед сохранением
-  const btn = document.querySelector('[onclick="savePosts()"]');
+  syncPostsFromDOM; // финальный снимок перед сохранением
+  const btn = document.querySelector('[onclick="savePosts"]');
   if (btn) { btn.textContent = '⏳ Сохранение...'; btn.disabled = true; }
 
   let hasError = false;
   for (const p of window._postsData) {
-    if (!p.name?.trim()) continue;
+    if (!p.name?.trim) continue;
     const payload = {
       studio_id: studio.id,
-      name:      p.name.trim(),
+      name:      p.name.trim,
       type:      p.type || 'universal',
       color:     p.color || '#2563eb',
       capacity:  p.capacity || 1,
@@ -857,18 +857,18 @@ window.savePosts = async function() {
     alert('❌ Ошибка при сохранении. Возможно, таблица posts ещё не создана в БД.');
   } else {
     toast('✅ Посты сохранены');
-    await loadPosts();
+    await loadPosts;
   }
 };
 
 // ── Save main ─────────────────────────────────────────
 window.saveMain = async function() {
-  const name    = document.getElementById('studioName')?.value.trim();
-  const phone   = document.getElementById('studioPhone')?.value.trim();
-  const city    = document.getElementById('studioCity')?.value.trim();
-  const website = document.getElementById('studioWebsite')?.value.trim();
-  const email   = document.getElementById('studioEmail')?.value.trim();
-  const address = document.getElementById('studioAddress')?.value.trim();
+  const name    = document.getElementById('studioName')?.value.trim;
+  const phone   = document.getElementById('studioPhone')?.value.trim;
+  const city    = document.getElementById('studioCity')?.value.trim;
+  const website = document.getElementById('studioWebsite')?.value.trim;
+  const email   = document.getElementById('studioEmail')?.value.trim;
+  const address = document.getElementById('studioAddress')?.value.trim;
 
   if (!name) { alert('Введите название студии'); return; }
 
@@ -891,8 +891,8 @@ window.saveMain = async function() {
 
 // ── Save branding ─────────────────────────────────────
 window.saveBranding = async function() {
-  const kpPhone   = document.getElementById('kpPhone')?.value.trim();
-  const kpWebsite = document.getElementById('kpWebsite')?.value.trim();
+  const kpPhone   = document.getElementById('kpPhone')?.value.trim;
+  const kpWebsite = document.getElementById('kpWebsite')?.value.trim;
 
   const newSettings = {
     ...(studio.settings || {}),
@@ -939,17 +939,17 @@ function showError(msg) {
 }
 
 // ── Init ──────────────────────────────────────────────
-async function init() {
+async function init {
   initNav({ actionHref: 'dashboard.html', actionLabel: '← Панель' });
-  if (!await checkAuth()) return;
-  if (!await loadStudio()) return;
+  if (!await checkAuth) return;
+  if (!await loadStudio) return;
   await renderAll();
-  await loadPosts();
+  await loadPosts;
 }
 
 init();
 
-})();
+});
 </script>
 
 <script src="footer.js"></script>
