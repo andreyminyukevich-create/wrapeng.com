@@ -2430,7 +2430,7 @@ async function checkAccess(user) {
 async function checkAuth {
   try {
     if (!sb) return true; // Supabase не загружен — пропускаем авторизацию
-    const { data: { session } } = await sb.auth.getSession;
+    const { data: { session } } = await sb.auth.getSession();
     if (session) {
       currentUser = session.user;
       // Загружаем профиль студии чтобы сохранение работало
