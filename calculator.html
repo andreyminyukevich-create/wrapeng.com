@@ -2436,18 +2436,27 @@ async function checkAuth() {
       // Загружаем профиль студии чтобы сохранение работало
       const { data: member } = await sb
         .from('studio_members')
-        .select('studio_id, studios(name, subscription_tier, subscription_expires_at)')
+        .select('studio_id, studios(name, subscription_tier, subscription_expires_at, settings)')
         .eq('user_id', session.user.id)
         .eq('is_active', true)
         .single();
       if (member) {
+        const tier    = member.studios?.subscription_tier;
+        const isPaid  = tier === 'active';
+        const isTrial = tier === 'trial';
         currentProfile = {
           id: session.user.id,
           studio_name: member.studios?.name || 'Студия',
           studio_id: member.studio_id,
-          is_paid: ['active','trial'].includes(member.studios?.subscription_tier),
+          is_paid: isPaid || isTrial,
+          is_trial: isTrial,
           trial_ends_at: member.studios?.subscription_expires_at,
+          studio_settings: member.studios?.settings || {},
         };
+        // Применяем брендинг КП сразу после загрузки профиля
+        if (typeof window.applyKPBranding === 'function') {
+          window.applyKPBranding(isTrial || !isPaid, currentProfile.studio_settings, member.studios?.name || '');
+        }
       } else {
         // Нет студии — разрешаем пользоваться, но без сохранения
         currentProfile = null;
@@ -4356,6 +4365,11 @@ function showTrialWatermark() {
 }
 function prepKP() {
   showTrialWatermark();
+  // Применяем брендинг перед каждым экспортом (на случай если профиль загрузился позже)
+  if (currentProfile && typeof window.applyKPBranding === 'function') {
+    const isTrial = !currentProfile.is_paid || currentProfile.is_trial;
+    window.applyKPBranding(isTrial, currentProfile.studio_settings || {}, currentProfile.studio_name || '');
+  }
   const tb = q('#pdfKPTBody');
   if (!tb) return;
   tb.innerHTML = '';
