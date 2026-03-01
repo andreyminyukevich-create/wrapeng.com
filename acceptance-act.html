@@ -1,1198 +1,677 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Распределение работ — Keep1R CRM</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<link rel="stylesheet" href="nav.css">
-<script src="nav.js"></script>
-<style>
-:root {
-  --font:       -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
-  --bg:         #eef2f9;
-  --surface:    #ffffff;
-  --border:     rgba(15,23,42,0.08);
-  --text:       #0f172a;
-  --muted:      #64748b;
-  --dim:        #94a3b8;
-  --primary:    #2563eb;
-  --primary-dk: #1d4ed8;
-  --success:    #059669;
-  --success-bg: rgba(5,150,105,0.07);
-  --danger:     #dc2626;
-  --danger-bg:  rgba(220,38,38,0.07);
-  --warning:    #d97706;
-  --warning-bg: rgba(217,119,6,0.07);
-  --radius:     14px;
-  --radius-sm:  9px;
-  --shadow:     0 1px 3px rgba(0,0,0,0.04), 0 4px 14px rgba(0,0,0,0.06);
-}
+/**
+ * calculator-render.js
+ * Все функции рендеринга: списки услуг, таблицы КП/себестоимости, исполнители, итоги
+ * Зависит от: calculator-data.js, calculator-engine.js
+ */
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
+// ── Инициализация Chart.js ────────────────────────────────────────
+function initChart() {
+  const ctx = q('#pieChart')?.getContext('2d');
+  if (!ctx || !window.Chart) return;
 
-body {
-  font-family: var(--font);
-  -webkit-font-smoothing: antialiased;
-  background: var(--bg);
-  color: var(--text);
-  min-height: 100svh;
-}
+  const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text-primary').trim() || '#f1f5f9';
 
-/* ── Субшапка ────────────────────────────────────── */
-.page-subheader {
-  display: flex;
-  align-items: center;
-  padding: 11px 20px;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  gap: 12px;
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-}
-.page-subheader-left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex: 1;
-  min-width: 0;
-}
-.page-subheader-title {
-  font-size: 0.92rem;
-  font-weight: 700;
-  white-space: nowrap;
-}
-.car-subtitle {
-  font-size: 0.82rem;
-  color: var(--muted);
-  font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.btn-back {
-  display: inline-flex;
-  align-items: center;
-  padding: 6px 12px;
-  border-radius: 7px;
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: var(--primary);
-  background: rgba(37,99,235,0.07);
-  border: 1px solid rgba(37,99,235,0.18);
-  cursor: pointer;
-  font-family: var(--font);
-  transition: all 0.15s;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-.btn-back:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
-
-/* ── Контент ─────────────────────────────────────── */
-.container {
-  max-width: 820px;
-  margin: 0 auto;
-  padding: 22px 18px 48px;
-}
-
-/* ── Карточки ────────────────────────────────────── */
-.card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 20px 22px;
-  margin-bottom: 14px;
-  box-shadow: var(--shadow);
-}
-.card-title {
-  font-size: 0.9rem;
-  font-weight: 700;
-  margin-bottom: 16px;
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  letter-spacing: -0.1px;
-}
-
-/* ── Admin sale block ────────────────────────────── */
-.admin-sale-block {
-  background: var(--surface);
-  border: 1px solid rgba(217,119,6,0.22);
-  border-radius: var(--radius);
-  padding: 16px 20px;
-  margin-bottom: 14px;
-  box-shadow: var(--shadow);
-}
-
-.admin-sale-row {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
-
-.toggle-switch {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  cursor: pointer;
-  font-weight: 700;
-  font-size: 0.88rem;
-  color: var(--text);
-  user-select: none;
-}
-.toggle-switch input[type="checkbox"] {
-  width: 17px; height: 17px;
-  accent-color: var(--warning);
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-.admin-details {
-  display: none;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 14px;
-  padding-top: 14px;
-  border-top: 1px solid rgba(217,119,6,0.15);
-  align-items: flex-end;
-}
-.admin-details.active { display: flex; }
-
-/* ── Form group ──────────────────────────────────── */
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.form-group label {
-  font-size: 0.67rem;
-  color: var(--muted);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-.form-group input,
-.form-group select {
-  padding: 9px 12px;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  color: var(--text);
-  font-size: 16px;
-  font-family: var(--font);
-  transition: border-color 0.15s, box-shadow 0.15s;
-  outline: none;
-  -webkit-appearance: none;
-}
-.form-group input:focus,
-.form-group select:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(37,99,235,0.08);
-  background: var(--surface);
-}
-
-/* ── Work list ───────────────────────────────────── */
-.work-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.work-item {
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 16px 18px;
-  transition: border-color 0.15s;
-}
-.work-item:hover { border-color: rgba(37,99,235,0.2); }
-
-.work-item-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-.work-service-name {
-  font-weight: 700;
-  font-size: 0.88rem;
-  color: var(--text);
-}
-.work-base-salary {
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: var(--success);
-  background: var(--success-bg);
-  padding: 3px 10px;
-  border-radius: 20px;
-  white-space: nowrap;
-  border: 1px solid rgba(5,150,105,0.18);
-}
-
-/* ── Executor rows ───────────────────────────────── */
-.executor-rows { display: flex; flex-direction: column; gap: 8px; }
-
-.executor-row { width: 100%; }
-
-.executor-input-group { display: flex; flex-direction: column; gap: 5px; }
-
-.executor-mode-switcher { display: flex; gap: 4px; }
-
-.mode-btn {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 7px;
-  padding: 4px 12px;
-  cursor: pointer;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--muted);
-  transition: all 0.15s;
-  font-family: var(--font);
-  white-space: nowrap;
-}
-.mode-btn:hover { color: var(--text); }
-.mode-btn.active { background: var(--primary); border-color: var(--primary); color: #fff; }
-
-/* Строка: [дропдаун/инпут] [сумма] [×] */
-.executor-fields-row {
-  display: grid;
-  grid-template-columns: 1fr 130px 34px;
-  gap: 7px;
-  align-items: center;
-}
-
-.executor-select-wrap select,
-.executor-manual-wrap .manual-name-input {
-  width: 100%;
-  padding: 8px 12px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  color: var(--text);
-  font-size: 16px;
-  font-family: var(--font);
-  outline: none;
-  transition: border-color 0.15s, box-shadow 0.15s;
-  -webkit-appearance: none;
-}
-.executor-select-wrap select:focus,
-.executor-manual-wrap .manual-name-input:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(37,99,235,0.08);
-}
-.executor-select-wrap, .executor-manual-wrap { min-width: 0; }
-
-.salary-input {
-  padding: 8px 12px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  color: var(--text);
-  font-size: 16px;
-  font-family: var(--font);
-  font-weight: 700;
-  width: 100%;
-  outline: none;
-  transition: border-color 0.15s, box-shadow 0.15s;
-}
-.salary-input:focus {
-  border-color: var(--success);
-  box-shadow: 0 0 0 3px rgba(5,150,105,0.08);
-}
-
-.btn-remove-exec {
-  background: var(--danger-bg);
-  border: 1px solid rgba(220,38,38,0.15);
-  color: var(--danger);
-  border-radius: 8px;
-  padding: 0;
-  cursor: pointer;
-  font-size: 0.8rem;
-  transition: all 0.15s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 34px;
-  width: 34px;
-  flex-shrink: 0;
-  font-family: var(--font);
-}
-.btn-remove-exec:hover { background: var(--danger); color: #fff; border-color: var(--danger); }
-
-.executor-manual-save {
-  display: flex;
-  align-items: center;
-  padding-left: 1px;
-}
-.save-to-list-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: var(--success);
-  cursor: pointer;
-  user-select: none;
-}
-.save-to-list-label input[type="checkbox"] {
-  accent-color: var(--success);
-  width: 13px; height: 13px;
-  cursor: pointer;
-}
-
-.add-executor-btn {
-  margin-top: 8px;
-  font-size: 0.75rem;
-  padding: 6px 12px;
-  color: var(--primary);
-  background: rgba(37,99,235,0.05);
-  border: 1px dashed rgba(37,99,235,0.28);
-  border-radius: 8px;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  transition: all 0.15s;
-  font-weight: 700;
-  font-family: var(--font);
-}
-.add-executor-btn:hover { background: rgba(37,99,235,0.10); border-color: var(--primary); }
-
-/* ── Dates header ── */
-.dates-header-card {
-  background: #fff; border-radius: var(--radius); border: 1px solid var(--border);
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06); padding: 14px 18px; margin-bottom: 14px;
-  display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
-}
-.dates-header-item { display: flex; flex-direction: column; gap: 3px; }
-.dates-header-label { font-size: 0.67rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
-.dates-header-value { font-size: 0.92rem; font-weight: 700; color: var(--text); }
-#expectedCheckout {
-  border: 1.5px solid var(--border); border-radius: 8px; padding: 6px 10px;
-  font-size: 0.88rem; font-weight: 600; font-family: var(--font); color: var(--text);
-  background: #f8fafc; cursor: pointer; outline: none;
-}
-#expectedCheckout:focus { border-color: var(--primary); background: #fff; }
-.executor-dates-row {
-  display: flex; align-items: center; gap: 8px; padding: 6px 0 0; flex-wrap: wrap;
-}
-.dates-label { font-size: 0.72rem; font-weight: 700; color: var(--muted); white-space: nowrap; }
-.dates-sep   { color: var(--muted); font-size: 0.85rem; }
-.exec-date-from, .exec-date-to {
-  border: 1.5px solid var(--border); border-radius: 7px; padding: 4px 8px;
-  font-size: 0.82rem; font-family: var(--font); color: var(--text);
-  background: #f8fafc; cursor: pointer; outline: none; flex: 1; min-width: 120px; max-width: 150px;
-}
-.exec-date-from:focus, .exec-date-to:focus { border-color: var(--primary); background: #fff; }
-
-/* ── Добавить работу вручную ─────────────────────── */
-.add-work-row {
-  display: grid;
-  grid-template-columns: 1fr 150px;
-  gap: 10px;
-}
-.add-work-row input {
-  padding: 9px 12px;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  color: var(--text);
-  font-size: 16px;
-  font-family: var(--font);
-  outline: none;
-  transition: border-color 0.15s, box-shadow 0.15s;
-  -webkit-appearance: none;
-}
-.add-work-row input:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(37,99,235,0.08);
-}
-
-/* ── Итого ───────────────────────────────────────── */
-.summary-block {
-  background: var(--success-bg);
-  border: 1px solid rgba(5,150,105,0.2);
-  border-radius: 12px;
-  padding: 18px 20px;
-}
-.summary-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 0;
-  gap: 20px;
-}
-.summary-row + .summary-row { border-top: 1px solid rgba(5,150,105,0.12); }
-.summary-label { color: var(--muted); font-size: 0.85rem; font-weight: 600; white-space: nowrap; }
-.summary-value { font-weight: 700; font-size: 0.92rem; }
-.summary-total-value {
-  color: var(--success);
-  font-size: 1.7rem;
-  font-weight: 800;
-  letter-spacing: -1px;
-  text-align: right;
-  line-height: 1.1;
-  min-width: 0;
-  word-break: break-word;
-}
-
-/* ── Кнопки ──────────────────────────────────────── */
-.btn {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 10px 20px;
-  border-radius: var(--radius-sm);
-  font-size: 0.85rem;
-  font-weight: 700;
-  font-family: var(--font);
-  cursor: pointer;
-  border: none;
-  transition: all 0.15s;
-  text-decoration: none;
-  white-space: nowrap;
-}
-.btn-primary   { background: var(--primary); color: #fff; }
-.btn-primary:hover   { background: var(--primary-dk); }
-.btn-success   { background: var(--success); color: #fff; font-size: 0.92rem; padding: 12px 24px; }
-.btn-success:hover   { background: #047857; }
-.btn-secondary {
-  background: transparent;
-  color: var(--muted);
-  border: 1px solid var(--border);
-}
-.btn-secondary:hover { background: var(--bg); color: var(--text); }
-.btn-sm { padding: 7px 14px; font-size: 0.78rem; }
-
-/* ── Состояния ───────────────────────────────────── */
-.loading {
-  text-align: center;
-  padding: 60px;
-  color: var(--muted);
-  font-size: 0.9rem;
-}
-
-/* ── Адаптив ─────────────────────────────────────── */
-@media (max-width: 640px) {
-  .container { padding: 16px 14px 40px; }
-  .card { padding: 16px 16px; }
-
-  .executor-fields-row { grid-template-columns: 1fr 100px 34px; }
-
-  .add-work-row { grid-template-columns: 1fr; }
-
-  .admin-details { flex-direction: column; align-items: stretch; }
-  .admin-details .form-group { width: 100%; }
-
-  .summary-total-value { font-size: 1.5rem; }
-  .work-item { padding: 14px 14px; }
-  .work-item-header { flex-direction: column; align-items: flex-start; }
-}
-
-@media (max-width: 480px) {
-  .executor-fields-row { grid-template-columns: 1fr; gap: 8px; }
-  .btn-remove-exec { width: 100%; height: 40px; }
-  .btn-success { width: 100%; justify-content: center; }
-  .summary-row { flex-direction: column; align-items: flex-start; gap: 2px; }
-  .summary-total-value { align-self: flex-end; }
-}
-</style>
-</head>
-<body>
-
-<div class="container">
-  <!-- Субшапка -->
-  <div class="page-subheader">
-    <div class="page-subheader-left">
-      <button class="btn-back" onclick="goBack()">← В работе</button>
-      <div class="page-subheader-title">👥 Распределение работ</div>
-      <div class="car-subtitle" id="carSubtitle">Загрузка...</div>
-    </div>
-  </div>
-
-  <div id="mainContent">
-    <div class="loading">⏳ Загрузка расчёта...</div>
-  </div>
-</div>
-
-<script src="footer.js"></script>
-<script>
-(function() {
-'use strict';
-
-window.goBack = function() {
-  const referrer = document.referrer;
-  if (referrer && referrer.includes('board.html')) {
-    window.location.href = 'board.html';
-  } else {
-    window.location.href = 'dashboard.html';
-  }
-};
-
-window.showSavedBanner = function(calcId, count) {
-  // Hide save button, show success banner
-  const btn = document.getElementById('btnSave');
-  if (btn) btn.style.display = 'none';
-
-  const banner = document.getElementById('savedBanner');
-  if (banner) {
-    document.getElementById('savedCount').textContent = count;
-    document.getElementById('woLink').href = 'work-order.html?calc_id=' + calcId;
-    banner.style.display = 'flex';
-    banner.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }
-};
-
-const SUPABASE_URL     = 'https://hdghijgrrnzmntistdvw.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkZ2hpamdycm56bW50aXN0ZHZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMzMyNzksImV4cCI6MjA3NTYwOTI3OX0.D9EDTmVrFRVp0B8_5tCJM29gbFdtadsom0Ihsf4uQ8Q';
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-window._crmSb = sb;
-
-let currentUser   = null;
-let currentStudio = null;
-let calculation   = null;
-let executors     = [];
-let calcId        = null;
-
-const SERVICE_NAMES = {
-  pkg_wrap:    'Оклейка (Полная защита)',
-  pkg_prep:    'Подготовка (Полная защита)',
-  pkg_arm:     'Арматурные работы (Полная защита)',
-  impact_wrap: 'Оклейка (Ударная часть)',
-  impact_prep: 'Подготовка (Ударная часть)',
-  impact_arm:  'Арматурные работы (Ударная часть)',
-  arm:  'Арматурные работы',
-  wrap: 'Оклейка',
-  det:  'Детейлинг',
-  gl:   'Полировка/Химчистка',
-  ms:   'Прочие услуги'
-};
-
-function fmt(n) {
-  return new Intl.NumberFormat('ru-RU', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(n || 0);
-}
-
-async function checkAuth() {
-  const { data: { session } } = await sb.auth.getSession();
-  if (!session) { window.location.href = 'welcome.html'; return false; }
-  currentUser = session.user;
-  return true;
-}
-
-async function getStudio() {
-  const { data, error } = await sb
-    .from('studio_members')
-    .select('studio_id, role')
-    .eq('user_id', currentUser.id)
-    .eq('is_active', true)
-    .single();
-  if (error || !data) { alert('❌ Студия не найдена'); return false; }
-  currentStudio = data;
-  return true;
-}
-
-async function loadExecutors() {
-  const { data, error } = await sb
-    .from('executors')
-    .select('id, full_name, role, is_admin')
-    .eq('studio_id', currentStudio.studio_id)
-    .eq('is_active', true)
-    .order('full_name');
-  if (error) { console.error('Executors error:', error); return; }
-  executors = data || [];
-}
-
-function executorSelect(selectedId = '') {
-  const opts = executors.map(e =>
-    `<option value="${e.id}" ${e.id === selectedId ? 'selected' : ''}>${e.full_name} (${roleRu(e.role)})</option>`
-  ).join('');
-  return `<select><option value="">— Выбрать исполнителя —</option>${opts}</select>`;
-}
-
-function roleRu(r) {
-  const m = { wrapper: 'Оклейщик', preparer: 'Детейлер', armature: 'Арматурщик', detailer: 'Детейлер', universal: 'Универсал' };
-  return m[r] || r;
-}
-
-function adminExecutorSelect(selectedId = '') {
-  const admins = executors.filter(e => e.is_admin);
-  if (admins.length === 0) return '<span style="color:var(--muted);font-size:0.82rem">Нет продавцов. Добавьте в Исполнителях.</span>';
-  const opts = admins.map(e =>
-    `<option value="${e.id}" ${e.id === selectedId ? 'selected' : ''}>${e.full_name}</option>`
-  ).join('');
-  return `<select id="adminExecutorId"><option value="">— Выбрать продавца —</option>${opts}</select>`;
-}
-
-function extractServices(calcData) {
-  const services = [];
-  const d = calcData;
-  const seen = new Set();
-
-  function addIfHasMot(key, name, mot) {
-    const m = parseFloat(mot) || 0;
-    if (m > 0 && !seen.has(key)) {
-      seen.add(key);
-      services.push({ key, name, baseSalary: m });
-    }
-  }
-
-  if (d.package) {
-    addIfHasMot('pkg_wrap', SERVICE_NAMES.pkg_wrap, d.package.wrapMot);
-    addIfHasMot('pkg_prep', SERVICE_NAMES.pkg_prep, d.package.prepMot);
-    addIfHasMot('pkg_arm',  SERVICE_NAMES.pkg_arm,  d.package.armMot);
-  }
-  if (d.impact) {
-    addIfHasMot('impact_wrap', SERVICE_NAMES.impact_wrap, d.impact.wrapMot);
-    addIfHasMot('impact_prep', SERVICE_NAMES.impact_prep, d.impact.prepMot);
-    addIfHasMot('impact_arm',  SERVICE_NAMES.impact_arm,  d.impact.armMot);
-  }
-  if (d.services_detail) {
-    const groups = { arm: 'Бронирование', det: 'Детейлинг', gl: 'Стёкла', ms: 'Доп. услуги', wrap: 'Оклейка' };
-    Object.entries(groups).forEach(([key, groupName]) => {
-      (d.services_detail[key] || []).forEach((item, idx) => {
-        const m = parseFloat(item.mot) || 0;
-        if (m > 0) {
-          const k = `${key}_${idx}`;
-          if (!seen.has(k)) { seen.add(k); services.push({ key: k, name: item.name || groupName, baseSalary: m }); }
+  chart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Материалы', 'Мотивация', 'Наценка', 'Налог'],
+      datasets: [{
+        data: [0, 0, 0, 0],
+        backgroundColor: [
+          'rgba(59, 130, 246, 0.8)',
+          'rgba(16, 185, 129, 0.8)',
+          'rgba(245, 158, 11, 0.8)',
+          'rgba(239, 68, 68, 0.8)'
+        ],
+        borderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: {
+            font: { size: 13, family: 'Inter', weight: '600' },
+            padding: 12,
+            color: textColor,
+            usePointStyle: true,
+            pointStyle: 'circle'
+          }
+        },
+        tooltip: {
+          backgroundColor: 'rgba(15, 23, 42, 0.95)',
+          titleFont: { size: 12, family: 'Inter', weight: '600' },
+          bodyFont: { size: 11, family: 'Inter' },
+          padding: 12,
+          cornerRadius: 8,
+          displayColors: true,
+          callbacks: {
+            label: function(context) {
+              return context.label + ': ' + fmt(context.parsed) + '';
+            }
+          }
         }
-      });
-    });
-  }
-  if (!d.services_detail) {
-    ['arm','wrap','det','gl','ms'].forEach(key => {
-      if (d[key]) addIfHasMot(key, SERVICE_NAMES[key] || key, d[key].mot || d[key].motivation);
-    });
-  }
-  if (d.services && Array.isArray(d.services)) {
-    d.services.forEach((srv, idx) => {
-      const m = parseFloat(srv.mot || srv.motivation) || 0;
-      if (m > 0) addIfHasMot(`service_${idx}`, srv.name || `Услуга ${idx + 1}`, m);
-    });
-  }
-
-  return services;
-}
-
-let workItemCounter = 0;
-
-function renderWorkItem(service, existingAssignments = []) {
-  const id = `work_${workItemCounter++}`;
-
-  // ── БАГ-ФИX ──────────────────────────────────────────────────────
-  // Существующие назначения хранят service_name, а не service_key.
-  // Фильтруем по service_name, а service_key используем только как
-  // data-атрибут для будущих расширений.
-  const matched = existingAssignments.filter(a =>
-    a.service_name === service.name ||
-    a.service_key  === service.key          // fallback для старых записей
-  );
-  // ─────────────────────────────────────────────────────────────────
-
-  const execRowsHtml = matched.length > 0
-    ? matched.map((a, i) => renderExecutorRow(`${id}_exec_${i}`, a.executor_id || '', a.salary, a.executor_name || '', a.work_date_from || '', a.work_date_to || '')).join('')
-    : renderExecutorRow(`${id}_exec_0`, '', service.baseSalary);
-
-  return `
-    <div class="work-item" data-service-key="${service.key}" data-service-name="${service.name}">
-      <div class="work-item-header">
-        <span class="work-service-name">${service.name}</span>
-        <span class="work-base-salary">Мотивация: ${fmt(service.baseSalary)}</span>
-      </div>
-      <div class="executor-rows" id="${id}_rows">
-        ${execRowsHtml}
-      </div>
-      <button class="add-executor-btn" onclick="addExecutorRow('${id}_rows', ${service.baseSalary})">
-        ➕ Добавить исполнителя
-      </button>
-    </div>
-  `;
-}
-
-function renderExecutorRow(id, executorId = '', salary = 0, manualName = '', dateFrom = '', dateTo = '') {
-  const isManual = !executorId && !!manualName;
-  // Default dates: from checkin to expected checkout
-  const checkinRaw = calculation?.checkin_date || calculation?.scheduled_from || '';
-  const checkoutRaw = document.getElementById('expectedCheckout')?.value || calculation?.expected_checkout || calculation?.scheduled_to || '';
-  const defFrom = dateFrom || checkinRaw;
-  const defTo   = dateTo   || checkoutRaw;
-  return `
-    <div class="executor-row" id="${id}">
-      <div class="executor-input-group">
-        <div class="executor-mode-switcher">
-          <button class="mode-btn ${!isManual ? 'active' : ''}" onclick="setExecutorMode('${id}', 'select')">📋 Из справочника</button>
-          <button class="mode-btn ${isManual ? 'active' : ''}" onclick="setExecutorMode('${id}', 'manual')">✏️ Вручную</button>
-        </div>
-        <div class="executor-fields-row">
-          <div class="executor-select-wrap" style="display:${isManual ? 'none' : 'block'}">
-            ${executorSelect(executorId)}
-          </div>
-          <div class="executor-manual-wrap" style="display:${isManual ? 'block' : 'none'}">
-            <input type="text" class="manual-name-input" value="${manualName}" placeholder="ФИО исполнителя" autocomplete="off">
-          </div>
-          <input type="number" value="${salary ? Math.round(salary) : ''}" placeholder="Сумма" step="1" class="salary-input">
-          <button class="btn-remove-exec" onclick="removeExecutorRow('${id}')" title="Удалить">✕</button>
-        </div>
-        <div class="executor-dates-row">
-          <span class="dates-label">Даты работы:</span>
-          <input type="date" class="exec-date-from" value="${defFrom}" title="Начало работы">
-          <span class="dates-sep">—</span>
-          <input type="date" class="exec-date-to" value="${defTo}" title="Конец работы">
-        </div>
-        <div class="executor-manual-save" style="display:${isManual ? 'flex' : 'none'}">
-          <label class="save-to-list-label">
-            <input type="checkbox" class="save-to-list" checked>
-            <span>Сохранить в справочник</span>
-          </label>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-window.refreshDefaultDates = function() {
-  // When expected checkout changes, update empty date fields
-  const checkout = document.getElementById('expectedCheckout')?.value || '';
-  if (!checkout) return;
-  document.querySelectorAll('.exec-date-to').forEach(el => {
-    if (!el.value) el.value = checkout;
-  });
-};
-
-window.setExecutorMode = function(rowId, mode) {
-  const row = document.getElementById(rowId);
-  if (!row) return;
-  const selectWrap = row.querySelector('.executor-select-wrap');
-  const manualWrap = row.querySelector('.executor-manual-wrap');
-  const manualSave = row.querySelector('.executor-manual-save');
-  const btns = row.querySelectorAll('.mode-btn');
-  if (mode === 'manual') {
-    selectWrap.style.display = 'none';
-    manualWrap.style.display = 'block';
-    manualSave.style.display = 'flex';
-    btns[0].classList.remove('active');
-    btns[1].classList.add('active');
-  } else {
-    selectWrap.style.display = 'block';
-    manualWrap.style.display = 'none';
-    manualSave.style.display = 'none';
-    btns[0].classList.add('active');
-    btns[1].classList.remove('active');
-  }
-};
-
-window.addExecutorRow = function(containerId, defaultSalary = 0) {
-  const id = `exec_${Date.now()}`;
-  const row = document.createElement('div');
-  row.innerHTML = renderExecutorRow(id, '', defaultSalary);
-  document.getElementById(containerId).appendChild(row.firstElementChild);
-  updateSummary();
-};
-
-window.removeExecutorRow = function(rowId) {
-  const el = document.getElementById(rowId);
-  if (el) el.remove();
-  updateSummary();
-};
-
-function updateSummary() {
-  let total = 0, count = 0;
-  document.querySelectorAll('.executor-row').forEach(row => {
-    const sal  = parseFloat(row.querySelector('input[type="number"]')?.value) || 0;
-    const exec = row.querySelector('select')?.value;
-    if (exec || sal > 0) { total += sal; count++; }
-  });
-  document.getElementById('summaryCount').textContent = count;
-  document.getElementById('summaryTotal').textContent = fmt(total) + '';
-}
-
-window.toggleAdminSale = function() {
-  const isChecked = document.getElementById('isAdminSale').checked;
-  document.getElementById('adminDetails').classList.toggle('active', isChecked);
-  calcAdminSalary();
-};
-
-window.setAdminMode = function(mode) {
-  const selectWrap = document.getElementById('adminSelectWrap');
-  const manualWrap = document.getElementById('adminManualWrap');
-  const btnSelect  = document.getElementById('adminModeSelect');
-  const btnManual  = document.getElementById('adminModeManual');
-  if (mode === 'manual') {
-    selectWrap.style.display = 'none';
-    manualWrap.style.display = 'block';
-    btnSelect.classList.remove('active');
-    btnManual.classList.add('active');
-  } else {
-    selectWrap.style.display = 'block';
-    manualWrap.style.display = 'none';
-    btnSelect.classList.add('active');
-    btnManual.classList.remove('active');
-  }
-};
-
-function calcAdminSalary() {
-  if (!document.getElementById('isAdminSale')?.checked) return;
-  const pct      = parseFloat(document.getElementById('adminPercent')?.value) || 0;
-  const adminSal = Math.round((calculation?.total_price || 0) * pct / 100);
-  const el       = document.getElementById('adminSalaryCalc');
-  if (el) el.textContent = `ЗП продавца: ${fmt(adminSal)}`;
-}
-
-window.addManualWork = function() {
-  const name   = document.getElementById('manualServiceName').value.trim();
-  const salary = parseFloat(document.getElementById('manualSalary').value) || 0;
-  if (!name) { alert('Введите название работы'); return; }
-
-  const service = { key: `manual_${Date.now()}`, name, baseSalary: salary };
-  const item = document.createElement('div');
-  item.innerHTML = renderWorkItem(service);
-
-  let workList = document.getElementById('workList');
-  if (!workList) {
-    const card = document.querySelector('.card');
-    const div  = document.createElement('div');
-    div.className = 'work-list'; div.id = 'workList';
-    card.appendChild(div);
-    div.appendChild(item.firstElementChild);
-  } else {
-    workList.appendChild(item.firstElementChild);
-  }
-
-  item.querySelectorAll('input, select').forEach(el => {
-    el.addEventListener('change', updateSummary);
-    el.addEventListener('input', updateSummary);
-  });
-
-  document.getElementById('manualServiceName').value = '';
-  document.getElementById('manualSalary').value = '';
-  updateSummary();
-};
-
-window.saveAssignments = async function() {
-  const assignments = [];
-
-  // Admin sale
-  const isAdminSale = document.getElementById('isAdminSale')?.checked;
-  if (isAdminSale) {
-    const isManualMode = document.getElementById('adminManualWrap')?.style.display !== 'none';
-    const pct          = parseFloat(document.getElementById('adminPercent')?.value) || 0;
-    const adminSal     = Math.round((calculation.total_price || 0) * pct / 100);
-    let adminExecId = null, adminExecName = '';
-
-    if (isManualMode) {
-      adminExecName = document.getElementById('adminManualName')?.value?.trim();
-      const saveToList = document.getElementById('adminSaveToList')?.checked;
-      if (adminExecName && saveToList) {
-        const { data: savedAdmin } = await sb.from('executors').insert({
-          studio_id: currentStudio.studio_id,
-          full_name: adminExecName,
-          role: 'universal', is_active: true, is_admin: true
-        }).select().single();
-        if (savedAdmin) { adminExecId = savedAdmin.id; executors.push(savedAdmin); }
-      }
-    } else {
-      adminExecId = document.getElementById('adminExecutorId')?.value;
-      adminExecName = executors.find(e => e.id === adminExecId)?.full_name || '';
-    }
-
-    if ((adminExecId || adminExecName) && adminSal > 0) {
-      assignments.push({
-        studio_id: currentStudio.studio_id, calculation_id: calcId,
-        car_name: calculation.car_name,
-        service_name: 'Продажа (% от чека)',
-        executor_id: adminExecId || null, executor_name: adminExecName,
-        salary: adminSal, is_admin_sale: true, admin_percent: pct,
-        status: 'pending', payment_month: new Date().toISOString().slice(0, 7)
-      });
-    }
-  }
-
-  // Work items
-  const newExecutorsToSave = [];
-
-  document.querySelectorAll('.work-item').forEach(item => {
-    const serviceName = item.dataset.serviceName;
-
-    item.querySelectorAll('.executor-row').forEach(row => {
-      const isManualMode = row.querySelector('.executor-manual-wrap')?.style.display !== 'none';
-      let execId = null, execName = '', saveToList = false;
-
-      if (isManualMode) {
-        execName = row.querySelector('.manual-name-input')?.value?.trim();
-        saveToList = row.querySelector('.save-to-list')?.checked;
-        if (!execName) return;
-        if (saveToList) newExecutorsToSave.push(execName);
-      } else {
-        execId = row.querySelector('select')?.value;
-        if (!execId) return;
-        execName = executors.find(e => e.id === execId)?.full_name || '';
-      }
-
-      const salary = parseFloat(row.querySelector('.salary-input')?.value) || 0;
-      if (salary <= 0) return;
-
-      const workDateFrom = row.querySelector('.exec-date-from')?.value || null;
-      const workDateTo   = row.querySelector('.exec-date-to')?.value   || null;
-      if (!workDateFrom || !workDateTo) {
-        alert('❌ Укажите даты работы для исполнителя: ' + (execName || 'без имени'));
-        return;
-      }
-      assignments.push({
-        studio_id: currentStudio.studio_id, calculation_id: calcId,
-        car_name: calculation.car_name,
-        service_name: serviceName,
-        executor_id: execId || null, executor_name: execName,
-        salary, is_admin_sale: false, status: 'pending',
-        payment_month: new Date().toISOString().slice(0, 7),
-        work_date_from: workDateFrom,
-        work_date_to:   workDateTo,
-      });
-    });
-  });
-
-  if (assignments.length === 0) { alert('❌ Не назначено ни одного исполнителя с суммой!'); return; }
-
-  try {
-    if (newExecutorsToSave.length > 0) {
-      const uniqueNames = [...new Set(newExecutorsToSave)];
-      const { data: savedExecs, error: execError } = await sb.from('executors').insert(
-        uniqueNames.map(name => ({ studio_id: currentStudio.studio_id, full_name: name, role: 'universal', is_active: true, is_admin: false }))
-      ).select();
-      if (!execError && savedExecs) {
-        savedExecs.forEach(saved => {
-          assignments.forEach(a => { if (a.executor_name === saved.full_name && !a.executor_id) a.executor_id = saved.id; });
-        });
-        executors.push(...savedExecs);
       }
     }
+  });
+}
 
-    await sb.from('work_assignments').delete().eq('calculation_id', calcId);
-    const { error } = await sb.from('work_assignments').insert(assignments);
-    if (error) { console.error('Save error:', error); alert('❌ Ошибка сохранения: ' + error.message); return; }
-
-    const expectedCheckout = document.getElementById('expectedCheckout')?.value || null;
-    await sb.from('calculations').update({
-      work_assigned: true,
-      status: 'in_progress',
-      ...(expectedCheckout ? { expected_checkout: expectedCheckout } : {})
-    }).eq('id', calcId);
-
-    showSavedBanner(calcId, assignments.length);
-  } catch (e) {
-    console.error('Error:', e);
-    alert('❌ Ошибка сохранения');
-  }
-};
-
-function renderContent(services, existingAssignments = []) {
-  const carName = calculation.car_name || 'Без названия';
-  document.getElementById('carSubtitle').textContent = carName;
-
-  // Fill checkin date if available
-  const checkinDate = calculation.checkin_date || calculation.scheduled_from || '';
-  if (checkinDate) {
-    const el = document.getElementById('dateCheckinVal');
-    if (el) el.textContent = new Date(checkinDate).toLocaleDateString('ru-RU', {day:'2-digit',month:'2-digit',year:'numeric'});
-  }
-  // Default expected checkout = checkin + 5 days or scheduled_to
-  const defaultCheckout = calculation.expected_checkout || calculation.scheduled_to || '';
-  const checkoutEl = document.getElementById('expectedCheckout');
-  if (checkoutEl && defaultCheckout) checkoutEl.value = defaultCheckout;
-
-  // Ищем существующую admin-sale запись
-  const adminSaleRecord = existingAssignments.find(a => a.is_admin_sale);
-  const adminChecked    = !!adminSaleRecord;
-  const adminPercent    = adminSaleRecord?.admin_percent || 3;
-  const adminExecId     = adminSaleRecord?.executor_id || '';
-
+// ── Рендер списка услуг ───────────────────────────────────────────
+function renderServiceList(containerId, services, classPrefix) {
+  const container = q(containerId);
   let html = '';
 
-  // Dates header
-  const checkinStr = calculation.checkin_date || calculation.scheduled_from || '';
-  const fmtD = d => d ? new Date(d).toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit',year:'numeric'}) : '—';
-  html += `
-    <div class="dates-header-card">
-      <div class="dates-header-item">
-        <span class="dates-header-label">Дата заезда</span>
-        <span class="dates-header-value" id="dateCheckinVal">${fmtD(checkinStr)}</span>
+  services.forEach((name, idx) => {
+    html += `<div class="service-item">
+      <div class="service-header">
+        <input type="checkbox" class="${classPrefix}-chk" id="${classPrefix}${idx + 1}">
+        <label for="${classPrefix}${idx + 1}">${name}</label>
       </div>
-      <span style="color:var(--muted);font-size:1.2rem;align-self:center">→</span>
-      <div class="dates-header-item">
-        <span class="dates-header-label">Планируемый выезд</span>
-        <input type="date" id="expectedCheckout"
-          value="${calculation.expected_checkout || calculation.scheduled_to || ''}"
-          onchange="refreshDefaultDates()"
-          placeholder="Выберите дату">
-      </div>
-    </div>
-  `;
-
-  // Admin sale
-  html += \`
-    <div class="admin-sale-block">\`
-      <div class="admin-sale-row">
-        <label class="toggle-switch">
-          <input type="checkbox" id="isAdminSale" onchange="toggleAdminSale()" ${adminChecked ? 'checked' : ''}>
-          <span>👔 Продажу сделал администратор</span>
-        </label>
-        <div class="admin-details${adminChecked ? ' active' : ''}" id="adminDetails">
-          <div class="form-group">
-            <label>Режим</label>
-            <div style="display:flex;gap:5px">
-              <button class="mode-btn active" id="adminModeSelect" onclick="setAdminMode('select')">📋 Из списка</button>
-              <button class="mode-btn" id="adminModeManual" onclick="setAdminMode('manual')">✏️ Вручную</button>
-            </div>
-          </div>
-          <div class="form-group" id="adminSelectWrap">
-            <label>Продавец</label>
-            ${adminExecutorSelect(adminExecId)}
-          </div>
-          <div class="form-group" id="adminManualWrap" style="display:none">
-            <label>ФИО продавца</label>
-            <input type="text" id="adminManualName" placeholder="Иванов Иван Иванович" style="width:220px" autocomplete="off">
-            <label class="save-to-list-label" style="margin-top:4px">
-              <input type="checkbox" id="adminSaveToList" checked>
-              <span>Сохранить в справочник</span>
-            </label>
-          </div>
-          <div class="form-group">
-            <label>% от чека</label>
-            <input type="number" id="adminPercent" value="${adminPercent}" min="0" max="100" step="0.5" style="width:100px">
-          </div>
-          <div style="font-size:0.8rem;color:var(--muted);line-height:1.5">
-            Чек: ${fmt(calculation.total_price)}<br>
-            <strong id="adminSalaryCalc" style="color:var(--warning)"></strong>
-          </div>
+      <div class="service-body">
+        <div class="service-fields">
+          <div class="form-group"><label>Материалы ():</label><input type="number" class="${classPrefix}-mat" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Мотивация ():</label><input type="number" class="${classPrefix}-mot" placeholder="0" step="0.01"></div>
+        </div>
+        <div class="service-complexity">
+          <input type="checkbox" class="${classPrefix}-complex" id="${classPrefix}${idx + 1}c">
+          <label for="${classPrefix}${idx + 1}c">Усложнение +10%</label>
         </div>
       </div>
-    </div>
-  `;
-
-  // Non-admin assignments (фильтруем admin_sale из списка)
-  const workAssignments = existingAssignments.filter(a => !a.is_admin_sale);
-
-  // Services
-  if (services.length > 0) {
-    html += `
-      <div class="card">
-        <div class="card-title">🔧 Услуги из расчёта</div>
-        <div class="work-list" id="workList">
-          ${services.map(s => renderWorkItem(s, workAssignments)).join('')}
-        </div>
-      </div>
-    `;
-  } else {
-    html += `
-      <div class="card">
-        <div class="card-title">🔧 Услуги из расчёта</div>
-        <div style="padding:20px;color:var(--muted);text-align:center;font-size:0.85rem">
-          В расчёте нет услуг с мотивацией. Добавьте услуги вручную ниже.
-        </div>
-      </div>
-    `;
-  }
-
-  // Manual work
-  html += `
-    <div class="card">
-      <div class="card-title">➕ Добавить работу вручную</div>
-      <div class="add-work-row">
-        <input type="text" id="manualServiceName" placeholder="Название работы (напр: Мойка, Полировка)" autocomplete="off">
-        <input type="number" id="manualSalary" placeholder="Сумма" min="0" step="1">
-      </div>
-      <button class="btn btn-secondary btn-sm" style="margin-top:10px" onclick="addManualWork()">➕ Добавить</button>
-    </div>
-  `;
-
-  // Summary + Save
-  html += `
-    <div class="card">
-      <div class="card-title">📊 Итого к выплате</div>
-      <div class="summary-block">
-        <div class="summary-row">
-          <span class="summary-label">Исполнителей назначено</span>
-          <span class="summary-value" id="summaryCount">0</span>
-        </div>
-        <div class="summary-row">
-          <span class="summary-label">💰 Итого ЗП</span>
-          <span class="summary-total-value" id="summaryTotal">0</span>
-        </div>
-      </div>
-      <div style="display:flex;gap:10px;margin-top:16px;justify-content:flex-end;flex-wrap:wrap">
-        <button class="btn btn-secondary" onclick="window.history.back()">← Отмена</button>
-        <button class="btn btn-success" id="btnSave" onclick="saveAssignments()">💾 Сохранить распределение</button>
-      </div>
-
-      <!-- Баннер после сохранения -->
-      <div id="savedBanner" style="display:none;margin-top:16px;padding:16px 20px;background:#f0fdf4;border:1.5px solid #86efac;border-radius:12px;align-items:center;gap:12px;flex-wrap:wrap">
-        <div style="font-size:1.2rem">✅</div>
-        <div style="flex:1">
-          <div style="font-weight:800;color:#065f46;font-size:0.95rem">Сохранено! Назначено <span id="savedCount">0</span> записей.</div>
-          <div style="font-size:0.8rem;color:#059669;margin-top:2px">Статус заказа переведён в «Принято в работу»</div>
-        </div>
-        <a id="woLink" href="#" style="display:inline-flex;align-items:center;gap:6px;padding:10px 18px;background:#0f172a;color:#fff;border-radius:9px;font-size:0.85rem;font-weight:700;text-decoration:none">🖨️ Скачать заказ-наряд</a>
-        <a href="board.html" style="display:inline-flex;align-items:center;gap:6px;padding:10px 18px;background:#f1f5f9;color:#0f172a;border-radius:9px;font-size:0.85rem;font-weight:700;text-decoration:none;border:1px solid rgba(15,23,42,0.10)">← На доску</a>
-      </div>
-    </div>
-  `;
-
-  document.getElementById('mainContent').innerHTML = html;
-
-  // Слушатели на изменения
-  document.querySelectorAll('.executor-row input, .executor-row select').forEach(el => {
-    el.addEventListener('change', updateSummary);
-    el.addEventListener('input', updateSummary);
+    </div>`;
   });
 
-  document.getElementById('adminPercent')?.addEventListener('input', calcAdminSalary);
-  calcAdminSalary();
-  updateSummary();
+  html += `<div id="${classPrefix}Dyn"></div>
+    <button type="button" class="btn btn-secondary" id="btnAdd${capitalize(classPrefix)}">+ Дополнительно</button>
+    <div class="partial-wrapper">
+      <div class="partial-header">
+        <input type="checkbox" id="${classPrefix}CostsChk">
+        <label for="${classPrefix}CostsChk">Дополнительные затраты</label>
+      </div>
+      <div class="partial-content" id="${classPrefix}CostsContent"></div>
+    </div>
+    <button type="button" class="btn btn-secondary" id="btnAdd${capitalize(classPrefix)}Cost" style="margin-top:10px;display:none">+ Добавить затрату</button>
+    <div style="margin-top:15px">
+      <label class="markup-label">⚠️ Наценка (%):</label>
+      <input type="number" id="${classPrefix}Markup" placeholder="0" step="1">
+      <div class="chips">
+        ${[10,20,30,40,50,60,70,80,90,100].map(v =>
+          `<span class="chip" data-markup-target="#${classPrefix}Markup">${v}</span>`
+        ).join('')}
+      </div>
+    </div>`;
+
+  container.innerHTML = html;
 }
 
-async function init() {
-  initNav({ actionHref: 'board.html', actionLabel: '← В работе' });
-  if (!await checkAuth()) return;
-  if (!await getStudio()) return;
+// ── Рендер содержимого блока оклейки ─────────────────────────────
+function renderWrapContent() {
+  const container = q('#wrapContent');
+  let html = `<h3 style="margin-bottom:10px;font-size:1.05rem;font-weight:700">PPF</h3>
+    <div class="service-item">
+      <div class="service-header"><input type="checkbox" id="ppfClearChk"><label for="ppfClearChk">PPF прозрачный вкруг</label></div>
+      <div class="service-body">
+        <div class="service-fields">
+          <div class="form-group"><label>Метры (м):</label><input type="number" id="ppfClearM" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Цена за метр ():</label><input type="number" id="ppfClearPrice" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Мотивация ():</label><input type="number" id="ppfClearMot" placeholder="0" step="0.01"></div>
+        </div>
+        <div class="service-complexity"><input type="checkbox" id="ppfClearComplex"><label for="ppfClearComplex">Усложнение +10%</label></div>
+      </div>
+    </div>
+    <div class="service-item">
+      <div class="service-header"><input type="checkbox" id="ppfColorChk"><label for="ppfColorChk">PPF цветной вкруг</label></div>
+      <div class="service-body">
+        <div class="service-fields">
+          <div class="form-group"><label>Метры (м):</label><input type="number" id="ppfColorM" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Цена за метр ():</label><input type="number" id="ppfColorPrice" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Мотивация ():</label><input type="number" id="ppfColorMot" placeholder="0" step="0.01"></div>
+        </div>
+        <div class="service-complexity"><input type="checkbox" id="ppfColorComplex"><label for="ppfColorComplex">Усложнение +10%</label></div>
+      </div>
+    </div>
+    <div class="service-item">
+      <div class="service-header"><input type="checkbox" id="ppfMatChk"><label for="ppfMatChk">PPF матовый вкруг</label></div>
+      <div class="service-body">
+        <div class="service-fields">
+          <div class="form-group"><label>Метры (м):</label><input type="number" id="ppfMatM" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Цена за метр ():</label><input type="number" id="ppfMatPrice" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Мотивация ():</label><input type="number" id="ppfMatMot" placeholder="0" step="0.01"></div>
+        </div>
+        <div class="service-complexity"><input type="checkbox" id="ppfMatComplex"><label for="ppfMatComplex">Усложнение +10%</label></div>
+      </div>
+    </div>
+    <div class="partial-wrapper">
+      <div class="partial-header"><input type="checkbox" id="ppfPartChk"><label for="ppfPartChk">PPF частично</label></div>
+      <div class="partial-content" id="ppfPartContent"></div>
+    </div>
+    <h3 style="margin:20px 0 10px;font-size:1.05rem;font-weight:700">PVC</h3>
+    <div class="service-item">
+      <div class="service-header"><input type="checkbox" id="pvcFullChk"><label for="pvcFullChk">ПВХ полная оклейка</label></div>
+      <div class="service-body">
+        <div class="service-fields">
+          <div class="form-group"><label>Метры (м):</label><input type="number" id="pvcFullM" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Цена за метр ():</label><input type="number" id="pvcFullPrice" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Мотивация ():</label><input type="number" id="pvcFullMot" placeholder="0" step="0.01"></div>
+        </div>
+        <div class="service-complexity"><input type="checkbox" id="pvcFullComplex"><label for="pvcFullComplex">Усложнение +10%</label></div>
+      </div>
+    </div>
+    <div class="partial-wrapper">
+      <div class="partial-header"><input type="checkbox" id="pvcPartChk"><label for="pvcPartChk">ПВХ частично</label></div>
+      <div class="partial-content" id="pvcPartContent"></div>
+    </div>
+    <div id="wrapDyn"></div>
+    <button type="button" class="btn btn-secondary" id="btnAddWrap">+ Дополнительно</button>
+    <div class="partial-wrapper">
+      <div class="partial-header">
+        <input type="checkbox" id="wrapCostsChk">
+        <label for="wrapCostsChk">Дополнительные затраты</label>
+      </div>
+      <div class="partial-content" id="wrapCostsContent"></div>
+    </div>
+    <button type="button" class="btn btn-secondary" id="btnAddWrapCost" style="margin-top:10px;display:none">+ Добавить затрату</button>
+    <div style="margin-top:20px">
+      <label class="markup-label">⚠️ Наценка на оклейку (%):</label>
+      <input type="number" id="wrapMarkup" placeholder="0" step="1">
+      <div class="chips">
+        ${[10,20,30,40,50,60,70,80,90,100].map(v =>
+          `<span class="chip" data-markup-target="#wrapMarkup">${v}</span>`
+        ).join('')}
+      </div>
+    </div>`;
 
-  const params = new URLSearchParams(window.location.search);
-  calcId = params.get('calc_id');
+  container.innerHTML = html;
+}
 
-  if (!calcId) {
-    document.getElementById('mainContent').innerHTML = '<div class="loading">❌ Не указан ID расчёта</div>';
+// ── Рендер частичных списков PPF/PVC ─────────────────────────────
+function renderPartialLists() {
+  const ppf = q('#ppfPartContent');
+  const pvc = q('#pvcPartContent');
+  let ppfHtml = '', pvcHtml = '';
+
+  partElements.forEach((name, idx) => {
+    const chips = [10,20,30,40,50,60,70,80,90,100].map(v =>
+      `<span class="chip" data-ppf-markup="${idx}">${v}</span>`
+    ).join('');
+    const chipsVpc = [10,20,30,40,50,60,70,80,90,100].map(v =>
+      `<span class="chip" data-pvc-markup="${idx}">${v}</span>`
+    ).join('');
+
+    ppfHtml += `<div class="service-item">
+      <div class="service-header"><input type="checkbox" class="ppf-part-chk" id="ppfp${idx}"><label for="ppfp${idx}">${name}</label></div>
+      <div class="service-body">
+        <div class="service-fields">
+          <div class="form-group"><label>Метры (м):</label><input type="number" class="ppf-part-m" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Цена за метр ():</label><input type="number" class="ppf-part-price" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Мотивация ():</label><input type="number" class="ppf-part-mot" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Своя наценка (%):</label><input type="number" class="ppf-part-markup" placeholder="0"></div>
+        </div>
+        <div class="chips" style="margin-top:10px">${chips}</div>
+      </div>
+    </div>`;
+
+    pvcHtml += `<div class="service-item">
+      <div class="service-header"><input type="checkbox" class="pvc-part-chk" id="pvcp${idx}"><label for="pvcp${idx}">${name}</label></div>
+      <div class="service-body">
+        <div class="service-fields">
+          <div class="form-group"><label>Метры (м):</label><input type="number" class="pvc-part-m" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Цена за метр ():</label><input type="number" class="pvc-part-price" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Мотивация ():</label><input type="number" class="pvc-part-mot" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Своя наценка (%):</label><input type="number" class="pvc-part-markup" placeholder="0"></div>
+        </div>
+        <div class="chips" style="margin-top:10px">${chipsVpc}</div>
+      </div>
+    </div>`;
+  });
+
+  ppf.innerHTML = ppfHtml;
+  pvc.innerHTML = pvcHtml;
+}
+
+// ── Добавление строки доп. затраты ───────────────────────────────
+function addCostRow(prefix) {
+  costCounter++;
+  const container = q(`#${prefix}CostsContent`);
+  const row = document.createElement('div');
+  row.className = 'cost-row';
+  row.innerHTML = `
+    <div class="form-group">
+      <input type="text" placeholder="Название затраты" class="${prefix}-cost-name">
+      <input type="number" placeholder="Сумма ()" class="${prefix}-cost-val" step="0.01">
+    </div>
+    <button type="button" onclick="this.closest('.cost-row').remove();renderAll()">❌</button>
+  `;
+  container.appendChild(row);
+  renderAll();
+}
+
+// ── Добавление динамической строки услуги ────────────────────────
+function addDynRow(id, cls) {
+  const c = q(id);
+  const d = document.createElement('div');
+  d.className = 'service-item';
+  dynCounter++;
+
+  if (cls === 'wrap') {
+    d.innerHTML = `<div class="service-header">
+      <input type="checkbox" checked id="dyn${cls}${dynCounter}">
+      <label for="dyn${cls}${dynCounter}"><input type="text" placeholder="Название услуги" style="border:none;background:transparent;padding:0;font-weight:600;font-size:.95rem;color:var(--text);width:100%"></label>
+    </div>
+    <div class="service-body open">
+      <div class="service-fields">
+        <div class="form-group"><label>Метры (м):</label><input type="number" class="${cls}-m" placeholder="0" step="0.01"></div>
+        <div class="form-group"><label>Цена за метр ():</label><input type="number" class="${cls}-price" placeholder="0" step="0.01"></div>
+        <div class="form-group"><label>Мотивация ():</label><input type="number" class="${cls}-mot" placeholder="0" step="0.01"></div>
+      </div>
+      <div class="service-complexity">
+        <input type="checkbox" class="${cls}-complex" id="dyn${cls}${dynCounter}c">
+        <label for="dyn${cls}${dynCounter}c">Усложнение +10%</label>
+      </div>
+    </div>`;
+  } else {
+    d.innerHTML = `<div class="service-header">
+      <input type="checkbox" checked id="dyn${cls}${dynCounter}">
+      <label for="dyn${cls}${dynCounter}"><input type="text" placeholder="Название услуги" style="border:none;background:transparent;padding:0;font-weight:600;font-size:.95rem;color:var(--text);width:100%"></label>
+    </div>
+    <div class="service-body open">
+      <div class="service-fields">
+        <div class="form-group"><label>Материалы ():</label><input type="number" class="${cls}-mat" placeholder="0" step="0.01"></div>
+        <div class="form-group"><label>Мотивация ():</label><input type="number" class="${cls}-mot" placeholder="0" step="0.01"></div>
+      </div>
+      <div class="service-complexity">
+        <input type="checkbox" class="${cls}-complex" id="dyn${cls}${dynCounter}c">
+        <label for="dyn${cls}${dynCounter}c">Усложнение +10%</label>
+      </div>
+    </div>`;
+  }
+  c.appendChild(d);
+}
+
+// ── Тогглы раскрытия услуг ────────────────────────────────────────
+function initServiceToggles() {
+  qa('.service-item').forEach(item => {
+    const chk    = item.querySelector('.service-header input[type="checkbox"]');
+    const body   = item.querySelector('.service-body');
+    const header = item.querySelector('.service-header');
+    if (!chk || !body) return;
+
+    header.onclick = function(e) {
+      if (e.target === chk || e.target.tagName === 'INPUT' || e.target.tagName === 'LABEL') return;
+      chk.click();
+    };
+    chk.onchange = function() {
+      body.classList.toggle('open', chk.checked);
+    };
+  });
+
+  ['ppfPartChk','pvcPartChk','pkgCostsChk','impactCostsChk','armCostsChk','wrapCostsChk','detCostsChk','glCostsChk','miscCostsChk'].forEach(id => {
+    const chk = q(`#${id}`);
+    if (!chk) return;
+    const content = q(`#${id.replace('Chk', 'Content')}`);
+    let btnId = id.replace('Chk', '').replace('Costs', 'Cost');
+    btnId = btnId.charAt(0).toUpperCase() + btnId.slice(1);
+    const btn = q(`#btnAdd${btnId}`);
+    if (!content) return;
+
+    chk.onchange = function() {
+      content.classList.toggle('open', chk.checked);
+      if (btn) btn.style.display = chk.checked ? 'block' : 'none';
+    };
+  });
+}
+
+// ── Рендер КП ────────────────────────────────────────────────────
+function renderKP(s, mu) {
+  const tb = q('#kpTable tbody');
+  if (!tb) return;
+  tb.innerHTML = '';
+  const taxK = taxCoef();
+  let tot = 0;
+
+  const addRow = (name, base, markupPct) => {
+    if (base <= 0) return;
+    const markupAmount = r100(base * (markupPct || 0) / 100);
+    const mWithDisc    = r100(markupAmount * (1 - disc / 100));
+    let pr = r100((base + mWithDisc) * (1 + taxK));
+    tot += pr;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td style="text-align:left">${name}</td><td style="text-align:left">${getServiceDescription(name)}</td><td>${fmt(pr)}</td>`;
+    tb.appendChild(tr);
+  };
+
+  addRow('Полная защита вкруг',   s.pkg.mat + s.pkg.mot,       mu.pkg);
+  addRow('Защита ударной части',  s.impact.mat + s.impact.mot, mu.impact);
+
+  if (s.arm.details?.length) {
+    const armBase = s.arm.mat + s.arm.mot;
+    s.arm.details.forEach(([name]) => {
+      const frac = armBase / s.arm.details.length;
+      const mAmt  = r100(frac * (mu.arm || 0) / 100);
+      const mDisc = r100(mAmt * (1 - disc / 100));
+      const pr    = r100((frac + mDisc) * (1 + taxK));
+      tot += pr;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td style="text-align:left">${name}</td><td style="text-align:left">${getServiceDescription(name)}</td><td>${fmt(pr)}</td>`;
+      tb.appendChild(tr);
+    });
+  }
+
+  if (s.wrap.details?.length) {
+    s.wrap.details.forEach(([name, , , mat, mot, itemMarkup]) => {
+      const base = mat + mot;
+      if (base <= 0) return;
+      const mkPct  = (itemMarkup && itemMarkup > 0) ? itemMarkup : mu.wrap;
+      const mAmt   = r100(base * (mkPct || 0) / 100);
+      const mDisc  = r100(mAmt * (1 - disc / 100));
+      const pr     = r100((base + mDisc) * (1 + taxK));
+      tot += pr;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td style="text-align:left">${name}</td><td style="text-align:left">${getServiceDescription(name)}</td><td>${fmt(pr)}</td>`;
+      tb.appendChild(tr);
+    });
+  }
+
+  ['det','gl','ms'].forEach(key => {
+    const base = s[key].mat + s[key].mot;
+    const muKey = key === 'ms' ? mu.ms : mu[key];
+    if (s[key].details?.length) {
+      s[key].details.forEach(([name]) => {
+        const frac = base / s[key].details.length;
+        const mAmt  = r100(frac * (muKey || 0) / 100);
+        const mDisc = r100(mAmt * (1 - disc / 100));
+        const pr    = r100((frac + mDisc) * (1 + taxK));
+        tot += pr;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td style="text-align:left">${name}</td><td style="text-align:left">${getServiceDescription(name)}</td><td>${fmt(pr)}</td>`;
+        tb.appendChild(tr);
+      });
+    }
+  });
+
+  q('#kpTotal').textContent = fmt(tot);
+}
+
+// ── Рендер себестоимости ─────────────────────────────────────────
+function renderCost(s) {
+  const tb = q('#costTable tbody');
+  if (!tb) return;
+  tb.innerHTML = '';
+  let totM = 0, totO = 0;
+
+  [
+    { t: 'Полная защита вкруг',  sum: s.pkg },
+    { t: 'Защита ударной части', sum: s.impact },
+    { t: 'Арматурные работы',    sum: s.arm },
+    { t: 'Детейлинг',            sum: s.det },
+    { t: 'Стёкла',               sum: s.gl },
+    { t: 'Прочие работы',        sum: s.ms }
+  ].forEach(r => {
+    if (r.sum.mat + r.sum.mot <= 0) return;
+    totM += r.sum.mat; totO += r.sum.mot;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td style="text-align:left">${r.t}</td><td>${fmt(r.sum.mat)}</td><td>${fmt(r.sum.mot)}</td>`;
+    tb.appendChild(tr);
+  });
+
+  s.wrap.details?.forEach(([name, , , mat, mot]) => {
+    if (mat <= 0 && mot <= 0) return;
+    totM += mat; totO += mot;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td style="text-align:left">${name}</td><td>${fmt(mat)}</td><td>${fmt(mot)}</td>`;
+    tb.appendChild(tr);
+  });
+
+  q('#cMat').textContent   = fmt(totM);
+  q('#cMot').textContent   = fmt(totO);
+  q('#cTotal').textContent = fmt(totM + totO);
+}
+
+// ── Рендер исполнителей ──────────────────────────────────────────
+function renderExecutors(s) {
+  const container = q('#executorsContent');
+  if (!container) return;
+
+  let execIndex = 0;
+  const allServices = [];
+
+  const pkgWrapMot   = parseFloat(q('#pkgWrapMot')?.value)    || 0;
+  const pkgPrepMot   = parseFloat(q('#pkgPrepMot')?.value)    || 0;
+  const pkgArmMot    = parseFloat(q('#pkgArmMot')?.value)     || 0;
+  if (pkgWrapMot > 0 || pkgPrepMot > 0 || pkgArmMot > 0) {
+    if (pkgWrapMot > 0)  allServices.push({ name: 'Полная защита вкруг - Инсталляция пленки', mot: pkgWrapMot,  idx: execIndex++ });
+    if (pkgPrepMot > 0)  allServices.push({ name: 'Полная защита вкруг - Подготовка',          mot: pkgPrepMot,  idx: execIndex++ });
+    if (pkgArmMot > 0)   allServices.push({ name: 'Полная защита вкруг - Арматурные работы',   mot: pkgArmMot,   idx: execIndex++ });
+  }
+
+  const impactWrapMot = parseFloat(q('#impactWrapMot')?.value) || 0;
+  const impactPrepMot = parseFloat(q('#impactPrepMot')?.value) || 0;
+  const impactArmMot  = parseFloat(q('#impactArmMot')?.value)  || 0;
+  if (impactWrapMot > 0 || impactPrepMot > 0 || impactArmMot > 0) {
+    if (impactWrapMot > 0) allServices.push({ name: 'Защита ударной части - Инсталляция пленки', mot: impactWrapMot, idx: execIndex++ });
+    if (impactPrepMot > 0) allServices.push({ name: 'Защита ударной части - Подготовка',          mot: impactPrepMot, idx: execIndex++ });
+    if (impactArmMot > 0)  allServices.push({ name: 'Защита ударной части - Арматурные работы',   mot: impactArmMot,  idx: execIndex++ });
+  }
+
+  s.arm.details?.forEach(d  => allServices.push({ name: d[0], mot: d[2], idx: execIndex++ }));
+  s.wrap.details?.forEach(d => allServices.push({ name: d[0], mot: d[4], idx: execIndex++ }));
+  s.det.details?.forEach(d  => allServices.push({ name: d[0], mot: d[2], idx: execIndex++ }));
+  s.gl.details?.forEach(d   => allServices.push({ name: d[0], mot: d[2], idx: execIndex++ }));
+  s.ms.details?.forEach(d   => allServices.push({ name: d[0], mot: d[2], idx: execIndex++ }));
+
+  // Не перерисовываем если количество не изменилось
+  const existingRows = container.querySelectorAll('[data-exec-id]');
+  if (existingRows.length === allServices.length) {
+    allServices.forEach(srv => {
+      const salaryInput = q(`#exec${srv.idx}salary`);
+      if (salaryInput && salaryInput.dataset.manuallySet !== 'true') {
+        salaryInput.value = srv.mot.toFixed(2);
+      }
+    });
     return;
   }
 
-  const { data: calcData, error: calcError } = await sb
-    .from('calculations')
-    .select('*, calendar_bookings(date_from, date_to)')
-    .eq('id', calcId)
-    .single();
+  let html = '';
+  allServices.forEach(srv => {
+    const baseId = `exec${srv.idx}`;
+    html += `<div class="executor-row" data-exec-id="${baseId}">
+      <div class="executor-row-header">${srv.name}</div>
+      <div class="executor-fields-new">
+        <div class="executor-field"><label>Исполнитель:</label><input type="text" id="${baseId}name" placeholder="ФИО" value=""></div>
+        <div class="executor-field"><label>Зарплата ():</label><input type="number" id="${baseId}salary" placeholder="0" value="${srv.mot.toFixed(2)}" step="0.01" data-original-motivation="${srv.mot.toFixed(2)}"></div>
+        <div class="executor-field"><label>Дата приема:</label><input type="date" id="${baseId}receive" value=""></div>
+        <div class="executor-field"><label>Дата выдачи:</label><input type="date" id="${baseId}return" value=""></div>
+        <div class="executor-field executor-field-note"><label>Примечание:</label><input type="text" id="${baseId}note" placeholder="Заметки" value=""></div>
+      </div>
+      <div style="margin-top:12px;text-align:center">
+        <label style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:0.9rem;user-select:none">
+          <input type="checkbox" class="add-executor-chk" data-exec-base="${baseId}" style="width:20px;height:20px;cursor:pointer;accent-color:var(--primary)">
+          <span>+ Добавить исполнителя</span>
+        </label>
+      </div>
+      <div class="extra-executors" id="${baseId}-extra"></div>
+    </div>`;
+  });
 
-  if (calcError || !calcData) {
-    document.getElementById('mainContent').innerHTML = '<div class="loading">❌ Расчёт не найден</div>';
-    return;
-  }
+  container.innerHTML = html;
 
-  calculation = calcData;
-  await loadExecutors();
+  qa('.add-executor-chk').forEach(chk => {
+    chk.addEventListener('change', function() {
+      if (!this.checked) return;
+      const baseId        = this.getAttribute('data-exec-base');
+      const extraContainer = q(`#${baseId}-extra`);
+      const extraCount    = extraContainer.querySelectorAll('.extra-executor-row').length;
+      const newId         = `${baseId}-ex${extraCount + 1}`;
 
-  // Загружаем существующие назначения
-  const { data: existingData } = await sb
-    .from('work_assignments')
-    .select('*')
-    .eq('calculation_id', calcId);
+      const row = document.createElement('div');
+      row.className = 'extra-executor-row';
+      row.style.cssText = 'margin-top:12px;padding:12px;background:var(--bg-tertiary);border-radius:12px;border:1px solid var(--border)';
+      row.innerHTML = `
+        <div class="executor-row-header" style="font-size:0.8rem;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">
+          <span>Исполнитель ${extraCount + 2}</span>
+          <button type="button" class="btn-remove-executor" style="background:var(--danger);color:#fff;border:none;padding:6px 12px;border-radius:8px;font-size:0.8rem;cursor:pointer;font-weight:600">❌ Удалить</button>
+        </div>
+        <div class="executor-fields-new">
+          <div class="executor-field"><label>Исполнитель:</label><input type="text" id="${newId}name" placeholder="ФИО" value=""></div>
+          <div class="executor-field"><label>Зарплата ():</label><input type="number" id="${newId}salary" placeholder="0" value="" step="0.01"></div>
+          <div class="executor-field"><label>Дата приема:</label><input type="date" id="${newId}receive" value=""></div>
+          <div class="executor-field"><label>Дата выдачи:</label><input type="date" id="${newId}return" value=""></div>
+          <div class="executor-field executor-field-note"><label>Примечание:</label><input type="text" id="${newId}note" placeholder="Заметки" value=""></div>
+        </div>
+        <div style="margin-top:12px;text-align:center">
+          <label style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:0.9rem;user-select:none">
+            <input type="checkbox" class="add-executor-chk" data-exec-base="${baseId}" style="width:20px;height:20px;cursor:pointer;accent-color:var(--primary)">
+            <span>+ Добавить исполнителя</span>
+          </label>
+        </div>
+      `;
 
-  const services = extractServices(calcData.calculation_data || {});
-  renderContent(services, existingData || []);
+      extraContainer.appendChild(row);
+      this.checked = false;
+
+      row.querySelector('.btn-remove-executor').addEventListener('click', function() {
+        if (confirm('Удалить этого исполнителя?')) row.remove();
+      });
+    });
+  });
 }
 
-init();
+// ── Мини-итоги по блокам ─────────────────────────────────────────
+function updateBlockSummaries(s, mu) {
+  const pkgBase    = s.pkg.mat    + s.pkg.mot;
+  const impactBase = s.impact.mat + s.impact.mot;
+  const armBase    = s.arm.mat    + s.arm.mot;
+  const wrapBase   = s.wrap.mat   + s.wrap.mot;
+  const detBase    = s.det.mat    + s.det.mot;
+  const glBase     = s.gl.mat     + s.gl.mot;
+  const msBase     = s.ms.mat     + s.ms.mot;
 
-})();
-</script>
+  let wrapMarkupAmt = 0;
+  if (s.wrap.details?.length) {
+    s.wrap.details.forEach(d => {
+      const base = d[3] + d[4];
+      const mk   = (d[5] && d[5] > 0) ? d[5] : (mu.wrap || 0);
+      wrapMarkupAmt += r100(base * mk / 100);
+    });
+  } else {
+    wrapMarkupAmt = r100(wrapBase * (mu.wrap || 0) / 100);
+  }
 
-</body>
-</html>
+  const showSummary = (sid, base, markupPct) => {
+    const el = document.getElementById(sid);
+    if (!el) return;
+    const m = r100(base * markupPct / 100);
+    if (base === 0) { el.style.display = 'none'; return; }
+    el.style.display = 'flex';
+    const prefix = sid.replace('Summary', '');
+    const baseEl = document.getElementById(prefix + 'SumBase');
+    const markEl = document.getElementById(prefix + 'SumMarkup');
+    const totEl  = document.getElementById(prefix + 'SumTotal');
+    if (baseEl) baseEl.textContent = fmt(base) + '';
+    if (markEl) markEl.textContent = '+' + fmt(m) + '';
+    if (totEl)  totEl.textContent  = fmt(base + m) + '';
+  };
+
+  showSummary('pkgSummary',    pkgBase,    mu.pkg    || 0);
+  showSummary('impactSummary', impactBase, mu.impact || 0);
+  showSummary('armSummary',    armBase,    mu.arm    || 0);
+  showSummary('detSummary',    detBase,    mu.det    || 0);
+  showSummary('glSummary',     glBase,     mu.gl     || 0);
+  showSummary('miscSummary',   msBase,     mu.ms     || 0);
+
+  const wrapEl = document.getElementById('wrapSummary');
+  if (wrapEl) {
+    if (wrapBase === 0) { wrapEl.style.display = 'none'; }
+    else {
+      wrapEl.style.display = 'flex';
+      document.getElementById('wrapSumBase').textContent   = fmt(wrapBase) + '';
+      document.getElementById('wrapSumMarkup').textContent = '+' + fmt(wrapMarkupAmt) + '';
+      document.getElementById('wrapSumTotal').textContent  = fmt(wrapBase + wrapMarkupAmt) + '';
+    }
+  }
+}
+
+// ── Итоговые бейджи + диаграмма ──────────────────────────────────
+function renderBadges(s, mu) {
+  const pkgTotal    = s.pkg.mat    + s.pkg.mot;
+  const impactTotal = s.impact.mat + s.impact.mot;
+  const armTotal    = s.arm.mat    + s.arm.mot;
+  const wrapTotal   = s.wrap.mat   + s.wrap.mot;
+  const detTotal    = s.det.mat    + s.det.mot;
+  const glTotal     = s.gl.mat     + s.gl.mot;
+  const msTotal     = s.ms.mat     + s.ms.mot;
+
+  const baseAll = pkgTotal + impactTotal + armTotal + wrapTotal + detTotal + glTotal + msTotal;
+
+  let wrapMarkup = 0;
+  if (s.wrap.details?.length) {
+    s.wrap.details.forEach(([, , , mat, mot, itemMarkup]) => {
+      const base    = mat + mot;
+      const mkToUse = (itemMarkup && itemMarkup > 0) ? itemMarkup : mu.wrap;
+      wrapMarkup += r100(base * (mkToUse || 0) / 100);
+    });
+  } else {
+    wrapMarkup = r100(wrapTotal * (mu.wrap || 0) / 100);
+  }
+
+  const totalMarkup      = r100(pkgTotal * (mu.pkg || 0) / 100) +
+                           r100(impactTotal * (mu.impact || 0) / 100) +
+                           r100(armTotal * (mu.arm || 0) / 100) +
+                           wrapMarkup +
+                           r100(detTotal * (mu.det || 0) / 100) +
+                           r100(glTotal * (mu.gl || 0) / 100) +
+                           r100(msTotal * (mu.ms || 0) / 100);
+  const markupWithDisc   = r100(totalMarkup * (1 - disc / 100));
+  const afterMarkup      = baseAll + markupWithDisc;
+  const taxK             = taxCoef();
+  const tax              = r100(afterMarkup * taxK);
+  const fin              = afterMarkup + tax;
+
+  updateBlockSummaries(s, mu);
+
+  q('#grandMat')?.textContent  !== undefined && (q('#grandMat').textContent  = fmt(s.pkg.mat + s.impact.mat + s.arm.mat + s.wrap.mat + s.det.mat + s.gl.mat + s.ms.mat));
+  q('#grandMot')?.textContent  !== undefined && (q('#grandMot').textContent  = fmt(s.pkg.mot + s.impact.mot + s.arm.mot + s.wrap.mot + s.det.mot + s.gl.mot + s.ms.mot));
+  q('#grandBase')?.textContent  !== undefined && (q('#grandBase').textContent  = fmt(baseAll));
+  q('#grandMarkup')?.textContent !== undefined && (q('#grandMarkup').textContent = fmt(markupWithDisc));
+  q('#grandTax')?.textContent   !== undefined && (q('#grandTax').textContent   = fmt(tax));
+  q('#finalTotal')?.textContent !== undefined && (q('#finalTotal').textContent = fmt(fin));
+
+  if (chart) {
+    chart.data.datasets[0].data = [
+      s.pkg.mat + s.impact.mat + s.arm.mat + s.wrap.mat + s.det.mat + s.gl.mat + s.ms.mat,
+      s.pkg.mot + s.impact.mot + s.arm.mot + s.wrap.mot + s.det.mot + s.gl.mot + s.ms.mot,
+      markupWithDisc,
+      tax
+    ];
+    chart.update('none');
+  }
+}
+
+// ── Подсветка полей наценки ───────────────────────────────────────
+function highlightMarkupFields(s, mu) {
+  [
+    { sum: s.pkg.mat    + s.pkg.mot,    markup: mu.pkg,    field: '#pkgMarkup' },
+    { sum: s.impact.mat + s.impact.mot, markup: mu.impact, field: '#impactMarkup' },
+    { sum: s.arm.mat    + s.arm.mot,    markup: mu.arm,    field: '#armMarkup' },
+    { sum: s.wrap.mat   + s.wrap.mot,   markup: mu.wrap,   field: '#wrapMarkup' },
+    { sum: s.det.mat    + s.det.mot,    markup: mu.det,    field: '#detMarkup' },
+    { sum: s.gl.mat     + s.gl.mot,     markup: mu.gl,     field: '#glMarkup' },
+    { sum: s.ms.mat     + s.ms.mot,     markup: mu.ms,     field: '#miscMarkup' }
+  ].forEach(({ sum, markup, field }) => {
+    const el = q(field);
+    if (!el) return;
+    el.classList.toggle('markup-warning', sum > 0 && (!markup || markup === 0));
+  });
+}
+
+// ── Главная функция рендеринга ────────────────────────────────────
+function renderAll() {
+  const s  = collectAll();
+  const mu = markups();
+  renderBadges(s, mu);
+  renderKP(s, mu);
+  renderCost(s);
+  renderExecutors(s);
+  highlightMarkupFields(s, mu);
+}
