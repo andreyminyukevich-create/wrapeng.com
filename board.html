@@ -616,7 +616,7 @@ async function getStudio {
     .select('studio_id, role')
     .eq('user_id', currentUser.id)
     .eq('is_active', true)
-    .single;
+    .single();
   if (error || !data) { alert('❌ Студия не найдена'); return false; }
   currentStudio = data;
   window._boardStudioId = data.studio_id; // для BookingPopup
@@ -976,7 +976,7 @@ async function loadDoneMaterials(calcId) {
   rows.style.display    = 'none';
   empty.style.display   = 'none';
 
-  const { data } = await sb.from('calculations').select('calculation_data, fact_materials').eq('id', calcId).single;
+  const { data } = await sb.from('calculations').select('calculation_data, fact_materials').eq('id', calcId).single();
   const items    = extractMaterials(data?.calculation_data || {});
   const existing = data?.fact_materials || {};
 
@@ -1061,7 +1061,7 @@ async function init {
   await loadBoard;
 }
 
-init;
+init();
 
 });
 </script>
