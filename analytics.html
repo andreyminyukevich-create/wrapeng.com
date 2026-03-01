@@ -149,9 +149,9 @@ body {
         <input type="date" id="dateFrom">
         <span>—</span>
         <input type="date" id="dateTo">
-        <button class="btn-apply" onclick="applyCustomDate()">Применить</button>
+        <button class="btn-apply" onclick="applyCustomDate">Применить</button>
       </div>
-      <button class="btn-gear" id="btnGear" onclick="toggleSettings()" title="Настроить виджеты">⚙️</button>
+      <button class="btn-gear" id="btnGear" onclick="toggleSettings" title="Настроить виджеты">⚙️</button>
     </div>
   </div>
 
@@ -215,12 +215,12 @@ body {
   <div class="widget-toggle"><label><input type="checkbox" id="wt_checks"    onchange="toggleWidget('wTopChecks',this)"> 💎 Топ чеков</label></div>
   <div class="widget-toggle"><label><input type="checkbox" id="wt_monthly"   onchange="toggleWidget('wMonthly',this)"> 📅 Динамика по месяцам</label></div>
   <div class="widget-toggle"><label><input type="checkbox" id="wt_employees" onchange="toggleWidget('wEmployees',this)"> 👥 Рейтинг сотрудников</label></div>
-  <button class="panel-close" onclick="toggleSettings()">✕ Закрыть</button>
+  <button class="panel-close" onclick="toggleSettings">✕ Закрыть</button>
 </div>
 
 <script src="footer.js"></script>
 <script>
-(function(){
+(function{
 'use strict';
 
 const SB_URL = 'https://hdghijgrrnzmntistdvw.supabase.co';
@@ -238,7 +238,7 @@ const WT_MAP = {
   wFunnel:'wt_funnel', wTopChecks:'wt_checks',
   wMonthly:'wt_monthly', wEmployees:'wt_employees'
 };
-function loadWidgetSettings() {
+function loadWidgetSettings {
   let saved = {};
   try { saved = JSON.parse(localStorage.getItem('k1r_analytics_widgets')||'{}'); } catch(e){}
   Object.entries(WT_MAP).forEach(([wid, cbid]) => {
@@ -258,26 +258,26 @@ window.toggleWidget = function(wid, cb) {
     localStorage.setItem('k1r_analytics_widgets', JSON.stringify(saved));
   } catch(e){}
 };
-window.toggleSettings = function() {
+window.toggleSettings = function {
   document.getElementById('settingsPanel').classList.toggle('show');
   document.getElementById('btnGear').classList.toggle('active');
 };
 
 // ─── Helpers ────────────────────────────────────────
-const fmt  = n => new Intl.NumberFormat('ru-RU',{minimumFractionDigits:0,maximumFractionDigits:0}).format(n||0);
-const fmtS = n => { n=n||0; if(n>=1e6) return (n/1e6).toFixed(1).replace('.0','')+'M ₽'; if(n>=1e3) return Math.round(n/1e3)+'K ₽'; return n+' ₽'; };
+const fmt  = n => new Intl.NumberFormat('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:2}).format(n||0);
+const fmtS = n => new Intl.NumberFormat('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:2}).format(n||0);
 const ns   = s => (!s||s===''||s==='draft'||s==='pending') ? 'new' : s;
 const set  = (id,v) => { const e=document.getElementById(id); if(e) e.textContent=v; };
 
 // ─── Period ──────────────────────────────────────────
-function getRange() {
+function getRange {
   if (isCustom && customFrom && customTo) return {from:customFrom, to:customTo};
-  if (activeDays===0) return {from:new Date(0), to:new Date()};
-  return {from:new Date(Date.now()-activeDays*86400000), to:new Date()};
+  if (activeDays===0) return {from:new Date(0), to:new Date};
+  return {from:new Date(Date.now-activeDays*86400000), to:new Date};
 }
-function getPrevRange() {
+function getPrevRange {
   if (isCustom||activeDays===0) return null;
-  return {from:new Date(Date.now()-2*activeDays*86400000), to:new Date(Date.now()-activeDays*86400000)};
+  return {from:new Date(Date.now-2*activeDays*86400000), to:new Date(Date.now-activeDays*86400000)};
 }
 function filterC(range) { return allCalcs.filter(c => { const d=new Date(c.created_at); return d>=range.from&&d<=range.to; }); }
 function filterA(calcs) { const ids=new Set(calcs.map(c=>c.id)); return allAssign.filter(a=>ids.has(a.calculation_id)); }
@@ -285,12 +285,12 @@ function filterA(calcs) { const ids=new Set(calcs.map(c=>c.id)); return allAssig
 // ─── Bucket ──────────────────────────────────────────
 function bKey(dateStr, days) {
   const d = new Date(dateStr);
-  if (days!==0&&days<=14) return d.toISOString().split('T')[0];
+  if (days!==0&&days<=14) return d.toISOString.split('T')[0];
   if (days!==0&&days<=90) {
-    const day=d.getDay(), diff=d.getDate()-day+(day===0?-6:1);
-    return new Date(new Date(d).setDate(diff)).toISOString().split('T')[0];
+    const day=d.getDay, diff=d.getDate-day+(day===0?-6:1);
+    return new Date(new Date(d).setDate(diff)).toISOString.split('T')[0];
   }
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-01`;
+  return `${d.getFullYear}-${String(d.getMonth+1).padStart(2,'0')}-01`;
 }
 function bLabel(key, days) {
   const d=new Date(key);
@@ -298,7 +298,7 @@ function bLabel(key, days) {
   if (days!==0&&days<=90) return d.toLocaleDateString('ru-RU',{day:'numeric',month:'short'});
   return d.toLocaleDateString('ru-RU',{month:'short',year:'2-digit'});
 }
-function customDays() {
+function customDays {
   if (!customFrom||!customTo) return 30;
   return Math.round((customTo-customFrom)/86400000);
 }
@@ -343,8 +343,8 @@ function setChg(id, cur, prev, isPct) {
 // ─── Revenue chart ────────────────────────────────────
 function renderRevenueChart(cur) {
   const ctx=document.getElementById('revenueChart'); if(!ctx) return;
-  if(charts.rev){charts.rev.destroy();charts.rev=null;}
-  const days = isCustom ? customDays() : activeDays;
+  if(charts.rev){charts.rev.destroy;charts.rev=null;}
+  const days = isCustom ? customDays : activeDays;
   const buckets={};
   cur.forEach(c=>{
     const k=bKey(c.created_at,days);
@@ -352,18 +352,18 @@ function renderRevenueChart(cur) {
     buckets[k].rev+=(c.final_price||c.total_price||0);
     buckets[k].cnt++;
   });
-  const keys=Object.keys(buckets).sort();
+  const keys=Object.keys(buckets).sort;
   if(!keys.length){ctx.parentElement.innerHTML='<div class="no-data">Нет данных для графика</div>';return;}
   const labels=keys.map(k=>bLabel(k,days));
   charts.rev=new Chart(ctx,{
     type:'bar',
     data:{labels,datasets:[
-      {label:'Выручка ₽',data:keys.map(k=>buckets[k].rev),backgroundColor:'rgba(37,99,235,0.72)',borderRadius:5,yAxisID:'y',order:2},
+      {label:'Выручка',data:keys.map(k=>buckets[k].rev),backgroundColor:'rgba(37,99,235,0.72)',borderRadius:5,yAxisID:'y',order:2},
       {label:'Расчётов',data:keys.map(k=>buckets[k].cnt),type:'line',borderColor:'#f59e0b',backgroundColor:'rgba(245,158,11,0.08)',borderWidth:2.5,pointRadius:4,pointBackgroundColor:'#f59e0b',fill:false,yAxisID:'y2',order:1,tension:0.3}
     ]},
     options:{responsive:true,maintainAspectRatio:false,
       interaction:{mode:'index',intersect:false},
-      plugins:{legend:{position:'top',labels:{font:{size:11},padding:10,boxWidth:14}},tooltip:{callbacks:{label:c=>c.dataset.label==='Выручка ₽'?` ${fmt(c.parsed.y)} ₽`:` ${c.parsed.y} шт.`}}},
+      plugins:{legend:{position:'top',labels:{font:{size:11},padding:10,boxWidth:14}},tooltip:{callbacks:{label:c=>c.dataset.label==='Выручка'?` ${fmt(c.parsed.y)}`:` ${c.parsed.y} шт.`}}},
       scales:{y:{position:'left',grid:{color:'rgba(0,0,0,0.04)'},ticks:{callback:v=>{if(v>=1e6)return(v/1e6).toFixed(1)+'M';if(v>=1e3)return Math.round(v/1e3)+'K';return v;},font:{size:10}}},y2:{position:'right',grid:{display:false},ticks:{font:{size:10},precision:0}},x:{ticks:{font:{size:10},maxRotation:45}}}
     }
   });
@@ -372,7 +372,7 @@ function renderRevenueChart(cur) {
 // ─── Status donut ─────────────────────────────────────
 function renderStatusChart(cur) {
   const wrap=document.getElementById('statusChartWrap'); if(!wrap) return;
-  if(charts.status){charts.status.destroy();charts.status=null;}
+  if(charts.status){charts.status.destroy;charts.status=null;}
   const COLORS={new:'#94a3b8',scheduled:'#f59e0b',in_progress:'#2563eb',done:'#7c3aed',delivered:'#059669',cancelled:'#ef4444'};
   const S=window.STATUSES||{};
   const g={};
@@ -384,23 +384,23 @@ function renderStatusChart(cur) {
   charts.status=new Chart(ctx,{
     type:'doughnut',
     data:{labels:keys.map(k=>S[k]?.short||k),datasets:[{data:keys.map(k=>g[k]),backgroundColor:keys.map(k=>COLORS[k]||'#94a3b8'),borderWidth:2,borderColor:'#fff'}]},
-    options:{responsive:true,maintainAspectRatio:false,cutout:'62%',plugins:{legend:{position:'right',labels:{font:{size:11},padding:8,boxWidth:11}},tooltip:{callbacks:{label:c=>` ${fmt(c.parsed)} ₽`}}}}
+    options:{responsive:true,maintainAspectRatio:false,cutout:'62%',plugins:{legend:{position:'right',labels:{font:{size:11},padding:8,boxWidth:11}},tooltip:{callbacks:{label:c=>` ${fmt(c.parsed)}`}}}}
   });
 }
 
 // ─── Monthly chart ────────────────────────────────────
-function renderMonthlyChart() {
+function renderMonthlyChart {
   const ctx=document.getElementById('monthlyChart'); if(!ctx) return;
-  if(charts.monthly){charts.monthly.destroy();charts.monthly=null;}
+  if(charts.monthly){charts.monthly.destroy;charts.monthly=null;}
   const b={};
   allCalcs.forEach(c=>{
     const d=new Date(c.created_at);
-    const k=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    const k=`${d.getFullYear}-${String(d.getMonth+1).padStart(2,'0')}`;
     if(!b[k]) b[k]={cnt:0,all:0,done:0};
     b[k].cnt++; b[k].all+=(c.total_price||0);
     if(ns(c.status)==='delivered') b[k].done+=(c.final_price||c.total_price||0);
   });
-  const keys=Object.keys(b).sort().slice(-18);
+  const keys=Object.keys(b).sort.slice(-18);
   if(!keys.length){ctx.parentElement.innerHTML='<div class="no-data">Нет данных</div>';return;}
   const labels=keys.map(k=>{const[y,m]=k.split('-');return new Date(+y,+m-1,1).toLocaleDateString('ru-RU',{month:'short',year:'2-digit'});});
   charts.monthly=new Chart(ctx,{
@@ -412,7 +412,7 @@ function renderMonthlyChart() {
     ]},
     options:{responsive:true,maintainAspectRatio:false,
       interaction:{mode:'index',intersect:false},
-      plugins:{legend:{position:'top',labels:{font:{size:11},padding:10,boxWidth:13}},tooltip:{callbacks:{label:c=>c.dataset.label==='Кол-во'?` ${c.parsed.y} шт.`:` ${fmt(c.parsed.y)} ₽`}}},
+      plugins:{legend:{position:'top',labels:{font:{size:11},padding:10,boxWidth:13}},tooltip:{callbacks:{label:c=>c.dataset.label==='Кол-во'?` ${c.parsed.y} шт.`:` ${fmt(c.parsed.y)}`}}},
       scales:{y:{position:'left',grid:{color:'rgba(0,0,0,0.04)'},ticks:{callback:v=>{if(v>=1e6)return(v/1e6).toFixed(1)+'M';if(v>=1e3)return Math.round(v/1e3)+'K';return v;},font:{size:10}}},y2:{position:'right',grid:{display:false},ticks:{font:{size:10},precision:0}},x:{ticks:{font:{size:10}}}}
     }
   });
@@ -442,7 +442,7 @@ function renderTopCars(cur) {
   const sorted=Object.entries(b).sort((a,x)=>x[1].sum-a[1].sum).slice(0,8);
   if(!sorted.length){w.innerHTML='<div class="no-data">Нет данных</div>';return;}
   w.innerHTML=`<table class="dt"><thead><tr><th>#</th><th>Марка</th><th>Шт.</th><th class="r">Сумма</th></tr></thead><tbody>
-    ${sorted.map(([br,d],i)=>`<tr><td><span class="rn ${i<3?'r'+(i+1):''}">${i+1}</span></td><td>${br}</td><td>${d.cnt}</td><td class="r">${fmt(d.sum)} ₽</td></tr>`).join('')}
+    ${sorted.map(([br,d],i)=>`<tr><td><span class="rn ${i<3?'r'+(i+1):''}">${i+1}</span></td><td>${br}</td><td>${d.cnt}</td><td class="r">${fmt(d.sum)}</td></tr>`).join('')}
   </tbody></table>`;
 }
 
@@ -468,9 +468,9 @@ function renderTopChecks(cur, asgn) {
   });
 
   cc.innerHTML=[
-    {icon:'🏆',label:'Самый большой чек',val:fmt(maxC.total_price||0)+' ₽',sub:maxC.car_name||'—'},
-    {icon:'🐣',label:'Самый маленький чек',val:fmt(minC.total_price||0)+' ₽',sub:minC.car_name||'—'},
-    {icon:'📐',label:'Медианный чек',val:fmt(median.total_price||0)+' ₽',sub:sorted.length+' расчётов'},
+    {icon:'🏆',label:'Самый большой чек',val:fmt(maxC.total_price||0)+'',sub:maxC.car_name||'—'},
+    {icon:'🐣',label:'Самый маленький чек',val:fmt(minC.total_price||0)+'',sub:minC.car_name||'—'},
+    {icon:'📐',label:'Медианный чек',val:fmt(median.total_price||0)+'',sub:sorted.length+' расчётов'},
     bestM
       ?{icon:'💎',label:'Лучшая рентабельность',val:Math.round(bestMPct)+'%',sub:bestM.car_name||'—'}
       :{icon:'💎',label:'Лучшая рентабельность',val:'—',sub:'назначьте зарплаты для расчёта'},
@@ -483,7 +483,7 @@ function renderTopChecks(cur, asgn) {
     <td>${c.car_name||'—'}</td>
     <td>${new Date(c.created_at).toLocaleDateString('ru-RU',{day:'numeric',month:'short'})}</td>
     <td><span class="badge ${sCls(ns(c.status))}">${S[ns(c.status)]?.short||c.status}</span></td>
-    <td class="r">${fmt(c.total_price||0)} ₽</td>
+    <td class="r">${fmt(c.total_price||0)}</td>
   </tr>`).join('');
 }
 
@@ -496,7 +496,7 @@ function renderEmployees(cur, asgn) {
   const stats={};
   wa.forEach(a=>{
     const n=a.executor_name||'Неизвестный';
-    if(!stats[n]) stats[n]={name:n,salary:0,jobs:0,cars:new Set()};
+    if(!stats[n]) stats[n]={name:n,salary:0,jobs:0,cars:new Set};
     stats[n].salary+=(a.salary||0);
     stats[n].jobs++;
     stats[n].cars.add(a.calculation_id);
@@ -522,8 +522,8 @@ function renderEmployees(cur, asgn) {
       <td><span class="rn ${i<3?'r'+(i+1):''}">${i+1}</span></td>
       <td style="font-weight:700">${e.name}</td>
       <td>${e.jobs}</td><td>${e.carCnt}</td>
-      <td class="r">${fmt(e.salary)} ₽</td>
-      <td class="r">${fmt(e.revenue)} ₽</td>
+      <td class="r">${fmt(e.salary)}</td>
+      <td class="r">${fmt(e.revenue)}</td>
       <td class="r">${e.score>0?e.score+'x':'—'}</td>
       <td>
         ${e.salShare!==null?`<span class="badge ${shCls(e.salShare)}">${e.salShare}%</span>`:'<span style="color:#94a3b8;font-size:0.7rem">нет данных</span>'}
@@ -545,8 +545,8 @@ function buildLabel(cur) {
 }
 
 // ─── Main render ──────────────────────────────────────
-function render() {
-  const range=getRange(), prev=getPrevRange();
+function render {
+  const range=getRange, prev=getPrevRange;
   const cur=filterC(range), prevC=prev?filterC(prev):[];
   const asgn=filterA(cur);
   buildLabel(cur);
@@ -556,29 +556,29 @@ function render() {
   renderFunnel(cur);
   renderTopCars(cur);
   renderTopChecks(cur,asgn);
-  renderMonthlyChart();
+  renderMonthlyChart;
   renderEmployees(cur,asgn);
 }
 
 // ─── Custom date ──────────────────────────────────────
-window.applyCustomDate = function() {
+window.applyCustomDate = function {
   const f=document.getElementById('dateFrom')?.value, t=document.getElementById('dateTo')?.value;
   if(!f||!t) return;
   customFrom=new Date(f+'T00:00:00'); customTo=new Date(t+'T23:59:59'); isCustom=true;
   document.querySelectorAll('.period-tab').forEach(b=>b.classList.remove('active','custom-active'));
   document.querySelector('[data-days=custom]')?.classList.add('custom-active');
-  render();
+  render;
 };
 
 // ─── Init ─────────────────────────────────────────────
-async function init() {
-  initNav();
-  loadWidgetSettings();
+async function init {
+  initNav;
+  loadWidgetSettings;
 
-  const {data:{session}} = await sb.auth.getSession();
+  const {data:{session}} = await sb.auth.getSession;
   if(!session){window.location.href='welcome.html';return;}
 
-  const {data:member} = await sb.from('studio_members').select('studio_id').eq('user_id',session.user.id).eq('is_active',true).single();
+  const {data:member} = await sb.from('studio_members').select('studio_id').eq('user_id',session.user.id).eq('is_active',true).single;
   if(!member){document.querySelector('.container').innerHTML='<div class="loading-state">⚠️ Студия не найдена</div>';return;}
   studioId=member.studio_id; window._studioId=studioId;
 
@@ -592,28 +592,28 @@ async function init() {
 
   if(ce){document.querySelector('.container').innerHTML=`<div class="loading-state">❌ Ошибка: ${ce.message}</div>`;return;}
   allCalcs=calcs||[]; allAssign=assigns||[];
-  render();
+  render;
 
   // Period tabs
   document.querySelectorAll('.period-tab[data-days]').forEach(btn=>{
-    btn.addEventListener('click',()=>{
+    btn.addEventListener('click',=>{
       const d=btn.dataset.days;
       if(d==='custom'){document.getElementById('datePickerWrap').classList.toggle('show');return;}
       isCustom=false; activeDays=parseInt(d);
       document.getElementById('datePickerWrap').classList.remove('show');
       document.querySelectorAll('.period-tab').forEach(b=>b.classList.remove('active','custom-active'));
       btn.classList.add('active');
-      render();
+      render;
     });
   });
 
-  const today=new Date(), month=new Date(Date.now()-30*86400000);
-  document.getElementById('dateTo').value=today.toISOString().split('T')[0];
-  document.getElementById('dateFrom').value=month.toISOString().split('T')[0];
+  const today=new Date, month=new Date(Date.now-30*86400000);
+  document.getElementById('dateTo').value=today.toISOString.split('T')[0];
+  document.getElementById('dateFrom').value=month.toISOString.split('T')[0];
 }
 
 document.addEventListener('DOMContentLoaded',init);
-})();
+});
 </script>
 </body>
 </html>
