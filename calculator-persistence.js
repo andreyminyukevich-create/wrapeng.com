@@ -270,61 +270,69 @@ window.onBrandChange = onBrandChange;
 window.onModelChange = onModelChange;
 window.renderAll     = renderAll;
 
-// ── Брендинг КП (вызывается из calculator-persistence.js) ────────────
-window.applyKPBranding = function(isTrial, studioSettings = {}) {
+// ── Брендинг КП ─────────────────────────────────────────────────────
+// isTrial      — true = пробный/нет подписки → Keep1R-брендинг
+// studioSettings — объект settings из таблицы studios
+// studioName   — studios.name (основное название студии)
+window.applyKPBranding = function(isTrial, studioSettings = {}, studioName = '') {
   const headerEl = document.getElementById('kpBrandHeader');
   const footerEl = document.getElementById('kpBrandFooter');
   if (!headerEl) return;
 
-  if (!isTrial && studioSettings.kp_logo) {
-    // ── Платная студия с логотипом ──
-    const phone   = studioSettings.kp_phone   || studioSettings.phone   || '';
-    const website = studioSettings.kp_website || studioSettings.website || '';
-    const name    = studioSettings.kp_name    || '';
+  // Для триала — ничего не меняем, Keep1R-брендинг остаётся из HTML
+  if (isTrial) return;
 
+  // Для платной подписки — берём данные студии
+  const phone   = studioSettings.kp_phone   || studioSettings.phone   || '';
+  const website = studioSettings.kp_website || studioSettings.website || '';
+  // Название: сначала kp_name из настроек, потом основное название студии
+  const name    = studioSettings.kp_name   || studioName || '';
+  const logo    = studioSettings.kp_logo   || null;
+
+  if (logo) {
+    // ── С логотипом ──
     headerEl.innerHTML = `
-      <div style="max-height:54px;max-width:160px;overflow:hidden">
-        <img src="${studioSettings.kp_logo}" alt="logo"
-          style="max-height:54px;max-width:160px;object-fit:contain;display:block">
+      <div style="max-height:60px;max-width:180px;overflow:hidden">
+        <img src="${logo}" alt="logo"
+          style="max-height:60px;max-width:180px;object-fit:contain;display:block">
       </div>
-      <div style="text-align:right;font-size:8px;color:#475569;line-height:1.8">
-        ${name ? `<div style="font-weight:700">${esc(name)}</div>` : ''}
+      <div style="text-align:right;font-size:8px;color:#475569;line-height:1.9">
+        ${name    ? `<div style="font-weight:800;font-size:9px;color:#0f172a">${esc(name)}</div>` : ''}
         ${phone   ? `<div>📞 ${esc(phone)}</div>`   : ''}
         ${website ? `<div>🌐 ${esc(website)}</div>` : ''}
       </div>
     `;
-    if (footerEl) {
-      footerEl.innerHTML = `
-        <div style="font-size:7.5px;color:#94a3b8;display:flex;justify-content:space-between;align-items:center;width:100%">
-          <span>Коммерческое предложение создано в системе <strong style="color:#475569">Keep1R CRM</strong></span>
-          <span style="display:flex;gap:14px;white-space:nowrap">
-            ${phone ? `<span>${esc(phone)}</span>` : ''}
-            ${website ? `<span>${esc(website)}</span>` : ''}
-          </span>
-        </div>
-      `;
-    }
-  } else if (!isTrial && !studioSettings.kp_logo) {
-    // ── Платная студия без логотипа — имя студии ──
-    const studioName = studioSettings.kp_name || document.getElementById('kpStudioName')?.textContent || '';
-    const phone   = studioSettings.kp_phone   || studioSettings.phone   || '';
-    const website = studioSettings.kp_website || studioSettings.website || '';
+  } else if (name) {
+    // ── Без логотипа, но есть название ──
     headerEl.innerHTML = `
-      <div style="font-size:20px;font-weight:900;letter-spacing:-1px;color:#0f172a">${esc(studioName)}</div>
-      <div style="text-align:right;font-size:8px;color:#475569;line-height:1.8">
+      <div style="font-size:22px;font-weight:900;letter-spacing:-1px;color:#0f172a">${esc(name)}</div>
+      <div style="text-align:right;font-size:8px;color:#475569;line-height:1.9">
         ${phone   ? `<div>📞 ${esc(phone)}</div>`   : ''}
         ${website ? `<div>🌐 ${esc(website)}</div>` : ''}
       </div>
     `;
-    if (footerEl) {
-      footerEl.innerHTML = `
-        <div style="font-size:7.5px;color:#94a3b8;display:flex;justify-content:space-between;align-items:center;width:100%">
-          <span>Коммерческое предложение создано в системе <strong style="color:#475569">Keep1R CRM</strong></span>
-        </div>
-      `;
-    }
+  } else {
+    // ── Совсем ничего не настроено — ставим заглушку ──
+    headerEl.innerHTML = `
+      <div style="font-size:14px;font-weight:700;color:#94a3b8;font-style:italic">
+        Настройте брендинг в разделе «Настройки»
+      </div>
+    `;
   }
-  // isTrial: оставляем Keep1R-брендинг как есть (он захардкожен в HTML)
+
+  // Футер для платной студии — убираем Keep1R, ставим контакты студии
+  if (footerEl) {
+    footerEl.innerHTML = `
+      <div style="font-size:7.5px;color:#94a3b8;display:flex;justify-content:space-between;align-items:center;width:100%">
+        <span style="color:#cbd5e1">Создано в Keep1R CRM</span>
+        <span style="display:flex;gap:14px;white-space:nowrap">
+          ${name    ? `<span style="font-weight:700;color:#475569">${esc(name)}</span>` : ''}
+          ${phone   ? `<span>${esc(phone)}</span>`   : ''}
+          ${website ? `<span>${esc(website)}</span>` : ''}
+        </span>
+      </div>
+    `;
+  }
 };
 
 function esc(s) {
