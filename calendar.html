@@ -328,8 +328,8 @@ body {
       <span class="month-label" id="monthLabel">—</span>
       <button onclick="shiftMonth(1)">›</button>
     </div>
-    <button class="btn-today" onclick="goToday()">Сегодня</button>
-    <button class="btn-today" style="background:rgba(245,158,11,0.1);color:#b45309;border-color:rgba(245,158,11,0.3)" onclick="BookingPopup.open({studioId:studioId,onSaved:function(){loadBookings().then(renderCalendar)}})">📅 Записать авто</button>
+    <button class="btn-today" onclick="goToday">Сегодня</button>
+    <button class="btn-today" style="background:rgba(245,158,11,0.1);color:#b45309;border-color:rgba(245,158,11,0.3)" onclick="BookingPopup.open({studioId:studioId,onSaved:function{loadBookings.then(renderCalendar)}})">📅 Записать авто</button>
     <div class="legend">
       <div class="legend-item"><div class="legend-dot" style="background:#2563eb"></div> В работе</div>
       <div class="legend-item"><div class="legend-dot" style="background:#7c3aed"></div> Готово</div>
@@ -369,8 +369,8 @@ body {
     </div>
     <div class="conflict-warn" id="conflictWarn">⚠️ На этом посту в выбранный период уже есть авто. Убедитесь, что пост вмещает несколько машин.</div>
     <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeAssignModal()">Отмена</button>
-      <button class="btn btn-primary" onclick="saveAssignment()">✅ Назначить</button>
+      <button class="btn btn-ghost" onclick="closeAssignModal">Отмена</button>
+      <button class="btn btn-primary" onclick="saveAssignment">✅ Назначить</button>
     </div>
   </div>
 </div>
@@ -381,11 +381,11 @@ body {
     <h3 id="detailModalTitle">Заказ</h3>
     <div id="detailModalContent"></div>
     <div class="modal-actions">
-      <button class="btn btn-danger" onclick="removeAssignment()">🗑 Убрать из поста</button>
-      <button class="btn btn-primary" onclick="openCalcFromDetail()">📂 Открыть расчёт</button>
+      <button class="btn btn-danger" onclick="removeAssignment">🗑 Убрать из поста</button>
+      <button class="btn btn-primary" onclick="openCalcFromDetail">📂 Открыть расчёт</button>
     </div>
     <div style="margin-top:8px">
-      <button class="btn btn-ghost" style="width:100%;justify-content:center" onclick="closeDetailModal()">Закрыть</button>
+      <button class="btn btn-ghost" style="width:100%;justify-content:center" onclick="closeDetailModal">Закрыть</button>
     </div>
   </div>
 </div>
@@ -393,7 +393,7 @@ body {
 <script src="footer.js"></script>
 <script src="booking-popup.js"></script>
 <script>
-(function() {
+(function {
 'use strict';
 
 const SUPABASE_URL      = 'https://hdghijgrrnzmntistdvw.supabase.co';
@@ -406,8 +406,8 @@ let studioId     = null;
 let posts        = [];
 let calcs        = [];      // все расчёты студии
 let bookings     = [];      // calendar_bookings
-let viewYear     = new Date().getFullYear();
-let viewMonth    = new Date().getMonth(); // 0-11
+let viewYear     = new Date.getFullYear;
+let viewMonth    = new Date.getMonth; // 0-11
 
 // Для модалов
 let activePostId   = null;
@@ -443,27 +443,27 @@ const POST_TYPE_LABEL = {
 };
 
 // ── Auth ──────────────────────────────────────────
-async function checkAuth() {
-  const { data: { session } } = await sb.auth.getSession();
+async function checkAuth {
+  const { data: { session } } = await sb.auth.getSession;
   if (!session) { window.location.href = 'welcome.html'; return false; }
   currentUser = session.user;
   return true;
 }
 
 // ── Load ──────────────────────────────────────────
-async function loadStudio() {
+async function loadStudio {
   const { data: member } = await sb
     .from('studio_members')
     .select('studio_id')
     .eq('user_id', currentUser.id)
     .eq('is_active', true)
-    .single();
+    .single;
   if (!member) return false;
   studioId = member.studio_id;
   return true;
 }
 
-async function loadPosts() {
+async function loadPosts {
   const { data, error } = await sb
     .from('posts')
     .select('*')
@@ -474,7 +474,7 @@ async function loadPosts() {
   posts = data || [];
 }
 
-async function loadCalcs() {
+async function loadCalcs {
   const { data } = await sb
     .from('calculations')
     .select('id, car_name, status, final_price, total_price')
@@ -484,7 +484,7 @@ async function loadCalcs() {
   calcs = data || [];
 }
 
-async function loadBookings() {
+async function loadBookings {
   const { data, error } = await sb
     .from('calendar_bookings')
     .select('*')
@@ -495,9 +495,9 @@ async function loadBookings() {
 
 // ── Helpers ───────────────────────────────────────
 function toISO(d) {
-  const y   = d.getFullYear();
-  const m   = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
+  const y   = d.getFullYear;
+  const m   = String(d.getMonth + 1).padStart(2, '0');
+  const day = String(d.getDate).padStart(2, '0');
   return `${y}-${m}-${day}`;
 }
 
@@ -508,7 +508,7 @@ function parseDate(s) {
 }
 
 function fmt(n) {
-  return new Intl.NumberFormat('ru-RU').format(n || 0);
+  return new Intl.NumberFormat('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:2}).format(n || 0);
 }
 
 function dateRange(from, to) {
@@ -519,7 +519,7 @@ function dateRange(from, to) {
   if (!cur || !end) return result;
   while (cur <= end) {
     result.push(toISO(new Date(cur)));
-    cur.setDate(cur.getDate() + 1);
+    cur.setDate(cur.getDate + 1);
   }
   return result;
 }
@@ -539,7 +539,7 @@ function getCalcById(id) {
 }
 
 // ── Render calendar ───────────────────────────────
-function renderCalendar() {
+function renderCalendar {
   const wrap = document.getElementById('calendarWrap');
 
   // Month label
@@ -564,27 +564,26 @@ function renderCalendar() {
   // Compute month grid: first day of month, pad to Monday
   const firstDay = new Date(viewYear, viewMonth, 1);
   const lastDay  = new Date(viewYear, viewMonth + 1, 0);
-  const today    = toISO(new Date());
+  const today    = toISO(new Date);
 
   // Start from Monday of the week containing firstDay
-  let startPad = firstDay.getDay(); // 0=Sun
+  let startPad = firstDay.getDay; // 0=Sun
   startPad = startPad === 0 ? 6 : startPad - 1; // convert to Mon=0
-
   const gridStart = new Date(firstDay);
-  gridStart.setDate(gridStart.getDate() - startPad);
+  gridStart.setDate(gridStart.getDate - startPad);
 
   // End on Sunday of the week containing lastDay
-  let endPad = lastDay.getDay();
+  let endPad = lastDay.getDay;
   endPad = endPad === 0 ? 0 : 7 - endPad;
   const gridEnd = new Date(lastDay);
-  gridEnd.setDate(gridEnd.getDate() + endPad);
+  gridEnd.setDate(gridEnd.getDate + endPad);
 
   // Collect all dates
   const dates = [];
   const cur = new Date(gridStart);
   while (cur <= gridEnd) {
     dates.push(toISO(new Date(cur)));
-    cur.setDate(cur.getDate() + 1);
+    cur.setDate(cur.getDate + 1);
   }
 
   // Render each post
@@ -599,8 +598,8 @@ function renderCalendar() {
 
     const cells = dates.map(dateStr => {
       const d = parseDate(dateStr);
-      const isThisMonth = d.getMonth() === viewMonth;
-      const isWeekend   = d.getDay() === 0 || d.getDay() === 6;
+      const isThisMonth = d.getMonth === viewMonth;
+      const isWeekend   = d.getDay === 0 || d.getDay === 6;
       const isToday     = dateStr === today;
 
       const dayBookings = bookingsForCell(post.id, dateStr);
@@ -620,16 +619,16 @@ function renderCalendar() {
           ? (calc?.car_name || 'Авто') + (isEnd ? '' : ' →')
           : (isEnd ? '← ' + (calc?.car_name || '') : '···');
         return `<div class="booking-chip ${chipCls}" style="background:${bColor}"
-          onclick="event.stopPropagation();openDetail('${b.id}')"
+          onclick="event.stopPropagation;openDetail('${b.id}')"
           title="${calc?.car_name || ''}">${label}</div>`;
       }).join('');
 
       const canAdd = isThisMonth && !d.otherMonth;
 
       return `<div class="${cls}" onclick="openAssign('${post.id}','${dateStr}')">
-        <div class="day-num">${d.getDate()}</div>
+        <div class="day-num">${d.getDate}</div>
         <div class="day-bookings">${chips}</div>
-        ${canAdd ? `<button class="day-add-btn" onclick="event.stopPropagation();openAssign('${post.id}','${dateStr}')">+</button>` : ''}
+        ${canAdd ? `<button class="day-add-btn" onclick="event.stopPropagation;openAssign('${post.id}','${dateStr}')">+</button>` : ''}
       </div>`;
     }).join('');
 
@@ -656,14 +655,14 @@ window.shiftMonth = function(delta) {
   viewMonth += delta;
   if (viewMonth > 11) { viewMonth = 0;  viewYear++; }
   if (viewMonth < 0)  { viewMonth = 11; viewYear--; }
-  renderCalendar();
+  renderCalendar;
 };
 
-window.goToday = function() {
-  const now = new Date();
-  viewYear  = now.getFullYear();
-  viewMonth = now.getMonth();
-  renderCalendar();
+window.goToday = function {
+  const now = new Date;
+  viewYear  = now.getFullYear;
+  viewMonth = now.getMonth;
+  renderCalendar;
 };
 
 // ── Assign modal ──────────────────────────────────
@@ -696,7 +695,7 @@ window.openAssign = function(postId, dateStr) {
   document.getElementById('assignModal').classList.add('active');
 };
 
-function checkConflict() {
+function checkConflict {
   const from = document.getElementById('assignDateFrom').value;
   const to   = document.getElementById('assignDateTo').value;
   if (!from || !to) return;
@@ -711,15 +710,15 @@ function checkConflict() {
   document.getElementById('conflictWarn').classList.toggle('show', hasConflict);
 }
 
-window.closeAssignModal = function() {
+window.closeAssignModal = function {
   document.getElementById('assignModal').classList.remove('active');
 };
 
-window.saveAssignment = async function() {
+window.saveAssignment = async function {
   const calcId  = document.getElementById('assignCalcSelect').value;
   const from    = document.getElementById('assignDateFrom').value;
   const to      = document.getElementById('assignDateTo').value;
-  const note    = document.getElementById('assignNote').value.trim();
+  const note    = document.getElementById('assignNote').value.trim;
 
   if (!calcId) { alert('Выберите расчёт'); return; }
   if (!from || !to) { alert('Укажите даты'); return; }
@@ -752,16 +751,16 @@ window.saveAssignment = async function() {
     if (c) c.status = 'scheduled';
   }
 
-  closeAssignModal();
-  await loadBookings();
-  renderCalendar();
+  closeAssignModal;
+  await loadBookings;
+  renderCalendar;
 };
 
 // ── Helpers для услуг ─────────────────────────────
 function extractServices(calcData) {
   const d = calcData || {};
   const items = [];
-  const seen = new Set();
+  const seen = new Set;
 
   function add(key, name, price) {
     const p = parseFloat(price) || 0;
@@ -850,7 +849,7 @@ window.openDetail = async function(bookingId) {
   }
 
   const [calcRes, assignRes] = await Promise.all([
-    sb.from('calculations').select('calculation_data, final_price, total_price').eq('id', b.calc_id).single(),
+    sb.from('calculations').select('calculation_data, final_price, total_price').eq('id', b.calc_id).single,
     sb.from('work_assignments').select('executor_name, salary, is_admin_sale').eq('calculation_id', b.calc_id),
   ]);
 
@@ -901,17 +900,17 @@ function daysBetween(from, to) {
   return Math.round((t - f) / 86400000) + 1 + ' д.';
 }
 
-window.closeDetailModal = function() {
+window.closeDetailModal = function {
   document.getElementById('detailModal').classList.remove('active');
   activeBookingId = null;
   activeCalcId    = null;
 };
 
-window.openCalcFromDetail = function() {
+window.openCalcFromDetail = function {
   if (activeCalcId) window.open(`calculator.html?load=${activeCalcId}`, '_blank');
 };
 
-window.removeAssignment = async function() {
+window.removeAssignment = async function {
   if (!activeBookingId) return;
   const b = bookings.find(x => x.id === activeBookingId);
   const calc = b ? getCalcById(b.calc_id) : null;
@@ -920,22 +919,22 @@ window.removeAssignment = async function() {
 
   const { error } = await sb
     .from('calendar_bookings')
-    .delete()
+    .delete
     .eq('id', activeBookingId);
 
   if (error) { alert('❌ ' + error.message); return; }
 
-  closeDetailModal();
-  await loadBookings();
-  renderCalendar();
+  closeDetailModal;
+  await loadBookings;
+  renderCalendar;
 };
 
 // ── Init ──────────────────────────────────────────
-async function init() {
+async function init {
   initNav({ actionHref: 'calculator.html', actionLabel: '➕ Новый расчёт' });
 
-  if (!await checkAuth()) return;
-  if (!await loadStudio()) {
+  if (!await checkAuth) return;
+  if (!await loadStudio) {
     document.getElementById('calendarWrap').innerHTML =
       '<div class="cal-loading">⚠️ Студия не найдена</div>';
     return;
@@ -948,13 +947,13 @@ async function init() {
     return;
   }
 
-  await Promise.all([loadPosts(), loadCalcs(), loadBookings()]);
-  renderCalendar();
+  await Promise.all([loadPosts, loadCalcs, loadBookings]);
+  renderCalendar;
 }
 
 document.addEventListener('DOMContentLoaded', init);
 
-})();
+});
 </script>
 </body>
 </html>
