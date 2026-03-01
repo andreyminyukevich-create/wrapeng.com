@@ -499,14 +499,14 @@ let currentUser       = null;
 let allCalcsForSearch = [];
 
 async function checkAuth {
-  const { data: { session } } = await sb.auth.getSession;
+  const { data: { session } } = await sb.auth.getSession();
   if (!session) { window.location.href = 'welcome.html'; return false; }
   currentUser = session.user;
   return true;
 }
 
-window.logout = async function {
-  await sb.auth.signOut;
+window.logout = async function() {
+  await sb.auth.signOut();
   window.location.href = 'welcome.html';
 };
 
