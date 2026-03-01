@@ -589,7 +589,7 @@ async function getStudio {
     .select('studio_id, role')
     .eq('user_id', currentUser.id)
     .eq('is_active', true)
-    .single;
+    .single();
   if (error || !data) { alert('❌ Студия не найдена'); return false; }
   currentStudio = data;
   return true;
@@ -789,13 +789,13 @@ window.addExecutorRow = function(containerId, defaultSalary = 0) {
   const row = document.createElement('div');
   row.innerHTML = renderExecutorRow(id, '', defaultSalary);
   document.getElementById(containerId).appendChild(row.firstElementChild);
-  updateSummary;
+  updateSummary();
 };
 
 window.removeExecutorRow = function(rowId) {
   const el = document.getElementById(rowId);
   if (el) el.remove;
-  updateSummary;
+  updateSummary();
 };
 
 function updateSummary {
@@ -812,7 +812,7 @@ function updateSummary {
 window.toggleAdminSale = function {
   const isChecked = document.getElementById('isAdminSale').checked;
   document.getElementById('adminDetails').classList.toggle('active', isChecked);
-  calcAdminSalary;
+  calcAdminSalary();
 };
 
 window.setAdminMode = function(mode) {
@@ -868,7 +868,7 @@ window.addManualWork = function {
 
   document.getElementById('manualServiceName').value = '';
   document.getElementById('manualSalary').value = '';
-  updateSummary;
+  updateSummary();
 };
 
 window.saveAssignments = async function {
@@ -890,7 +890,7 @@ window.saveAssignments = async function {
           studio_id: currentStudio.studio_id,
           full_name: adminExecName,
           role: 'universal', is_active: true, is_admin: true
-        }).select.single;
+        }).select.single();
         if (savedAdmin) { adminExecId = savedAdmin.id; executors.push(savedAdmin); }
       }
     } else {
@@ -1148,8 +1148,8 @@ function renderContent(services, existingAssignments = []) {
   });
 
   document.getElementById('adminPercent')?.addEventListener('input', calcAdminSalary);
-  calcAdminSalary;
-  updateSummary;
+  calcAdminSalary();
+  updateSummary();
 }
 
 async function init {
@@ -1169,7 +1169,7 @@ async function init {
     .from('calculations')
     .select('*, calendar_bookings(date_from, date_to)')
     .eq('id', calcId)
-    .single;
+    .single();
 
   if (calcError || !calcData) {
     document.getElementById('mainContent').innerHTML = '<div class="loading">❌ Расчёт не найден</div>';
@@ -1189,7 +1189,7 @@ async function init {
   renderContent(services, existingData || []);
 }
 
-init;
+init();
 
 });
 </script>
