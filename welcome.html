@@ -388,14 +388,14 @@ body::before {
         <div class="status-desc">Обычно до 24 часов. Хотите ускорить?</div>
       </div>
       <a href="https://t.me/PPFKeep1R" target="_blank" class="btn btn-primary" style="margin-bottom:8px">✈️ Написать в Telegram</a>
-      <button class="btn btn-outline" onclick="logoutPending()">Выйти</button>
+      <button class="btn btn-outline" onclick="logoutPending">Выйти</button>
     </div>
   </div>
 </div>
 
 <script src="footer.js"></script>
 <script>
-(function() {
+(function {
 'use strict';
 const SB_URL = 'https://hdghijgrrnzmntistdvw.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkZ2hpamdycm56bW50aXN0ZHZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMzMyNzksImV4cCI6MjA3NTYwOTI3OX0.D9EDTmVrFRVp0B8_5tCJM29gbFdtadsom0Ihsf4uQ8Q';
@@ -414,8 +414,8 @@ window.showTab = function(tab) {
 function err(id, msg) { const e=document.getElementById(id); if(e){e.textContent=msg;e.style.display='block';} }
 function clr(id) { const e=document.getElementById(id); if(e) e.style.display='none'; }
 
-async function checkSession() {
-  const {data:{session}} = await sb.auth.getSession();
+async function checkSession {
+  const {data:{session}} = await sb.auth.getSession;
   if (!session) return;
   const {data:m} = await sb.from('studio_members').select('studio_id,studios(subscription_tier)').eq('user_id',session.user.id).eq('is_active',true).single();
   if (!m) return;
@@ -424,11 +424,11 @@ async function checkSession() {
 }
 
 document.getElementById('login-form').addEventListener('submit', async e => {
-  e.preventDefault(); clr('login-error');
+  e.preventDefault; clr('login-error');
   const btn=document.getElementById('login-btn'); btn.disabled=true; btn.textContent='Входим...';
   try {
     const {data,error} = await sb.auth.signInWithPassword({
-      email: document.getElementById('login-email').value.trim(),
+      email: document.getElementById('login-email').value.trim,
       password: document.getElementById('login-password').value
     });
     if (error) throw error;
@@ -442,12 +442,12 @@ document.getElementById('login-form').addEventListener('submit', async e => {
 });
 
 document.getElementById('reg-form').addEventListener('submit', async e => {
-  e.preventDefault(); clr('reg-error');
+  e.preventDefault; clr('reg-error');
   const btn=document.getElementById('reg-btn'); btn.disabled=true; btn.textContent='Отправляем...';
-  const studio=document.getElementById('reg-studio').value.trim();
-  const city=document.getElementById('reg-city').value.trim();
-  const phone=document.getElementById('reg-phone').value.trim();
-  const email=document.getElementById('reg-email').value.trim();
+  const studio=document.getElementById('reg-studio').value.trim;
+  const city=document.getElementById('reg-city').value.trim;
+  const phone=document.getElementById('reg-phone').value.trim;
+  const email=document.getElementById('reg-email').value.trim;
   const pass=document.getElementById('reg-password').value;
   if (phone.length < 10) { err('reg-error','Укажите корректный номер телефона'); btn.disabled=false; btn.textContent='Отправить заявку →'; return; }
   try {
@@ -456,21 +456,21 @@ document.getElementById('reg-form').addEventListener('submit', async e => {
     const uid = auth.user?.id;
     if (!uid) throw new Error('Ошибка создания аккаунта. Попробуйте ещё раз.');
     if (auth.user?.identities?.length === 0) throw new Error('Этот email уже зарегистрирован. Войдите или сбросьте пароль.');
-    const refCode = Math.random().toString(36).substring(2,10).toUpperCase();
+    const refCode = Math.random.toString(36).substring(2,10).toUpperCase;
     const {data:studioData,error:se} = await sb.from('studios').insert({
       name: studio, owner_id: uid, subscription_tier: 'pending',
       referral_code: refCode, settings: {phone, city, contact_email: email}
     }).select('id').single();
     if (se) {
       const { error: reqErr } = await sb.from('access_requests').insert({studio_name:studio,city,phone,email,supabase_user_id:uid,status:'new'});
-      if (reqErr) { err('reg-error','Ошибка: '+(se.message||'попробуйте ещё раз')); await sb.auth.signOut(); btn.disabled=false; btn.textContent='Отправить заявку →'; return; }
-      await sb.auth.signOut();
+      if (reqErr) { err('reg-error','Ошибка: '+(se.message||'попробуйте ещё раз')); await sb.auth.signOut; btn.disabled=false; btn.textContent='Отправить заявку →'; return; }
+      await sb.auth.signOut;
       document.getElementById('success-email').textContent=email;
       document.getElementById('success-phone').textContent=phone;
       showTab('success'); return;
     }
     await sb.from('studio_members').insert({studio_id:studioData.id,user_id:uid,role:'owner',is_active:true});
-    await sb.auth.signOut();
+    await sb.auth.signOut;
     document.getElementById('success-email').textContent=email;
     document.getElementById('success-phone').textContent=phone;
     showTab('success');
@@ -480,27 +480,27 @@ document.getElementById('reg-form').addEventListener('submit', async e => {
 });
 
 document.getElementById('forgot-form').addEventListener('submit', async e => {
-  e.preventDefault();
+  e.preventDefault;
   const btn=document.getElementById('forgot-btn'); btn.disabled=true; btn.textContent='Отправляем...';
   try {
-    const {error}=await sb.auth.resetPasswordForEmail(document.getElementById('forgot-email').value.trim(),{redirectTo:location.origin+'/welcome.html'});
+    const {error}=await sb.auth.resetPasswordForEmail(document.getElementById('forgot-email').value.trim,{redirectTo:location.origin+'/welcome.html'});
     if (error) throw error;
     alert('✅ Письмо отправлено!'); showTab('login');
   } catch(e) { err('forgot-error',e.message); }
   finally { btn.disabled=false; btn.textContent='Отправить письмо →'; }
 });
 
-window.logoutPending = async function() { await sb.auth.signOut(); showTab('login'); };
-checkSession();
+window.logoutPending = async function { await sb.auth.signOut; showTab('login'); };
+checkSession;
 
 // Автопрефикс +7 для телефона
-(function(){
+(function{
   const ph = document.getElementById('reg-phone');
   if (!ph) return;
-  ph.addEventListener('focus', function(){
+  ph.addEventListener('focus', function{
     if (!this.value) this.value = '+7 ';
   });
-  ph.addEventListener('input', function(){
+  ph.addEventListener('input', function{
     if (!this.value.startsWith('+7')) {
       const digits = this.value.replace(/\D/g,'');
       this.value = '+7 ' + (digits.startsWith('7') ? digits.slice(1) : digits);
@@ -508,11 +508,11 @@ checkSession();
   });
   ph.addEventListener('keydown', function(e){
     if ((e.key === 'Backspace' || e.key === 'Delete') && this.value === '+7 ') {
-      e.preventDefault();
+      e.preventDefault;
     }
   });
-})();
-})();
+});
+});
 </script>
 </body>
 </html>
