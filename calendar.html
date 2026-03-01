@@ -444,7 +444,7 @@ const POST_TYPE_LABEL = {
 
 // ── Auth ──────────────────────────────────────────
 async function checkAuth {
-  const { data: { session } } = await sb.auth.getSession;
+  const { data: { session } } = await sb.auth.getSession();
   if (!session) { window.location.href = 'welcome.html'; return false; }
   currentUser = session.user;
   return true;
@@ -457,7 +457,7 @@ async function loadStudio {
     .select('studio_id')
     .eq('user_id', currentUser.id)
     .eq('is_active', true)
-    .single;
+    .single();
   if (!member) return false;
   studioId = member.studio_id;
   return true;
@@ -655,14 +655,14 @@ window.shiftMonth = function(delta) {
   viewMonth += delta;
   if (viewMonth > 11) { viewMonth = 0;  viewYear++; }
   if (viewMonth < 0)  { viewMonth = 11; viewYear--; }
-  renderCalendar;
+  renderCalendar();
 };
 
 window.goToday = function {
   const now = new Date;
   viewYear  = now.getFullYear;
   viewMonth = now.getMonth;
-  renderCalendar;
+  renderCalendar();
 };
 
 // ── Assign modal ──────────────────────────────────
@@ -714,7 +714,7 @@ window.closeAssignModal = function {
   document.getElementById('assignModal').classList.remove('active');
 };
 
-window.saveAssignment = async function {
+window.saveAssignment = async function() {
   const calcId  = document.getElementById('assignCalcSelect').value;
   const from    = document.getElementById('assignDateFrom').value;
   const to      = document.getElementById('assignDateTo').value;
@@ -753,7 +753,7 @@ window.saveAssignment = async function {
 
   closeAssignModal;
   await loadBookings;
-  renderCalendar;
+  renderCalendar();
 };
 
 // ── Helpers для услуг ─────────────────────────────
@@ -849,7 +849,7 @@ window.openDetail = async function(bookingId) {
   }
 
   const [calcRes, assignRes] = await Promise.all([
-    sb.from('calculations').select('calculation_data, final_price, total_price').eq('id', b.calc_id).single,
+    sb.from('calculations').select('calculation_data, final_price, total_price').eq('id', b.calc_id).single(),
     sb.from('work_assignments').select('executor_name, salary, is_admin_sale').eq('calculation_id', b.calc_id),
   ]);
 
@@ -910,7 +910,7 @@ window.openCalcFromDetail = function {
   if (activeCalcId) window.open(`calculator.html?load=${activeCalcId}`, '_blank');
 };
 
-window.removeAssignment = async function {
+window.removeAssignment = async function() {
   if (!activeBookingId) return;
   const b = bookings.find(x => x.id === activeBookingId);
   const calc = b ? getCalcById(b.calc_id) : null;
@@ -926,7 +926,7 @@ window.removeAssignment = async function {
 
   closeDetailModal;
   await loadBookings;
-  renderCalendar;
+  renderCalendar();
 };
 
 // ── Init ──────────────────────────────────────────
@@ -948,7 +948,7 @@ async function init {
   }
 
   await Promise.all([loadPosts, loadCalcs, loadBookings]);
-  renderCalendar;
+  renderCalendar();
 }
 
 document.addEventListener('DOMContentLoaded', init);
