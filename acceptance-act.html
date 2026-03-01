@@ -1,906 +1,668 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Акт приёмки — Keep1R CRM</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<link rel="stylesheet" href="nav.css">
-<script src="nav.js"></script>
-
-<style>
-/* ── Base ─────────────────────────────────────────── */
-* { box-sizing: border-box; margin: 0; padding: 0; }
-:root {
-  --font: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
-  --bg: #eef2f9;
-  --card: #fff;
-  --border: rgba(15,23,42,0.10);
-  --text: #0f172a;
-  --muted: #64748b;
-  --primary: #2563eb;
-  --success: #059669;
-  --danger: #dc2626;
-  --radius: 12px;
-}
-body {
-  font-family: var(--font);
-  background: var(--bg);
-  color: var(--text);
-  min-height: 100svh;
-  -webkit-font-smoothing: antialiased;
-}
-.container {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 24px 20px 60px;
-}
-
-/* ── Page header ──────────────────────────────────── */
-.page-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-.page-title {
-  font-size: 1.3rem;
-  font-weight: 800;
-  color: var(--text);
-  letter-spacing: -0.3px;
-}
-.page-sub {
-  font-size: 0.8rem;
-  color: var(--muted);
-  margin-top: 2px;
-}
-.btn {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 9px 18px; border-radius: 9px; border: none;
-  font-size: 0.85rem; font-weight: 700; cursor: pointer;
-  font-family: var(--font); transition: all 0.15s;
-}
-.btn-primary { background: var(--primary); color: #fff; }
-.btn-primary:hover { background: #1d4ed8; }
-.btn-secondary { background: #f1f5f9; color: var(--text); border: 1px solid var(--border); }
-.btn-secondary:hover { background: #e2e8f0; }
-.btn-success { background: var(--success); color: #fff; }
-.btn-success:hover { background: #047857; }
-.btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
-
-/* ── Card ─────────────────────────────────────────── */
-.card {
-  background: var(--card);
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-  margin-bottom: 16px;
-  overflow: hidden;
-}
-.card-head {
-  padding: 14px 18px 10px;
-  border-bottom: 1px solid var(--border);
-  font-size: 0.82rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--muted);
-}
-.card-body { padding: 16px 18px; }
-
-/* ── Form ─────────────────────────────────────────── */
-.form-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 12px;
-  margin-bottom: 12px;
-}
-.form-group { display: flex; flex-direction: column; gap: 5px; }
-.form-group label {
-  font-size: 0.74rem; font-weight: 700; color: var(--muted);
-  text-transform: uppercase; letter-spacing: 0.04em;
-}
-.form-group input, .form-group textarea, .form-group select {
-  padding: 9px 12px;
-  border: 1.5px solid var(--border);
-  border-radius: 8px;
-  font-size: 0.88rem;
-  font-family: var(--font);
-  color: var(--text);
-  background: #f8fafc;
-  transition: border-color 0.15s;
-  width: 100%;
-}
-.form-group input:focus, .form-group textarea:focus {
-  outline: none;
-  border-color: var(--primary);
-  background: #fff;
-}
-.form-group textarea { resize: vertical; min-height: 68px; }
-
-/* ── Checkboxes ───────────────────────────────────── */
-.check-list { display: flex; flex-direction: column; gap: 8px; }
-.check-item {
-  display: flex; align-items: flex-start; gap: 10px;
-  padding: 10px 14px;
-  border-radius: 8px;
-  border: 1.5px solid var(--border);
-  background: #f8fafc;
-  cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
-}
-.check-item:has(input:checked) {
-  border-color: var(--primary);
-  background: rgba(37,99,235,0.04);
-}
-.check-item input[type=checkbox] {
-  margin-top: 1px; flex-shrink: 0;
-  width: 16px; height: 16px; accent-color: var(--primary);
-  cursor: pointer;
-}
-.check-item-text { font-size: 0.86rem; line-height: 1.45; }
-.check-item-text strong { display: block; font-weight: 700; margin-bottom: 1px; }
-.check-item-text span { color: var(--muted); font-size: 0.79rem; }
-
-/* ── Car diagram ──────────────────────────────────── */
-.diagram-wrap {
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 12px;
-  background: #f8fafc;
-  border-radius: 10px;
-  border: 1.5px solid var(--border);
-  min-height: 280px;
-  cursor: crosshair;
-  user-select: none;
-}
-.diagram-wrap svg {
-  max-width: 100%;
-  height: auto;
-  pointer-events: none;
-}
-.diagram-hint {
-  text-align: center;
-  font-size: 0.75rem;
-  color: var(--muted);
-  margin-top: 8px;
-  font-weight: 600;
-}
-
-/* Defect markers */
-.defect-marker {
-  position: absolute;
-  width: 24px; height: 24px;
-  border-radius: 50%;
-  background: var(--danger);
-  color: #fff;
-  font-size: 0.65rem;
-  font-weight: 900;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer;
-  border: 2px solid #fff;
-  box-shadow: 0 2px 8px rgba(220,38,38,0.4);
-  transform: translate(-50%, -50%);
-  transition: transform 0.15s;
-  z-index: 10;
-  font-family: var(--font);
-}
-.defect-marker:hover { transform: translate(-50%,-50%) scale(1.2); }
-.defect-marker.selected { background: var(--primary); box-shadow: 0 2px 8px rgba(37,99,235,0.4); }
-
-/* Defect legend */
-.defect-legend {
-  margin-top: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.defect-legend-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.82rem;
-}
-.defect-legend-num {
-  width: 22px; height: 22px; border-radius: 50%;
-  background: var(--danger); color: #fff;
-  font-size: 0.65rem; font-weight: 900;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-}
-.defect-legend-input {
-  flex: 1;
-  padding: 5px 10px;
-  border: 1.5px solid var(--border);
-  border-radius: 6px;
-  font-size: 0.82rem;
-  font-family: var(--font);
-  background: #f8fafc;
-}
-.defect-legend-input:focus { outline: none; border-color: var(--primary); background: #fff; }
-.defect-del {
-  background: none; border: none; cursor: pointer;
-  color: var(--danger); font-size: 1rem; padding: 2px 4px; line-height: 1;
-}
-.diagram-controls {
-  display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap;
-}
-
-/* ── Services table ───────────────────────────────── */
-.services-table {
-  width: 100%; border-collapse: collapse;
-  font-size: 0.85rem;
-}
-.services-table th {
-  text-align: left;
-  padding: 7px 10px;
-  font-size: 0.72rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--muted);
-  border-bottom: 1.5px solid var(--border);
-}
-.services-table td {
-  padding: 9px 10px;
-  border-bottom: 1px solid var(--border);
-  vertical-align: top;
-}
-.services-table tr:last-child td { border-bottom: none; }
-.services-table .total-row td {
-  font-weight: 800;
-  padding-top: 11px;
-  border-top: 2px solid var(--border);
-  border-bottom: none;
-}
-.price-cell { text-align: right; white-space: nowrap; font-weight: 700; }
-
-/* ── Signature block ──────────────────────────────── */
-.sign-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
-  margin-top: 4px;
-}
-.sign-block { display: flex; flex-direction: column; gap: 10px; }
-.sign-label { font-size: 0.75rem; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
-.sign-line {
-  border-bottom: 1.5px solid #94a3b8;
-  height: 40px;
-  position: relative;
-}
-.sign-caption {
-  font-size: 0.73rem;
-  color: var(--muted);
-  text-align: center;
-}
-
-/* ── Print ────────────────────────────────────────── */
-@media print {
-  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-  body { background: #fff !important; font-size: 11px !important; }
-  #navTopBar, .no-print, .page-header .btn-group { display: none !important; }
-  .container { padding: 0 !important; max-width: 100% !important; }
-
-  /* Компактные отступы */
-  .card { box-shadow: none !important; margin-bottom: 6px !important; break-inside: avoid; }
-  .card-head { padding: 7px 12px 6px !important; font-size: 0.68rem !important; }
-  .card-body { padding: 8px 12px !important; }
-  .form-row { gap: 6px !important; margin-bottom: 6px !important; }
-  .form-group input, .form-group textarea {
-    padding: 5px 8px !important; font-size: 0.8rem !important;
-    border: 1px solid #cbd5e1 !important; background: #fff !important;
-  }
-  .form-group label { font-size: 0.63rem !important; }
-  .form-group textarea { min-height: 36px !important; }
-
-  /* Чекбоксы компактнее */
-  .check-item { padding: 5px 8px !important; border: 1px solid #cbd5e1 !important; background: #f8fafc !important; }
-  .check-item:has(input:checked) { border: 1.5px solid #2563eb !important; background: #eff6ff !important; }
-  .check-item-text { font-size: 0.78rem !important; }
-  .check-item-text strong { margin-bottom: 0 !important; }
-  .check-item-text span { font-size: 0.7rem !important; }
-  .check-list { gap: 4px !important; }
-
-  /* Схема авто — меньше */
-  .diagram-wrap {
-    border: 1px solid #cbd5e1 !important;
-    min-height: 160px !important;
-    padding: 6px !important;
-  }
-  #carSvg { width: 160px !important; height: 280px !important; }
-  .defect-marker { width: 18px !important; height: 18px !important; font-size: 0.55rem !important; }
-  .defect-legend-input { padding: 3px 6px !important; font-size: 0.75rem !important; }
-  .defect-legend { gap: 3px !important; margin-top: 6px !important; }
-
-  /* Таблица услуг */
-  .services-table th, .services-table td { padding: 5px 8px !important; font-size: 0.8rem !important; }
-
-  /* Подписи */
-  .sign-row { gap: 16px !important; }
-  .sign-label { font-size: 0.65rem !important; }
-  .sign-line { height: 30px !important; }
-  .disclaimer { padding: 7px 10px !important; font-size: 0.72rem !important; margin-top: 8px !important; }
-
-  /* Разрывы страниц: блок дефектов+услуги+подписи на стр.2 */
-  .card:nth-of-type(3) { break-before: page !important; }
-
-  /* Print header */
-  #printStudioHeader { display: flex !important; }
-  #printStudioHeader { padding-bottom: 8px !important; margin-bottom: 10px !important; }
-}
-
-/* Studio header (print only) */
-#printStudioHeader {
-  display: none;
-  align-items: center;
-  justify-content: space-between;
-  padding-bottom: 14px;
-  border-bottom: 2px solid #0f172a;
-  margin-bottom: 18px;
-}
-#printStudioHeader .studio-logo {
-  max-height: 48px;
-  max-width: 120px;
-  object-fit: contain;
-}
-#printStudioHeader .studio-name-block {
-  text-align: right;
-  font-size: 0.78rem;
-  line-height: 1.6;
-  color: #475569;
-}
-#printStudioHeader .studio-name-main {
-  font-size: 1rem;
-  font-weight: 800;
-  color: #0f172a;
-}
-
-/* ── Loading / error ──────────────────────────────── */
-#loadingMsg { text-align: center; padding: 60px 20px; color: var(--muted); font-size: 0.9rem; }
-#errorMsg { display: none; text-align: center; padding: 40px 20px; color: var(--danger); }
-</style>
-</head>
-<body>
-
-<div id="navTopBar">
-  <a href="board.html" class="nav-brand">Keep1R CRM</a>
-  <div class="nav-links">
-    <a href="board.html" class="nav-link">← Доска</a>
-    <span class="nav-link active">📋 Акт приёмки</span>
-  </div>
-  <div class="nav-right"></div>
-</div>
-
-<div class="container">
-
-  <!-- Print studio header -->
-  <div id="printStudioHeader">
-    <img id="psh-logo" src="" alt="" style="display:none" class="studio-logo">
-    <div id="psh-title" style="font-size:1.3rem;font-weight:900;letter-spacing:-0.5px">АКТ ПРИЁМКИ АВТОМОБИЛЯ</div>
-    <div class="studio-name-block">
-      <div class="studio-name-main" id="psh-name"></div>
-      <div id="psh-phone"></div>
-      <div id="psh-address"></div>
-      <div id="psh-site"></div>
-    </div>
-  </div>
-
-  <div id="loadingMsg">⏳ Загружаем данные…</div>
-  <div id="errorMsg">❌ Не удалось загрузить расчёт. <a href="board.html">← Вернуться на доску</a></div>
-
-  <div id="mainContent" style="display:none">
-
-    <!-- Page header -->
-    <div class="page-header no-print">
-      <div>
-        <div class="page-title">📋 Акт приёмки автомобиля</div>
-        <div class="page-sub" id="headerSub">Загрузка…</div>
-      </div>
-      <div class="btn-group">
-        <button class="btn btn-secondary" onclick="history.back()">← Назад</button>
-        <button class="btn btn-primary" onclick="window.print()">🖨️ Распечатать</button>
-      </div>
-    </div>
-
-    <!-- ① Данные клиента и авто -->
-    <div class="card">
-      <div class="card-head">🚗 Данные клиента и автомобиля</div>
-      <div class="card-body">
-        <div class="form-row">
-          <div class="form-group">
-            <label>ФИО клиента</label>
-            <input type="text" id="clientName" placeholder="Иванов Иван Иванович">
-          </div>
-          <div class="form-group">
-            <label>Телефон</label>
-            <input type="tel" id="clientPhone" placeholder="+7 000 000 00 00">
-          </div>
-          <div class="form-group">
-            <label>Дата приёмки</label>
-            <input type="date" id="intakeDate">
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Марка и модель</label>
-            <input type="text" id="carName" placeholder="Toyota Camry 2024" readonly>
-          </div>
-          <div class="form-group">
-            <label>Гос. номер</label>
-            <input type="text" id="carPlate" placeholder="А 000 АА 000" style="text-transform:uppercase">
-          </div>
-          <div class="form-group">
-            <label>VIN / № кузова</label>
-            <input type="text" id="carVin" placeholder="WBAXXXXXXXXXXXXX" style="text-transform:uppercase;font-size:0.8rem">
-          </div>
-          <div class="form-group">
-            <label>Пробег, км</label>
-            <input type="number" id="carMileage" placeholder="45 000">
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Цвет</label>
-            <input type="text" id="carColor" placeholder="Белый перламутр">
-          </div>
-          <div class="form-group">
-            <label>Комплектность (ключи, коврики…)</label>
-            <input type="text" id="carItems" placeholder="2 ключа, сервисная книжка">
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ② Состояние авто — чекбоксы -->
-    <div class="card">
-      <div class="card-head">📝 Состояние при приёмке</div>
-      <div class="card-body">
-        <div class="check-list">
-          <label class="check-item">
-            <input type="checkbox" id="chkDirty">
-            <div class="check-item-text">
-              <strong>Автомобиль загрязнён</strong>
-              <span>Визуальный осмотр невозможен без мойки. Дефекты ЛКП могут быть скрыты под грязью.</span>
-            </div>
-          </label>
-          <label class="check-item">
-            <input type="checkbox" id="chkWashFirst">
-            <div class="check-item-text">
-              <strong>Требуется мойка перед осмотром</strong>
-              <span>Клиент согласен, что финальный список дефектов будет уточнён после мойки.</span>
-            </div>
-          </label>
-          <label class="check-item">
-            <input type="checkbox" id="chkScratchesExist">
-            <div class="check-item-text">
-              <strong>Имеются видимые царапины / сколы / повреждения</strong>
-              <span>Дефекты зафиксированы на схеме ниже.</span>
-            </div>
-          </label>
-          <label class="check-item">
-            <input type="checkbox" id="chkClientAware">
-            <div class="check-item-text">
-              <strong>Клиент уведомлён о состоянии автомобиля</strong>
-              <span>Все видимые дефекты согласованы до начала работ. Студия не несёт ответственности за ранее имевшиеся повреждения.</span>
-            </div>
-          </label>
-          <label class="check-item">
-            <input type="checkbox" id="chkPhotosAttached">
-            <div class="check-item-text">
-              <strong>Выполнена фотофиксация</strong>
-              <span>Фотографии автомобиля до начала работ приложены / сохранены в карточке.</span>
-            </div>
-          </label>
-        </div>
-        <div class="form-group" style="margin-top:12px">
-          <label>Дополнительные замечания</label>
-          <textarea id="intakeNotes" placeholder="Особые пожелания клиента, замечания по состоянию, иные договорённости…"></textarea>
-        </div>
-      </div>
-    </div>
-
-    <!-- ③ Схема дефектов -->
-    <div class="card">
-      <div class="card-head">🗺️ Схема дефектов (кликните по авто — поставьте метку)</div>
-      <div class="card-body">
-        <div class="diagram-controls no-print">
-          <button class="btn btn-secondary" onclick="clearDefects()" style="font-size:0.78rem;padding:6px 12px">🗑️ Очистить все метки</button>
-          <span style="font-size:0.78rem;color:var(--muted);align-self:center">Кликните на схему чтобы добавить дефект. Кликните по метке чтобы удалить.</span>
-        </div>
-
-        <!-- Car diagram: top-down SVG -->
-        <div class="diagram-wrap" id="diagramWrap" onclick="addDefect(event)">
-          <svg id="carSvg" viewBox="0 0 400 700" width="300" height="525" xmlns="http://www.w3.org/2000/svg">
-            <!-- Body shadow -->
-            <ellipse cx="200" cy="350" rx="115" ry="295" fill="#e2e8f0"/>
-
-            <!-- Main body -->
-            <path d="
-              M130,120
-              Q130,60 200,50
-              Q270,60 270,120
-              L278,250
-              Q285,280 285,350
-              L285,500
-              Q280,580 260,610
-              Q240,640 200,645
-              Q160,640 140,610
-              Q120,580 115,500
-              L115,350
-              Q115,280 122,250
-              Z"
-              fill="#cbd5e1" stroke="#94a3b8" stroke-width="2"/>
-
-            <!-- Windshield front -->
-            <path d="M148,130 Q148,90 200,85 Q252,90 252,130 L248,200 Q200,190 152,200 Z"
-              fill="#93c5fd" stroke="#64748b" stroke-width="1.5" opacity="0.7"/>
-
-            <!-- Windshield rear -->
-            <path d="M148,490 L152,560 Q200,575 248,560 L252,490 Q200,480 148,490 Z"
-              fill="#93c5fd" stroke="#64748b" stroke-width="1.5" opacity="0.7"/>
-
-            <!-- Hood lines -->
-            <path d="M165,130 L165,210 M235,130 L235,210" stroke="#94a3b8" stroke-width="1" fill="none"/>
-
-            <!-- Trunk lines -->
-            <path d="M165,490 L165,575 M235,490 L235,575" stroke="#94a3b8" stroke-width="1" fill="none"/>
-
-            <!-- Doors outline -->
-            <path d="M118,240 L118,470 M282,240 L282,470" stroke="#94a3b8" stroke-width="1.5" fill="none"/>
-            <path d="M120,355 L280,355" stroke="#94a3b8" stroke-width="1" fill="none" stroke-dasharray="4,3"/>
-
-            <!-- Left mirror -->
-            <ellipse cx="108" cy="220" rx="16" ry="10" fill="#94a3b8" stroke="#64748b" stroke-width="1.5"/>
-
-            <!-- Right mirror -->
-            <ellipse cx="292" cy="220" rx="16" ry="10" fill="#94a3b8" stroke="#64748b" stroke-width="1.5"/>
-
-            <!-- Front bumper -->
-            <path d="M145,70 Q200,55 255,70 L255,95 Q200,80 145,95 Z"
-              fill="#94a3b8" stroke="#64748b" stroke-width="1.5"/>
-
-            <!-- Headlights -->
-            <path d="M148,72 Q155,62 175,65 L175,85 Q158,88 148,80 Z" fill="#fde68a" stroke="#64748b" stroke-width="1"/>
-            <path d="M252,72 Q245,62 225,65 L225,85 Q242,88 252,80 Z" fill="#fde68a" stroke="#64748b" stroke-width="1"/>
-
-            <!-- Rear bumper -->
-            <path d="M145,625 Q200,640 255,625 L255,610 Q200,625 145,610 Z"
-              fill="#94a3b8" stroke="#64748b" stroke-width="1.5"/>
-
-            <!-- Taillights -->
-            <path d="M148,623 Q155,633 175,630 L175,610 Q158,607 148,615 Z" fill="#fca5a5" stroke="#64748b" stroke-width="1"/>
-            <path d="M252,623 Q245,633 225,630 L225,610 Q242,607 252,615 Z" fill="#fca5a5" stroke="#64748b" stroke-width="1"/>
-
-            <!-- Wheels -->
-            <ellipse cx="128" cy="200" rx="24" ry="32" fill="#475569" stroke="#334155" stroke-width="1.5"/>
-            <ellipse cx="128" cy="200" rx="14" ry="20" fill="#64748b"/>
-            <ellipse cx="272" cy="200" rx="24" ry="32" fill="#475569" stroke="#334155" stroke-width="1.5"/>
-            <ellipse cx="272" cy="200" rx="14" ry="20" fill="#64748b"/>
-
-            <ellipse cx="128" cy="500" rx="24" ry="32" fill="#475569" stroke="#334155" stroke-width="1.5"/>
-            <ellipse cx="128" cy="500" rx="14" ry="20" fill="#64748b"/>
-            <ellipse cx="272" cy="500" rx="24" ry="32" fill="#475569" stroke="#334155" stroke-width="1.5"/>
-            <ellipse cx="272" cy="500" rx="14" ry="20" fill="#64748b"/>
-
-            <!-- Labels -->
-            <text x="200" y="165" text-anchor="middle" font-size="11" fill="#64748b" font-family="Arial">Перёд</text>
-            <text x="200" y="540" text-anchor="middle" font-size="11" fill="#64748b" font-family="Arial">Зад</text>
-            <text x="88" y="355" text-anchor="middle" font-size="10" fill="#64748b" font-family="Arial" transform="rotate(-90,88,355)">Лево</text>
-            <text x="312" y="355" text-anchor="middle" font-size="10" fill="#64748b" font-family="Arial" transform="rotate(90,312,355)">Право</text>
-          </svg>
-        </div>
-
-        <div class="diagram-hint no-print">↑ Кликните по схеме чтобы отметить дефект. Кликните по красной метке чтобы удалить.</div>
-
-        <!-- Defect legend -->
-        <div class="defect-legend" id="defectLegend" style="margin-top:14px;display:none">
-          <div style="font-size:0.74rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);margin-bottom:4px">Описание дефектов:</div>
-          <div id="defectList"></div>
-        </div>
-        <div id="noDefectsMsg" style="margin-top:10px;font-size:0.82rem;color:var(--muted);font-style:italic">Дефектов не отмечено</div>
-      </div>
-    </div>
-
-    <!-- ④ Перечень работ -->
-    <div class="card">
-      <div class="card-head">🔧 Перечень запланированных работ</div>
-      <div class="card-body">
-        <table class="services-table">
-          <thead>
-            <tr>
-              <th>№</th>
-              <th>Услуга</th>
-              <th class="price-cell">Стоимость</th>
-            </tr>
-          </thead>
-          <tbody id="servicesTbody">
-            <tr><td colspan="3" style="color:var(--muted);font-style:italic;padding:12px 10px">Загрузка…</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- ⑤ Подписи -->
-    <div class="card">
-      <div class="card-head">✍️ Подписи сторон</div>
-      <div class="card-body">
-        <div class="sign-row">
-          <div class="sign-block">
-            <div class="sign-label">Клиент</div>
-            <div style="font-size:0.84rem;color:var(--muted);margin-bottom:6px" id="signClientName">ФИО: ______________________</div>
-            <div class="sign-line"></div>
-            <div class="sign-caption">Подпись / дата</div>
-          </div>
-          <div class="sign-block">
-            <div class="sign-label">Представитель студии</div>
-            <div style="font-size:0.84rem;color:var(--muted);margin-bottom:6px" id="signStudioName">______________________</div>
-            <div class="sign-line"></div>
-            <div class="sign-caption">Подпись / дата</div>
-          </div>
-        </div>
-        <div style="margin-top:18px;padding:12px 14px;background:#fef9c3;border-radius:8px;border:1px solid #fde68a;font-size:0.8rem;color:#78350f;line-height:1.5">
-          Подписывая настоящий акт, клиент подтверждает: ТС передано в детейлинг-студию в указанном состоянии, все видимые дефекты зафиксированы. Студия не несёт ответственности за дефекты, существовавшие до приёмки.
-        </div>
-      </div>
-    </div>
-
-  </div><!-- /mainContent -->
-</div><!-- /container -->
-
-<script src="footer.js"></script>
-<script>
+/**
+ * booking-popup.js — попап «Записать авто»
+ * BookingPopup.open({ calcId, calcName, calcPrice, studioId, onSaved })
+ * BookingPopup.close()
+ */
 (function() {
 'use strict';
 
-const SUPABASE_URL      = 'https://hdghijgrrnzmntistdvw.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkZ2hpamdycm56bW50aXN0ZHZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMzMyNzksImV4cCI6MjA3NTYwOTI3OX0.D9EDTmVrFRVp0B8_5tCJM29gbFdtadsom0Ihsf4uQ8Q';
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// ── CSS ────────────────────────────────────────────────
+const CSS = `
+#bpOverlay {
+  display:none; position:fixed; inset:0; z-index:4000;
+  background:rgba(15,23,42,0.55); backdrop-filter:blur(6px);
+  align-items:center; justify-content:center;
+  padding:16px;
+  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica Neue',Arial,sans-serif;
+}
+#bpOverlay.active { display:flex; animation:bpFadeIn 0.15s ease; }
+@keyframes bpFadeIn  { from{opacity:0} to{opacity:1} }
+@keyframes bpSlideUp { from{transform:translateY(12px);opacity:0} to{transform:translateY(0);opacity:1} }
 
-let currentUser  = null;
-let calcId       = null;
-let defects      = [];   // [{id, x%, y%, desc}]
-
-// ── Auth ────────────────────────────────────────────
-async function checkAuth() {
-  const { data: { session } } = await sb.auth.getSession();
-  if (!session) { window.location.href = 'welcome.html'; return false; }
-  currentUser = session.user;
-  return true;
+#bpBox {
+  background:#fff; border-radius:18px;
+  border:1px solid rgba(15,23,42,0.08);
+  width:100%; max-width:880px; max-height:92svh;
+  overflow-y:auto; display:flex; flex-direction:column;
+  box-shadow:0 24px 80px rgba(0,0,0,0.2);
+  animation:bpSlideUp 0.18s ease;
 }
 
-// ── Format ──────────────────────────────────────────
-function fmt(n) {
-  return new Intl.NumberFormat('ru-RU', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(n || 0);
+#bpHead {
+  display:flex; align-items:flex-start; justify-content:space-between;
+  padding:22px 26px 0; gap:14px; flex-shrink:0;
+}
+#bpCarTitle { font-size:1.1rem; font-weight:800; color:#0f172a; letter-spacing:-0.3px; }
+#bpCarPrice { font-size:0.82rem; color:#64748b; font-weight:600; margin-top:2px; }
+#bpCloseBtn {
+  background:rgba(100,116,139,0.1); border:none; cursor:pointer;
+  width:30px; height:30px; border-radius:50%; font-size:1rem; color:#64748b;
+  display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:all 0.15s;
+}
+#bpCloseBtn:hover { background:rgba(220,38,38,0.1); color:#dc2626; }
+
+#bpCarSelect { margin:14px 26px 0; flex-shrink:0; }
+.bp-car-tabs { display:flex; gap:6px; margin-bottom:10px; }
+.bp-car-tab {
+  padding:5px 14px; border-radius:20px; font-size:0.75rem; font-weight:700;
+  border:1.5px solid rgba(15,23,42,0.1); background:#f8fafc; color:#64748b;
+  cursor:pointer; font-family:inherit; transition:all 0.15s;
+}
+.bp-car-tab.active { background:#2563eb; color:#fff; border-color:#2563eb; }
+.bp-calc-select {
+  width:100%; padding:9px 12px;
+  background:#f8fafc; border:1.5px solid rgba(15,23,42,0.1);
+  border-radius:9px; font-size:0.88rem; font-family:inherit; color:#0f172a;
+  outline:none; -webkit-appearance:none; cursor:pointer; transition:border-color 0.15s;
+}
+.bp-calc-select:focus { border-color:#2563eb; background:#fff; box-shadow:0 0 0 3px rgba(37,99,235,0.08); }
+.bp-manual-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.bp-manual-input {
+  width:100%; padding:9px 12px;
+  background:#f8fafc; border:1.5px solid rgba(15,23,42,0.1);
+  border-radius:9px; font-size:0.88rem; font-family:inherit; color:#0f172a; outline:none;
+  transition:border-color 0.15s;
+}
+.bp-manual-input:focus { border-color:#2563eb; background:#fff; box-shadow:0 0 0 3px rgba(37,99,235,0.08); }
+.bp-manual-input::placeholder { color:#94a3b8; }
+
+#bpBody { display:grid; grid-template-columns:1fr 1fr; gap:20px; padding:16px 26px 24px; }
+@media(max-width:640px){
+  #bpBody{grid-template-columns:1fr;}
+  #bpHead,#bpCarSelect{padding-left:18px;padding-right:18px;}
+  #bpBody{padding:14px 18px 20px;}
+  #bpFoot{padding:0 18px 18px;}
 }
 
-// ── Load studio settings ────────────────────────────
-async function loadStudio() {
-  const { data: member } = await sb.from('studio_members')
-    .select('studio_id').eq('user_id', currentUser.id).eq('is_active', true).single();
-  if (!member) return {};
-
-  const { data: studio } = await sb.from('studios')
-    .select('name, settings').eq('id', member.studio_id).single();
-  if (!studio) return {};
-
-  const cfg = studio.settings || {};
-  // Populate print header
-  document.getElementById('psh-name').textContent   = studio.name || '';
-  document.getElementById('psh-phone').textContent  = cfg.phone || cfg.kp_phone || '';
-  document.getElementById('psh-address').textContent = [cfg.city, cfg.address].filter(Boolean).join(', ');
-  document.getElementById('psh-site').textContent   = cfg.website || cfg.kp_website || '';
-  document.getElementById('signStudioName').textContent = studio.name || '______________________';
-
-  if (cfg.kp_logo) {
-    const img = document.getElementById('psh-logo');
-    img.src = cfg.kp_logo;
-    img.style.display = 'block';
-  }
-
-  return { studioName: studio.name, cfg };
+.bp-section-title {
+  font-size:0.68rem; font-weight:800; text-transform:uppercase;
+  letter-spacing:0.07em; color:#94a3b8; margin-bottom:10px;
 }
 
-// ── Build services list from calculation_data ───────
-function buildServicesList(calcData) {
-  const services = [];
-  const cd = calcData || {};
+#bpPosts { display:flex; flex-direction:column; gap:6px; margin-bottom:18px; }
+.bp-post-btn {
+  display:flex; align-items:center; gap:10px; padding:10px 14px;
+  border-radius:10px; border:1.5px solid rgba(15,23,42,0.08);
+  background:#f8fafc; cursor:pointer; transition:all 0.15s;
+  text-align:left; width:100%; font-family:inherit;
+}
+.bp-post-btn:hover   { border-color:#2563eb; background:rgba(37,99,235,0.04); }
+.bp-post-btn.selected{ border-color:#2563eb; background:rgba(37,99,235,0.08); box-shadow:0 0 0 3px rgba(37,99,235,0.1); }
+.bp-post-dot  { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+.bp-post-name { font-size:0.85rem; font-weight:700; color:#0f172a; }
+.bp-post-type { font-size:0.7rem; color:#94a3b8; font-weight:600; }
+.bp-post-cap  { font-size:0.68rem; color:#2563eb; font-weight:700; background:rgba(37,99,235,0.08); padding:1px 7px; border-radius:10px; margin-left:auto; }
+.bp-post-busy { font-size:0.68rem; color:#d97706; font-weight:700; background:rgba(217,119,6,0.08); padding:1px 7px; border-radius:10px; margin-left:auto; }
 
-  const sections = [
-    { key: 'pkg',       label: 'Полная защита вкруг',    priceKey: 'pkgTotal' },
-    { key: 'impact',    label: 'Защита ударной части',   priceKey: 'impactTotal' },
-    { key: 'arm',       label: 'Арматурка',              priceKey: 'armTotal' },
-    { key: 'wrap',      label: 'Оклейка плёнкой',        priceKey: 'wrapTotal' },
-    { key: 'det',       label: 'Детейлинг',              priceKey: 'detTotal' },
-    { key: 'gl',        label: 'Антигравийная защита',   priceKey: 'glTotal' },
-    { key: 'misc',      label: 'Прочие работы',          priceKey: 'miscTotal' },
-  ];
+#bpExecutors { display:flex; flex-direction:column; gap:6px; }
+.bp-exec-btn {
+  display:flex; align-items:center; gap:10px; padding:9px 14px;
+  border-radius:10px; border:1.5px solid rgba(15,23,42,0.08);
+  background:#f8fafc; cursor:pointer; transition:all 0.15s;
+  text-align:left; width:100%; font-family:inherit;
+}
+.bp-exec-btn:hover   { border-color:#059669; background:rgba(5,150,105,0.04); }
+.bp-exec-btn.selected{ border-color:#059669; background:rgba(5,150,105,0.08); box-shadow:0 0 0 3px rgba(5,150,105,0.1); }
+.bp-exec-avatar {
+  width:28px; height:28px; border-radius:50%;
+  background:rgba(37,99,235,0.1); color:#2563eb;
+  font-size:0.72rem; font-weight:800;
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.bp-exec-name { font-size:0.85rem; font-weight:700; color:#0f172a; }
+.bp-exec-role { font-size:0.7rem; color:#94a3b8; font-weight:600; }
+.bp-exec-warn { font-size:0.68rem; color:#d97706; font-weight:700; background:rgba(217,119,6,0.08); padding:1px 7px; border-radius:10px; margin-left:auto; }
 
-  sections.forEach(s => {
-    const total = parseFloat(cd[s.priceKey] || 0);
-    if (total > 0) services.push({ name: s.label, price: total });
+.bp-month-nav { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
+.bp-month-nav button {
+  width:28px; height:28px; border-radius:7px;
+  border:1px solid rgba(15,23,42,0.10); background:#f8fafc;
+  cursor:pointer; font-size:0.9rem; color:#0f172a;
+  display:flex; align-items:center; justify-content:center; transition:all 0.15s;
+}
+.bp-month-nav button:hover { background:#e8eef8; }
+.bp-month-lbl { font-size:0.82rem; font-weight:700; color:#0f172a; flex:1; text-align:center; }
+
+.bp-cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:2px; }
+.bp-day-hdr {
+  text-align:center; font-size:0.6rem; font-weight:700;
+  text-transform:uppercase; letter-spacing:0.05em; color:#94a3b8; padding:3px 0 6px;
+}
+.bp-day-hdr.we { color:#ef4444; }
+
+.bp-day {
+  aspect-ratio:1; border-radius:7px;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  font-size:0.75rem; font-weight:600; color:#0f172a;
+  cursor:pointer; position:relative; user-select:none;
+  border:1.5px solid transparent; transition:background 0.1s, border-color 0.1s; gap:2px;
+}
+.bp-day:hover:not(.other):not(.past) { background:rgba(37,99,235,0.08); border-color:rgba(37,99,235,0.3); }
+.bp-day.other { color:#d1d5db; cursor:default; pointer-events:none; }
+.bp-day.past  { color:#d1d5db; cursor:not-allowed; pointer-events:none; }
+.bp-day.today { border-color:rgba(37,99,235,0.4); color:#2563eb; font-weight:800; }
+.bp-day.we-num { color:#ef4444; }
+.bp-day.from, .bp-day.to {
+  background:#2563eb !important; color:#fff !important;
+  border-color:#2563eb !important;
+}
+.bp-day.from    { border-radius:7px 0 0 7px; }
+.bp-day.to      { border-radius:0 7px 7px 0; }
+.bp-day.from.to { border-radius:7px !important; }
+.bp-day.between {
+  background:rgba(37,99,235,0.13) !important;
+  border-color:transparent !important; border-radius:0; color:#1e40af;
+}
+.bp-day.from .bp-day-num, .bp-day.to .bp-day-num { color:#fff !important; }
+.bp-day-num { font-size:0.75rem; font-weight:700; line-height:1; }
+.bp-day-dot { width:4px; height:4px; border-radius:50%; background:#f59e0b; }
+
+.bp-pick-hint {
+  font-size:0.72rem; color:#64748b; margin:7px 0 8px;
+  text-align:center; font-weight:600; min-height:18px;
+}
+.bp-pick-hint span { color:#2563eb; font-weight:800; }
+
+.bp-dates-display { display:flex; gap:8px; margin-top:0; }
+.bp-date-pill {
+  flex:1; background:#f8fafc; border:1.5px solid rgba(15,23,42,0.08);
+  border-radius:9px; padding:8px 12px; text-align:center; transition:all 0.15s;
+}
+.bp-date-pill.active { border-color:#2563eb; background:rgba(37,99,235,0.04); }
+.bp-date-pill-lbl { font-size:0.6rem; font-weight:700; text-transform:uppercase; letter-spacing:0.07em; color:#94a3b8; margin-bottom:2px; }
+.bp-date-pill-val { font-size:0.88rem; font-weight:800; color:#0f172a; }
+.bp-date-pill-val.empty { color:#d1d5db; }
+
+.bp-note-wrap { margin-top:10px; }
+.bp-note-wrap textarea {
+  width:100%; padding:9px 12px; background:#f8fafc;
+  border:1.5px solid rgba(15,23,42,0.08); border-radius:9px;
+  font-size:0.82rem; font-family:inherit; color:#0f172a;
+  outline:none; resize:none; transition:border-color 0.15s; min-height:52px;
+}
+.bp-note-wrap textarea:focus { border-color:#2563eb; background:#fff; box-shadow:0 0 0 3px rgba(37,99,235,0.08); }
+
+.bp-conflict {
+  margin-top:8px; padding:8px 12px;
+  background:rgba(217,119,6,0.07); border:1px solid rgba(217,119,6,0.25);
+  border-radius:8px; font-size:0.78rem; color:#92400e; font-weight:600; display:none;
+}
+.bp-conflict.show { display:block; }
+
+#bpFoot { padding:0 26px 22px; display:flex; gap:10px; flex-shrink:0; }
+.bp-btn-cancel {
+  background:rgba(15,23,42,0.05); color:#64748b;
+  border:1px solid rgba(15,23,42,0.10); padding:10px 18px;
+  border-radius:9px; cursor:pointer; font-size:0.82rem; font-weight:700; font-family:inherit; transition:all 0.15s;
+}
+.bp-btn-cancel:hover { background:#fee2e2; color:#dc2626; }
+.bp-btn-save {
+  flex:1; background:#2563eb; color:#fff; border:none; padding:11px 18px;
+  border-radius:9px; cursor:pointer; font-size:0.88rem; font-weight:800; font-family:inherit; transition:all 0.15s;
+}
+.bp-btn-save:hover    { background:#1d4ed8; }
+.bp-btn-save:disabled { opacity:0.5; cursor:not-allowed; }
+.bp-empty { color:#94a3b8; font-size:0.82rem; padding:8px 0; }
+`;
+
+(function injectCSS(){
+  if (document.getElementById('bpStyles')) return;
+  const s = document.createElement('style');
+  s.id = 'bpStyles'; s.textContent = CSS;
+  document.head.appendChild(s);
+})();
+
+// ── Переводы ──────────────────────────────────────────
+const POST_TYPE_RU = {
+  wrap:'Оклейка/PPF', detailing:'Детейлинг',
+  wash:'Мойка', chem:'Химчистка', universal:'Универсальный'
+};
+const ROLE_RU = {
+  owner:'Владелец', manager:'Менеджер', admin:'Администратор',
+  wrapper:'Оклейщик', detailer:'Детейлер', preparer:'Подготовщик',
+  armature:'Арматурщик', washer:'Мойщик', staff:'Сотрудник',
+  universal:'Универсал', detailer:'Детейлер',
+};
+function roleRu(r){ return ROLE_RU[r] || r || 'Сотрудник'; }
+
+const MONTHS = ['Январь','Февраль','Март','Апрель','Май','Июнь',
+                'Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+const STATUS_LABEL = {
+  new:'Расчёт', draft:'Первичный', scheduled:'Запись', in_progress:'В работе',
+  done:'Готово', delivered:'Выдано'
+};
+
+// ── Хелперы — ЛОКАЛЬНОЕ время, не UTC! ────────────────
+function toISO(d){
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const day = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+function parseDate(s){
+  if(!s) return null;
+  const [y,m,d] = s.split('-').map(Number);
+  return new Date(y, m-1, d);
+}
+function formatRu(s){
+  if(!s) return '—';
+  return parseDate(s).toLocaleDateString('ru-RU',{day:'numeric',month:'short'});
+}
+function fmt(n){ return new Intl.NumberFormat('ru-RU').format(n||0); }
+function datesOverlap(f1,t1,f2,t2){ return f1<=t2 && t1>=f2; }
+function bookingsForPost(pid){ return _bookings.filter(b=>b.post_id===pid); }
+function execBusyInRange(eid){
+  if(!_dateFrom||!_dateTo) return false;
+  return _bookings.some(b=>{
+    if(!b.executor_ids) return false;
+    if(!datesOverlap(_dateFrom,_dateTo,b.date_from,b.date_to)) return false;
+    return b.executor_ids.includes(eid);
   });
+}
 
-  // Miscellaneous custom items
-  if (cd.miscItems && Array.isArray(cd.miscItems)) {
-    cd.miscItems.forEach(item => {
-      if (item.name && item.price > 0) {
-        services.push({ name: item.name, price: parseFloat(item.price) });
-      }
+// ── DOM ────────────────────────────────────────────────
+function buildDOM(){
+  if(document.getElementById('bpOverlay')) return;
+  const div = document.createElement('div');
+  div.innerHTML = `
+<div id="bpOverlay">
+  <div id="bpBox">
+    <div id="bpHead">
+      <div>
+        <div id="bpCarTitle">📅 Записать авто</div>
+        <div id="bpCarPrice"></div>
+      </div>
+      <button id="bpCloseBtn" onclick="BookingPopup.close()">✕</button>
+    </div>
+    <div id="bpCarSelect">
+      <div class="bp-car-tabs">
+        <button class="bp-car-tab active" id="bpTabCalc"   onclick="BookingPopup._switchTab('calc')">📋 Из расчётов</button>
+        <button class="bp-car-tab"        id="bpTabManual" onclick="BookingPopup._switchTab('manual')">✏️ Ввести вручную</button>
+      </div>
+      <div id="bpTabCalcBody">
+        <select class="bp-calc-select" id="bpCalcSel" onchange="BookingPopup._onCalcSelect(this.value)">
+          <option value="">⏳ Загрузка...</option>
+        </select>
+      </div>
+      <div id="bpTabManualBody" style="display:none">
+        <div class="bp-manual-grid">
+          <input class="bp-manual-input" id="bpManualBrand" placeholder="Марка и модель">
+          <input class="bp-manual-input" id="bpManualPlate" placeholder="Гос. номер">
+        </div>
+      </div>
+    </div>
+    <div id="bpBody">
+      <div>
+        <div class="bp-section-title">Рабочий пост</div>
+        <div id="bpPosts"><div class="bp-empty">⏳ Загрузка...</div></div>
+        <div class="bp-section-title" style="margin-top:16px">Исполнители</div>
+        <div id="bpExecutors"><div class="bp-empty">⏳ Загрузка...</div></div>
+      </div>
+      <div>
+        <div class="bp-section-title">Даты</div>
+        <div class="bp-month-nav">
+          <button onclick="BookingPopup._prevMonth()">‹</button>
+          <span class="bp-month-lbl" id="bpMonthLbl"></span>
+          <button onclick="BookingPopup._nextMonth()">›</button>
+        </div>
+        <div class="bp-cal-grid" id="bpCalGrid"></div>
+        <div class="bp-pick-hint" id="bpPickHint">Кликните на <span>дату заезда</span></div>
+        <div class="bp-dates-display">
+          <div class="bp-date-pill" id="bpPillFrom">
+            <div class="bp-date-pill-lbl">Заезд</div>
+            <div class="bp-date-pill-val empty" id="bpFromLbl">—</div>
+          </div>
+          <div class="bp-date-pill" id="bpPillTo">
+            <div class="bp-date-pill-lbl">Выезд</div>
+            <div class="bp-date-pill-val empty" id="bpToLbl">—</div>
+          </div>
+        </div>
+        <div class="bp-note-wrap">
+          <textarea id="bpNote" placeholder="Комментарий: пожелания, особенности..."></textarea>
+        </div>
+        <div class="bp-conflict" id="bpConflict">⚠️ На посту в эти даты уже есть запись. Убедитесь что пост вмещает несколько машин.</div>
+      </div>
+    </div>
+    <div id="bpFoot">
+      <button class="bp-btn-cancel" onclick="BookingPopup.close()">Отмена</button>
+      <button class="bp-btn-save" id="bpSaveBtn" onclick="BookingPopup._save()">✅ Записать</button>
+    </div>
+  </div>
+</div>`;
+  document.body.appendChild(div.firstElementChild);
+}
+
+// ── State ──────────────────────────────────────────────
+let _studioId=null, _calcId=null, _manualName='', _onSaved=null;
+let _posts=[], _executors=[], _bookings=[], _calcs=[];
+let _selectedPost=null, _selectedExecs=new Set();
+let _dateFrom=null, _dateTo=null, _picking='from';
+let _viewYear=new Date().getFullYear(), _viewMonth=new Date().getMonth();
+let _tab='calc';
+
+// ── Load ───────────────────────────────────────────────
+async function loadData(){
+  const sb = window._crmSb;
+  if(!sb||!_studioId){ console.error('BookingPopup: нет studioId'); return; }
+
+  const [pr,er,br,cr] = await Promise.all([
+    sb.from('posts').select('*').eq('studio_id',_studioId).eq('is_active',true).order('created_at'),
+    sb.from('executors').select('id,full_name,role').eq('studio_id',_studioId).eq('is_active',true).order('full_name'),
+    sb.from('calendar_bookings').select('*').eq('studio_id',_studioId),
+    sb.from('calculations').select('id,car_name,status,final_price,total_price')
+      .eq('studio_id',_studioId)
+      .in('status',['new','draft'])
+      .order('created_at',{ascending:false}),
+  ]);
+
+  _posts=pr.data||[]; _executors=er.data||[]; _bookings=br.data||[]; _calcs=cr.data||[];
+  renderCalcSelect(); renderPosts(); renderExecutors();
+}
+
+function renderCalcSelect(){
+  const sel = document.getElementById('bpCalcSel');
+  if(!sel) return;
+  if(!_calcs.length){ sel.innerHTML='<option value="">Нет расчётов</option>'; return; }
+  sel.innerHTML = '<option value="">— Выберите расчёт —</option>' +
+    _calcs.map(c=>{
+      const st = STATUS_LABEL[c.status]||c.status;
+      const pr = fmt(c.final_price||c.total_price||0);
+      return `<option value="${c.id}" ${c.id===_calcId?'selected':''}>${c.car_name||'Без названия'} · ${st} · ${pr} ₽</option>`;
+    }).join('');
+}
+
+function renderPosts(){
+  const el = document.getElementById('bpPosts');
+  if(!el) return;
+  if(!_posts.length){ el.innerHTML='<div class="bp-empty">Нет постов. <a href="settings.html" style="color:#2563eb">Добавить</a></div>'; return; }
+  el.innerHTML = _posts.map(p=>{
+    const busy = _dateFrom&&_dateTo ? bookingsForPost(p.id).filter(b=>datesOverlap(_dateFrom,_dateTo,b.date_from,b.date_to)).length : 0;
+    const cap=p.capacity||1, full=busy>=cap, sel=_selectedPost===p.id?' selected':'';
+    const badge = busy>0
+      ? `<span class="${full?'bp-post-busy':'bp-post-cap'}">${busy}/${cap} авто</span>`
+      : cap>1 ? `<span class="bp-post-cap">до ${cap}</span>` : '';
+    return `<button class="bp-post-btn${sel}" onclick="BookingPopup._selectPost('${p.id}')">
+      <div class="bp-post-dot" style="background:${p.color||'#2563eb'}"></div>
+      <div style="flex:1;min-width:0">
+        <div class="bp-post-name">${p.name}</div>
+        <div class="bp-post-type">${POST_TYPE_RU[p.type]||p.type}</div>
+      </div>${badge}
+    </button>`;
+  }).join('');
+}
+
+function renderExecutors(){
+  const el = document.getElementById('bpExecutors');
+  if(!el) return;
+  if(!_executors.length){ el.innerHTML='<div class="bp-empty">Нет сотрудников. <a href="executors.html" style="color:#2563eb">Добавить</a></div>'; return; }
+  el.innerHTML = _executors.map(e=>{
+    const busy=execBusyInRange(e.id), sel=_selectedExecs.has(e.id)?' selected':'';
+    const ini=(e.full_name||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    return `<button class="bp-exec-btn${sel}" onclick="BookingPopup._toggleExec('${e.id}')">
+      <div class="bp-exec-avatar">${ini}</div>
+      <div style="flex:1;min-width:0">
+        <div class="bp-exec-name">${e.full_name}</div>
+        <div class="bp-exec-role">${roleRu(e.role)}</div>
+      </div>${busy?'<span class="bp-exec-warn">⚠️ Занят</span>':''}
+    </button>`;
+  }).join('');
+}
+
+function renderCalendar(){
+  const el=document.getElementById('bpCalGrid'), lbl=document.getElementById('bpMonthLbl');
+  if(!el||!lbl) return;
+  lbl.textContent=`${MONTHS[_viewMonth]} ${_viewYear}`;
+
+  const today=toISO(new Date());
+  const DAY_HDR=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+
+  // Первый день месяца, конвертим воскресенье(0) → 6, остальные -1
+  const firstDay=new Date(_viewYear,_viewMonth,1);
+  let startPad=firstDay.getDay();
+  startPad = startPad===0 ? 6 : startPad-1;
+  const gridStart=new Date(_viewYear,_viewMonth,1-startPad);
+
+  const lastDay=new Date(_viewYear,_viewMonth+1,0);
+  let endPad=lastDay.getDay();
+  endPad = endPad===0 ? 0 : 7-endPad;
+  const gridEnd=new Date(_viewYear,_viewMonth+1,endPad);
+
+  const dates=[];
+  const cur=new Date(gridStart);
+  while(cur<=gridEnd){ dates.push(toISO(new Date(cur))); cur.setDate(cur.getDate()+1); }
+
+  // Занятые дни поста
+  const busyDates=new Set();
+  if(_selectedPost){
+    bookingsForPost(_selectedPost).forEach(b=>{
+      const c=parseDate(b.date_from), e=parseDate(b.date_to);
+      while(c<=e){ busyDates.add(toISO(new Date(c))); c.setDate(c.getDate()+1); }
     });
   }
 
-  return services;
-}
+  let html=DAY_HDR.map((d,i)=>`<div class="bp-day-hdr${i>=5?' we':''}">${d}</div>`).join('');
 
-// ── Render services table ───────────────────────────
-function renderServices(calc) {
-  const cd = calc.calculation_data || {};
-  let services = buildServicesList(cd);
+  dates.forEach(ds=>{
+    const d=parseDate(ds);
+    const isOther   = d.getMonth()!==_viewMonth;
+    const isPast    = ds<today;
+    const isWe      = d.getDay()===0||d.getDay()===6;
+    const isToday   = ds===today;
+    const isFrom    = ds===_dateFrom;
+    const isTo      = ds===_dateTo;
+    const isBetween = _dateFrom&&_dateTo&&ds>_dateFrom&&ds<_dateTo;
+    const hasDot    = !isOther&&busyDates.has(ds);
 
-  // Fallback: if no breakdown, just show total
-  if (services.length === 0 && calc.total_price) {
-    services = [{ name: calc.car_name || 'Работы по автомобилю', price: calc.total_price }];
-  }
+    let cls='bp-day';
+    if(isOther)      cls+=' other';
+    else if(isPast)  cls+=' past';
+    else{
+      if(isWe)       cls+=' we-num';
+      if(isToday)    cls+=' today';
+      if(isFrom)     cls+=' from';
+      if(isTo)       cls+=' to';
+      if(isBetween)  cls+=' between';
+    }
 
-  const tbody = document.getElementById('servicesTbody');
-  if (services.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="3" style="color:var(--muted);font-style:italic;padding:12px 10px">Нет данных по услугам</td></tr>';
-    return;
-  }
-
-  const total = services.reduce((s, x) => s + x.price, 0);
-  tbody.innerHTML = services.map((s, i) => `
-    <tr>
-      <td style="color:var(--muted);font-size:0.8rem">${i+1}</td>
-      <td>${s.name}</td>
-      <td class="price-cell">${fmt(s.price)} ₽</td>
-    </tr>
-  `).join('') + `
-    <tr class="total-row">
-      <td></td>
-      <td style="font-weight:800">ИТОГО</td>
-      <td class="price-cell">${fmt(total)} ₽</td>
-    </tr>
-  `;
-}
-
-// ── Defect markers ──────────────────────────────────
-window.addDefect = function(e) {
-  const wrap = document.getElementById('diagramWrap');
-  if (e.target.closest('.defect-marker')) return; // clicked on marker
-  if (e.target.closest('.diagram-controls')) return;
-
-  const rect = wrap.getBoundingClientRect();
-  const xPct = ((e.clientX - rect.left) / rect.width * 100).toFixed(1);
-  const yPct = ((e.clientY - rect.top) / rect.height * 100).toFixed(1);
-  const id   = Date.now();
-
-  defects.push({ id, xPct, yPct, desc: '' });
-  renderDefects();
-};
-
-window.deleteDefect = function(id) {
-  defects = defects.filter(d => d.id !== id);
-  renderDefects();
-};
-
-window.clearDefects = function() {
-  defects = [];
-  renderDefects();
-};
-
-function renderDefects() {
-  const wrap = document.getElementById('diagramWrap');
-  // Remove existing markers
-  wrap.querySelectorAll('.defect-marker').forEach(el => el.remove());
-
-  // Add markers
-  defects.forEach((d, idx) => {
-    const el = document.createElement('div');
-    el.className = 'defect-marker';
-    el.textContent = idx + 1;
-    el.style.left = d.xPct + '%';
-    el.style.top  = d.yPct + '%';
-    el.title = 'Кликните чтобы удалить';
-    el.onclick = (e) => { e.stopPropagation(); deleteDefect(d.id); };
-    wrap.appendChild(el);
+    const click=(!isOther&&!isPast)?`onclick="BookingPopup._pickDate('${ds}')"`: '';
+    html+=`<div class="${cls}" ${click}><div class="bp-day-num">${d.getDate()}</div>${hasDot?'<div class="bp-day-dot"></div>':''}</div>`;
   });
 
-  // Legend
-  const legend   = document.getElementById('defectLegend');
-  const listEl   = document.getElementById('defectList');
-  const noMsg    = document.getElementById('noDefectsMsg');
-  const chkBox   = document.getElementById('chkScratchesExist');
+  el.innerHTML=html;
 
-  if (defects.length === 0) {
-    legend.style.display = 'none';
-    noMsg.style.display  = '';
-    if (chkBox) chkBox.checked = false;
-  } else {
-    legend.style.display = '';
-    noMsg.style.display  = 'none';
-    if (chkBox) chkBox.checked = true;
+  // Подписи
+  const fromEl=document.getElementById('bpFromLbl'), toEl=document.getElementById('bpToLbl');
+  const hint=document.getElementById('bpPickHint');
+  if(fromEl){ fromEl.textContent=_dateFrom?formatRu(_dateFrom):'—'; fromEl.classList.toggle('empty',!_dateFrom); }
+  if(toEl)  { toEl.textContent=_dateTo?formatRu(_dateTo):'—';       toEl.classList.toggle('empty',!_dateTo); }
 
-    listEl.innerHTML = defects.map((d, idx) => `
-      <div class="defect-legend-item">
-        <div class="defect-legend-num">${idx+1}</div>
-        <input class="defect-legend-input" type="text" value="${d.desc}"
-          placeholder="Описание дефекта №${idx+1} (царапина, скол, вмятина…)"
-          oninput="defects[${idx}].desc=this.value"
-        >
-        <button class="defect-del no-print" onclick="deleteDefect(${d.id})" title="Удалить">✕</button>
-      </div>
-    `).join('');
+  const pf=document.getElementById('bpPillFrom'), pt=document.getElementById('bpPillTo');
+  if(pf) pf.classList.toggle('active', _picking==='from'&&!_dateTo);
+  if(pt) pt.classList.toggle('active', _picking==='to');
+
+  if(hint){
+    if(!_dateFrom&&!_dateTo) hint.innerHTML='Кликните на <span>дату заезда</span>';
+    else if(_dateFrom&&!_dateTo) hint.innerHTML='Теперь выберите <span>дату выезда</span>';
+    else {
+      const days=Math.round((parseDate(_dateTo)-parseDate(_dateFrom))/86400000)+1;
+      hint.innerHTML=`<span>${formatRu(_dateFrom)}</span> — <span>${formatRu(_dateTo)}</span> · ${days} дн. · кликните чтобы скорректировать`;
+    }
   }
+  checkConflict();
 }
 
-// ── Set today's date ────────────────────────────────
-function setToday() {
-  const today = new Date().toISOString().slice(0, 10);
-  document.getElementById('intakeDate').value = today;
+function checkConflict(){
+  const el=document.getElementById('bpConflict');
+  if(!el) return;
+  if(!_selectedPost||!_dateFrom||!_dateTo){ el.classList.remove('show'); return; }
+  const cap=_posts.find(p=>p.id===_selectedPost)?.capacity||1;
+  const busy=bookingsForPost(_selectedPost).filter(b=>datesOverlap(_dateFrom,_dateTo,b.date_from,b.date_to)).length;
+  el.classList.toggle('show',busy>=cap);
 }
 
-// ── Update signature line ───────────────────────────
-document.getElementById('clientName').addEventListener('input', function() {
-  const v = this.value.trim();
-  document.getElementById('signClientName').textContent = v ? 'ФИО: ' + v : 'ФИО: ______________________';
+// ── Public API ─────────────────────────────────────────
+window.BookingPopup = {
+
+  open: function({calcId,calcName,calcPrice,studioId,onSaved}={}){
+    buildDOM();
+    _studioId=studioId; _calcId=calcId||null; _onSaved=onSaved||null;
+    _selectedPost=null; _selectedExecs=new Set();
+    _dateFrom=null; _dateTo=null; _picking='from'; _tab='calc';
+    _viewYear=new Date().getFullYear(); _viewMonth=new Date().getMonth();
+
+    const titleEl=document.getElementById('bpCarTitle');
+    const priceEl=document.getElementById('bpCarPrice');
+    if(titleEl) titleEl.textContent=calcName?`📅 ${calcName}`:'📅 Записать авто';
+    if(priceEl) priceEl.textContent=calcPrice?`КП: ${fmt(calcPrice)} ₽`:'';
+    document.getElementById('bpNote').value='';
+
+    BookingPopup._switchTab('calc');
+    document.getElementById('bpOverlay').classList.add('active');
+    document.body.style.overflow='hidden';
+    renderCalendar();
+    loadData();
+  },
+
+  close: function(){
+    const el=document.getElementById('bpOverlay');
+    if(el) el.classList.remove('active');
+    document.body.style.overflow='';
+  },
+
+  _switchTab: function(tab){
+    _tab=tab;
+    document.getElementById('bpTabCalcBody').style.display   = tab==='calc'?'block':'none';
+    document.getElementById('bpTabManualBody').style.display = tab==='manual'?'block':'none';
+    document.getElementById('bpTabCalc').classList.toggle('active',   tab==='calc');
+    document.getElementById('bpTabManual').classList.toggle('active', tab==='manual');
+  },
+
+  _onCalcSelect: function(id){
+    _calcId=id||null;
+    const c=_calcId?_calcs.find(x=>x.id===_calcId):null;
+    const el=document.getElementById('bpCarTitle');
+    const pr=document.getElementById('bpCarPrice');
+    if(el) el.textContent=c?`📅 ${c.car_name}`:'📅 Записать авто';
+    if(pr) pr.textContent=c?`КП: ${fmt(c.final_price||c.total_price||0)} ₽`:'';
+  },
+
+  _prevMonth: function(){
+    _viewMonth--; if(_viewMonth<0){_viewMonth=11;_viewYear--;} renderCalendar();
+  },
+  _nextMonth: function(){
+    _viewMonth++; if(_viewMonth>11){_viewMonth=0;_viewYear++;} renderCalendar();
+  },
+
+  _pickDate: function(ds){
+    if(!_dateFrom && !_dateTo){
+      // Ничего нет — ставим заезд
+      _dateFrom=ds; _picking='to';
+    } else if(_dateFrom && !_dateTo){
+      // Есть заезд, нет выезда
+      if(ds===_dateFrom){ _dateFrom=null; _picking='from'; }
+      else if(ds<_dateFrom){ _dateFrom=ds; } // кликнули раньше — сдвигаем заезд
+      else { _dateTo=ds; _picking='from'; }
+    } else {
+      // Оба выбраны — меняем ближайший к клику
+      const diffFrom = Math.abs(parseDate(ds)-parseDate(_dateFrom));
+      const diffTo   = Math.abs(parseDate(ds)-parseDate(_dateTo));
+      if(diffFrom<=diffTo){
+        // Меняем заезд
+        if(ds>_dateTo){ _dateFrom=_dateTo; _dateTo=ds; } // swap
+        else _dateFrom=ds;
+      } else {
+        // Меняем выезд
+        if(ds<_dateFrom){ _dateTo=_dateFrom; _dateFrom=ds; } // swap
+        else _dateTo=ds;
+      }
+    }
+    renderCalendar(); renderPosts(); renderExecutors();
+  },
+
+  _selectPost: function(pid){
+    _selectedPost=_selectedPost===pid?null:pid;
+    renderPosts(); renderCalendar();
+  },
+
+  _toggleExec: function(eid){
+    _selectedExecs.has(eid)?_selectedExecs.delete(eid):_selectedExecs.add(eid);
+    renderExecutors();
+  },
+
+  _save: async function(){
+    if(!_dateFrom){ alert('Выберите дату заезда'); return; }
+    if(!_dateTo) _dateTo=_dateFrom;
+
+    let carName='', finalCalcId=null;
+    if(_tab==='calc'){
+      if(!_calcId){ alert('Выберите расчёт из списка'); return; }
+      finalCalcId=_calcId;
+      carName=_calcs.find(c=>c.id===_calcId)?.car_name||'';
+    } else {
+      const brand=document.getElementById('bpManualBrand')?.value.trim()||'';
+      const plate=document.getElementById('bpManualPlate')?.value.trim()||'';
+      if(!brand){ alert('Введите марку/модель авто'); return; }
+      carName=brand+(plate?` (${plate})`:'');
+    }
+
+    if(!_selectedPost&&_posts.length){
+      if(!confirm('Пост не выбран. Продолжить?')) return;
+    }
+
+    // Check executor conflicts
+    const busyWarnings = [];
+    for (const eid of _selectedExecs) {
+      const conflicts = _bookings.filter(b => {
+        if (!b.executor_ids) return false;
+        if (!datesOverlap(_dateFrom, _dateTo, b.date_from, b.date_to)) return false;
+        return b.executor_ids.includes(eid);
+      });
+      if (conflicts.length) {
+        const exec = _executors.find(e => e.id === eid);
+        const cars = conflicts.map(b => b.car_name || '—').join(', ');
+        busyWarnings.push(`• ${exec?.full_name || 'Сотрудник'}: занят на авто — ${cars}`);
+      }
+    }
+    if (busyWarnings.length) {
+      const msg = '⚠️ Внимание! Следующие сотрудники уже заняты в выбранный период:
+
+' + busyWarnings.join('
+') + '
+
+Всё равно записать?';
+      if (!confirm(msg)) return;
+    }
+
+    const btn=document.getElementById('bpSaveBtn');
+    if(btn){btn.disabled=true;btn.textContent='⏳ Сохранение...';}
+
+    const sb=window._crmSb;
+    const note=document.getElementById('bpNote')?.value.trim()||null;
+    const execIds=Array.from(_selectedExecs);
+    let ok=true;
+
+    const {error:bErr}=await sb.from('calendar_bookings').insert({
+      studio_id:_studioId, post_id:_selectedPost||null, calc_id:finalCalcId,
+      car_name:carName, date_from:_dateFrom, date_to:_dateTo,
+      note, executor_ids:execIds.length?execIds:null,
+    });
+    if(bErr){console.error(bErr);ok=false;}
+
+    if(ok&&finalCalcId){
+      await sb.from('calculations').update({
+        status:'scheduled', scheduled_from:_dateFrom,
+        scheduled_to:_dateTo, post_id:_selectedPost||null,
+      }).eq('id',finalCalcId);
+    }
+
+    if(btn){btn.disabled=false;btn.textContent='✅ Записать';}
+    if(ok){ BookingPopup.close(); if(typeof _onSaved==='function') _onSaved(); }
+    else alert('❌ Ошибка сохранения. Проверьте консоль.');
+  },
+};
+
+document.addEventListener('click',function(e){
+  if(e.target&&e.target.id==='bpOverlay') BookingPopup.close();
 });
 
-// ── Main init ───────────────────────────────────────
-(async function init() {
-  const ok = await checkAuth();
-  if (!ok) return;
-
-  const params = new URLSearchParams(window.location.search);
-  calcId = params.get('calc_id');
-
-  const loading = document.getElementById('loadingMsg');
-  const errMsg  = document.getElementById('errorMsg');
-  const content = document.getElementById('mainContent');
-
-  if (!calcId) {
-    loading.style.display = 'none';
-    errMsg.style.display  = '';
-    errMsg.textContent    = '❌ Не указан ID расчёта. Откройте акт со страницы доски.';
-    return;
-  }
-
-  // Load studio + calc in parallel
-  const [studioInfo, calcResult] = await Promise.all([
-    loadStudio(),
-    sb.from('calculations').select('*').eq('id', calcId).single()
-  ]);
-
-  if (calcResult.error || !calcResult.data) {
-    loading.style.display = 'none';
-    errMsg.style.display  = '';
-    return;
-  }
-
-  const calc = calcResult.data;
-
-  // Fill car info
-  document.getElementById('carName').value = calc.car_name || '';
-  document.getElementById('headerSub').textContent = `${calc.car_name || 'Авто'} · ${new Date().toLocaleDateString('ru-RU')}`;
-
-  setToday();
-  renderServices(calc);
-  renderDefects(); // empty state
-
-  loading.style.display = 'none';
-  content.style.display = '';
-
-  // Init nav
-  if (window.initNav) window.initNav({ activePage: 'acceptance-act.html' });
-
 })();
-
-})();
-</script>
-</body>
-</html>
