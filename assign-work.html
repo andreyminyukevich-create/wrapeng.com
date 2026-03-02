@@ -364,33 +364,6 @@ body {
 }
 .add-executor-btn:hover { background: rgba(37,99,235,0.10); border-color: var(--primary); }
 
-/* ── Dates header ── */
-.dates-header-card {
-  background: #fff; border-radius: var(--radius); border: 1px solid var(--border);
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06); padding: 14px 18px; margin-bottom: 14px;
-  display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
-}
-.dates-header-item { display: flex; flex-direction: column; gap: 3px; }
-.dates-header-label { font-size: 0.67rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
-.dates-header-value { font-size: 0.92rem; font-weight: 700; color: var(--text); }
-#expectedCheckout {
-  border: 1.5px solid var(--border); border-radius: 8px; padding: 6px 10px;
-  font-size: 0.88rem; font-weight: 600; font-family: var(--font); color: var(--text);
-  background: #f8fafc; cursor: pointer; outline: none;
-}
-#expectedCheckout:focus { border-color: var(--primary); background: #fff; }
-.executor-dates-row {
-  display: flex; align-items: center; gap: 8px; padding: 6px 0 0; flex-wrap: wrap;
-}
-.dates-label { font-size: 0.72rem; font-weight: 700; color: var(--muted); white-space: nowrap; }
-.dates-sep   { color: var(--muted); font-size: 0.85rem; }
-.exec-date-from, .exec-date-to {
-  border: 1.5px solid var(--border); border-radius: 7px; padding: 4px 8px;
-  font-size: 0.82rem; font-family: var(--font); color: var(--text);
-  background: #f8fafc; cursor: pointer; outline: none; flex: 1; min-width: 120px; max-width: 150px;
-}
-.exec-date-from:focus, .exec-date-to:focus { border-color: var(--primary); background: #fff; }
-
 /* ── Добавить работу вручную ─────────────────────── */
 .add-work-row {
   display: grid;
@@ -508,7 +481,7 @@ body {
   <!-- Субшапка -->
   <div class="page-subheader">
     <div class="page-subheader-left">
-      <button class="btn-back" onclick="goBack">← В работе</button>
+      <button class="btn-back" onclick="goBack()">← В работе</button>
       <div class="page-subheader-title">👥 Распределение работ</div>
       <div class="car-subtitle" id="carSubtitle">Загрузка...</div>
     </div>
@@ -521,10 +494,10 @@ body {
 
 <script src="footer.js"></script>
 <script>
-(function {
+(function() {
 'use strict';
 
-window.goBack = function {
+window.goBack = function() {
   const referrer = document.referrer;
   if (referrer && referrer.includes('board.html')) {
     window.location.href = 'board.html';
@@ -573,17 +546,17 @@ const SERVICE_NAMES = {
 };
 
 function fmt(n) {
-  return new Intl.NumberFormat('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:2}).format(n || 0);
+  return new Intl.NumberFormat('ru-RU', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(n || 0);
 }
 
-async function checkAuth {
+async function checkAuth() {
   const { data: { session } } = await sb.auth.getSession();
   if (!session) { window.location.href = 'welcome.html'; return false; }
   currentUser = session.user;
   return true;
 }
 
-async function getStudio {
+async function getStudio() {
   const { data, error } = await sb
     .from('studio_members')
     .select('studio_id, role')
@@ -595,7 +568,7 @@ async function getStudio {
   return true;
 }
 
-async function loadExecutors {
+async function loadExecutors() {
   const { data, error } = await sb
     .from('executors')
     .select('id, full_name, role, is_admin')
@@ -630,7 +603,7 @@ function adminExecutorSelect(selectedId = '') {
 function extractServices(calcData) {
   const services = [];
   const d = calcData;
-  const seen = new Set;
+  const seen = new Set();
 
   function addIfHasMot(key, name, mot) {
     const m = parseFloat(mot) || 0;
@@ -693,7 +666,7 @@ function renderWorkItem(service, existingAssignments = []) {
   // ─────────────────────────────────────────────────────────────────
 
   const execRowsHtml = matched.length > 0
-    ? matched.map((a, i) => renderExecutorRow(`${id}_exec_${i}`, a.executor_id || '', a.salary, a.executor_name || '', a.work_date_from || '', a.work_date_to || '')).join('')
+    ? matched.map((a, i) => renderExecutorRow(`${id}_exec_${i}`, a.executor_id || '', a.salary, a.executor_name || '')).join('')
     : renderExecutorRow(`${id}_exec_0`, '', service.baseSalary);
 
   return `
@@ -712,13 +685,9 @@ function renderWorkItem(service, existingAssignments = []) {
   `;
 }
 
-function renderExecutorRow(id, executorId = '', salary = 0, manualName = '', dateFrom = '', dateTo = '') {
+function renderExecutorRow(id, executorId = '', salary = 0, manualName = '') {
+  // Если есть executorId — режим "из справочника"; если только имя — режим "вручную"
   const isManual = !executorId && !!manualName;
-  // Default dates: from checkin to expected checkout
-  const checkinRaw = calculation?.checkin_date || calculation?.scheduled_from || '';
-  const checkoutRaw = document.getElementById('expectedCheckout')?.value || calculation?.expected_checkout || calculation?.scheduled_to || '';
-  const defFrom = dateFrom || checkinRaw;
-  const defTo   = dateTo   || checkoutRaw;
   return `
     <div class="executor-row" id="${id}">
       <div class="executor-input-group">
@@ -736,12 +705,6 @@ function renderExecutorRow(id, executorId = '', salary = 0, manualName = '', dat
           <input type="number" value="${salary ? Math.round(salary) : ''}" placeholder="Сумма" step="1" class="salary-input">
           <button class="btn-remove-exec" onclick="removeExecutorRow('${id}')" title="Удалить">✕</button>
         </div>
-        <div class="executor-dates-row">
-          <span class="dates-label">Даты работы:</span>
-          <input type="date" class="exec-date-from" value="${defFrom}" title="Начало работы">
-          <span class="dates-sep">—</span>
-          <input type="date" class="exec-date-to" value="${defTo}" title="Конец работы">
-        </div>
         <div class="executor-manual-save" style="display:${isManual ? 'flex' : 'none'}">
           <label class="save-to-list-label">
             <input type="checkbox" class="save-to-list" checked>
@@ -752,15 +715,6 @@ function renderExecutorRow(id, executorId = '', salary = 0, manualName = '', dat
     </div>
   `;
 }
-
-window.refreshDefaultDates = function {
-  // When expected checkout changes, update empty date fields
-  const checkout = document.getElementById('expectedCheckout')?.value || '';
-  if (!checkout) return;
-  document.querySelectorAll('.exec-date-to').forEach(el => {
-    if (!el.value) el.value = checkout;
-  });
-};
 
 window.setExecutorMode = function(rowId, mode) {
   const row = document.getElementById(rowId);
@@ -785,7 +739,7 @@ window.setExecutorMode = function(rowId, mode) {
 };
 
 window.addExecutorRow = function(containerId, defaultSalary = 0) {
-  const id = `exec_${Date.now}`;
+  const id = `exec_${Date.now()}`;
   const row = document.createElement('div');
   row.innerHTML = renderExecutorRow(id, '', defaultSalary);
   document.getElementById(containerId).appendChild(row.firstElementChild);
@@ -794,11 +748,11 @@ window.addExecutorRow = function(containerId, defaultSalary = 0) {
 
 window.removeExecutorRow = function(rowId) {
   const el = document.getElementById(rowId);
-  if (el) el.remove;
+  if (el) el.remove();
   updateSummary();
 };
 
-function updateSummary {
+function updateSummary() {
   let total = 0, count = 0;
   document.querySelectorAll('.executor-row').forEach(row => {
     const sal  = parseFloat(row.querySelector('input[type="number"]')?.value) || 0;
@@ -809,7 +763,7 @@ function updateSummary {
   document.getElementById('summaryTotal').textContent = fmt(total) + '';
 }
 
-window.toggleAdminSale = function {
+window.toggleAdminSale = function() {
   const isChecked = document.getElementById('isAdminSale').checked;
   document.getElementById('adminDetails').classList.toggle('active', isChecked);
   calcAdminSalary();
@@ -833,7 +787,7 @@ window.setAdminMode = function(mode) {
   }
 };
 
-function calcAdminSalary {
+function calcAdminSalary() {
   if (!document.getElementById('isAdminSale')?.checked) return;
   const pct      = parseFloat(document.getElementById('adminPercent')?.value) || 0;
   const adminSal = Math.round((calculation?.total_price || 0) * pct / 100);
@@ -841,12 +795,12 @@ function calcAdminSalary {
   if (el) el.textContent = `ЗП продавца: ${fmt(adminSal)}`;
 }
 
-window.addManualWork = function {
-  const name   = document.getElementById('manualServiceName').value.trim;
+window.addManualWork = function() {
+  const name   = document.getElementById('manualServiceName').value.trim();
   const salary = parseFloat(document.getElementById('manualSalary').value) || 0;
   if (!name) { alert('Введите название работы'); return; }
 
-  const service = { key: `manual_${Date.now}`, name, baseSalary: salary };
+  const service = { key: `manual_${Date.now()}`, name, baseSalary: salary };
   const item = document.createElement('div');
   item.innerHTML = renderWorkItem(service);
 
@@ -883,14 +837,14 @@ window.saveAssignments = async function() {
     let adminExecId = null, adminExecName = '';
 
     if (isManualMode) {
-      adminExecName = document.getElementById('adminManualName')?.value?.trim;
+      adminExecName = document.getElementById('adminManualName')?.value?.trim();
       const saveToList = document.getElementById('adminSaveToList')?.checked;
       if (adminExecName && saveToList) {
         const { data: savedAdmin } = await sb.from('executors').insert({
           studio_id: currentStudio.studio_id,
           full_name: adminExecName,
           role: 'universal', is_active: true, is_admin: true
-        }).select.single();
+        }).select().single();
         if (savedAdmin) { adminExecId = savedAdmin.id; executors.push(savedAdmin); }
       }
     } else {
@@ -905,7 +859,7 @@ window.saveAssignments = async function() {
         service_name: 'Продажа (% от чека)',
         executor_id: adminExecId || null, executor_name: adminExecName,
         salary: adminSal, is_admin_sale: true, admin_percent: pct,
-        status: 'pending', payment_month: new Date.toISOString.slice(0, 7)
+        status: 'pending', payment_month: new Date().toISOString().slice(0, 7)
       });
     }
   }
@@ -921,7 +875,7 @@ window.saveAssignments = async function() {
       let execId = null, execName = '', saveToList = false;
 
       if (isManualMode) {
-        execName = row.querySelector('.manual-name-input')?.value?.trim;
+        execName = row.querySelector('.manual-name-input')?.value?.trim();
         saveToList = row.querySelector('.save-to-list')?.checked;
         if (!execName) return;
         if (saveToList) newExecutorsToSave.push(execName);
@@ -934,21 +888,13 @@ window.saveAssignments = async function() {
       const salary = parseFloat(row.querySelector('.salary-input')?.value) || 0;
       if (salary <= 0) return;
 
-      const workDateFrom = row.querySelector('.exec-date-from')?.value || null;
-      const workDateTo   = row.querySelector('.exec-date-to')?.value   || null;
-      if (!workDateFrom || !workDateTo) {
-        alert('❌ Укажите даты работы для исполнителя: ' + (execName || 'без имени'));
-        return;
-      }
       assignments.push({
         studio_id: currentStudio.studio_id, calculation_id: calcId,
         car_name: calculation.car_name,
         service_name: serviceName,
         executor_id: execId || null, executor_name: execName,
         salary, is_admin_sale: false, status: 'pending',
-        payment_month: new Date.toISOString.slice(0, 7),
-        work_date_from: workDateFrom,
-        work_date_to:   workDateTo,
+        payment_month: new Date().toISOString().slice(0, 7)
       });
     });
   });
@@ -960,7 +906,7 @@ window.saveAssignments = async function() {
       const uniqueNames = [...new Set(newExecutorsToSave)];
       const { data: savedExecs, error: execError } = await sb.from('executors').insert(
         uniqueNames.map(name => ({ studio_id: currentStudio.studio_id, full_name: name, role: 'universal', is_active: true, is_admin: false }))
-      ).select;
+      ).select();
       if (!execError && savedExecs) {
         savedExecs.forEach(saved => {
           assignments.forEach(a => { if (a.executor_name === saved.full_name && !a.executor_id) a.executor_id = saved.id; });
@@ -969,16 +915,11 @@ window.saveAssignments = async function() {
       }
     }
 
-    await sb.from('work_assignments').delete.eq('calculation_id', calcId);
+    await sb.from('work_assignments').delete().eq('calculation_id', calcId);
     const { error } = await sb.from('work_assignments').insert(assignments);
     if (error) { console.error('Save error:', error); alert('❌ Ошибка сохранения: ' + error.message); return; }
 
-    const expectedCheckout = document.getElementById('expectedCheckout')?.value || null;
-    await sb.from('calculations').update({
-      work_assigned: true,
-      status: 'in_progress',
-      ...(expectedCheckout ? { expected_checkout: expectedCheckout } : {})
-    }).eq('id', calcId);
+    await sb.from('calculations').update({ work_assigned: true, status: 'in_progress' }).eq('id', calcId);
 
     showSavedBanner(calcId, assignments.length);
   } catch (e) {
@@ -991,17 +932,6 @@ function renderContent(services, existingAssignments = []) {
   const carName = calculation.car_name || 'Без названия';
   document.getElementById('carSubtitle').textContent = carName;
 
-  // Fill checkin date if available
-  const checkinDate = calculation.checkin_date || calculation.scheduled_from || '';
-  if (checkinDate) {
-    const el = document.getElementById('dateCheckinVal');
-    if (el) el.textContent = new Date(checkinDate).toLocaleDateString('ru-RU', {day:'2-digit',month:'2-digit',year:'numeric'});
-  }
-  // Default expected checkout = checkin + 5 days or scheduled_to
-  const defaultCheckout = calculation.expected_checkout || calculation.scheduled_to || '';
-  const checkoutEl = document.getElementById('expectedCheckout');
-  if (checkoutEl && defaultCheckout) checkoutEl.value = defaultCheckout;
-
   // Ищем существующую admin-sale запись
   const adminSaleRecord = existingAssignments.find(a => a.is_admin_sale);
   const adminChecked    = !!adminSaleRecord;
@@ -1010,32 +940,12 @@ function renderContent(services, existingAssignments = []) {
 
   let html = '';
 
-  // Dates header
-  const checkinStr = calculation.checkin_date || calculation.scheduled_from || '';
-  const fmtD = d => d ? new Date(d).toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit',year:'numeric'}) : '—';
-  html += `
-    <div class="dates-header-card">
-      <div class="dates-header-item">
-        <span class="dates-header-label">Дата заезда</span>
-        <span class="dates-header-value" id="dateCheckinVal">${fmtD(checkinStr)}</span>
-      </div>
-      <span style="color:var(--muted);font-size:1.2rem;align-self:center">→</span>
-      <div class="dates-header-item">
-        <span class="dates-header-label">Планируемый выезд</span>
-        <input type="date" id="expectedCheckout"
-          value="${calculation.expected_checkout || calculation.scheduled_to || ''}"
-          onchange="refreshDefaultDates"
-          placeholder="Выберите дату">
-      </div>
-    </div>
-  `;
-
   // Admin sale
-  html += \`
-    <div class="admin-sale-block">\`
+  html += `
+    <div class="admin-sale-block">
       <div class="admin-sale-row">
         <label class="toggle-switch">
-          <input type="checkbox" id="isAdminSale" onchange="toggleAdminSale" ${adminChecked ? 'checked' : ''}>
+          <input type="checkbox" id="isAdminSale" onchange="toggleAdminSale()" ${adminChecked ? 'checked' : ''}>
           <span>👔 Продажу сделал администратор</span>
         </label>
         <div class="admin-details${adminChecked ? ' active' : ''}" id="adminDetails">
@@ -1103,7 +1013,7 @@ function renderContent(services, existingAssignments = []) {
         <input type="text" id="manualServiceName" placeholder="Название работы (напр: Мойка, Полировка)" autocomplete="off">
         <input type="number" id="manualSalary" placeholder="Сумма" min="0" step="1">
       </div>
-      <button class="btn btn-secondary btn-sm" style="margin-top:10px" onclick="addManualWork">➕ Добавить</button>
+      <button class="btn btn-secondary btn-sm" style="margin-top:10px" onclick="addManualWork()">➕ Добавить</button>
     </div>
   `;
 
@@ -1122,8 +1032,8 @@ function renderContent(services, existingAssignments = []) {
         </div>
       </div>
       <div style="display:flex;gap:10px;margin-top:16px;justify-content:flex-end;flex-wrap:wrap">
-        <button class="btn btn-secondary" onclick="window.history.back">← Отмена</button>
-        <button class="btn btn-success" id="btnSave" onclick="saveAssignments">💾 Сохранить распределение</button>
+        <button class="btn btn-secondary" onclick="window.history.back()">← Отмена</button>
+        <button class="btn btn-success" id="btnSave" onclick="saveAssignments()">💾 Сохранить распределение</button>
       </div>
 
       <!-- Баннер после сохранения -->
@@ -1152,10 +1062,10 @@ function renderContent(services, existingAssignments = []) {
   updateSummary();
 }
 
-async function init {
+async function init() {
   initNav({ actionHref: 'board.html', actionLabel: '← В работе' });
-  if (!await checkAuth) return;
-  if (!await getStudio) return;
+  if (!await checkAuth()) return;
+  if (!await getStudio()) return;
 
   const params = new URLSearchParams(window.location.search);
   calcId = params.get('calc_id');
@@ -1167,7 +1077,7 @@ async function init {
 
   const { data: calcData, error: calcError } = await sb
     .from('calculations')
-    .select('*, calendar_bookings(date_from, date_to)')
+    .select('*')
     .eq('id', calcId)
     .single();
 
@@ -1177,7 +1087,7 @@ async function init {
   }
 
   calculation = calcData;
-  await loadExecutors;
+  await loadExecutors();
 
   // Загружаем существующие назначения
   const { data: existingData } = await sb
@@ -1191,7 +1101,7 @@ async function init {
 
 init();
 
-});
+})();
 </script>
 
 </body>
