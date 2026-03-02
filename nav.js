@@ -13,7 +13,6 @@
   // Ключи соответствуют полю status в таблице calculations.
   window.STATUSES = {
     new:         { label: 'Расчёт произведён',      short: 'Расчёт',     icon: '📋', cls: 'status-new' },
-    draft:       { label: 'Первичный контакт',      short: 'Первичный',  icon: '🔖', cls: 'status-draft' },
     scheduled:   { label: 'Назначена дата и время', short: 'Дата',       icon: '📅', cls: 'status-scheduled' },
     in_progress: { label: 'Принято в работу',       short: 'В работе',  icon: '🔧', cls: 'status-in_progress' },
     done:        { label: 'Завершено',               short: 'Готово',    icon: '✅', cls: 'status-done' },
@@ -29,7 +28,7 @@
     { href: 'board.html',       icon: '📋', label: 'Доска' },
     { href: 'executors.html',   icon: '👥', label: 'Сотрудники' },
     { href: 'payouts.html',     icon: '💰', label: 'Зарплаты' },
-    { href: 'analytics.html',   icon: '📊', label: 'Аналитика',  soon: true },
+    { href: 'analytics.html',   icon: '📊', label: 'Аналитика' },
     { href: 'calendar.html',    icon: '🗓', label: 'Календарь' },
     { href: 'inventory.html',   icon: '📦', label: 'Закупки',    soon: true },
     { href: 'settings.html',    icon: '⚙️', label: 'Настройки' },
