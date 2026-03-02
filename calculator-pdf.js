@@ -4,7 +4,7 @@
  * Зависит от: calculator-data.js, calculator-persistence.js (currentProfile)
  */
 
-function showTrialWatermark {
+function showTrialWatermark() {
   if (!currentProfile) return;
   if (currentProfile.is_paid) {
     document.querySelectorAll('.trial-watermark').forEach(w => w.style.display = 'none');
@@ -13,7 +13,7 @@ function showTrialWatermark {
   const trialEnd = currentProfile.trial_ends_at ? new Date(currentProfile.trial_ends_at) : null;
   if (!trialEnd) return;
   const watermarkText = `ПРОБНАЯ ВЕРСИЯ ДО ${trialEnd.toLocaleDateString('ru-RU')}`;
-  document.querySelectorAll('.trial-watermark').forEach(w => {
+  document.querySelectorAll('.trial-watermark').forEach(w () => {
     w.textContent = watermarkText;
     w.style.display = 'block';
   });
@@ -30,36 +30,37 @@ function exportPDF(blockId, filename) {
   holder.style.position = 'absolute';
   holder.style.left     = '-9999px';
 
-  setTimeout(() => {
-    html2canvas(block, { scale: 2, useCORS: true, backgroundColor: '#fff' }).then(canvas => {
+  setTimeout(() () => {
+    html2canvas(block, { scale: 2, useCORS: true, backgroundColor: '#fff' }).then(canvas () => {
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
-      const pw  = pdf.internal.pageSize.getWidth;
-      const ph  = pdf.internal.pageSize.getHeight;
+      const pw  = pdf.internal.pageSize.getWidth();
+      const ph  = pdf.internal.pageSize.getHeight();
       const ratio = Math.min(pw / canvas.width, ph / canvas.height);
       const sw  = canvas.width  * ratio;
       const sh  = canvas.height * ratio;
       const x   = (pw - sw) / 2;
       pdf.addImage(canvas.toDataURL('image/png'), 'PNG', x, 20, sw, Math.min(sh, ph - 40));
       pdf.save(filename);
-    }).catch(err => {
+    }).catch(err () => {
       alert('Ошибка создания PDF: ' + err.message);
-    }).finally(() => {
+    }).finally(() () => {
       holder.style.display = orig;
     });
   }, 200);
 }
 
-function prepKP {
-  showTrialWatermark;
+function prepKP() {
+  showTrialWatermark();
+
   const tb = q('#pdfKPTBody');
   if (!tb) return;
   tb.innerHTML = '';
 
-  qa('#kpTable tbody tr').forEach(tr => {
+  qa('#kpTable tbody tr').forEach(tr () => {
     const r = document.createElement('tr');
-    r.innerHTML = `<td style="width:25%">${tr.children[0].textContent.trim}</td>` +
-                  `<td style="width:50%">${tr.children[1].textContent.trim || '—'}</td>` +
-                  `<td style="width:25%">${tr.children[2].textContent.trim}</td>`;
+    r.innerHTML = `<td style="width:25%">${tr.children[0].textContent.trim()}</td>` +
+                  `<td style="width:50%">${tr.children[1].textContent.trim() || '—'}</td>` +
+                  `<td style="width:25%">${tr.children[2].textContent.trim()}</td>`;
     tb.appendChild(r);
   });
 
@@ -68,7 +69,7 @@ function prepKP {
   const br   = q('#brandManual').classList.contains('invis') ? q('#brand').value   : q('#brandManual').value;
   const md   = q('#modelManual').classList.contains('invis') ? q('#model').value   : q('#modelManual').value;
   const yr   = q('#year').value || '—';
-  const now  = new Date;
+  const now  = new Date();
   const payMode = q('input[name=payMode]:checked')?.value;
   const payText = payMode === 'cash' ? 'Наличные' : payMode === 'card' ? 'Карта или ИП' : 'ООО';
 
@@ -77,17 +78,18 @@ function prepKP {
     `<b><i>Условия оплаты: ${payText}</i></b>`;
 }
 
-function prepCost {
-  showTrialWatermark;
+function prepCost() {
+  showTrialWatermark();
+
   const tb = q('#pdfCostTBody');
   if (!tb) return;
   tb.innerHTML = '';
 
-  qa('#costTable tbody tr').forEach(tr => {
+  qa('#costTable tbody tr').forEach(tr () => {
     const r = document.createElement('tr');
-    r.innerHTML = `<td>${tr.children[0].textContent.trim}</td>` +
-                  `<td>${tr.children[1].textContent.trim}</td>` +
-                  `<td>${tr.children[2].textContent.trim}</td>`;
+    r.innerHTML = `<td>${tr.children[0].textContent.trim()}</td>` +
+                  `<td>${tr.children[1].textContent.trim()}</td>` +
+                  `<td>${tr.children[2].textContent.trim()}</td>`;
     tb.appendChild(r);
   });
 
@@ -100,15 +102,16 @@ function prepCost {
   q('#pdfCostMeta').textContent = `Автомобиль: ${br || '—'} ${md || '—'} ${yr}`;
 }
 
-function prepExecutors {
-  showTrialWatermark;
+function prepExecutors() {
+  showTrialWatermark();
+
   const tb = q('#pdfExecutorsTBody');
   if (!tb) return;
   tb.innerHTML = '';
-  const todayStr = new Date.toISOString.split('T')[0];
+  const todayStr = new Date().toISOString().split('T')[0];
 
-  qa('#executorsContent .executor-row').forEach(row => {
-    const name   = row.querySelector('.executor-row-header')?.textContent?.trim || '';
+  qa('#executorsContent .executor-row').forEach(row () => {
+    const name   = row.querySelector('.executor-row-header')?.textContent?.trim() || '';
     const baseId = row.getAttribute('data-exec-id');
     if (baseId) {
       const executor = row.querySelector(`#${baseId}name`)?.value || '';
@@ -121,7 +124,7 @@ function prepExecutors {
         tb.appendChild(r);
       }
     }
-    row.querySelector('.extra-executors')?.querySelectorAll('.extra-executor-row').forEach(extraRow => {
+    row.querySelector('.extra-executors')?.querySelectorAll('.extra-executor-row').forEach(extraRow () => {
       const eName = extraRow.querySelector('input[id*="name"]')?.value || '';
       if (eName) {
         const r = document.createElement('tr');
@@ -140,15 +143,16 @@ function prepExecutors {
   q('#pdfExecutorsMeta').textContent = `Автомобиль: ${br || '—'} ${md || '—'} ${yr}`;
 }
 
-function prepExecutorsWithSalary {
-  showTrialWatermark;
+function prepExecutorsWithSalary() {
+  showTrialWatermark();
+
   const tb = q('#pdfExecutorsWithSalaryTBody');
   if (!tb) return;
   tb.innerHTML = '';
-  const todayStr = new Date.toISOString.split('T')[0];
+  const todayStr = new Date().toISOString().split('T')[0];
 
-  qa('#executorsContent .executor-row').forEach(row => {
-    const name   = row.querySelector('.executor-row-header')?.textContent?.trim || '';
+  qa('#executorsContent .executor-row').forEach(row () => {
+    const name   = row.querySelector('.executor-row-header')?.textContent?.trim() || '';
     const baseId = row.getAttribute('data-exec-id');
     if (baseId) {
       const executor = row.querySelector(`#${baseId}name`)?.value || '';
@@ -162,7 +166,7 @@ function prepExecutorsWithSalary {
         tb.appendChild(r);
       }
     }
-    row.querySelector('.extra-executors')?.querySelectorAll('.extra-executor-row').forEach(extraRow => {
+    row.querySelector('.extra-executors')?.querySelectorAll('.extra-executor-row').forEach(extraRow () => {
       const eName = extraRow.querySelector('input[id*="name"]')?.value || '';
       if (eName) {
         const eSalary = extraRow.querySelector('input[id*="salary"]')?.value || '0';
