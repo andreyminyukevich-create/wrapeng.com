@@ -1,9 +1,9 @@
 /**
  * booking-popup.js — попап «Записать авто»
  * BookingPopup.open({ calcId, calcName, calcPrice, studioId, onSaved })
- * BookingPopup.close
+ * BookingPopup.close()
  */
-(function {
+(function() {
 'use strict';
 
 // ── CSS ────────────────────────────────────────────────
@@ -205,12 +205,12 @@ const CSS = `
 .bp-empty { color:#94a3b8; font-size:0.82rem; padding:8px 0; }
 `;
 
-(function injectCSS{
+(function injectCSS(){
   if (document.getElementById('bpStyles')) return;
   const s = document.createElement('style');
   s.id = 'bpStyles'; s.textContent = CSS;
   document.head.appendChild(s);
-});
+})();
 
 // ── Переводы ──────────────────────────────────────────
 const POST_TYPE_RU = {
@@ -234,9 +234,9 @@ const STATUS_LABEL = {
 
 // ── Хелперы — ЛОКАЛЬНОЕ время, не UTC! ────────────────
 function toISO(d){
-  const y = d.getFullYear;
-  const m = String(d.getMonth+1).padStart(2,'0');
-  const day = String(d.getDate).padStart(2,'0');
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const day = String(d.getDate()).padStart(2,'0');
   return `${y}-${m}-${day}`;
 }
 function parseDate(s){
@@ -248,29 +248,20 @@ function formatRu(s){
   if(!s) return '—';
   return parseDate(s).toLocaleDateString('ru-RU',{day:'numeric',month:'short'});
 }
-function fmt(n){ return new Intl.NumberFormat('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:2}).format(n||0); }
+function fmt(n){ return new Intl.NumberFormat('ru-RU').format(n||0); }
 function datesOverlap(f1,t1,f2,t2){ return f1<=t2 && t1>=f2; }
 function bookingsForPost(pid){ return _bookings.filter(b=>b.post_id===pid); }
 function execBusyInRange(eid){
-  if(!_dateFrom||!_dateTo) return null; // null = no dates to check
-  // Check calendar_bookings
-  const inCal = _bookings.some(b=>{
+  if(!_dateFrom||!_dateTo) return false;
+  return _bookings.some(b=>{
     if(!b.executor_ids) return false;
     if(!datesOverlap(_dateFrom,_dateTo,b.date_from,b.date_to)) return false;
     return b.executor_ids.includes(eid);
   });
-  // Check work_assignments dates
-  const waConflict = _workAssigns.find(a=>{
-    if(a.executor_id !== eid) return false;
-    if(!a.work_date_from||!a.work_date_to) return false;
-    return datesOverlap(_dateFrom,_dateTo,a.work_date_from,a.work_date_to);
-  });
-  if (inCal || waConflict) return waConflict?.car_name || '(другой заказ)';
-  return null;
 }
 
 // ── DOM ────────────────────────────────────────────────
-function buildDOM{
+function buildDOM(){
   if(document.getElementById('bpOverlay')) return;
   const div = document.createElement('div');
   div.innerHTML = `
@@ -281,7 +272,7 @@ function buildDOM{
         <div id="bpCarTitle">📅 Записать авто</div>
         <div id="bpCarPrice"></div>
       </div>
-      <button id="bpCloseBtn" onclick="BookingPopup.close">✕</button>
+      <button id="bpCloseBtn" onclick="BookingPopup.close()">✕</button>
     </div>
     <div id="bpCarSelect">
       <div class="bp-car-tabs">
@@ -310,9 +301,9 @@ function buildDOM{
       <div>
         <div class="bp-section-title">Даты</div>
         <div class="bp-month-nav">
-          <button onclick="BookingPopup._prevMonth">‹</button>
+          <button onclick="BookingPopup._prevMonth()">‹</button>
           <span class="bp-month-lbl" id="bpMonthLbl"></span>
-          <button onclick="BookingPopup._nextMonth">›</button>
+          <button onclick="BookingPopup._nextMonth()">›</button>
         </div>
         <div class="bp-cal-grid" id="bpCalGrid"></div>
         <div class="bp-pick-hint" id="bpPickHint">Кликните на <span>дату заезда</span></div>
@@ -333,8 +324,8 @@ function buildDOM{
       </div>
     </div>
     <div id="bpFoot">
-      <button class="bp-btn-cancel" onclick="BookingPopup.close">Отмена</button>
-      <button class="bp-btn-save" id="bpSaveBtn" onclick="BookingPopup._save">✅ Записать</button>
+      <button class="bp-btn-cancel" onclick="BookingPopup.close()">Отмена</button>
+      <button class="bp-btn-save" id="bpSaveBtn" onclick="BookingPopup._save()">✅ Записать</button>
     </div>
   </div>
 </div>`;
@@ -343,18 +334,18 @@ function buildDOM{
 
 // ── State ──────────────────────────────────────────────
 let _studioId=null, _calcId=null, _manualName='', _onSaved=null;
-let _posts=[], _executors=[], _bookings=[], _calcs=[], _workAssigns=[];
-let _selectedPost=null, _selectedExecs=new Set;
+let _posts=[], _executors=[], _bookings=[], _calcs=[];
+let _selectedPost=null, _selectedExecs=new Set();
 let _dateFrom=null, _dateTo=null, _picking='from';
-let _viewYear=new Date.getFullYear, _viewMonth=new Date.getMonth;
+let _viewYear=new Date().getFullYear(), _viewMonth=new Date().getMonth();
 let _tab='calc';
 
 // ── Load ───────────────────────────────────────────────
-async function loadData{
+async function loadData(){
   const sb = window._crmSb;
   if(!sb||!_studioId){ console.error('BookingPopup: нет studioId'); return; }
 
-  const [pr,er,br,cr,wr] = await Promise.all([
+  const [pr,er,br,cr] = await Promise.all([
     sb.from('posts').select('*').eq('studio_id',_studioId).eq('is_active',true).order('created_at'),
     sb.from('executors').select('id,full_name,role').eq('studio_id',_studioId).eq('is_active',true).order('full_name'),
     sb.from('calendar_bookings').select('*').eq('studio_id',_studioId),
@@ -362,16 +353,13 @@ async function loadData{
       .eq('studio_id',_studioId)
       .in('status',['new','draft'])
       .order('created_at',{ascending:false}),
-    sb.from('work_assignments').select('executor_id,executor_name,work_date_from,work_date_to,car_name')
-      .eq('studio_id',_studioId)
-      .not('work_date_from','is',null),
   ]);
 
-  _posts=pr.data||[]; _executors=er.data||[]; _bookings=br.data||[]; _calcs=cr.data||[]; _workAssigns=wr.data||[];
+  _posts=pr.data||[]; _executors=er.data||[]; _bookings=br.data||[]; _calcs=cr.data||[];
   renderCalcSelect(); renderPosts(); renderExecutors();
 }
 
-function renderCalcSelect{
+function renderCalcSelect(){
   const sel = document.getElementById('bpCalcSel');
   if(!sel) return;
   if(!_calcs.length){ sel.innerHTML='<option value="">Нет расчётов</option>'; return; }
@@ -383,7 +371,7 @@ function renderCalcSelect{
     }).join('');
 }
 
-function renderPosts{
+function renderPosts(){
   const el = document.getElementById('bpPosts');
   if(!el) return;
   if(!_posts.length){ el.innerHTML='<div class="bp-empty">Нет постов. <a href="settings.html" style="color:#2563eb">Добавить</a></div>'; return; }
@@ -403,53 +391,52 @@ function renderPosts{
   }).join('');
 }
 
-function renderExecutors{
+function renderExecutors(){
   const el = document.getElementById('bpExecutors');
   if(!el) return;
   if(!_executors.length){ el.innerHTML='<div class="bp-empty">Нет сотрудников. <a href="executors.html" style="color:#2563eb">Добавить</a></div>'; return; }
   el.innerHTML = _executors.map(e=>{
-    const busyCar=execBusyInRange(e.id), sel=_selectedExecs.has(e.id)?' selected':'';
-    const ini=(e.full_name||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase;
-    const busyHtml = busyCar ? `<span class="bp-exec-warn" title="Занят: ${busyCar}">⚠️ Занят</span>` : '';
+    const busy=execBusyInRange(e.id), sel=_selectedExecs.has(e.id)?' selected':'';
+    const ini=(e.full_name||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
     return `<button class="bp-exec-btn${sel}" onclick="BookingPopup._toggleExec('${e.id}')">
       <div class="bp-exec-avatar">${ini}</div>
       <div style="flex:1;min-width:0">
         <div class="bp-exec-name">${e.full_name}</div>
-        <div class="bp-exec-role">${roleRu(e.role)}${busyCar?' · <span style=\'color:#dc2626;font-size:0.7rem\'>'+busyCar+'</span>':''}</div>
-      </div>${busyHtml}
+        <div class="bp-exec-role">${roleRu(e.role)}</div>
+      </div>${busy?'<span class="bp-exec-warn">⚠️ Занят</span>':''}
     </button>`;
   }).join('');
 }
 
-function renderCalendar{
+function renderCalendar(){
   const el=document.getElementById('bpCalGrid'), lbl=document.getElementById('bpMonthLbl');
   if(!el||!lbl) return;
   lbl.textContent=`${MONTHS[_viewMonth]} ${_viewYear}`;
 
-  const today=toISO(new Date);
+  const today=toISO(new Date());
   const DAY_HDR=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
 
   // Первый день месяца, конвертим воскресенье(0) → 6, остальные -1
   const firstDay=new Date(_viewYear,_viewMonth,1);
-  let startPad=firstDay.getDay;
+  let startPad=firstDay.getDay();
   startPad = startPad===0 ? 6 : startPad-1;
   const gridStart=new Date(_viewYear,_viewMonth,1-startPad);
 
   const lastDay=new Date(_viewYear,_viewMonth+1,0);
-  let endPad=lastDay.getDay;
+  let endPad=lastDay.getDay();
   endPad = endPad===0 ? 0 : 7-endPad;
   const gridEnd=new Date(_viewYear,_viewMonth+1,endPad);
 
   const dates=[];
   const cur=new Date(gridStart);
-  while(cur<=gridEnd){ dates.push(toISO(new Date(cur))); cur.setDate(cur.getDate+1); }
+  while(cur<=gridEnd){ dates.push(toISO(new Date(cur))); cur.setDate(cur.getDate()+1); }
 
   // Занятые дни поста
-  const busyDates=new Set;
+  const busyDates=new Set();
   if(_selectedPost){
     bookingsForPost(_selectedPost).forEach(b=>{
       const c=parseDate(b.date_from), e=parseDate(b.date_to);
-      while(c<=e){ busyDates.add(toISO(new Date(c))); c.setDate(c.getDate+1); }
+      while(c<=e){ busyDates.add(toISO(new Date(c))); c.setDate(c.getDate()+1); }
     });
   }
 
@@ -457,9 +444,9 @@ function renderCalendar{
 
   dates.forEach(ds=>{
     const d=parseDate(ds);
-    const isOther   = d.getMonth!==_viewMonth;
+    const isOther   = d.getMonth()!==_viewMonth;
     const isPast    = ds<today;
-    const isWe      = d.getDay===0||d.getDay===6;
+    const isWe      = d.getDay()===0||d.getDay()===6;
     const isToday   = ds===today;
     const isFrom    = ds===_dateFrom;
     const isTo      = ds===_dateTo;
@@ -478,7 +465,7 @@ function renderCalendar{
     }
 
     const click=(!isOther&&!isPast)?`onclick="BookingPopup._pickDate('${ds}')"`: '';
-    html+=`<div class="${cls}" ${click}><div class="bp-day-num">${d.getDate}</div>${hasDot?'<div class="bp-day-dot"></div>':''}</div>`;
+    html+=`<div class="${cls}" ${click}><div class="bp-day-num">${d.getDate()}</div>${hasDot?'<div class="bp-day-dot"></div>':''}</div>`;
   });
 
   el.innerHTML=html;
@@ -501,10 +488,10 @@ function renderCalendar{
       hint.innerHTML=`<span>${formatRu(_dateFrom)}</span> — <span>${formatRu(_dateTo)}</span> · ${days} дн. · кликните чтобы скорректировать`;
     }
   }
-  checkConflict;
+  checkConflict();
 }
 
-function checkConflict{
+function checkConflict(){
   const el=document.getElementById('bpConflict');
   if(!el) return;
   if(!_selectedPost||!_dateFrom||!_dateTo){ el.classList.remove('show'); return; }
@@ -517,11 +504,11 @@ function checkConflict{
 window.BookingPopup = {
 
   open: function({calcId,calcName,calcPrice,studioId,onSaved}={}){
-    buildDOM;
+    buildDOM();
     _studioId=studioId; _calcId=calcId||null; _onSaved=onSaved||null;
-    _selectedPost=null; _selectedExecs=new Set;
+    _selectedPost=null; _selectedExecs=new Set();
     _dateFrom=null; _dateTo=null; _picking='from'; _tab='calc';
-    _viewYear=new Date.getFullYear; _viewMonth=new Date.getMonth;
+    _viewYear=new Date().getFullYear(); _viewMonth=new Date().getMonth();
 
     const titleEl=document.getElementById('bpCarTitle');
     const priceEl=document.getElementById('bpCarPrice');
@@ -536,7 +523,7 @@ window.BookingPopup = {
     loadData();
   },
 
-  close: function{
+  close: function(){
     const el=document.getElementById('bpOverlay');
     if(el) el.classList.remove('active');
     document.body.style.overflow='';
@@ -559,10 +546,10 @@ window.BookingPopup = {
     if(pr) pr.textContent=c?`КП: ${fmt(c.final_price||c.total_price||0)}`:'';
   },
 
-  _prevMonth: function{
+  _prevMonth: function(){
     _viewMonth--; if(_viewMonth<0){_viewMonth=11;_viewYear--;} renderCalendar();
   },
-  _nextMonth: function{
+  _nextMonth: function(){
     _viewMonth++; if(_viewMonth>11){_viewMonth=0;_viewYear++;} renderCalendar();
   },
 
@@ -602,7 +589,7 @@ window.BookingPopup = {
     renderExecutors();
   },
 
-  _save: async function() {
+  _save: async function(){
     if(!_dateFrom){ alert('Выберите дату заезда'); return; }
     if(!_dateTo) _dateTo=_dateFrom;
 
@@ -612,8 +599,8 @@ window.BookingPopup = {
       finalCalcId=_calcId;
       carName=_calcs.find(c=>c.id===_calcId)?.car_name||'';
     } else {
-      const brand=document.getElementById('bpManualBrand')?.value.trim||'';
-      const plate=document.getElementById('bpManualPlate')?.value.trim||'';
+      const brand=document.getElementById('bpManualBrand')?.value.trim()||'';
+      const plate=document.getElementById('bpManualPlate')?.value.trim()||'';
       if(!brand){ alert('Введите марку/модель авто'); return; }
       carName=brand+(plate?` (${plate})`:'');
     }
@@ -622,31 +609,11 @@ window.BookingPopup = {
       if(!confirm('Пост не выбран. Продолжить?')) return;
     }
 
-    // Check executor conflicts
-    if (_selectedExecs.size > 0) {
-      const busyWarnings = [];
-      for (const eid of _selectedExecs) {
-        const busyCar = execBusyInRange(eid);
-        if (busyCar) {
-          const exec = _executors.find(e => e.id === eid);
-          busyWarnings.push('• ' + (exec?.full_name || 'Сотрудник') + ': занят на авто — ' + busyCar);
-        }
-      }
-      if (busyWarnings.length) {
-        if (!confirm('⚠️ Следующие сотрудники уже заняты в выбранный период:
-
-' + busyWarnings.join('
-') + '
-
-Всё равно записать?')) return;
-      }
-    }
-
     const btn=document.getElementById('bpSaveBtn');
     if(btn){btn.disabled=true;btn.textContent='⏳ Сохранение...';}
 
     const sb=window._crmSb;
-    const note=document.getElementById('bpNote')?.value.trim||null;
+    const note=document.getElementById('bpNote')?.value.trim()||null;
     const execIds=Array.from(_selectedExecs);
     let ok=true;
 
@@ -665,13 +632,13 @@ window.BookingPopup = {
     }
 
     if(btn){btn.disabled=false;btn.textContent='✅ Записать';}
-    if(ok){ BookingPopup.close; if(typeof _onSaved==='function') _onSaved; }
+    if(ok){ BookingPopup.close(); if(typeof _onSaved==='function') _onSaved(); }
     else alert('❌ Ошибка сохранения. Проверьте консоль.');
   },
 };
 
 document.addEventListener('click',function(e){
-  if(e.target&&e.target.id==='bpOverlay') BookingPopup.close;
+  if(e.target&&e.target.id==='bpOverlay') BookingPopup.close();
 });
 
-});
+})();
