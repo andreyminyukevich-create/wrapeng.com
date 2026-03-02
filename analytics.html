@@ -273,11 +273,11 @@ const set  = (id,v) => { const e=document.getElementById(id); if(e) e.textConten
 function getRange() {
   if (isCustom && customFrom && customTo) return {from:customFrom, to:customTo};
   if (activeDays===0) return {from:new Date(0), to:new Date};
-  return {from:new Date(Date.now-activeDays*86400000), to:new Date};
+  return {from:new Date(Date.now()-activeDays*86400000), to:new Date};
 }
 function getPrevRange() {
   if (isCustom||activeDays===0) return null;
-  return {from:new Date(Date.now-2*activeDays*86400000), to:new Date(Date.now-activeDays*86400000)};
+  return {from:new Date(Date.now()-2*activeDays*86400000), to:new Date(Date.now()-activeDays*86400000)};
 }
 function filterC(range) { return allCalcs.filter(c => { const d=new Date(c.created_at); return d>=range.from&&d<=range.to; }); }
 function filterA(calcs) { const ids=new Set(calcs.map(c=>c.id)); return allAssign.filter(a=>ids.has(a.calculation_id)); }
@@ -285,10 +285,10 @@ function filterA(calcs) { const ids=new Set(calcs.map(c=>c.id)); return allAssig
 // ─── Bucket ──────────────────────────────────────────
 function bKey(dateStr, days) {
   const d = new Date(dateStr);
-  if (days!==0&&days<=14) return d.toISOString.split('T')[0];
+  if (days!==0&&days<=14) return d.toISOString().split('T')[0];
   if (days!==0&&days<=90) {
     const day=d.getDay, diff=d.getDate-day+(day===0?-6:1);
-    return new Date(new Date(d).setDate(diff)).toISOString.split('T')[0];
+    return new Date(new Date(d).setDate(diff)).toISOString().split('T')[0];
   }
   return `${d.getFullYear}-${String(d.getMonth+1).padStart(2,'0')}-01`;
 }
@@ -572,10 +572,10 @@ window.applyCustomDate = function {
 
 // ─── Init ─────────────────────────────────────────────
 async function init() {
-  initNav;
+  initNav();
   loadWidgetSettings();
 
-  const {data:{session}} = await sb.auth.getSession;
+  const {data:{session}} = await sb.auth.getSession();
   if(!session){window.location.href='welcome.html';return;}
 
   const {data:member} = await sb.from('studio_members').select('studio_id').eq('user_id',session.user.id).eq('is_active',true).single();
@@ -607,9 +607,9 @@ async function init() {
     });
   });
 
-  const today=new Date, month=new Date(Date.now-30*86400000);
-  document.getElementById('dateTo').value=today.toISOString.split('T')[0];
-  document.getElementById('dateFrom').value=month.toISOString.split('T')[0];
+  const today=new Date, month=new Date(Date.now()-30*86400000);
+  document.getElementById('dateTo').value=today.toISOString().split('T')[0];
+  document.getElementById('dateFrom').value=month.toISOString().split('T')[0];
 }
 
 document.addEventListener('DOMContentLoaded',init);
