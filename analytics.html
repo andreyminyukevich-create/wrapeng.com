@@ -220,7 +220,7 @@ body {
 
 <script src="footer.js"></script>
 <script>
-(function{
+(function(){
 'use strict';
 
 const SB_URL = 'https://hdghijgrrnzmntistdvw.supabase.co';
@@ -343,8 +343,8 @@ function setChg(id, cur, prev, isPct) {
 // ─── Revenue chart ────────────────────────────────────
 function renderRevenueChart(cur) {
   const ctx=document.getElementById('revenueChart'); if(!ctx) return;
-  if(charts.rev){charts.rev.destroy;charts.rev=null;}
-  const days = isCustom ? customDays : activeDays;
+  if(charts.rev){charts.rev.destroy();charts.rev=null;}
+  const days = isCustom ? customDays() : activeDays;
   const buckets={};
   cur.forEach(c=>{
     const k=bKey(c.created_at,days);
@@ -352,7 +352,7 @@ function renderRevenueChart(cur) {
     buckets[k].rev+=(c.final_price||c.total_price||0);
     buckets[k].cnt++;
   });
-  const keys=Object.keys(buckets).sort;
+  const keys=Object.keys(buckets).sort();
   if(!keys.length){ctx.parentElement.innerHTML='<div class="no-data">Нет данных для графика</div>';return;}
   const labels=keys.map(k=>bLabel(k,days));
   charts.rev=new Chart(ctx,{
@@ -372,7 +372,7 @@ function renderRevenueChart(cur) {
 // ─── Status donut ─────────────────────────────────────
 function renderStatusChart(cur) {
   const wrap=document.getElementById('statusChartWrap'); if(!wrap) return;
-  if(charts.status){charts.status.destroy;charts.status=null;}
+  if(charts.status){charts.status.destroy();charts.status=null;}
   const COLORS={new:'#94a3b8',scheduled:'#f59e0b',in_progress:'#2563eb',done:'#7c3aed',delivered:'#059669',cancelled:'#ef4444'};
   const S=window.STATUSES||{};
   const g={};
@@ -391,7 +391,7 @@ function renderStatusChart(cur) {
 // ─── Monthly chart ────────────────────────────────────
 function renderMonthlyChart() {
   const ctx=document.getElementById('monthlyChart'); if(!ctx) return;
-  if(charts.monthly){charts.monthly.destroy;charts.monthly=null;}
+  if(charts.monthly){charts.monthly.destroy();charts.monthly=null;}
   const b={};
   allCalcs.forEach(c=>{
     const d=new Date(c.created_at);
@@ -400,7 +400,7 @@ function renderMonthlyChart() {
     b[k].cnt++; b[k].all+=(c.total_price||0);
     if(ns(c.status)==='delivered') b[k].done+=(c.final_price||c.total_price||0);
   });
-  const keys=Object.keys(b).sort.slice(-18);
+  const keys=Object.keys(b).sort().slice(-18);
   if(!keys.length){ctx.parentElement.innerHTML='<div class="no-data">Нет данных</div>';return;}
   const labels=keys.map(k=>{const[y,m]=k.split('-');return new Date(+y,+m-1,1).toLocaleDateString('ru-RU',{month:'short',year:'2-digit'});});
   charts.monthly=new Chart(ctx,{
