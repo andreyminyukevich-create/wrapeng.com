@@ -402,9 +402,8 @@ body {
         <div class="page-sub" id="headerSub">Загрузка…</div>
       </div>
       <div class="btn-group">
-        <button class="btn btn-secondary" onclick="history.back">← Назад</button>
-        <button class="btn btn-primary" onclick="window.print">🖨️ Распечатать</button>
-        <button class="btn btn-success" id="btnTakeWork" onclick="takeToWork" style="display:none">🔧 Взять в работу</button>
+        <button class="btn btn-secondary" onclick="history.back()">← Назад</button>
+        <button class="btn btn-primary" onclick="window.print()">🖨️ Распечатать</button>
       </div>
     </div>
 
@@ -510,7 +509,7 @@ body {
       <div class="card-head">🗺️ Схема дефектов (кликните по авто — поставьте метку)</div>
       <div class="card-body">
         <div class="diagram-controls no-print">
-          <button class="btn btn-secondary" onclick="clearDefects" style="font-size:0.78rem;padding:6px 12px">🗑️ Очистить все метки</button>
+          <button class="btn btn-secondary" onclick="clearDefects()" style="font-size:0.78rem;padding:6px 12px">🗑️ Очистить все метки</button>
           <span style="font-size:0.78rem;color:var(--muted);align-self:center">Кликните на схему чтобы добавить дефект. Кликните по метке чтобы удалить.</span>
         </div>
 
@@ -655,7 +654,7 @@ body {
 
 <script src="footer.js"></script>
 <script>
-(function {
+(function() {
 'use strict';
 
 const SUPABASE_URL      = 'https://hdghijgrrnzmntistdvw.supabase.co';
@@ -667,7 +666,7 @@ let calcId       = null;
 let defects      = [];   // [{id, x%, y%, desc}]
 
 // ── Auth ────────────────────────────────────────────
-async function checkAuth {
+async function checkAuth() {
   const { data: { session } } = await sb.auth.getSession();
   if (!session) { window.location.href = 'welcome.html'; return false; }
   currentUser = session.user;
@@ -676,11 +675,11 @@ async function checkAuth {
 
 // ── Format ──────────────────────────────────────────
 function fmt(n) {
-  return new Intl.NumberFormat('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:2}).format(n || 0);
+  return new Intl.NumberFormat('ru-RU', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(n || 0);
 }
 
 // ── Load studio settings ────────────────────────────
-async function loadStudio {
+async function loadStudio() {
   const { data: member } = await sb.from('studio_members')
     .select('studio_id').eq('user_id', currentUser.id).eq('is_active', true).single();
   if (!member) return {};
@@ -707,46 +706,33 @@ async function loadStudio {
 }
 
 // ── Build services list from calculation_data ───────
-// calculation_data stores raw inputs, totals must be computed
-function buildServicesList(calcData, totalPrice) {
-  const cd  = calcData || {};
-  const pkg = cd.package || {};
-  const imp = cd.impact  || {};
-  const det = cd.services_detail || {};
-  const mu  = cd.markups || {};
+function buildServicesList(calcData) {
   const services = [];
+  const cd = calcData || {};
 
-  function n(v) { return parseFloat(v||0)||0; }
-  function withMarkup(base, markupPct) { return base * (1 + n(markupPct)/100); }
-
-  // 1. Полная защита вкруг
-  const pkgBase = n(pkg.wrapMat)+n(pkg.wrapMot)+n(pkg.prepMat)+n(pkg.prepMot)+n(pkg.armMat)+n(pkg.armMot);
-  let pkgExtra = 0;
-  if (pkg.costs && Array.isArray(pkg.costs)) pkg.costs.forEach(c => { pkgExtra += n(c.value); });
-  const pkgTotal = withMarkup(pkgBase + pkgExtra, pkg.markup);
-  if (pkgTotal > 0) services.push({ name: 'Полная защита вкруг', price: pkgTotal });
-
-  // 2. Защита ударной части
-  const impBase = n(imp.wrapMat)+n(imp.wrapMot)+n(imp.prepMat)+n(imp.prepMot)+n(imp.armMat)+n(imp.armMot);
-  let impExtra = 0;
-  if (imp.costs && Array.isArray(imp.costs)) imp.costs.forEach(c => { impExtra += n(c.value); });
-  const impTotal = withMarkup(impBase + impExtra, imp.markup);
-  if (impTotal > 0) services.push({ name: 'Защита ударной части', price: impTotal });
-
-  // 3. Отдельные сервисы из services_detail
-  const blocks = [
-    { key:'arm',  label:'Арматурные работы',   muKey:'arm'  },
-    { key:'wrap', label:'Оклейка плёнкой',      muKey:'wrap' },
-    { key:'det',  label:'Детейлинг',            muKey:'det'  },
-    { key:'gl',   label:'Антигравийная защита', muKey:'gl'   },
-    { key:'ms',   label:'Прочие работы',        muKey:'misc' },
+  const sections = [
+    { key: 'pkg',       label: 'Полная защита вкруг',    priceKey: 'pkgTotal' },
+    { key: 'impact',    label: 'Защита ударной части',   priceKey: 'impactTotal' },
+    { key: 'arm',       label: 'Арматурка',              priceKey: 'armTotal' },
+    { key: 'wrap',      label: 'Оклейка плёнкой',        priceKey: 'wrapTotal' },
+    { key: 'det',       label: 'Детейлинг',              priceKey: 'detTotal' },
+    { key: 'gl',        label: 'Антигравийная защита',   priceKey: 'glTotal' },
+    { key: 'misc',      label: 'Прочие работы',          priceKey: 'miscTotal' },
   ];
-  blocks.forEach(b => {
-    const items = det[b.key] || [];
-    const base  = items.reduce((s,d) => s + n(d.mat) + n(d.mot), 0);
-    const total = withMarkup(base, mu[b.muKey]);
-    if (total > 0) services.push({ name: b.label, price: total });
+
+  sections.forEach(s => {
+    const total = parseFloat(cd[s.priceKey] || 0);
+    if (total > 0) services.push({ name: s.label, price: total });
   });
+
+  // Miscellaneous custom items
+  if (cd.miscItems && Array.isArray(cd.miscItems)) {
+    cd.miscItems.forEach(item => {
+      if (item.name && item.price > 0) {
+        services.push({ name: item.name, price: parseFloat(item.price) });
+      }
+    });
+  }
 
   return services;
 }
@@ -754,11 +740,11 @@ function buildServicesList(calcData, totalPrice) {
 // ── Render services table ───────────────────────────
 function renderServices(calc) {
   const cd = calc.calculation_data || {};
-  let services = buildServicesList(cd, calc.final_price || calc.total_price);
+  let services = buildServicesList(cd);
 
   // Fallback: if no breakdown, just show total
-  if (services.length === 0 && (calc.final_price || calc.total_price)) {
-    services = [{ name: calc.car_name || 'Комплекс работ', price: calc.final_price || calc.total_price }];
+  if (services.length === 0 && calc.total_price) {
+    services = [{ name: calc.car_name || 'Работы по автомобилю', price: calc.total_price }];
   }
 
   const tbody = document.getElementById('servicesTbody');
@@ -789,29 +775,29 @@ window.addDefect = function(e) {
   if (e.target.closest('.defect-marker')) return; // clicked on marker
   if (e.target.closest('.diagram-controls')) return;
 
-  const rect = wrap.getBoundingClientRect;
+  const rect = wrap.getBoundingClientRect();
   const xPct = ((e.clientX - rect.left) / rect.width * 100).toFixed(1);
   const yPct = ((e.clientY - rect.top) / rect.height * 100).toFixed(1);
-  const id   = Date.now;
+  const id   = Date.now();
 
   defects.push({ id, xPct, yPct, desc: '' });
-  renderDefects;
+  renderDefects();
 };
 
 window.deleteDefect = function(id) {
   defects = defects.filter(d => d.id !== id);
-  renderDefects;
+  renderDefects();
 };
 
-window.clearDefects = function {
+window.clearDefects = function() {
   defects = [];
-  renderDefects;
+  renderDefects();
 };
 
-function renderDefects {
+function renderDefects() {
   const wrap = document.getElementById('diagramWrap');
   // Remove existing markers
-  wrap.querySelectorAll('.defect-marker').forEach(el => el.remove);
+  wrap.querySelectorAll('.defect-marker').forEach(el => el.remove());
 
   // Add markers
   defects.forEach((d, idx) => {
@@ -821,7 +807,7 @@ function renderDefects {
     el.style.left = d.xPct + '%';
     el.style.top  = d.yPct + '%';
     el.title = 'Кликните чтобы удалить';
-    el.onclick = (e) => { e.stopPropagation; deleteDefect(d.id); };
+    el.onclick = (e) => { e.stopPropagation(); deleteDefect(d.id); };
     wrap.appendChild(el);
   });
 
@@ -853,33 +839,21 @@ function renderDefects {
   }
 }
 
-// ── Take to work ────────────────────────────────────
-window.takeToWork = async function() {
-  if (!calcId) return;
-  const btn = document.getElementById('btnTakeWork');
-  if (btn) { btn.disabled = true; btn.textContent = '⏳...'; }
-  const { error } = await sb.from('calculations')
-    .update({ status: 'in_progress' })
-    .eq('id', calcId);
-  if (error) { alert('❌ Ошибка: ' + error.message); if(btn){btn.disabled=false;btn.textContent='🔧 Взять в работу';} return; }
-  window.location.href = 'assign-work.html?calc_id=' + calcId;
-};
-
 // ── Set today's date ────────────────────────────────
-function setToday {
-  const today = new Date.toISOString.slice(0, 10);
+function setToday() {
+  const today = new Date().toISOString().slice(0, 10);
   document.getElementById('intakeDate').value = today;
 }
 
 // ── Update signature line ───────────────────────────
-document.getElementById('clientName').addEventListener('input', function {
-  const v = this.value.trim;
+document.getElementById('clientName').addEventListener('input', function() {
+  const v = this.value.trim();
   document.getElementById('signClientName').textContent = v ? 'ФИО: ' + v : 'ФИО: ______________________';
 });
 
 // ── Main init ───────────────────────────────────────
-(async function init {
-  const ok = await checkAuth;
+(async function init() {
+  const ok = await checkAuth();
   if (!ok) return;
 
   const params = new URLSearchParams(window.location.search);
@@ -898,7 +872,7 @@ document.getElementById('clientName').addEventListener('input', function {
 
   // Load studio + calc in parallel
   const [studioInfo, calcResult] = await Promise.all([
-    loadStudio,
+    loadStudio(),
     sb.from('calculations').select('*').eq('id', calcId).single()
   ]);
 
@@ -912,17 +886,11 @@ document.getElementById('clientName').addEventListener('input', function {
 
   // Fill car info
   document.getElementById('carName').value = calc.car_name || '';
-  document.getElementById('headerSub').textContent = `${calc.car_name || 'Авто'} · ${new Date.toLocaleDateString('ru-RU')}`;
+  document.getElementById('headerSub').textContent = `${calc.car_name || 'Авто'} · ${new Date().toLocaleDateString('ru-RU')}`;
 
-  setToday;
+  setToday();
   renderServices(calc);
-  renderDefects; // empty state
-
-  // Show "Take to work" button for new/scheduled
-  if (['new','scheduled'].includes(calc.status || '')) {
-    const btn = document.getElementById('btnTakeWork');
-    if (btn) btn.style.display = 'inline-flex';
-  }
+  renderDefects(); // empty state
 
   loading.style.display = 'none';
   content.style.display = '';
@@ -930,9 +898,9 @@ document.getElementById('clientName').addEventListener('input', function {
   // Init nav
   if (window.initNav) window.initNav({ activePage: 'acceptance-act.html' });
 
-});
+})();
 
-});
+})();
 </script>
 </body>
 </html>
