@@ -467,9 +467,9 @@ tbody tr:hover { background: #f8fafc; }
 
   <!-- Табы -->
   <div class="tabs">
-    <button class="tab-btn" onclick="switchTab('requests')">📋 Заявки <span id="badgeRequests"></span></button>
+    <button class="tab-btn active" onclick="switchTab('requests')">📋 Заявки <span id="badgeRequests"></span></button>
     <button class="tab-btn" onclick="switchTab('trial')">🧪 На тесте <span id="badgeTrial"></span></button>
-    <button class="tab-btn active" onclick="switchTab('studios')">🏢 Студии</button>
+    <button class="tab-btn" onclick="switchTab('studios')">🏢 Студии</button>
     <button class="tab-btn" onclick="switchTab('referrals')">🔗 Рефералы</button>
     <button class="tab-btn" onclick="switchTab('commissions')">💰 Комиссии</button>
     <button class="tab-btn" onclick="switchTab('calcs')">📊 Расчёты</button>
@@ -514,7 +514,7 @@ tbody tr:hover { background: #f8fafc; }
   </div>
 
   <!-- Таб: Студии -->
-  <div id="tab-studios">
+  <div id="tab-studios" style="display:none">
     <div class="calcs-toolbar">
       <span class="toolbar-title">🏢 Список студий</span>
       <button class="btn btn-primary" onclick="openAddModal()">➕ Добавить студию</button>
@@ -1455,8 +1455,8 @@ async function init() {
   initNav({ hideAction: true });
   const ok = await checkAdminAuth();
   if (!ok) return;
-  await loadAll();
   switchTab('requests');
+  await loadAll();
 }
 
 init();
