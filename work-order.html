@@ -26,14 +26,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
 .btn-secondary:hover { background: #e2e8f0; }
 .btn-dark { background: #0f172a; color: #fff; }
 .btn-dark:hover { background: #1e293b; }
-.btn-blue { background: #2563eb; color: #fff; }
-.btn-blue:hover { background: #1d4ed8; }
-.btn-orange { background: #ea580c; color: #fff; }
-.btn-orange:hover { background: #c2410c; }
 .btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
-.btn-mode { padding: 9px 18px; border-radius: 9px; font-size: 0.85rem; font-weight: 700; cursor: pointer; font-family: var(--font); border: 2px solid transparent; transition: all 0.15s; background: #f1f5f9; color: var(--muted); }
-.btn-mode.active-client { background: #dbeafe; color: #1d4ed8; border-color: #2563eb; }
-.btn-mode.active-workshop { background: #ffedd5; color: #c2410c; border-color: #ea580c; }
 
 .card { background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: 0 1px 4px rgba(0,0,0,0.06); margin-bottom: 14px; overflow: hidden; }
 .card-head { padding: 11px 18px 9px; border-bottom: 1px solid var(--border); font-size: 0.74rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); background: #f8fafc; }
@@ -46,75 +39,76 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
 .info-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin-bottom: 3px; }
 .info-value { font-size: 0.88rem; font-weight: 600; }
 .info-value.empty { color: var(--muted); font-weight: 400; font-style: italic; }
+@media (max-width: 540px) {
+  .info-grid { grid-template-columns: repeat(2, 1fr); }
+  .info-cell:nth-child(3n) { border-right: 1px solid var(--border); }
+  .info-cell:nth-child(2n) { border-right: none; }
+  .info-cell:nth-last-child(-n+3) { border-bottom: 1px solid var(--border); }
+  .info-cell:nth-last-child(-n+2) { border-bottom: none; }
+}
 
 .wo-table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
-.wo-table th { text-align: left; padding: 8px 12px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); border-bottom: 2px solid var(--border); white-space: nowrap; }
-.wo-table td { padding: 10px 12px; border-bottom: 1px solid rgba(15,23,42,0.05); vertical-align: top; }
+.wo-table th { text-align: left; padding: 8px 12px; background: #f8fafc; font-size: 0.71rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); border-bottom: 1.5px solid var(--border); }
+.wo-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
 .wo-table tr:last-child td { border-bottom: none; }
-.wo-table .right { text-align: right; }
-.wo-table .total-row td { font-weight: 800; border-top: 2px solid #0f172a !important; border-bottom: none !important; background: #f8fafc; padding-top: 12px; }
-
-.exec-pill { display: inline-flex; align-items: center; gap: 4px; background: rgba(37,99,235,0.06); color: #1d4ed8; border-radius: 5px; padding: 2px 8px; font-size: 0.78rem; font-weight: 600; margin: 2px; }
-.execs { display: flex; flex-wrap: wrap; gap: 2px; }
-
-/* Workshop sign lines */
-.sign-line-cell { min-width: 120px; border-bottom: 1px solid #94a3b8; height: 28px; }
-.sign-cap-sm { font-size: 0.65rem; color: var(--muted); margin-top: 2px; }
+.total-row td { font-weight: 800; border-top: 2px solid #0f172a !important; border-bottom: none !important; background: #f8fafc; padding-top: 12px; }
+.right { text-align: right; white-space: nowrap; }
+.exec-pill { display: inline-flex; align-items: center; gap: 3px; padding: 2px 8px; border-radius: 20px; background: rgba(37,99,235,0.08); color: #1e40af; font-size: 0.74rem; font-weight: 700; margin: 2px; }
+.exec-pill.admin { background: rgba(124,58,237,0.08); color: #6d28d9; }
+.execs { display: flex; flex-wrap: wrap; }
 
 .totals-row { display: flex; justify-content: flex-end; gap: 40px; align-items: center; flex-wrap: wrap; }
 .total-item { text-align: right; }
 .total-item-label { font-size: 0.71rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin-bottom: 4px; }
 .total-item-value { font-size: 1.5rem; font-weight: 900; letter-spacing: -0.5px; }
+.total-item-value.sm { font-size: 0.95rem; font-weight: 700; }
 
 .sign-row { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
-.sign-block { }
-.sign-label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin-bottom: 8px; }
-.sign-name  { font-size: 0.88rem; font-weight: 600; margin-bottom: 22px; }
-.sign-line  { border-bottom: 1px solid #94a3b8; margin-bottom: 5px; }
-.sign-cap   { font-size: 0.68rem; color: var(--muted); }
-.disclaimer { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); font-size: 0.75rem; color: var(--muted); line-height: 1.55; }
+.sign-block { display: flex; flex-direction: column; gap: 8px; }
+.sign-label { font-size: 0.71rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
+.sign-name  { font-size: 0.83rem; color: var(--muted); min-height: 1.1em; }
+.sign-line  { border-bottom: 1.5px solid #94a3b8; height: 44px; }
+.sign-cap   { font-size: 0.71rem; color: var(--muted); text-align: center; }
+.disclaimer { padding: 11px 14px; background: #fef9c3; border: 1px solid #fde68a; border-radius: 8px; font-size: 0.78rem; color: #78350f; line-height: 1.5; margin-top: 14px; }
 
-.mode-bar { background: #f1f5f9; border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.mode-bar span { font-size: 0.82rem; color: var(--muted); font-weight: 600; }
+#loadingMsg { text-align: center; padding: 60px 20px; color: var(--muted); }
+#errMsg     { display: none; text-align: center; padding: 40px; color: #dc2626; }
 
-.no-assign-warn { background: #fef9c3; border: 1px solid #fde047; border-radius: 9px; padding: 12px 16px; font-size: 0.85rem; color: #713f12; display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
-
-/* Print */
+/* ══ PRINT ══════════════════════════════════════════ */
 @media print {
   * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-  body { background: #fff !important; }
+  body { background: #fff !important; font-size: 11px !important; }
   #navTopBar, .no-print { display: none !important; }
   .container { padding: 0 !important; max-width: 100% !important; }
-  .card { box-shadow: none !important; border: 1px solid #e2e8f0 !important; break-inside: avoid; }
-  #printHeader { display: flex !important; padding-bottom: 10px !important; margin-bottom: 12px !important; }
-  .wo-table td, .wo-table th { font-size: 0.82rem !important; }
+  .card { box-shadow: none !important; border: 1px solid #e2e8f0 !important; margin-bottom: 8px !important; break-inside: avoid; }
+  .card-head { padding: 7px 12px 6px !important; font-size: 0.67rem !important; background: #f1f5f9 !important; }
+  .card-body { padding: 10px 12px !important; }
+  .info-cell { padding: 7px 10px !important; }
+  .info-label { font-size: 0.62rem !important; }
+  .info-value { font-size: 0.82rem !important; }
+  .wo-table th { padding: 6px 10px !important; font-size: 0.64rem !important; background: #f1f5f9 !important; }
+  .wo-table td { padding: 7px 10px !important; font-size: 0.82rem !important; }
+  .exec-pill { font-size: 0.68rem !important; padding: 1px 6px !important; }
   .total-item-value { font-size: 1.2rem !important; }
-  /* Workshop: highlight sign lines */
-  .sign-line-cell { border-bottom: 1px solid #000 !important; }
+  .totals-row { gap: 24px !important; }
+  .sign-line { height: 32px !important; }
+  .disclaimer { font-size: 0.71rem !important; padding: 7px 10px !important; margin-top: 8px !important; }
+  #printHeader { display: flex !important; padding-bottom: 10px !important; margin-bottom: 12px !important; }
+  @page { margin: 15mm; size: A4; }
 }
+
+/* ── Print header ─────────────────────────────────── */
 #printHeader {
-  display: none;
-  justify-content: space-between;
-  align-items: flex-start;
-  padding-bottom: 14px;
-  margin-bottom: 18px;
-  border-bottom: 2px solid #0f172a;
+  display: none; align-items: center; justify-content: space-between;
+  padding-bottom: 14px; border-bottom: 2.5px solid #0f172a; margin-bottom: 18px; gap: 16px;
 }
 #ph-logo { max-height: 52px; max-width: 130px; object-fit: contain; }
 .ph-center { text-align: center; }
-.ph-doc-title { font-size: 1.1rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.04em; }
-.ph-doc-num { font-size: 0.85rem; color: var(--muted); margin-top: 2px; }
-.ph-mode-badge { font-size: 0.7rem; font-weight: 700; padding: 2px 7px; border-radius: 4px; margin-top: 4px; display: inline-block; }
-.ph-mode-client   { background: #dbeafe; color: #1d4ed8; }
-.ph-mode-workshop { background: #ffedd5; color: #c2410c; }
+.ph-doc-title { font-size: 1.15rem; font-weight: 900; letter-spacing: 0.5px; color: #0f172a; text-transform: uppercase; }
+.ph-doc-num   { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
 .ph-right { text-align: right; }
 .ph-studio-name { font-size: 0.95rem; font-weight: 800; color: #0f172a; }
 .ph-studio-info { font-size: 0.74rem; color: var(--muted); line-height: 1.6; margin-top: 2px; }
-
-@media (max-width: 540px) {
-  .info-grid { grid-template-columns: repeat(2, 1fr); }
-  .sign-row { grid-template-columns: 1fr; }
-}
 </style>
 </head>
 <body>
@@ -130,13 +124,12 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
 
 <div class="container">
 
-  <!-- Print header -->
+  <!-- Print header (hidden on screen) -->
   <div id="printHeader">
     <img id="ph-logo" src="" alt="" style="display:none">
     <div class="ph-center">
-      <div class="ph-doc-title" id="ph-doc-title">Заказ-наряд</div>
+      <div class="ph-doc-title">Заказ-наряд</div>
       <div class="ph-doc-num" id="ph-num">№ —</div>
-      <span class="ph-mode-badge" id="ph-mode-badge"></span>
     </div>
     <div class="ph-right">
       <div class="ph-studio-name" id="ph-name"></div>
@@ -145,32 +138,19 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
   </div>
 
   <div id="loadingMsg">⏳ Загружаем данные…</div>
-  <div id="errMsg" style="display:none">❌ Ошибка загрузки. <a href="board.html">← Вернуться</a></div>
+  <div id="errMsg">❌ Ошибка загрузки. <a href="board.html">← Вернуться</a></div>
 
   <div id="mainContent" style="display:none">
 
-    <!-- Mode switcher + print button -->
     <div class="page-header no-print">
       <div>
         <div class="page-title">🖨️ Заказ-наряд</div>
         <div class="page-sub" id="headerSub"></div>
       </div>
       <div class="btn-group">
-        <button class="btn btn-secondary" onclick="history.back">← Назад</button>
+        <button class="btn btn-secondary" onclick="history.back()">← Назад</button>
+        <button class="btn btn-dark" onclick="window.print()">🖨️ Распечатать / PDF</button>
       </div>
-    </div>
-
-    <!-- Mode bar -->
-    <div class="mode-bar no-print">
-      <span>Вариант:</span>
-      <button class="btn-mode active-client" id="modeClientBtn" onclick="setMode('client')">👤 Для клиента</button>
-      <button class="btn-mode" id="modeWorkshopBtn" onclick="setMode('workshop')" id="btnWorkshop">🏭 Для цеха</button>
-      <div style="flex:1"></div>
-      <button class="btn btn-dark" onclick="window.print" id="btnPrint">🖨️ Распечатать / PDF</button>
-    </div>
-
-    <div id="noAssignWarn" class="no-assign-warn" style="display:none">
-      ⚠️ Цеховой заказ-наряд недоступен — работы ещё не распределены по исполнителям. Сначала нажмите «🔧 Взять в работу» на доске.
     </div>
 
     <!-- ① Авто и клиент -->
@@ -181,46 +161,37 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
       </div>
     </div>
 
-    <!-- ② Перечень работ (client mode) -->
-    <div class="card" id="sectionClient">
-      <div class="card-head">🔧 Перечень работ</div>
-      <div class="card-body">
-        <table class="wo-table">
-          <thead>
-            <tr>
-              <th style="width:32px">№</th>
-              <th>Услуга</th>
-              <th class="right" style="width:110px">Стоимость</th>
-            </tr>
-          </thead>
-          <tbody id="clientServicesTbody"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- ② Перечень работ (workshop mode) -->
-    <div class="card" id="sectionWorkshop" style="display:none">
-      <div class="card-head">🔧 Перечень работ и ответственные</div>
+    <!-- ② Перечень работ -->
+    <div class="card">
+      <div class="card-head">🔧 Перечень работ и исполнители</div>
       <div class="card-body">
         <table class="wo-table">
           <thead>
             <tr>
               <th style="width:32px">№</th>
               <th>Наименование работы</th>
-              <th style="width:160px">Исполнитель</th>
-              <th style="width:120px">Подпись о выполнении</th>
+              <th>Исполнитель(и)</th>
+              <th class="right" style="width:110px">Стоимость</th>
             </tr>
           </thead>
-          <tbody id="workshopServicesTbody"></tbody>
+          <tbody id="servicesTbody"></tbody>
         </table>
       </div>
     </div>
 
-    <!-- ③ Итог (client mode only) -->
-    <div class="card" id="sectionTotal">
-      <div class="card-head">💰 Итого к оплате</div>
+    <!-- ③ Итог -->
+    <div class="card">
+      <div class="card-head">💰 Итог</div>
       <div class="card-body">
         <div class="totals-row">
+          <div class="total-item">
+            <div class="total-item-label">Форма оплаты</div>
+            <div class="total-item-value sm" id="paymentMethod">—</div>
+          </div>
+          <div class="total-item">
+            <div class="total-item-label">Статус</div>
+            <div class="total-item-value sm" id="paymentStatus">—</div>
+          </div>
           <div class="total-item">
             <div class="total-item-label">Итого к оплате</div>
             <div class="total-item-value" id="totalAmount">—</div>
@@ -229,14 +200,14 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
       </div>
     </div>
 
-    <!-- ④ Подписи (client mode) -->
-    <div class="card" id="sectionSignClient">
+    <!-- ④ Подписи -->
+    <div class="card">
       <div class="card-head">✍️ Подписи сторон</div>
       <div class="card-body">
         <div class="sign-row">
           <div class="sign-block">
             <div class="sign-label">Клиент</div>
-            <div class="sign-name">ФИО: ______________________________</div>
+            <div class="sign-name" id="signClient">ФИО: ______________________________</div>
             <div class="sign-line"></div>
             <div class="sign-cap">Подпись / дата</div>
           </div>
@@ -250,16 +221,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
         <div class="disclaimer">
           Подписывая настоящий заказ-наряд, клиент подтверждает согласие с перечнем и стоимостью работ.
           После выполнения работ клиент обязуется принять автомобиль и произвести оплату в полном объёме.
-        </div>
-      </div>
-    </div>
-
-    <!-- ④ Подписи (workshop mode) -->
-    <div class="card" id="sectionSignWorkshop" style="display:none">
-      <div class="card-head">✍️ Передача в работу</div>
-      <div class="card-body">
-        <div class="disclaimer">
-          Автомобиль принят в работу согласно перечню выше. Каждый исполнитель подтверждает выполнение своего участка работ подписью напротив соответствующей строки.
+          Студия гарантирует качество выполненных работ согласно действующим стандартам.
         </div>
       </div>
     </div>
@@ -269,73 +231,37 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
 
 <script src="footer.js"></script>
 <script>
-(function{
+(function(){
 'use strict';
 
 const SUPABASE_URL      = 'https://hdghijgrrnzmntistdvw.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkZ2hpamdycm56bW50aXN0ZHZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMzMyNzksImV4cCI6MjA3NTYwOTI3OX0.D9EDTmVrFRVp0B8_5tCJM29gbFdtadsom0Ihsf4uQ8Q';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let currentUser = null;
 
-let currentUser  = null;
-let _mode        = 'client'; // 'client' | 'workshop'
-let _hasAssign   = false;
-
-function fmt(n)     { return new Intl.NumberFormat('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:2}).format(Math.round(n||0)); }
+function fmt(n) { return new Intl.NumberFormat('ru-RU').format(Math.round(n||0)); }
 function fmtDate(s) { if(!s) return '—'; return new Date(s).toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit',year:'numeric'}); }
-function esc(s)     { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-function n(v)       { return parseFloat(v||0)||0; }
+function esc(s)  { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-// ── Mode switcher ──────────────────────────────────────
-window.setMode = function(mode) {
-  if (mode === 'workshop' && !_hasAssign) {
-    document.getElementById('noAssignWarn').style.display = 'flex';
-    return;
-  }
-  document.getElementById('noAssignWarn').style.display = 'none';
-  _mode = mode;
-
-  const isClient   = mode === 'client';
-  const isWorkshop = mode === 'workshop';
-
-  document.getElementById('sectionClient').style.display   = isClient   ? '' : 'none';
-  document.getElementById('sectionWorkshop').style.display = isWorkshop ? '' : 'none';
-  document.getElementById('sectionTotal').style.display    = isClient   ? '' : 'none';
-  document.getElementById('sectionSignClient').style.display   = isClient   ? '' : 'none';
-  document.getElementById('sectionSignWorkshop').style.display = isWorkshop ? '' : 'none';
-
-  document.getElementById('modeClientBtn').className   = 'btn-mode ' + (isClient   ? 'active-client'   : '');
-  document.getElementById('modeWorkshopBtn').className = 'btn-mode ' + (isWorkshop ? 'active-workshop' : '');
-
-  // Print header mode badge
-  document.getElementById('ph-doc-title').textContent = isClient ? 'Заказ-наряд' : 'Наряд на работы (цех)';
-  const badge = document.getElementById('ph-mode-badge');
-  badge.textContent = isClient ? 'Для клиента' : 'Для цеха';
-  badge.className   = 'ph-mode-badge ' + (isClient ? 'ph-mode-client' : 'ph-mode-workshop');
-};
-
-// ── Auth + studio ──────────────────────────────────────
-async function checkAuth {
-  const { data:{session} } = await sb.auth.getSession;
+async function checkAuth() {
+  const { data:{session} } = await sb.auth.getSession();
   if (!session) { window.location.href='welcome.html'; return false; }
   currentUser = session.user; return true;
 }
 
-async function loadStudio {
+async function loadStudio() {
   const { data: m } = await sb.from('studio_members').select('studio_id').eq('user_id',currentUser.id).eq('is_active',true).single();
   if (!m) return;
   const { data: s } = await sb.from('studios').select('name,settings').eq('id',m.studio_id).single();
   if (!s) return;
   const cfg = s.settings||{};
-  const name = s.name||'';
-  document.getElementById('ph-name').textContent = name;
+  document.getElementById('ph-name').textContent = s.name||'';
   const lines = [cfg.phone||cfg.kp_phone, [cfg.city,cfg.address].filter(Boolean).join(', '), cfg.website||cfg.kp_website].filter(Boolean);
   document.getElementById('ph-info').innerHTML = lines.map(esc).join('<br>');
   if (cfg.kp_logo) { const img=document.getElementById('ph-logo'); img.src=cfg.kp_logo; img.style.display='block'; }
-  document.getElementById('signStudio').textContent        = name || '______________________________';
-  document.getElementById('signWorkshopStudio').textContent = name || '______________________________';
+  document.getElementById('signStudio').textContent = s.name||'______________________________';
 }
 
-// ── Car info ───────────────────────────────────────────
 function renderCarInfo(calc) {
   const cd=calc.calculation_data||{}, car=cd.car||{};
   const cells=[
@@ -349,129 +275,115 @@ function renderCarInfo(calc) {
   document.getElementById('carInfoGrid').innerHTML = cells.map(c=>`
     <div class="info-cell">
       <div class="info-label">${c.label}</div>
-      <div class="info-value${c.value==='—'?' empty':''}\">${esc(c.value)}</div>
+      <div class="info-value${c.value==='—'?' empty':''}">${esc(c.value)}</div>
     </div>`).join('');
 }
 
-// ── Build client services list from calculation_data ───
-// calculation_data stores raw inputs (wrapMat, wrapMot, etc.)
-// We need to compute totals from them
-function buildClientServices(calc) {
-  const cd  = calc.calculation_data || {};
-  const pkg = cd.package || {};
-  const imp = cd.impact  || {};
-  const det = cd.services_detail || {};
-  const mu  = cd.markups || {};
-  const services = [];
+function renderServices(calc, assignments) {
+  const tbody = document.getElementById('servicesTbody');
+  const cd    = calc.calculation_data || {};
 
-  // Helper: apply markup to base
-  function withMarkup(base, markupPct) {
-    return base * (1 + (n(markupPct)||0)/100);
-  }
+  // Ключ в formData: paymentMode (cash / card / ooo)
+  const PAY = {cash:'💵 Наличные', card:'💳 Карта / ИП', ooo:'🏢 ООО', transfer:'🏦 Перевод'};
+  document.getElementById('paymentMethod').textContent = PAY[cd.paymentMode||''] || '—';
 
-  // 1. Полная защита вкруг (package)
-  const pkgBase = n(pkg.wrapMat)+n(pkg.wrapMot)+n(pkg.prepMat)+n(pkg.prepMot)+n(pkg.armMat)+n(pkg.armMot);
-  // Add extra costs
-  let pkgExtra = 0;
-  if (pkg.costs && Array.isArray(pkg.costs)) {
-    pkg.costs.forEach(c => { pkgExtra += n(c.value); });
-  }
-  const pkgTotal = withMarkup(pkgBase + pkgExtra, pkg.markup);
-  if (pkgTotal > 0) services.push({ name:'Полная защита вкруг', price: pkgTotal });
+  const total = calc.final_price || calc.total_price || 0;
+  document.getElementById('totalAmount').textContent = fmt(total)+'';
+  const isPaid = calc.status==='delivered';
+  const payEl = document.getElementById('paymentStatus');
+  payEl.textContent = isPaid?'✅ Оплачено':'⏳ Ожидает оплаты';
+  payEl.style.color = isPaid?'var(--success)':'var(--muted)';
 
-  // 2. Защита ударной части (impact)
-  const impBase = n(imp.wrapMat)+n(imp.wrapMot)+n(imp.prepMat)+n(imp.prepMot)+n(imp.armMat)+n(imp.armMot);
-  let impExtra = 0;
-  if (imp.costs && Array.isArray(imp.costs)) {
-    imp.costs.forEach(c => { impExtra += n(c.value); });
-  }
-  const impTotal = withMarkup(impBase + impExtra, imp.markup);
-  if (impTotal > 0) services.push({ name:'Защита ударной части', price: impTotal });
-
-  // 3. Отдельные блоки из services_detail
-  const detBlocks = [
-    { key:'arm',  label:'Арматурные работы',   muKey:'arm'  },
-    { key:'wrap', label:'Оклейка плёнкой',      muKey:'wrap' },
-    { key:'det',  label:'Детейлинг',            muKey:'det'  },
-    { key:'gl',   label:'Антигравийная защита', muKey:'gl'   },
-    { key:'ms',   label:'Прочие работы',        muKey:'misc' },
-  ];
-  detBlocks.forEach(b => {
-    const items = det[b.key] || [];
-    const base  = items.reduce((s,d) => s + n(d.mat) + n(d.mot), 0);
-    const total = withMarkup(base, mu[b.muKey]);
-    if (total > 0) services.push({ name: b.label, price: total });
-  });
-
-  // Fallback: if nothing parsed but we have total_price
-  if (services.length === 0 && (calc.final_price || calc.total_price)) {
-    services.push({ name: calc.car_name || 'Комплекс работ', price: calc.final_price || calc.total_price });
-  }
-
-  return services;
-}
-
-// ── Render client work order ───────────────────────────
-function renderClientMode(calc) {
-  const services = buildClientServices(calc);
-  const total    = calc.final_price || calc.total_price || services.reduce((s,x)=>s+x.price,0);
-
-  document.getElementById('totalAmount').textContent = fmt(total) + '';
-
-  let html = services.map((s,i) => `<tr>
-    <td style="color:var(--muted);font-size:0.76rem">${i+1}</td>
-    <td style="font-weight:600">${esc(s.name)}</td>
-    <td class="right"><strong>${fmt(s.price)}</strong></td>
-  </tr>`).join('');
-
-  html += `<tr class="total-row">
-    <td></td>
-    <td>ИТОГО:</td>
-    <td class="right">${fmt(total)}</td>
-  </tr>`;
-
-  document.getElementById('clientServicesTbody').innerHTML = html;
-}
-
-// ── Render workshop work order ────────────────────────
-function renderWorkshopMode(assignments) {
-  if (!assignments.length) {
-    document.getElementById('workshopServicesTbody').innerHTML =
-      '<tr><td colspan="4" style="color:var(--muted);font-style:italic;padding:14px 12px">Исполнители ещё не назначены</td></tr>';
+  if (assignments.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="4" style="color:var(--muted);font-style:italic;padding:14px 12px">Исполнители ещё не назначены</td></tr>`;
     return;
   }
 
-  // Filter out admin sales, group by service_name + executor
-  const rows = assignments
-    .filter(a => !a.is_admin_sale)
-    .sort((a,b) => (a.service_name||'').localeCompare(b.service_name||''));
+  // ── Соответствие service_name → ключ цены в calculation_data ──
+  // Цены хранятся в formData под теми же ключами что и в блоке block-summary
+  const PRICE_KEYS = {
+    'Оклейка (Полная защита)':           'pkgSumTotal',
+    'Подготовка (Полная защита)':        'pkgSumTotal',
+    'Арматурные работы (Полная защита)': 'pkgSumTotal',
+    'Оклейка (Ударная часть)':           'impactSumTotal',
+    'Подготовка (Ударная часть)':        'impactSumTotal',
+    'Арматурные работы (Ударная часть)': 'impactSumTotal',
+    'Арматурные работы':  'armSumTotal',
+    'Оклейка':            'wrapSumTotal',
+    'Детейлинг':          'detSumTotal',
+    'Полировка/Химчистка':'glSumTotal',
+  };
 
-  // Deduplicate: same service + same executor → one row
-  const seen = new Set;
-  const unique = [];
-  rows.forEach(a => {
-    const key = (a.service_name||'') + '|' + (a.executor_name||'');
-    if (!seen.has(key)) { seen.add(key); unique.push(a); }
+  // Группы нескольких service_name → одна строка документа
+  const GROUPS = {
+    pkgSumTotal:    { label:'Полная защита вкруг',  keys:['Оклейка (Полная защита)','Подготовка (Полная защита)','Арматурные работы (Полная защита)'] },
+    impactSumTotal: { label:'Защита ударной части', keys:['Оклейка (Ударная часть)','Подготовка (Ударная часть)','Арматурные работы (Ударная часть)'] },
+  };
+
+  // Собираем map: service_name → {names, isAdmin, adminPct}
+  const svcMap = new Map();
+  assignments.forEach(a => {
+    const key = a.service_name || 'Работы';
+    if (!svcMap.has(key)) svcMap.set(key, {names:new Set(), isAdmin:!!a.is_admin_sale, adminPct:a.admin_percent||0});
+    const e = svcMap.get(key);
+    if (a.executor_name) e.names.add(a.executor_name);
   });
 
-  let html = unique.map((a, i) => `<tr>
+  const rows = [];
+  const used = new Set();
+
+  // Блочные группы
+  Object.entries(GROUPS).forEach(([priceField, group]) => {
+    const present = group.keys.filter(k => svcMap.has(k));
+    if (!present.length) return;
+    const allNames = new Set();
+    present.forEach(k => { svcMap.get(k).names.forEach(n => allNames.add(n)); used.add(k); });
+    rows.push({ label: group.label, names: allNames, price: parseFloat(cd[priceField]||0), isAdmin: false });
+  });
+
+  // Одиночные сервисы
+  svcMap.forEach((entry, key) => {
+    if (used.has(key) || entry.isAdmin) return;
+    const pf = PRICE_KEYS[key];
+    rows.push({ label: key, names: entry.names, price: pf ? parseFloat(cd[pf]||0) : 0, isAdmin: false });
+  });
+
+  const execHtml = names => [...names].length
+    ? [...names].map(n => `<span class="exec-pill">👤 ${esc(n)}</span>`).join('')
+    : `<span style="color:var(--muted);font-style:italic;font-size:0.78rem">Не назначен</span>`;
+
+  let html = rows.map((r,i) => `<tr>
     <td style="color:var(--muted);font-size:0.76rem">${i+1}</td>
-    <td style="font-weight:600">${esc(a.service_name||'Работа')}</td>
-    <td>${a.executor_name ? `<span class="exec-pill">👤 ${esc(a.executor_name)}</span>` : '<span style="color:var(--muted);font-style:italic;font-size:0.78rem">Не назначен</span>'}</td>
-    <td><div class="sign-line-cell"></div><div class="sign-cap-sm">Подпись / дата</div></td>
+    <td style="font-weight:600">${esc(r.label)}</td>
+    <td><div class="execs">${execHtml(r.names)}</div></td>
+    <td class="right">${r.price>0 ? '<strong>'+fmt(r.price)+'</strong>' : '<span style="color:var(--muted)">—</span>'}</td>
   </tr>`).join('');
 
-  document.getElementById('workshopServicesTbody').innerHTML = html;
+  // Admin продажник
+  svcMap.forEach((entry, key) => {
+    if (!entry.isAdmin) return;
+    const names = [...entry.names].map(n=>`<span class="exec-pill admin">👔 ${esc(n)}</span>`).join('');
+    html += `<tr>
+      <td style="color:var(--muted);font-size:0.76rem">${rows.length+1}</td>
+      <td style="font-weight:600;color:#7c3aed">💼 Продажа (${entry.adminPct}% от чека)</td>
+      <td><div class="execs">${names||'<span style="color:var(--muted)">—</span>'}</div></td>
+      <td class="right" style="color:#7c3aed">—</td>
+    </tr>`;
+  });
+
+  html += `<tr class="total-row">
+    <td></td><td colspan="2">ИТОГО</td>
+    <td class="right">${fmt(total)}</td>
+  </tr>`;
+
+  tbody.innerHTML = html;
 }
 
-// ── Main init ──────────────────────────────────────────
-(async function init{
-  if (!await checkAuth) return;
-  const params  = new URLSearchParams(window.location.search);
-  const calcId  = params.get('calc_id');
-  const loading = document.getElementById('loadingMsg');
-  const errMsg  = document.getElementById('errMsg');
-  const content = document.getElementById('mainContent');
+(async function init(){
+  if (!await checkAuth()) return;
+  const params = new URLSearchParams(window.location.search);
+  const calcId = params.get('calc_id');
+  const loading=document.getElementById('loadingMsg'), errMsg=document.getElementById('errMsg'), content=document.getElementById('mainContent');
 
   if (!calcId) {
     loading.style.display='none'; errMsg.style.display='';
@@ -479,47 +391,28 @@ function renderWorkshopMode(assignments) {
   }
 
   const [,calcRes,assignRes] = await Promise.all([
-    loadStudio,
+    loadStudio(),
     sb.from('calculations').select('*').eq('id',calcId).single(),
     sb.from('work_assignments').select('executor_name,service_name,salary,is_admin_sale,admin_percent').eq('calculation_id',calcId)
   ]);
 
-  if (calcRes.error || !calcRes.data) {
-    loading.style.display='none'; errMsg.style.display=''; return;
-  }
+  if (calcRes.error || !calcRes.data) { loading.style.display='none'; errMsg.style.display=''; return; }
 
-  const calc   = calcRes.data;
-  const assigns = (assignRes.data||[]).filter(a => !a.is_admin_sale);
-  _hasAssign   = assigns.length > 0;
-  const shortId = calcId.slice(-8).toUpperCase;
-
-  document.getElementById('ph-num').textContent    = '№ ' + shortId;
-  document.getElementById('headerSub').textContent = (calc.car_name||'Автомобиль') + ' · ' + shortId;
-  document.title = 'Заказ-наряд ' + shortId;
-
-  // Set initial mode badge
-  document.getElementById('ph-doc-title').textContent = 'Заказ-наряд';
-  const badge = document.getElementById('ph-mode-badge');
-  badge.textContent = 'Для клиента';
-  badge.className   = 'ph-mode-badge ph-mode-client';
-
-  // Disable workshop button visually if no assignments
-  if (!_hasAssign) {
-    const btn = document.getElementById('modeWorkshopBtn');
-    btn.style.opacity = '0.45';
-    btn.title = 'Сначала распределите работы по исполнителям';
-  }
+  const calc = calcRes.data;
+  const shortId = calcId.slice(-8).toUpperCase();
+  document.getElementById('ph-num').textContent    = '№ '+shortId;
+  document.getElementById('headerSub').textContent = (calc.car_name||'Автомобиль')+' · '+shortId;
+  document.title = 'Заказ-наряд '+shortId;
 
   renderCarInfo(calc);
-  renderClientMode(calc);
-  renderWorkshopMode(assigns);
+  renderServices(calc, assignRes.data||[]);
 
   loading.style.display='none';
   content.style.display='';
   if (window.initNav) window.initNav({activePage:'work-order.html'});
-});
+})();
 
-});
+})();
 </script>
 </body>
 </html>
