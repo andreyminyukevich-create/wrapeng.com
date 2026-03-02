@@ -26,6 +26,8 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
 .btn-secondary:hover { background: #e2e8f0; }
 .btn-dark { background: #0f172a; color: #fff; }
 .btn-dark:hover { background: #1e293b; }
+.btn-blue { background: #2563eb; color: #fff; }
+.btn-blue:hover { background: #1d4ed8; }
 .btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
 
 .card { background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: 0 1px 4px rgba(0,0,0,0.06); margin-bottom: 14px; overflow: hidden; }
@@ -71,6 +73,11 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
 .sign-cap   { font-size: 0.71rem; color: var(--muted); text-align: center; }
 .disclaimer { padding: 11px 14px; background: #fef9c3; border: 1px solid #fde68a; border-radius: 8px; font-size: 0.78rem; color: #78350f; line-height: 1.5; margin-top: 14px; }
 
+/* Метка режима печати */
+.print-mode-label { display: none; text-align: center; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; padding: 5px 14px; border-radius: 20px; margin-bottom: 12px; }
+.print-mode-label.client-label  { background: rgba(37,99,235,0.1); color: #1d4ed8; }
+.print-mode-label.workshop-label { background: rgba(5,150,105,0.1); color: #047857; }
+
 #loadingMsg { text-align: center; padding: 60px 20px; color: var(--muted); }
 #errMsg     { display: none; text-align: center; padding: 40px; color: #dc2626; }
 
@@ -94,7 +101,20 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
   .sign-line { height: 32px !important; }
   .disclaimer { font-size: 0.71rem !important; padding: 7px 10px !important; margin-top: 8px !important; }
   #printHeader { display: flex !important; padding-bottom: 10px !important; margin-bottom: 12px !important; }
+  .print-mode-label { display: inline-block !important; }
   @page { margin: 15mm; size: A4; }
+
+  /* Режим "для клиента": скрываем исполнителей и колонку исполнителей */
+  body.print-client .workshop-only { display: none !important; }
+  body.print-client .col-exec { display: none !important; }
+  body.print-client #card-payment { display: block !important; }
+
+  /* Режим "для цеха": скрываем цены, форму оплаты, итог, подписи клиента */
+  body.print-workshop .client-only { display: none !important; }
+  body.print-workshop .col-price { display: none !important; }
+  body.print-workshop #card-payment { display: none !important; }
+  body.print-workshop #card-totals  { display: none !important; }
+  body.print-workshop #card-signs   { display: none !important; }
 }
 
 /* ── Print header ─────────────────────────────────── */
@@ -128,7 +148,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
   <div id="printHeader">
     <img id="ph-logo" src="" alt="" style="display:none">
     <div class="ph-center">
-      <div class="ph-doc-title">Заказ-наряд</div>
+      <div class="ph-doc-title" id="ph-doc-type">Заказ-наряд</div>
       <div class="ph-doc-num" id="ph-num">№ —</div>
     </div>
     <div class="ph-right">
@@ -149,7 +169,8 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
       </div>
       <div class="btn-group">
         <button class="btn btn-secondary" onclick="history.back()">← Назад</button>
-        <button class="btn btn-dark" onclick="window.print()">🖨️ Распечатать / PDF</button>
+        <button class="btn btn-blue" onclick="printClient()">👤 Для клиента</button>
+        <button class="btn btn-dark" onclick="printWorkshop()">🔧 Для цеха</button>
       </div>
     </div>
 
@@ -161,17 +182,17 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
       </div>
     </div>
 
-    <!-- ② Перечень работ -->
+    <!-- ② Перечень работ (для клиента — без колонки исполнителей) -->
     <div class="card">
-      <div class="card-head">🔧 Перечень работ и исполнители</div>
+      <div class="card-head">🔧 Перечень работ</div>
       <div class="card-body">
         <table class="wo-table">
           <thead>
             <tr>
               <th style="width:32px">№</th>
               <th>Наименование работы</th>
-              <th>Исполнитель(и)</th>
-              <th class="right" style="width:110px">Стоимость</th>
+              <th class="workshop-only col-exec">Исполнитель(и)</th>
+              <th class="right col-price client-only" style="width:110px">Стоимость</th>
             </tr>
           </thead>
           <tbody id="servicesTbody"></tbody>
@@ -179,33 +200,33 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
       </div>
     </div>
 
-    <!-- ③ Итог -->
-    <div class="card">
+    <!-- ③ Итог и оплата (только для клиента) -->
+    <div class="card" id="card-payment">
       <div class="card-head">💰 Итог</div>
       <div class="card-body">
         <div class="totals-row">
-          <div class="total-item">
+          <div class="total-item client-only">
             <div class="total-item-label">Форма оплаты</div>
             <div class="total-item-value sm" id="paymentMethod">—</div>
           </div>
-          <div class="total-item">
+          <div class="total-item client-only">
             <div class="total-item-label">Статус</div>
             <div class="total-item-value sm" id="paymentStatus">—</div>
           </div>
           <div class="total-item">
             <div class="total-item-label">Итого к оплате</div>
-            <div class="total-item-value" id="totalAmount">—</div>
+            <div class="total-item-value" id="totalAmount">— ₽</div>
           </div>
         </div>
       </div>
     </div>
 
     <!-- ④ Подписи -->
-    <div class="card">
+    <div class="card" id="card-signs">
       <div class="card-head">✍️ Подписи сторон</div>
       <div class="card-body">
         <div class="sign-row">
-          <div class="sign-block">
+          <div class="sign-block client-only">
             <div class="sign-label">Клиент</div>
             <div class="sign-name" id="signClient">ФИО: ______________________________</div>
             <div class="sign-line"></div>
@@ -218,7 +239,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
             <div class="sign-cap">Подпись / дата</div>
           </div>
         </div>
-        <div class="disclaimer">
+        <div class="disclaimer client-only">
           Подписывая настоящий заказ-наряд, клиент подтверждает согласие с перечнем и стоимостью работ.
           После выполнения работ клиент обязуется принять автомобиль и произвести оплату в полном объёме.
           Студия гарантирует качество выполненных работ согласно действующим стандартам.
@@ -231,185 +252,282 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
 
 <script src="footer.js"></script>
 <script>
-(function(){
+(function() {
 'use strict';
 
-const SUPABASE_URL      = 'https://hdghijgrrnzmntistdvw.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkZ2hpamdycm56bW50aXN0ZHZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMzMyNzksImV4cCI6MjA3NTYwOTI3OX0.D9EDTmVrFRVp0B8_5tCJM29gbFdtadsom0Ihsf4uQ8Q';
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-let currentUser = null;
+var SUPABASE_URL      = 'https://hdghijgrrnzmntistdvw.supabase.co';
+var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkZ2hpamdycm56bW50aXN0ZHZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMzMyNzksImV4cCI6MjA3NTYwOTI3OX0.D9EDTmVrFRVp0B8_5tCJM29gbFdtadsom0Ihsf4uQ8Q';
+var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+var currentUser = null;
 
-function fmt(n) { return new Intl.NumberFormat('ru-RU').format(Math.round(n||0)); }
-function fmtDate(s) { if(!s) return '—'; return new Date(s).toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit',year:'numeric'}); }
-function esc(s)  { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function fmt(n)    { return new Intl.NumberFormat('ru-RU').format(Math.round(n || 0)); }
+function fmtDate(s){ if (!s) return '—'; return new Date(s).toLocaleDateString('ru-RU', {day:'2-digit', month:'2-digit', year:'numeric'}); }
+function esc(s)    { return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function r(n)      { return parseFloat(n) || 0; }
 
+// ── Печать ─────────────────────────────────────────
+window.printClient = function() {
+  document.getElementById('ph-doc-type').textContent = 'Заказ-наряд · Для клиента';
+  document.body.className = 'print-client';
+  window.print();
+  document.body.className = '';
+};
+window.printWorkshop = function() {
+  document.getElementById('ph-doc-type').textContent = 'Заказ-наряд · Для цеха';
+  document.body.className = 'print-workshop';
+  window.print();
+  document.body.className = '';
+};
+
+// ── Auth ───────────────────────────────────────────
 async function checkAuth() {
-  const { data:{session} } = await sb.auth.getSession();
-  if (!session) { window.location.href='welcome.html'; return false; }
-  currentUser = session.user; return true;
+  var res = await sb.auth.getSession();
+  var session = res.data.session;
+  if (!session) { window.location.href = 'welcome.html'; return false; }
+  currentUser = session.user;
+  return true;
 }
 
+// ── Студия ─────────────────────────────────────────
 async function loadStudio() {
-  const { data: m } = await sb.from('studio_members').select('studio_id').eq('user_id',currentUser.id).eq('is_active',true).single();
-  if (!m) return;
-  const { data: s } = await sb.from('studios').select('name,settings').eq('id',m.studio_id).single();
-  if (!s) return;
-  const cfg = s.settings||{};
-  document.getElementById('ph-name').textContent = s.name||'';
-  const lines = [cfg.phone||cfg.kp_phone, [cfg.city,cfg.address].filter(Boolean).join(', '), cfg.website||cfg.kp_website].filter(Boolean);
+  var m = await sb.from('studio_members').select('studio_id').eq('user_id', currentUser.id).eq('is_active', true).single();
+  if (!m.data) return;
+  var s = await sb.from('studios').select('name,settings').eq('id', m.data.studio_id).single();
+  if (!s.data) return;
+  var cfg = s.data.settings || {};
+  document.getElementById('ph-name').textContent = s.data.name || '';
+  var lines = [cfg.phone || cfg.kp_phone, [cfg.city, cfg.address].filter(Boolean).join(', '), cfg.website || cfg.kp_website].filter(Boolean);
   document.getElementById('ph-info').innerHTML = lines.map(esc).join('<br>');
-  if (cfg.kp_logo) { const img=document.getElementById('ph-logo'); img.src=cfg.kp_logo; img.style.display='block'; }
-  document.getElementById('signStudio').textContent = s.name||'______________________________';
+  if (cfg.kp_logo) { var img = document.getElementById('ph-logo'); img.src = cfg.kp_logo; img.style.display = 'block'; }
+  document.getElementById('signStudio').textContent = s.data.name || '______________________________';
 }
 
+// ── Авто и клиент ──────────────────────────────────
 function renderCarInfo(calc) {
-  const cd=calc.calculation_data||{}, car=cd.car||{};
-  const cells=[
-    {label:'Автомобиль',     value: calc.car_name||'—'},
-    {label:'Год выпуска',    value: car.year||calc.year||'—'},
-    {label:'Дата',           value: fmtDate(calc.checkin_date||calc.created_at)},
-    {label:'Гос. номер',     value: cd.plate||'—'},
-    {label:'VIN / № кузова', value: cd.vin||'—'},
-    {label:'Клиент',         value: cd.client_name||cd.clientName||'—'},
+  var cd  = calc.calculation_data || {};
+  var car = cd.car || {};
+  var cells = [
+    {label:'Автомобиль',     value: calc.car_name || '—'},
+    {label:'Год выпуска',    value: car.year || calc.year || '—'},
+    {label:'Дата',           value: fmtDate(calc.checkin_date || calc.created_at)},
+    {label:'Гос. номер',     value: cd.plate || '—'},
+    {label:'VIN / № кузова', value: cd.vin || '—'},
+    {label:'Клиент',         value: cd.client_name || cd.clientName || '—'},
   ];
-  document.getElementById('carInfoGrid').innerHTML = cells.map(c=>`
-    <div class="info-cell">
-      <div class="info-label">${c.label}</div>
-      <div class="info-value${c.value==='—'?' empty':''}">${esc(c.value)}</div>
-    </div>`).join('');
+  document.getElementById('carInfoGrid').innerHTML = cells.map(function(c) {
+    return '<div class="info-cell"><div class="info-label">' + c.label + '</div><div class="info-value' + (c.value === '—' ? ' empty' : '') + '">' + esc(c.value) + '</div></div>';
+  }).join('');
 }
 
+// ── Разбиваем данные расчёта в список услуг ────────
+function buildServiceList(cd) {
+  var services = [];
+  var markup = cd.markups || {};
+
+  // Коэффициент налога
+  var taxCoef = cd.paymentMode === 'card' ? 1.13 : cd.paymentMode === 'ooo' ? 1.22 : 1;
+
+  function calcPrice(mat, mot, mkp) {
+    var base = (r(mat) + r(mot)) * (1 + r(mkp) / 100) * taxCoef;
+    var disc = r(cd.discount) > 0 ? base * (1 - r(cd.discount) / 100) : base;
+    return Math.round(disc);
+  }
+
+  // Полная защита вкруг — разбиваем на 3 подуслуги
+  var pkg = cd.package || {};
+  if (r(pkg.wrapMat) + r(pkg.wrapMot) > 0) {
+    services.push({name: 'Оклейка (Полная защита вкруг)', price: calcPrice(pkg.wrapMat, pkg.wrapMot, pkg.markup || markup.wrap)});
+  }
+  if (r(pkg.prepMat) + r(pkg.prepMot) > 0) {
+    services.push({name: 'Подготовка (Полная защита вкруг)', price: calcPrice(pkg.prepMat, pkg.prepMot, pkg.markup || markup.det)});
+  }
+  if (r(pkg.armMat) + r(pkg.armMot) > 0) {
+    services.push({name: 'Арматурные работы (Полная защита вкруг)', price: calcPrice(pkg.armMat, pkg.armMot, pkg.markup || markup.arm)});
+  }
+  if ((pkg.costs || []).length) {
+    pkg.costs.forEach(function(c) {
+      if (r(c.value) > 0) services.push({name: c.name || 'Доп. затраты (Полная защита)', price: Math.round(r(c.value))});
+    });
+  }
+
+  // Защита ударной части — разбиваем на 3 подуслуги
+  var imp = cd.impact || {};
+  if (r(imp.wrapMat) + r(imp.wrapMot) > 0) {
+    services.push({name: 'Оклейка (Ударная часть)', price: calcPrice(imp.wrapMat, imp.wrapMot, imp.markup || markup.wrap)});
+  }
+  if (r(imp.prepMat) + r(imp.prepMot) > 0) {
+    services.push({name: 'Подготовка (Ударная часть)', price: calcPrice(imp.prepMat, imp.prepMot, imp.markup || markup.det)});
+  }
+  if (r(imp.armMat) + r(imp.armMot) > 0) {
+    services.push({name: 'Арматурные работы (Ударная часть)', price: calcPrice(imp.armMat, imp.armMot, imp.markup || markup.arm)});
+  }
+  if ((imp.costs || []).length) {
+    imp.costs.forEach(function(c) {
+      if (r(c.value) > 0) services.push({name: c.name || 'Доп. затраты (Ударная часть)', price: Math.round(r(c.value))});
+    });
+  }
+
+  // Индивидуальные услуги из services_detail
+  var sd = cd.services_detail || {};
+
+  // arm, det, gl, ms — структура: {name, mat, mot}
+  ['arm','det','gl','ms'].forEach(function(key) {
+    var mkpKey = key === 'ms' ? 'misc' : key;
+    (sd[key] || []).forEach(function(svc) {
+      if (r(svc.mat) + r(svc.mot) > 0) {
+        services.push({name: svc.name || 'Работа', price: calcPrice(svc.mat, svc.mot, markup[mkpKey])});
+      }
+    });
+  });
+
+  // wrap — структура: {name, m, pr, mat, mot}
+  (sd.wrap || []).forEach(function(svc) {
+    if (r(svc.mat) + r(svc.mot) > 0) {
+      services.push({name: svc.name || 'Оклейка', price: calcPrice(svc.mat, svc.mot, markup.wrap)});
+    }
+  });
+
+  return services;
+}
+
+// ── Карта исполнителей по услугам ──────────────────
+function buildExecMap(assignments) {
+  // Маппинг service_name → Set исполнителей
+  var map = {};
+  assignments.forEach(function(a) {
+    if (a.is_admin_sale) return;
+    var key = a.service_name || 'Работы';
+    if (!map[key]) map[key] = new Set();
+    if (a.executor_name) map[key].add(a.executor_name);
+  });
+  return map;
+}
+
+// Находим исполнителей для услуги по нечёткому совпадению имени
+function findExecs(execMap, serviceName) {
+  // Прямое совпадение
+  if (execMap[serviceName]) return execMap[serviceName];
+
+  // Ищем по вхождению ключевых слов
+  var result = new Set();
+  Object.keys(execMap).forEach(function(key) {
+    // "Оклейка (Полная защита вкруг)" → ищем "Оклейка (Полная защита)" и похожие
+    var sn = serviceName.toLowerCase();
+    var k  = key.toLowerCase();
+    if (sn.includes(k) || k.includes(sn) ||
+        (sn.includes('оклейка') && k.includes('оклейка')) ||
+        (sn.includes('подготовка') && k.includes('подготовка')) ||
+        (sn.includes('арматур') && k.includes('арматур'))) {
+      execMap[key].forEach(function(n) { result.add(n); });
+    }
+  });
+  return result;
+}
+
+// ── Рендер таблицы услуг ───────────────────────────
 function renderServices(calc, assignments) {
-  const tbody = document.getElementById('servicesTbody');
-  const cd    = calc.calculation_data || {};
+  var cd     = calc.calculation_data || {};
+  var tbody  = document.getElementById('servicesTbody');
+  var total  = calc.final_price || calc.total_price || 0;
 
-  // Ключ в formData: paymentMode (cash / card / ooo)
-  const PAY = {cash:'💵 Наличные', card:'💳 Карта / ИП', ooo:'🏢 ООО', transfer:'🏦 Перевод'};
-  document.getElementById('paymentMethod').textContent = PAY[cd.paymentMode||''] || '—';
+  // Итог и оплата
+  var PAY = {cash:'💵 Наличные', card:'💳 Карта / ИП', ooo:'🏢 ООО', transfer:'🏦 Перевод'};
+  document.getElementById('paymentMethod').textContent = PAY[cd.paymentMode || ''] || '—';
+  document.getElementById('totalAmount').textContent   = fmt(total) + ' ₽';
+  var isPaid = calc.status === 'delivered';
+  var payEl  = document.getElementById('paymentStatus');
+  payEl.textContent = isPaid ? '✅ Оплачено' : '⏳ Ожидает оплаты';
+  payEl.style.color = isPaid ? 'var(--success)' : 'var(--muted)';
 
-  const total = calc.final_price || calc.total_price || 0;
-  document.getElementById('totalAmount').textContent = fmt(total)+'';
-  const isPaid = calc.status==='delivered';
-  const payEl = document.getElementById('paymentStatus');
-  payEl.textContent = isPaid?'✅ Оплачено':'⏳ Ожидает оплаты';
-  payEl.style.color = isPaid?'var(--success)':'var(--muted)';
+  // Клиент в подписи
+  if (cd.client_name || cd.clientName) {
+    document.getElementById('signClient').textContent = 'ФИО: ' + (cd.client_name || cd.clientName);
+  }
 
-  if (assignments.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="4" style="color:var(--muted);font-style:italic;padding:14px 12px">Исполнители ещё не назначены</td></tr>`;
+  var services = buildServiceList(cd);
+  var execMap  = buildExecMap(assignments);
+
+  if (!services.length) {
+    tbody.innerHTML = '<tr><td colspan="4" style="color:var(--muted);font-style:italic;padding:14px 12px">Услуги не заполнены</td></tr>';
     return;
   }
 
-  // ── Соответствие service_name → ключ цены в calculation_data ──
-  // Цены хранятся в formData под теми же ключами что и в блоке block-summary
-  const PRICE_KEYS = {
-    'Оклейка (Полная защита)':           'pkgSumTotal',
-    'Подготовка (Полная защита)':        'pkgSumTotal',
-    'Арматурные работы (Полная защита)': 'pkgSumTotal',
-    'Оклейка (Ударная часть)':           'impactSumTotal',
-    'Подготовка (Ударная часть)':        'impactSumTotal',
-    'Арматурные работы (Ударная часть)': 'impactSumTotal',
-    'Арматурные работы':  'armSumTotal',
-    'Оклейка':            'wrapSumTotal',
-    'Детейлинг':          'detSumTotal',
-    'Полировка/Химчистка':'glSumTotal',
-  };
+  function execHtml(names) {
+    var arr = Array.from(names);
+    if (!arr.length) return '<span style="color:var(--muted);font-style:italic;font-size:0.78rem">Не назначен</span>';
+    return arr.map(function(n) { return '<span class="exec-pill">👤 ' + esc(n) + '</span>'; }).join('');
+  }
 
-  // Группы нескольких service_name → одна строка документа
-  const GROUPS = {
-    pkgSumTotal:    { label:'Полная защита вкруг',  keys:['Оклейка (Полная защита)','Подготовка (Полная защита)','Арматурные работы (Полная защита)'] },
-    impactSumTotal: { label:'Защита ударной части', keys:['Оклейка (Ударная часть)','Подготовка (Ударная часть)','Арматурные работы (Ударная часть)'] },
-  };
+  var html = services.map(function(svc, i) {
+    var execs = findExecs(execMap, svc.name);
+    return '<tr>' +
+      '<td style="color:var(--muted);font-size:0.76rem">' + (i + 1) + '</td>' +
+      '<td style="font-weight:600">' + esc(svc.name) + '</td>' +
+      '<td class="workshop-only col-exec"><div class="execs">' + execHtml(execs) + '</div></td>' +
+      '<td class="right col-price client-only">' + (svc.price > 0 ? '<strong>' + fmt(svc.price) + ' ₽</strong>' : '<span style="color:var(--muted)">—</span>') + '</td>' +
+      '</tr>';
+  }).join('');
 
-  // Собираем map: service_name → {names, isAdmin, adminPct}
-  const svcMap = new Map();
-  assignments.forEach(a => {
-    const key = a.service_name || 'Работы';
-    if (!svcMap.has(key)) svcMap.set(key, {names:new Set(), isAdmin:!!a.is_admin_sale, adminPct:a.admin_percent||0});
-    const e = svcMap.get(key);
-    if (a.executor_name) e.names.add(a.executor_name);
+  // Итоговая строка (только для клиента)
+  html += '<tr class="total-row client-only">' +
+    '<td></td><td colspan="2">ИТОГО</td>' +
+    '<td class="right">' + fmt(total) + ' ₽</td>' +
+    '</tr>';
+
+  // Продажник (если есть)
+  assignments.forEach(function(a) {
+    if (!a.is_admin_sale) return;
+    html += '<tr>' +
+      '<td></td>' +
+      '<td style="font-weight:600;color:#7c3aed" colspan="2">💼 Продажа (' + (a.admin_percent || 0) + '% от чека) — ' + esc(a.executor_name || '') + '</td>' +
+      '<td class="right col-price client-only" style="color:#7c3aed">—</td>' +
+      '</tr>';
   });
-
-  const rows = [];
-  const used = new Set();
-
-  // Блочные группы
-  Object.entries(GROUPS).forEach(([priceField, group]) => {
-    const present = group.keys.filter(k => svcMap.has(k));
-    if (!present.length) return;
-    const allNames = new Set();
-    present.forEach(k => { svcMap.get(k).names.forEach(n => allNames.add(n)); used.add(k); });
-    rows.push({ label: group.label, names: allNames, price: parseFloat(cd[priceField]||0), isAdmin: false });
-  });
-
-  // Одиночные сервисы
-  svcMap.forEach((entry, key) => {
-    if (used.has(key) || entry.isAdmin) return;
-    const pf = PRICE_KEYS[key];
-    rows.push({ label: key, names: entry.names, price: pf ? parseFloat(cd[pf]||0) : 0, isAdmin: false });
-  });
-
-  const execHtml = names => [...names].length
-    ? [...names].map(n => `<span class="exec-pill">👤 ${esc(n)}</span>`).join('')
-    : `<span style="color:var(--muted);font-style:italic;font-size:0.78rem">Не назначен</span>`;
-
-  let html = rows.map((r,i) => `<tr>
-    <td style="color:var(--muted);font-size:0.76rem">${i+1}</td>
-    <td style="font-weight:600">${esc(r.label)}</td>
-    <td><div class="execs">${execHtml(r.names)}</div></td>
-    <td class="right">${r.price>0 ? '<strong>'+fmt(r.price)+'</strong>' : '<span style="color:var(--muted)">—</span>'}</td>
-  </tr>`).join('');
-
-  // Admin продажник
-  svcMap.forEach((entry, key) => {
-    if (!entry.isAdmin) return;
-    const names = [...entry.names].map(n=>`<span class="exec-pill admin">👔 ${esc(n)}</span>`).join('');
-    html += `<tr>
-      <td style="color:var(--muted);font-size:0.76rem">${rows.length+1}</td>
-      <td style="font-weight:600;color:#7c3aed">💼 Продажа (${entry.adminPct}% от чека)</td>
-      <td><div class="execs">${names||'<span style="color:var(--muted)">—</span>'}</div></td>
-      <td class="right" style="color:#7c3aed">—</td>
-    </tr>`;
-  });
-
-  html += `<tr class="total-row">
-    <td></td><td colspan="2">ИТОГО</td>
-    <td class="right">${fmt(total)}</td>
-  </tr>`;
 
   tbody.innerHTML = html;
 }
 
-(async function init(){
+// ── Init ───────────────────────────────────────────
+(async function init() {
   if (!await checkAuth()) return;
-  const params = new URLSearchParams(window.location.search);
-  const calcId = params.get('calc_id');
-  const loading=document.getElementById('loadingMsg'), errMsg=document.getElementById('errMsg'), content=document.getElementById('mainContent');
+
+  var params  = new URLSearchParams(window.location.search);
+  var calcId  = params.get('calc_id');
+  var loading = document.getElementById('loadingMsg');
+  var errMsg  = document.getElementById('errMsg');
+  var content = document.getElementById('mainContent');
 
   if (!calcId) {
-    loading.style.display='none'; errMsg.style.display='';
-    errMsg.textContent='❌ Не указан ID заказа. Откройте заказ-наряд со страницы доски.'; return;
+    loading.style.display = 'none'; errMsg.style.display = '';
+    errMsg.textContent = '❌ Не указан ID заказа. Откройте заказ-наряд со страницы доски.';
+    return;
   }
 
-  const [,calcRes,assignRes] = await Promise.all([
+  var results = await Promise.all([
     loadStudio(),
-    sb.from('calculations').select('*').eq('id',calcId).single(),
-    sb.from('work_assignments').select('executor_name,service_name,salary,is_admin_sale,admin_percent').eq('calculation_id',calcId)
+    sb.from('calculations').select('*').eq('id', calcId).single(),
+    sb.from('work_assignments').select('executor_name,service_name,salary,is_admin_sale,admin_percent').eq('calculation_id', calcId)
   ]);
 
-  if (calcRes.error || !calcRes.data) { loading.style.display='none'; errMsg.style.display=''; return; }
+  var calcRes   = results[1];
+  var assignRes = results[2];
 
-  const calc = calcRes.data;
-  const shortId = calcId.slice(-8).toUpperCase();
-  document.getElementById('ph-num').textContent    = '№ '+shortId;
-  document.getElementById('headerSub').textContent = (calc.car_name||'Автомобиль')+' · '+shortId;
-  document.title = 'Заказ-наряд '+shortId;
+  if (calcRes.error || !calcRes.data) {
+    loading.style.display = 'none'; errMsg.style.display = ''; return;
+  }
+
+  var calc    = calcRes.data;
+  var shortId = calcId.slice(-8).toUpperCase();
+  document.getElementById('ph-num').textContent     = '№ ' + shortId;
+  document.getElementById('headerSub').textContent  = (calc.car_name || 'Автомобиль') + ' · ' + shortId;
+  document.title = 'Заказ-наряд ' + shortId;
 
   renderCarInfo(calc);
-  renderServices(calc, assignRes.data||[]);
+  renderServices(calc, assignRes.data || []);
 
-  loading.style.display='none';
-  content.style.display='';
-  if (window.initNav) window.initNav({activePage:'work-order.html'});
+  loading.style.display = 'none';
+  content.style.display = '';
+  if (window.initNav) window.initNav({activePage: 'work-order.html'});
 })();
 
 })();
