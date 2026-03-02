@@ -149,9 +149,9 @@ body {
         <input type="date" id="dateFrom">
         <span>—</span>
         <input type="date" id="dateTo">
-        <button class="btn-apply" onclick="applyCustomDate">Применить</button>
+        <button class="btn-apply" onclick="applyCustomDate()">Применить</button>
       </div>
-      <button class="btn-gear" id="btnGear" onclick="toggleSettings" title="Настроить виджеты">⚙️</button>
+      <button class="btn-gear" id="btnGear" onclick="toggleSettings()" title="Настроить виджеты">⚙️</button>
     </div>
   </div>
 
@@ -215,7 +215,7 @@ body {
   <div class="widget-toggle"><label><input type="checkbox" id="wt_checks"    onchange="toggleWidget('wTopChecks',this)"> 💎 Топ чеков</label></div>
   <div class="widget-toggle"><label><input type="checkbox" id="wt_monthly"   onchange="toggleWidget('wMonthly',this)"> 📅 Динамика по месяцам</label></div>
   <div class="widget-toggle"><label><input type="checkbox" id="wt_employees" onchange="toggleWidget('wEmployees',this)"> 👥 Рейтинг сотрудников</label></div>
-  <button class="panel-close" onclick="toggleSettings">✕ Закрыть</button>
+  <button class="panel-close" onclick="toggleSettings()">✕ Закрыть</button>
 </div>
 
 <script src="footer.js"></script>
@@ -238,7 +238,7 @@ const WT_MAP = {
   wFunnel:'wt_funnel', wTopChecks:'wt_checks',
   wMonthly:'wt_monthly', wEmployees:'wt_employees'
 };
-function loadWidgetSettings {
+function loadWidgetSettings() {
   let saved = {};
   try { saved = JSON.parse(localStorage.getItem('k1r_analytics_widgets')||'{}'); } catch(e){}
   Object.entries(WT_MAP).forEach(([wid, cbid]) => {
@@ -270,12 +270,12 @@ const ns   = s => (!s||s===''||s==='draft'||s==='pending') ? 'new' : s;
 const set  = (id,v) => { const e=document.getElementById(id); if(e) e.textContent=v; };
 
 // ─── Period ──────────────────────────────────────────
-function getRange {
+function getRange() {
   if (isCustom && customFrom && customTo) return {from:customFrom, to:customTo};
   if (activeDays===0) return {from:new Date(0), to:new Date};
   return {from:new Date(Date.now-activeDays*86400000), to:new Date};
 }
-function getPrevRange {
+function getPrevRange() {
   if (isCustom||activeDays===0) return null;
   return {from:new Date(Date.now-2*activeDays*86400000), to:new Date(Date.now-activeDays*86400000)};
 }
@@ -298,7 +298,7 @@ function bLabel(key, days) {
   if (days!==0&&days<=90) return d.toLocaleDateString('ru-RU',{day:'numeric',month:'short'});
   return d.toLocaleDateString('ru-RU',{month:'short',year:'2-digit'});
 }
-function customDays {
+function customDays() {
   if (!customFrom||!customTo) return 30;
   return Math.round((customTo-customFrom)/86400000);
 }
@@ -389,7 +389,7 @@ function renderStatusChart(cur) {
 }
 
 // ─── Monthly chart ────────────────────────────────────
-function renderMonthlyChart {
+function renderMonthlyChart() {
   const ctx=document.getElementById('monthlyChart'); if(!ctx) return;
   if(charts.monthly){charts.monthly.destroy;charts.monthly=null;}
   const b={};
@@ -544,9 +544,9 @@ function buildLabel(cur) {
   set('periodLabel', range+' · '+cur.length+' расчётов');
 }
 
-// ─── Main render ──────────────────────────────────────
-function render {
-  const range=getRange, prev=getPrevRange;
+// ─── Main render() ──────────────────────────────────────
+function render() {
+  const range=getRange(), prev=getPrevRange();
   const cur=filterC(range), prevC=prev?filterC(prev):[];
   const asgn=filterA(cur);
   buildLabel(cur);
@@ -556,7 +556,7 @@ function render {
   renderFunnel(cur);
   renderTopCars(cur);
   renderTopChecks(cur,asgn);
-  renderMonthlyChart;
+  renderMonthlyChart();
   renderEmployees(cur,asgn);
 }
 
@@ -567,13 +567,13 @@ window.applyCustomDate = function {
   customFrom=new Date(f+'T00:00:00'); customTo=new Date(t+'T23:59:59'); isCustom=true;
   document.querySelectorAll('.period-tab').forEach(b=>b.classList.remove('active','custom-active'));
   document.querySelector('[data-days=custom]')?.classList.add('custom-active');
-  render;
+  render();
 };
 
 // ─── Init ─────────────────────────────────────────────
-async function init {
+async function init() {
   initNav;
-  loadWidgetSettings;
+  loadWidgetSettings();
 
   const {data:{session}} = await sb.auth.getSession;
   if(!session){window.location.href='welcome.html';return;}
@@ -592,18 +592,18 @@ async function init {
 
   if(ce){document.querySelector('.container').innerHTML=`<div class="loading-state">❌ Ошибка: ${ce.message}</div>`;return;}
   allCalcs=calcs||[]; allAssign=assigns||[];
-  render;
+  render();
 
   // Period tabs
   document.querySelectorAll('.period-tab[data-days]').forEach(btn=>{
-    btn.addEventListener('click',=>{
+    btn.addEventListener('click', () =>{
       const d=btn.dataset.days;
       if(d==='custom'){document.getElementById('datePickerWrap').classList.toggle('show');return;}
       isCustom=false; activeDays=parseInt(d);
       document.getElementById('datePickerWrap').classList.remove('show');
       document.querySelectorAll('.period-tab').forEach(b=>b.classList.remove('active','custom-active'));
       btn.classList.add('active');
-      render;
+      render();
     });
   });
 
