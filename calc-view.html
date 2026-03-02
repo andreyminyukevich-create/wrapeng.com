@@ -3,617 +3,704 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Аналитика — Keep1R CRM</title>
+<title>Keep1R CRM — Главная</title>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <link rel="stylesheet" href="nav.css">
 <script src="nav.js"></script>
 <style>
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
-  background: #eef2f9; color: #0f172a; min-height: 100svh;
+  background: #eef2f9;
+  color: #0f172a;
+  min-height: 100svh;
 }
-.container { max-width: 1360px; margin: 0 auto; padding: 24px 24px 64px; }
 
-/* ── Header ─── */
-.page-header { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:20px; flex-wrap:wrap; gap:12px; }
-.page-title  { font-size:1.2rem; font-weight:800; color:#0f172a; letter-spacing:-0.4px; }
-.page-sub    { font-size:0.76rem; color:#64748b; margin-top:2px; }
-.header-right { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.container {
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 28px 24px 48px;
+}
 
-/* ── Period tabs ─── */
-.period-tabs { display:flex; gap:3px; background:#fff; border:1px solid rgba(15,23,42,0.09); border-radius:10px; padding:3px; }
-.period-tab  { padding:6px 13px; border-radius:7px; font-size:0.78rem; font-weight:700; border:none; cursor:pointer; background:transparent; color:#64748b; font-family:inherit; transition:all 0.15s; white-space:nowrap; }
-.period-tab.active        { background:#2563eb; color:#fff; box-shadow:0 2px 8px rgba(37,99,235,0.25); }
-.period-tab.custom-active { background:#7c3aed; color:#fff; box-shadow:0 2px 8px rgba(124,58,237,0.25); }
+/* ── Шапка страницы ─────────────────────────────── */
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
 
-/* ── Custom date picker ─── */
-.date-picker-wrap { display:none; align-items:center; gap:6px; background:#fff; border:1px solid rgba(15,23,42,0.09); border-radius:10px; padding:4px 10px; }
-.date-picker-wrap.show { display:flex; }
-.date-picker-wrap input[type=date] { border:none; outline:none; font-size:0.78rem; font-family:inherit; color:#0f172a; background:transparent; cursor:pointer; }
-.date-picker-wrap span { color:#94a3b8; font-size:0.78rem; }
-.btn-apply { padding:4px 10px; border-radius:6px; font-size:0.76rem; font-weight:700; border:none; cursor:pointer; background:#7c3aed; color:#fff; font-family:inherit; }
+.page-greeting {
+  display: flex;
+  flex-direction: column;
+}
 
-/* ── Gear ─── */
-.btn-gear { width:36px; height:36px; border-radius:9px; border:1px solid rgba(15,23,42,0.09); background:#fff; cursor:pointer; font-size:1rem; display:flex; align-items:center; justify-content:center; transition:all 0.15s; flex-shrink:0; }
-.btn-gear:hover  { background:#f1f5ff; border-color:rgba(37,99,235,0.3); }
-.btn-gear.active { background:#f1f5ff; border-color:#2563eb; }
+.studio-name {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.3px;
+  line-height: 1.2;
+}
 
-/* ── Settings panel ─── */
-.settings-panel { display:none; position:fixed; top:0; right:0; bottom:0; width:300px; background:#fff; border-left:1px solid rgba(15,23,42,0.09); box-shadow:-8px 0 32px rgba(0,0,0,0.12); z-index:600; overflow-y:auto; padding:24px 20px; }
-.settings-panel.show { display:block; }
-.settings-panel h3 { font-size:0.95rem; font-weight:800; margin-bottom:5px; }
-.settings-panel p  { font-size:0.75rem; color:#64748b; margin-bottom:16px; line-height:1.5; }
-.widget-toggle { display:flex; align-items:center; justify-content:space-between; padding:10px 12px; border-radius:10px; border:1px solid rgba(15,23,42,0.07); margin-bottom:7px; background:#f8fafc; cursor:pointer; transition:all 0.15s; }
-.widget-toggle:hover { background:#f1f5ff; border-color:rgba(37,99,235,0.2); }
-.widget-toggle label { display:flex; align-items:center; gap:8px; font-size:0.82rem; font-weight:600; cursor:pointer; user-select:none; }
-.widget-toggle input[type=checkbox] { accent-color:#2563eb; width:15px; height:15px; cursor:pointer; }
-.panel-close { width:100%; padding:10px; border-radius:9px; border:1px solid rgba(15,23,42,0.1); background:#fff; font-size:0.82rem; font-weight:700; cursor:pointer; font-family:inherit; margin-top:10px; color:#64748b; transition:all 0.15s; }
-.panel-close:hover { background:#f1f5ff; color:#2563eb; }
+.studio-sub {
+  font-size: 0.78rem;
+  color: #64748b;
+  margin-top: 2px;
+  font-weight: 500;
+}
 
-/* ── KPI ─── */
-.kpi-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:14px; }
-.kpi-card { background:#fff; border-radius:14px; border:1px solid rgba(15,23,42,0.07); padding:18px 18px 14px; position:relative; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,0.04); }
-.kpi-card::after { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:var(--accent,#2563eb); }
-.kpi-card:nth-child(1){--accent:#2563eb} .kpi-card:nth-child(2){--accent:#059669}
-.kpi-card:nth-child(3){--accent:#7c3aed} .kpi-card:nth-child(4){--accent:#d97706}
-.kpi-card:nth-child(5){--accent:#0891b2} .kpi-card:nth-child(6){--accent:#db2777}
-.kpi-card:nth-child(7){--accent:#16a34a} .kpi-card:nth-child(8){--accent:#dc2626}
-.kpi-icon  { font-size:1.2rem; margin-bottom:10px; display:block; }
-.kpi-label { font-size:0.64rem; color:#64748b; font-weight:700; text-transform:uppercase; letter-spacing:0.07em; margin-bottom:4px; }
-.kpi-value { font-size:1.5rem; font-weight:800; color:#0f172a; line-height:1; letter-spacing:-0.5px; margin-bottom:5px; }
-.kpi-change { display:inline-flex; align-items:center; gap:2px; font-size:0.68rem; font-weight:700; padding:2px 6px; border-radius:5px; }
-.kpi-change.up   { background:rgba(5,150,105,0.1); color:#059669; }
-.kpi-change.down { background:rgba(220,38,38,0.08); color:#dc2626; }
-.kpi-change.flat { background:rgba(100,116,139,0.08); color:#64748b; }
+.btn-logout {
+  padding: 8px 16px;
+  background: #fff;
+  color: #64748b;
+  border: 1px solid rgba(15,23,42,0.10);
+  border-radius: 9px;
+  font-size: 0.81rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.btn-logout:hover {
+  background: #fee2e2;
+  color: #dc2626;
+  border-color: rgba(220,38,38,0.2);
+}
 
-/* ── Section card ─── */
-.sc { background:#fff; border-radius:14px; border:1px solid rgba(15,23,42,0.07); padding:18px 20px 16px; box-shadow:0 1px 3px rgba(0,0,0,0.04); }
-.sc-title { font-size:0.88rem; font-weight:700; color:#0f172a; margin-bottom:14px; letter-spacing:-0.1px; }
+/* ── Стат-карточки ──────────────────────────────── */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 20px;
+}
 
-/* ── Charts ─── */
-.charts-2col  { display:grid; grid-template-columns:2fr 1fr; gap:14px; }
-.charts-equal { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
-.cw  { position:relative; height:220px; }
-.cwt { position:relative; height:260px; }
+.stat-card {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid rgba(15,23,42,0.07);
+  padding: 22px 20px 18px;
+  position: relative;
+  overflow: hidden;
+  transition: box-shadow 0.18s, transform 0.18s;
+  text-decoration: none;
+  display: block;
+  color: inherit;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
 
-/* ── Funnel ─── */
-.f-row { display:flex; align-items:center; gap:10px; margin-bottom:7px; }
-.f-lbl { width:140px; flex-shrink:0; font-size:0.77rem; font-weight:600; color:#334155; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.f-bar-wrap { flex:1; height:20px; background:rgba(15,23,42,0.04); border-radius:5px; overflow:hidden; }
-.f-bar  { height:100%; border-radius:5px; min-width:3px; transition:width 0.5s ease; }
-.f-cnt  { width:32px; text-align:right; font-size:0.78rem; font-weight:800; color:#0f172a; flex-shrink:0; }
-.f-pct  { width:34px; text-align:right; font-size:0.7rem; font-weight:600; color:#64748b; flex-shrink:0; }
+.stat-card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--accent, #2563eb);
+  opacity: 0.7;
+}
 
-/* ── Table ─── */
-.dt { width:100%; border-collapse:collapse; font-size:0.82rem; }
-.dt th { text-align:left; padding:5px 8px; font-size:0.64rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:#94a3b8; border-bottom:1px solid rgba(15,23,42,0.07); }
-.dt td { padding:8px 8px; color:#334155; border-bottom:1px solid rgba(15,23,42,0.04); font-weight:500; }
-.dt tr:last-child td { border-bottom:none; }
-.dt td.r { text-align:right; font-weight:700; color:#0f172a; }
-.rn { display:inline-flex; align-items:center; justify-content:center; width:18px; height:18px; border-radius:4px; font-size:0.65rem; font-weight:800; background:rgba(37,99,235,0.08); color:#2563eb; margin-right:4px; }
-.rn.r1 { background:rgba(245,158,11,0.15); color:#b45309; }
-.rn.r2 { background:rgba(148,163,184,0.18); color:#64748b; }
-.rn.r3 { background:rgba(205,127,50,0.15); color:#92400e; }
+.stat-card:hover {
+  box-shadow: 0 6px 24px rgba(37,99,235,0.10);
+  transform: translateY(-2px);
+}
 
-/* ── Check cards ─── */
-.check-cards { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:16px; }
-.cc { background:#f8fafc; border:1px solid rgba(15,23,42,0.07); border-radius:10px; padding:14px 15px; }
-.cc-icon  { font-size:1.1rem; margin-bottom:6px; }
-.cc-label { font-size:0.62rem; font-weight:700; text-transform:uppercase; letter-spacing:0.07em; color:#94a3b8; margin-bottom:3px; }
-.cc-val   { font-size:1.1rem; font-weight:800; color:#0f172a; letter-spacing:-0.3px; margin-bottom:2px; }
-.cc-sub   { font-size:0.72rem; color:#64748b; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.stat-icon {
+  font-size: 1.5rem;
+  line-height: 1;
+  margin-bottom: 14px;
+  display: block;
+}
 
-/* ── Employee ─── */
-.eff-bar  { height:5px; border-radius:3px; background:#e2e8f0; overflow:hidden; margin-top:3px; }
-.eff-fill { height:100%; border-radius:3px; background:linear-gradient(90deg,#059669,#10b981); }
-.eff-fill.bad { background:linear-gradient(90deg,#ef4444,#f97316); }
-.badge { display:inline-flex; align-items:center; padding:2px 7px; border-radius:20px; font-size:0.68rem; font-weight:700; }
-.bg-g { background:rgba(5,150,105,0.1); color:#059669; }
-.bg-y { background:rgba(245,158,11,0.1); color:#b45309; }
-.bg-r { background:rgba(220,38,38,0.08); color:#dc2626; }
-.bg-b { background:rgba(37,99,235,0.08); color:#2563eb; }
+.stat-label {
+  font-size: 0.7rem;
+  color: #64748b;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 6px;
+}
 
-/* ── Utils ─── */
-.gap14 { margin-bottom:14px; }
-.loading-state { text-align:center; padding:40px 20px; color:#94a3b8; font-size:0.85rem; }
-.no-data { text-align:center; padding:28px 20px; color:#94a3b8; font-size:0.8rem; font-style:italic; }
-.widget-hidden { display:none !important; }
+.stat-value {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1;
+  margin-bottom: 6px;
+  letter-spacing: -0.5px;
+}
 
-/* ── Responsive ─── */
-@media (max-width:1100px) { .charts-2col { grid-template-columns:1fr; } .charts-equal { grid-template-columns:1fr; } .check-cards { grid-template-columns:repeat(2,1fr); } }
-@media (max-width:768px)  { .container { padding:14px 14px 48px; } .kpi-grid { grid-template-columns:repeat(2,1fr); gap:10px; } .kpi-value { font-size:1.3rem; } .settings-panel { width:100%; } }
-@media (max-width:480px)  { .check-cards { grid-template-columns:1fr 1fr; } .period-tab { padding:5px 8px; font-size:0.72rem; } }
+.stat-change {
+  font-size: 0.75rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+/* Цветовые акценты карточек */
+.stat-card:nth-child(1) { --accent: #2563eb; }
+.stat-card:nth-child(2) { --accent: #059669; }
+.stat-card:nth-child(3) { --accent: #7c3aed; }
+.stat-card:nth-child(4) { --accent: #d97706; }
+
+/* ── Карточка-контейнер ─────────────────────────── */
+.card {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid rgba(15,23,42,0.07);
+  padding: 20px 22px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.card-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.1px;
+}
+
+.card-link {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #2563eb;
+  text-decoration: none;
+  padding: 5px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(37,99,235,0.25);
+  background: rgba(37,99,235,0.04);
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.card-link:hover {
+  background: #2563eb;
+  color: #fff;
+  border-color: #2563eb;
+}
+
+/* ── Поиск ──────────────────────────────────────── */
+.search-wrap { margin-bottom: 16px; }
+
+.search-input {
+  width: 100%;
+  max-width: 400px;
+  padding: 10px 16px;
+  border: 1px solid rgba(15,23,42,0.10);
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-family: inherit;
+  color: #0f172a;
+  background: #fff;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+}
+.search-input::placeholder { color: #94a3b8; }
+.search-input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.08);
+}
+
+/* ── Мини-канбан ────────────────────────────────── */
+.mini-kanban {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+}
+
+.mini-col { min-width: 0; }
+
+.mini-col-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #64748b;
+  padding-bottom: 8px;
+  border-bottom: 2px solid rgba(15,23,42,0.06);
+}
+
+.mini-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.mini-cards { display: flex; flex-direction: column; gap: 5px; }
+
+.mini-card {
+  background: #f8fafc;
+  border: 1px solid rgba(15,23,42,0.07);
+  border-radius: 10px;
+  padding: 10px 11px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.mini-card:hover {
+  border-color: #2563eb;
+  background: #fff;
+  box-shadow: 0 2px 10px rgba(37,99,235,0.08);
+  transform: translateY(-1px);
+}
+
+.mini-card-car {
+  font-size: 0.82rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #0f172a;
+  margin-bottom: 3px;
+}
+
+.mini-card-price {
+  font-size: 0.78rem;
+  color: #059669;
+  font-weight: 700;
+}
+
+.mini-col-more {
+  font-size: 0.68rem;
+  color: #94a3b8;
+  text-align: center;
+  padding: 5px;
+  cursor: pointer;
+  border-radius: 7px;
+  border: 1px dashed rgba(15,23,42,0.1);
+  margin-top: 2px;
+  transition: all 0.15s;
+}
+.mini-col-more:hover {
+  color: #2563eb;
+  border-color: rgba(37,99,235,0.3);
+  background: rgba(37,99,235,0.03);
+}
+
+.mini-col-empty {
+  font-size: 0.7rem;
+  color: #94a3b8;
+  text-align: center;
+  padding: 16px 4px;
+}
+
+/* Цвета колонок */
+.mini-col-new         .mini-dot { background: #94a3b8; }
+.mini-col-new         .mini-col-header { color: #64748b; border-bottom-color: #94a3b8; }
+.mini-col-scheduled   .mini-dot { background: #f59e0b; }
+.mini-col-scheduled   .mini-col-header { color: #92400e; border-bottom-color: #f59e0b; }
+.mini-col-in_progress .mini-dot { background: #2563eb; }
+.mini-col-in_progress .mini-col-header { color: #1e40af; border-bottom-color: #2563eb; }
+.mini-col-done        .mini-dot { background: #7c3aed; }
+.mini-col-done        .mini-col-header { color: #5b21b6; border-bottom-color: #7c3aed; }
+.mini-col-delivered   .mini-dot { background: #059669; }
+.mini-col-delivered   .mini-col-header { color: #065f46; border-bottom-color: #059669; }
+
+/* ── Результаты поиска ──────────────────────────── */
+.calc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+.calc-card {
+  background: #f8fafc;
+  border: 1px solid rgba(15,23,42,0.07);
+  border-radius: 12px;
+  padding: 15px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.calc-card:hover {
+  border-color: #2563eb;
+  box-shadow: 0 4px 16px rgba(37,99,235,0.08);
+  transform: translateY(-1px);
+}
+.calc-card h3 {
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+  color: #0f172a;
+}
+.calc-price {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #059669;
+  margin-bottom: 12px;
+  letter-spacing: -0.3px;
+}
+
+.calc-actions { display: flex; gap: 7px; }
+
+/* ── Кнопки ─────────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 7px 12px; border-radius: 8px;
+  font-size: 0.78rem; font-weight: 700;
+  font-family: inherit; cursor: pointer;
+  border: none; transition: all 0.15s; text-decoration: none;
+}
+.btn-primary { background: #2563eb; color: #fff; }
+.btn-primary:hover { background: #1d4ed8; }
+.btn-success {
+  background: rgba(5,150,105,0.08);
+  color: #059669;
+  border: 1px solid rgba(5,150,105,0.2);
+}
+.btn-success:hover { background: #059669; color: #fff; }
+
+/* ── Состояния ──────────────────────────────────── */
+.loading {
+  text-align: center;
+  padding: 40px;
+  color: #64748b;
+  font-size: 0.88rem;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 48px 20px;
+  color: #64748b;
+}
+.empty-state-icon {
+  font-size: 2.2rem;
+  margin-bottom: 10px;
+  opacity: 0.35;
+}
+.empty-state h3 {
+  font-size: 0.95rem;
+  color: #0f172a;
+  font-weight: 700;
+}
+
+/* ── Адаптив ────────────────────────────────────── */
+@media (max-width: 1100px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 768px) {
+  .container { padding: 16px 14px 40px; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .stat-value { font-size: 1.4rem; }
+  .mini-kanban { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 480px) {
+  .mini-kanban { grid-template-columns: repeat(2, 1fr); }
+  .search-input { max-width: 100%; }
+  .stats-grid { gap: 8px; }
+}
 </style>
 </head>
 <body>
+
 <div class="container">
 
+  <!-- Шапка -->
   <div class="page-header">
-    <div>
-      <div class="page-title">📊 Аналитика</div>
-      <div class="page-sub" id="periodLabel">Загрузка...</div>
+    <div class="page-greeting">
+      <div class="studio-name" id="studioNameHeader">Загрузка...</div>
+      <div class="studio-sub" id="studioSubheader">Keep1R CRM</div>
     </div>
-    <div class="header-right">
-      <div class="period-tabs">
-        <button class="period-tab" data-days="7">7 дней</button>
-        <button class="period-tab active" data-days="30">30 дней</button>
-        <button class="period-tab" data-days="90">3 мес.</button>
-        <button class="period-tab" data-days="365">Год</button>
-        <button class="period-tab" data-days="0">Всё</button>
-        <button class="period-tab" data-days="custom">📅 Период</button>
-      </div>
-      <div class="date-picker-wrap" id="datePickerWrap">
-        <input type="date" id="dateFrom">
-        <span>—</span>
-        <input type="date" id="dateTo">
-        <button class="btn-apply" onclick="applyCustomDate">Применить</button>
-      </div>
-      <button class="btn-gear" id="btnGear" onclick="toggleSettings" title="Настроить виджеты">⚙️</button>
+    <button class="btn-logout" onclick="logout()">Выйти →</button>
+  </div>
+
+  <!-- Стат-карточки -->
+  <div class="stats-grid" id="statsGrid">
+    <a class="stat-card" href="analytics.html">
+      <span class="stat-icon">🚗</span>
+      <div class="stat-label">Расчётов за месяц</div>
+      <div class="stat-value" id="statMonthTotal">—</div>
+      <div class="stat-change" id="statMonthTotalChange">Текущий месяц</div>
+    </a>
+    <a class="stat-card" href="analytics.html">
+      <span class="stat-icon">💰</span>
+      <div class="stat-label">Сумма расчётов</div>
+      <div class="stat-value" id="statMonthSum">—</div>
+      <div class="stat-change">Текущий месяц</div>
+    </a>
+    <a class="stat-card" href="analytics.html">
+      <span class="stat-icon">✅</span>
+      <div class="stat-label">Завершённые работы</div>
+      <div class="stat-value" id="statMonthDone">—</div>
+      <div class="stat-change" id="statMonthDoneCount">0 машин</div>
+    </a>
+    <a class="stat-card" href="analytics.html">
+      <span class="stat-icon">📊</span>
+      <div class="stat-label">Средний чек</div>
+      <div class="stat-value" id="statMonthAvg">—</div>
+      <div class="stat-change">За месяц</div>
+    </a>
+  </div>
+
+  <!-- Поиск -->
+  <div class="search-wrap">
+    <input
+      type="text"
+      class="search-input"
+      id="searchInput"
+      placeholder="🔍 Поиск по машине..."
+      oninput="handleSearch()"
+      autocomplete="off"
+    >
+  </div>
+
+  <!-- Результаты поиска -->
+  <div class="card" id="searchResultsCard" style="display:none">
+    <div class="card-header">
+      <span class="card-title">🔍 Результаты поиска</span>
+    </div>
+    <div id="searchResults"></div>
+  </div>
+
+  <!-- Мини-канбан -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">📋 В работе</span>
+      <a href="board.html" class="card-link">Открыть всё →</a>
+    </div>
+    <div class="mini-kanban" id="miniKanban">
+      <div class="loading">⏳ Загрузка...</div>
     </div>
   </div>
 
-  <!-- KPI row 1 -->
-  <div class="kpi-grid gap14" id="wKPI">
-    <div class="kpi-card"><span class="kpi-icon">🚗</span><div class="kpi-label">Расчётов</div><div class="kpi-value" id="kpiTotal">—</div><span class="kpi-change flat" id="kpiTotalChg">—</span></div>
-    <div class="kpi-card"><span class="kpi-icon">💰</span><div class="kpi-label">Выручка (выдано)</div><div class="kpi-value" id="kpiRevenue">—</div><span class="kpi-change flat" id="kpiRevChg">—</span></div>
-    <div class="kpi-card"><span class="kpi-icon">📊</span><div class="kpi-label">Средний чек</div><div class="kpi-value" id="kpiAvg">—</div><span class="kpi-change flat" id="kpiAvgChg">—</span></div>
-    <div class="kpi-card"><span class="kpi-icon">✅</span><div class="kpi-label">Конверсия</div><div class="kpi-value" id="kpiConv">—</div><span class="kpi-change flat" id="kpiConvChg">расчёты → выдача</span></div>
-  </div>
-
-  <!-- KPI row 2 -->
-  <div class="kpi-grid gap14" id="wKPI2">
-    <div class="kpi-card"><span class="kpi-icon">📈</span><div class="kpi-label">Макс. чек</div><div class="kpi-value" id="kpiMax">—</div><span class="kpi-change flat" id="kpiMaxSub" style="max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block">—</span></div>
-    <div class="kpi-card"><span class="kpi-icon">📉</span><div class="kpi-label">Мин. чек</div><div class="kpi-value" id="kpiMin">—</div><span class="kpi-change flat" id="kpiMinSub" style="max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block">—</span></div>
-    <div class="kpi-card"><span class="kpi-icon">🔧</span><div class="kpi-label">В работе сейчас</div><div class="kpi-value" id="kpiActive">—</div><span class="kpi-change flat" id="kpiActiveSub">—</span></div>
-    <div class="kpi-card"><span class="kpi-icon">💸</span><div class="kpi-label">ФОТ (зарплаты)</div><div class="kpi-value" id="kpiFOT">—</div><span class="kpi-change flat" id="kpiFOTSub">за период</span></div>
-  </div>
-
-  <!-- Revenue + Status -->
-  <div class="charts-2col gap14" id="wRevChart">
-    <div class="sc"><div class="sc-title">📈 Выручка и расчёты</div><div class="cwt"><canvas id="revenueChart"></canvas></div></div>
-    <div class="sc"><div class="sc-title">🥧 Суммы по статусам</div><div class="cwt" id="statusChartWrap"><canvas id="statusChart"></canvas></div></div>
-  </div>
-
-  <!-- Funnel + Top cars -->
-  <div class="charts-equal gap14" id="wFunnel">
-    <div class="sc"><div class="sc-title">🔽 Воронка по статусам</div><div id="funnelList"><div class="loading-state">⏳</div></div></div>
-    <div class="sc"><div class="sc-title">🏆 Топ марок по выручке</div><div id="topCarsWrap"><div class="loading-state">⏳</div></div></div>
-  </div>
-
-  <!-- Top checks -->
-  <div class="sc gap14" id="wTopChecks">
-    <div class="sc-title">💎 Топ чеков периода</div>
-    <div class="check-cards" id="checkCards"><div class="loading-state" style="grid-column:1/-1">⏳</div></div>
-    <table class="dt"><thead><tr><th>#</th><th>Авто</th><th>Дата</th><th>Статус</th><th class="r">Сумма</th></tr></thead><tbody id="checkTbody"></tbody></table>
-  </div>
-
-  <!-- Monthly chart -->
-  <div class="sc gap14" id="wMonthly">
-    <div class="sc-title">📅 Динамика по месяцам (все данные)</div>
-    <div class="cwt"><canvas id="monthlyChart"></canvas></div>
-  </div>
-
-  <!-- Employees -->
-  <div class="sc gap14" id="wEmployees">
-    <div class="sc-title">👥 Рейтинг сотрудников</div>
-    <div id="employeesContent"><div class="loading-state">⏳</div></div>
-  </div>
-
-</div>
-
-<!-- Settings panel -->
-<div class="settings-panel" id="settingsPanel">
-  <h3>⚙️ Настройка виджетов</h3>
-  <p>Выберите блоки для отображения. Настройки сохраняются в браузере.</p>
-  <div class="widget-toggle"><label><input type="checkbox" id="wt_kpi"       onchange="toggleWidget('wKPI',this)"> 🚗 Основные KPI (4 карточки)</label></div>
-  <div class="widget-toggle"><label><input type="checkbox" id="wt_kpi2"      onchange="toggleWidget('wKPI2',this)"> 📈 Доп. показатели (макс/мин/ФОТ)</label></div>
-  <div class="widget-toggle"><label><input type="checkbox" id="wt_rev"       onchange="toggleWidget('wRevChart',this)"> 📈 Графики выручки и статусов</label></div>
-  <div class="widget-toggle"><label><input type="checkbox" id="wt_funnel"    onchange="toggleWidget('wFunnel',this)"> 🔽 Воронка и топ марок</label></div>
-  <div class="widget-toggle"><label><input type="checkbox" id="wt_checks"    onchange="toggleWidget('wTopChecks',this)"> 💎 Топ чеков</label></div>
-  <div class="widget-toggle"><label><input type="checkbox" id="wt_monthly"   onchange="toggleWidget('wMonthly',this)"> 📅 Динамика по месяцам</label></div>
-  <div class="widget-toggle"><label><input type="checkbox" id="wt_employees" onchange="toggleWidget('wEmployees',this)"> 👥 Рейтинг сотрудников</label></div>
-  <button class="panel-close" onclick="toggleSettings">✕ Закрыть</button>
 </div>
 
 <script src="footer.js"></script>
 <script>
-(function{
+(function() {
 'use strict';
 
-const SB_URL = 'https://hdghijgrrnzmntistdvw.supabase.co';
-const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkZ2hpamdycm56bW50aXN0ZHZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMzMyNzksImV4cCI6MjA3NTYwOTI3OX0.D9EDTmVrFRVp0B8_5tCJM29gbFdtadsom0Ihsf4uQ8Q';
-const sb = window.supabase.createClient(SB_URL, SB_KEY);
+const SUPABASE_URL      = 'https://hdghijgrrnzmntistdvw.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkZ2hpamdycm56bW50aXN0ZHZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMzMyNzksImV4cCI6MjA3NTYwOTI3OX0.D9EDTmVrFRVp0B8_5tCJM29gbFdtadsom0Ihsf4uQ8Q';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 window._crmSb = sb;
 
-let allCalcs = [], allAssign = [], studioId = null;
-let activeDays = 30, customFrom = null, customTo = null, isCustom = false;
-const charts = {};
+let currentUser       = null;
+let allCalcsForSearch = [];
 
-// ─── Widget settings ────────────────────────────────
-const WT_MAP = {
-  wKPI:'wt_kpi', wKPI2:'wt_kpi2', wRevChart:'wt_rev',
-  wFunnel:'wt_funnel', wTopChecks:'wt_checks',
-  wMonthly:'wt_monthly', wEmployees:'wt_employees'
-};
-function loadWidgetSettings {
-  let saved = {};
-  try { saved = JSON.parse(localStorage.getItem('k1r_analytics_widgets')||'{}'); } catch(e){}
-  Object.entries(WT_MAP).forEach(([wid, cbid]) => {
-    const show = saved[wid] !== undefined ? saved[wid] : true;
-    const el = document.getElementById(wid);
-    const cb = document.getElementById(cbid);
-    if (el) el.classList.toggle('widget-hidden', !show);
-    if (cb) cb.checked = show;
-  });
+async function checkAuth() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = 'welcome.html'; return false; }
+  currentUser = session.user;
+  return true;
 }
-window.toggleWidget = function(wid, cb) {
-  const el = document.getElementById(wid);
-  if (el) el.classList.toggle('widget-hidden', !cb.checked);
-  try {
-    const saved = JSON.parse(localStorage.getItem('k1r_analytics_widgets')||'{}');
-    saved[wid] = cb.checked;
-    localStorage.setItem('k1r_analytics_widgets', JSON.stringify(saved));
-  } catch(e){}
-};
-window.toggleSettings = function {
-  document.getElementById('settingsPanel').classList.toggle('show');
-  document.getElementById('btnGear').classList.toggle('active');
+
+window.logout = async function() {
+  await sb.auth.signOut();
+  window.location.href = 'welcome.html';
 };
 
-// ─── Helpers ────────────────────────────────────────
-const fmt  = n => new Intl.NumberFormat('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:2}).format(n||0);
-const fmtS = n => new Intl.NumberFormat('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:2}).format(n||0);
-const ns   = s => (!s||s===''||s==='draft'||s==='pending') ? 'new' : s;
-const set  = (id,v) => { const e=document.getElementById(id); if(e) e.textContent=v; };
-
-// ─── Period ──────────────────────────────────────────
-function getRange {
-  if (isCustom && customFrom && customTo) return {from:customFrom, to:customTo};
-  if (activeDays===0) return {from:new Date(0), to:new Date};
-  return {from:new Date(Date.now-activeDays*86400000), to:new Date};
+function fmt(n) {
+  return new Intl.NumberFormat('ru-RU', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(n || 0);
 }
-function getPrevRange {
-  if (isCustom||activeDays===0) return null;
-  return {from:new Date(Date.now-2*activeDays*86400000), to:new Date(Date.now-activeDays*86400000)};
-}
-function filterC(range) { return allCalcs.filter(c => { const d=new Date(c.created_at); return d>=range.from&&d<=range.to; }); }
-function filterA(calcs) { const ids=new Set(calcs.map(c=>c.id)); return allAssign.filter(a=>ids.has(a.calculation_id)); }
 
-// ─── Bucket ──────────────────────────────────────────
-function bKey(dateStr, days) {
-  const d = new Date(dateStr);
-  if (days!==0&&days<=14) return d.toISOString.split('T')[0];
-  if (days!==0&&days<=90) {
-    const day=d.getDay, diff=d.getDate-day+(day===0?-6:1);
-    return new Date(new Date(d).setDate(diff)).toISOString.split('T')[0];
+function normalizeStatus(status) {
+  if (!status || status === '' || status === 'draft' || status === 'pending') return 'new';
+  return status; // cancelled, delivered etc pass through as-is
+}
+
+function updateStats(calculations) {
+  const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+  const month      = calculations.filter(c => new Date(c.created_at) >= monthStart);
+  const total      = month.length;
+  const sum        = month.reduce((a, c) => a + (c.total_price || 0), 0);
+  const done       = month.filter(c => ['done','delivered'].includes(normalizeStatus(c.status)));
+  const doneSum    = done.reduce((a, c) => a + (c.final_price || c.total_price || 0), 0);
+  const avg        = total > 0 ? sum / total : 0;
+
+  document.getElementById('statMonthTotal').textContent     = total;
+  document.getElementById('statMonthSum').textContent       = fmt(sum) + '';
+  document.getElementById('statMonthDone').textContent      = fmt(doneSum) + '';
+  document.getElementById('statMonthAvg').textContent       = fmt(avg) + '';
+  document.getElementById('statMonthDoneCount').textContent = done.length + ' машин';
+  document.getElementById('statMonthTotalChange').textContent = 'Текущий месяц';
+}
+
+// Берём из nav.js — единый источник правды
+// Cancelled не показываем в мини-канбане — там только активные
+const MINI_COLS = Object.entries(window.STATUSES || {
+  new:         { short: 'Расчёт',    icon: '📋' },
+  scheduled:   { short: 'Дата',      icon: '📅' },
+  in_progress: { short: 'В работе',  icon: '🔧' },
+  done:        { short: 'Завершено', icon: '✅' },
+  delivered:   { short: 'Выдано',    icon: '🚗' },
+}).filter(([key]) => key !== 'cancelled')
+  .map(([key, s]) => ({ key, label: s.short, icon: s.icon }));
+
+async function loadMiniKanban(studioId) {
+  const container = document.getElementById('miniKanban');
+
+  const { data, error } = await sb
+    .from('calculations')
+    .select('id, car_name, total_price, final_price, status')
+    .eq('studio_id', studioId)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    container.innerHTML = `<div class="loading" style="color:#dc2626">❌ Ошибка: ${error.message}</div>`;
+    return;
   }
-  return `${d.getFullYear}-${String(d.getMonth+1).padStart(2,'0')}-01`;
-}
-function bLabel(key, days) {
-  const d=new Date(key);
-  if (days!==0&&days<=14) return d.toLocaleDateString('ru-RU',{day:'numeric',month:'short'});
-  if (days!==0&&days<=90) return d.toLocaleDateString('ru-RU',{day:'numeric',month:'short'});
-  return d.toLocaleDateString('ru-RU',{month:'short',year:'2-digit'});
-}
-function customDays {
-  if (!customFrom||!customTo) return 30;
-  return Math.round((customTo-customFrom)/86400000);
-}
+  if (!data || data.length === 0) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📭</div><h3>Заказов пока нет</h3></div>`;
+    return;
+  }
 
-// ─── KPI ─────────────────────────────────────────────
-function renderKPI(cur, prev) {
-  const total   = cur.length;
-  const prevN   = prev ? prev.length : 0;
-  const deliv   = cur.filter(c=>ns(c.status)==='delivered');
-  const revenue = deliv.reduce((s,c)=>s+(c.final_price||c.total_price||0),0);
-  const prevDel = prev ? prev.filter(c=>ns(c.status)==='delivered') : [];
-  const prevRev = prevDel.reduce((s,c)=>s+(c.final_price||c.total_price||0),0);
-  const prices  = cur.map(c=>c.total_price||0).filter(p=>p>0);
-  const avg     = total>0 ? cur.reduce((s,c)=>s+(c.total_price||0),0)/total : 0;
-  const prevAvg = prevN>0 ? prev.reduce((s,c)=>s+(c.total_price||0),0)/prevN : 0;
-  const conv    = total>0 ? Math.round(deliv.length/total*100) : 0;
-  const prevConv= prevN>0 ? Math.round(prevDel.length/prevN*100) : 0;
-  const maxP    = prices.length ? Math.max(...prices) : 0;
-  const minP    = prices.length ? Math.min(...prices) : 0;
-  const maxCar  = cur.find(c=>(c.total_price||0)===maxP);
-  const minCar  = cur.find(c=>(c.total_price||0)===minP);
-  const active  = allCalcs.filter(c=>['in_progress','scheduled'].includes(ns(c.status))).length;
-  const fot     = filterA(cur).filter(a=>!a.is_admin_sale).reduce((s,a)=>s+(a.salary||0),0);
+  let html = '';
+  MINI_COLS.forEach(col => {
+    const cards   = data.filter(c => normalizeStatus(c.status) === col.key);
+    const visible = cards.slice(0, 5);
+    const rest    = cards.length - 5;
 
-  set('kpiTotal',   total); setChg('kpiTotalChg',total,prevN);
-  set('kpiRevenue', fmtS(revenue)); setChg('kpiRevChg',revenue,prevRev);
-  set('kpiAvg',     fmtS(avg)); setChg('kpiAvgChg',avg,prevAvg);
-  set('kpiConv',    conv+'%'); setChg('kpiConvChg',conv,prevConv,true);
-  set('kpiMax',     prices.length ? fmtS(maxP) : '—'); set('kpiMaxSub', maxCar?.car_name||'—');
-  set('kpiMin',     prices.length ? fmtS(minP) : '—'); set('kpiMinSub', minCar?.car_name||'—');
-  set('kpiActive',  active); set('kpiActiveSub','сейчас в работе');
-  set('kpiFOT',     fmtS(fot));
-}
-function setChg(id, cur, prev, isPct) {
-  const el=document.getElementById(id); if(!el) return;
-  if (!prev||activeDays===0||isCustom) { el.textContent=cur>0?'Данные есть':'Нет данных'; el.className='kpi-change flat'; return; }
-  const pct=Math.round((cur-prev)/(prev||1)*100);
-  el.textContent=(pct>=0?'↑ +':'↓ ')+Math.abs(pct)+'% к пред. периоду';
-  el.className='kpi-change '+(pct>=0?'up':'down');
-}
+    html += `<div class="mini-col mini-col-${col.key}">`;
+    html += `<div class="mini-col-header"><div class="mini-dot"></div>${col.icon} ${col.label}</div>`;
+    html += `<div class="mini-cards">`;
 
-// ─── Revenue chart ────────────────────────────────────
-function renderRevenueChart(cur) {
-  const ctx=document.getElementById('revenueChart'); if(!ctx) return;
-  if(charts.rev){charts.rev.destroy;charts.rev=null;}
-  const days = isCustom ? customDays : activeDays;
-  const buckets={};
-  cur.forEach(c=>{
-    const k=bKey(c.created_at,days);
-    if(!buckets[k]) buckets[k]={rev:0,cnt:0};
-    buckets[k].rev+=(c.final_price||c.total_price||0);
-    buckets[k].cnt++;
-  });
-  const keys=Object.keys(buckets).sort;
-  if(!keys.length){ctx.parentElement.innerHTML='<div class="no-data">Нет данных для графика</div>';return;}
-  const labels=keys.map(k=>bLabel(k,days));
-  charts.rev=new Chart(ctx,{
-    type:'bar',
-    data:{labels,datasets:[
-      {label:'Выручка',data:keys.map(k=>buckets[k].rev),backgroundColor:'rgba(37,99,235,0.72)',borderRadius:5,yAxisID:'y',order:2},
-      {label:'Расчётов',data:keys.map(k=>buckets[k].cnt),type:'line',borderColor:'#f59e0b',backgroundColor:'rgba(245,158,11,0.08)',borderWidth:2.5,pointRadius:4,pointBackgroundColor:'#f59e0b',fill:false,yAxisID:'y2',order:1,tension:0.3}
-    ]},
-    options:{responsive:true,maintainAspectRatio:false,
-      interaction:{mode:'index',intersect:false},
-      plugins:{legend:{position:'top',labels:{font:{size:11},padding:10,boxWidth:14}},tooltip:{callbacks:{label:c=>c.dataset.label==='Выручка'?` ${fmt(c.parsed.y)}`:` ${c.parsed.y} шт.`}}},
-      scales:{y:{position:'left',grid:{color:'rgba(0,0,0,0.04)'},ticks:{callback:v=>{if(v>=1e6)return(v/1e6).toFixed(1)+'M';if(v>=1e3)return Math.round(v/1e3)+'K';return v;},font:{size:10}}},y2:{position:'right',grid:{display:false},ticks:{font:{size:10},precision:0}},x:{ticks:{font:{size:10},maxRotation:45}}}
+    if (cards.length === 0) {
+      html += `<div class="mini-col-empty">Нет</div>`;
+    } else {
+      visible.forEach(c => {
+        html += `<div class="mini-card" onclick="location.href='board.html'">
+          <div class="mini-card-car">${c.car_name || 'Без названия'}</div>
+          <div class="mini-card-price">${fmt(c.final_price || c.total_price || 0)}</div>
+        </div>`;
+      });
+      if (rest > 0) {
+        html += `<div class="mini-col-more" onclick="location.href='board.html'">+ ещё ${rest}</div>`;
+      }
     }
+    html += `</div></div>`;
   });
+  container.innerHTML = html;
 }
 
-// ─── Status donut ─────────────────────────────────────
-function renderStatusChart(cur) {
-  const wrap=document.getElementById('statusChartWrap'); if(!wrap) return;
-  if(charts.status){charts.status.destroy;charts.status=null;}
-  const COLORS={new:'#94a3b8',scheduled:'#f59e0b',in_progress:'#2563eb',done:'#7c3aed',delivered:'#059669',cancelled:'#ef4444'};
-  const S=window.STATUSES||{};
-  const g={};
-  cur.forEach(c=>{const s=ns(c.status); g[s]=(g[s]||0)+(c.total_price||0);});
-  const keys=Object.keys(g).filter(k=>g[k]>0);
-  if(!keys.length){wrap.innerHTML='<div class="no-data">Нет данных</div>';return;}
-  if(!wrap.querySelector('canvas')){const cv=document.createElement('canvas');cv.id='statusChart';wrap.innerHTML='';wrap.appendChild(cv);}
-  const ctx=wrap.querySelector('canvas');
-  charts.status=new Chart(ctx,{
-    type:'doughnut',
-    data:{labels:keys.map(k=>S[k]?.short||k),datasets:[{data:keys.map(k=>g[k]),backgroundColor:keys.map(k=>COLORS[k]||'#94a3b8'),borderWidth:2,borderColor:'#fff'}]},
-    options:{responsive:true,maintainAspectRatio:false,cutout:'62%',plugins:{legend:{position:'right',labels:{font:{size:11},padding:8,boxWidth:11}},tooltip:{callbacks:{label:c=>` ${fmt(c.parsed)}`}}}}
-  });
-}
+let searchTimeout;
 
-// ─── Monthly chart ────────────────────────────────────
-function renderMonthlyChart {
-  const ctx=document.getElementById('monthlyChart'); if(!ctx) return;
-  if(charts.monthly){charts.monthly.destroy;charts.monthly=null;}
-  const b={};
-  allCalcs.forEach(c=>{
-    const d=new Date(c.created_at);
-    const k=`${d.getFullYear}-${String(d.getMonth+1).padStart(2,'0')}`;
-    if(!b[k]) b[k]={cnt:0,all:0,done:0};
-    b[k].cnt++; b[k].all+=(c.total_price||0);
-    if(ns(c.status)==='delivered') b[k].done+=(c.final_price||c.total_price||0);
-  });
-  const keys=Object.keys(b).sort.slice(-18);
-  if(!keys.length){ctx.parentElement.innerHTML='<div class="no-data">Нет данных</div>';return;}
-  const labels=keys.map(k=>{const[y,m]=k.split('-');return new Date(+y,+m-1,1).toLocaleDateString('ru-RU',{month:'short',year:'2-digit'});});
-  charts.monthly=new Chart(ctx,{
-    type:'bar',
-    data:{labels,datasets:[
-      {label:'Расчёты (сумма)',data:keys.map(k=>b[k].all),backgroundColor:'rgba(37,99,235,0.18)',borderColor:'rgba(37,99,235,0.45)',borderWidth:1.5,borderRadius:4},
-      {label:'Выдано (факт)',data:keys.map(k=>b[k].done),backgroundColor:'rgba(5,150,105,0.72)',borderRadius:4},
-      {label:'Кол-во',type:'line',data:keys.map(k=>b[k].cnt),borderColor:'#f59e0b',borderWidth:2.5,pointRadius:3,pointBackgroundColor:'#f59e0b',fill:false,yAxisID:'y2',tension:0.3}
-    ]},
-    options:{responsive:true,maintainAspectRatio:false,
-      interaction:{mode:'index',intersect:false},
-      plugins:{legend:{position:'top',labels:{font:{size:11},padding:10,boxWidth:13}},tooltip:{callbacks:{label:c=>c.dataset.label==='Кол-во'?` ${c.parsed.y} шт.`:` ${fmt(c.parsed.y)}`}}},
-      scales:{y:{position:'left',grid:{color:'rgba(0,0,0,0.04)'},ticks:{callback:v=>{if(v>=1e6)return(v/1e6).toFixed(1)+'M';if(v>=1e3)return Math.round(v/1e3)+'K';return v;},font:{size:10}}},y2:{position:'right',grid:{display:false},ticks:{font:{size:10},precision:0}},x:{ticks:{font:{size:10}}}}
+window.handleSearch = function() {
+  clearTimeout(searchTimeout);
+  const term = document.getElementById('searchInput').value.trim().toLowerCase();
+  const card = document.getElementById('searchResultsCard');
+  const box  = document.getElementById('searchResults');
+  if (!term) { card.style.display = 'none'; return; }
+
+  searchTimeout = setTimeout(() => {
+    const found = allCalcsForSearch.filter(c => (c.car_name || '').toLowerCase().includes(term));
+    card.style.display = 'block';
+
+    if (found.length === 0) {
+      box.innerHTML = `<div class="empty-state" style="padding:30px">
+        <div class="empty-state-icon">🔍</div><h3>Ничего не найдено</h3></div>`;
+      return;
     }
-  });
-}
 
-// ─── Funnel ───────────────────────────────────────────
-function renderFunnel(cur) {
-  const c=document.getElementById('funnelList'); if(!c) return;
-  const S=window.STATUSES||{};
-  const ORDER=['new','scheduled','in_progress','done','delivered','cancelled'];
-  const COLORS={new:'#94a3b8',scheduled:'#f59e0b',in_progress:'#2563eb',done:'#7c3aed',delivered:'#059669',cancelled:'#ef4444'};
-  const counts={};
-  cur.forEach(x=>{const s=ns(x.status);counts[s]=(counts[s]||0)+1;});
-  const total=cur.length, maxC=Math.max(...Object.values(counts),1);
-  if(!total){c.innerHTML='<div class="no-data">Нет данных</div>';return;}
-  c.innerHTML=ORDER.map(k=>{
-    const cnt=counts[k]||0, pct=Math.round(cnt/total*100), w=Math.round(cnt/maxC*100);
-    return `<div class="f-row"><div class="f-lbl">${S[k]?.label||k}</div><div class="f-bar-wrap"><div class="f-bar" style="width:${w}%;background:${COLORS[k]}"></div></div><div class="f-cnt">${cnt}</div><div class="f-pct">${pct}%</div></div>`;
-  }).join('');
-}
-
-// ─── Top cars ─────────────────────────────────────────
-function renderTopCars(cur) {
-  const w=document.getElementById('topCarsWrap'); if(!w) return;
-  const b={};
-  cur.forEach(c=>{const br=(c.car_name||'—').split(' ')[0];if(!b[br])b[br]={cnt:0,sum:0};b[br].cnt++;b[br].sum+=(c.total_price||0);});
-  const sorted=Object.entries(b).sort((a,x)=>x[1].sum-a[1].sum).slice(0,8);
-  if(!sorted.length){w.innerHTML='<div class="no-data">Нет данных</div>';return;}
-  w.innerHTML=`<table class="dt"><thead><tr><th>#</th><th>Марка</th><th>Шт.</th><th class="r">Сумма</th></tr></thead><tbody>
-    ${sorted.map(([br,d],i)=>`<tr><td><span class="rn ${i<3?'r'+(i+1):''}">${i+1}</span></td><td>${br}</td><td>${d.cnt}</td><td class="r">${fmt(d.sum)}</td></tr>`).join('')}
-  </tbody></table>`;
-}
-
-// ─── Top checks ───────────────────────────────────────
-function renderTopChecks(cur, asgn) {
-  const cc=document.getElementById('checkCards'), tb=document.getElementById('checkTbody');
-  if(!cc||!tb) return;
-  const priced=cur.filter(c=>(c.total_price||0)>0);
-  if(!priced.length){cc.innerHTML='<div class="no-data" style="grid-column:1/-1">Нет данных</div>';tb.innerHTML='';return;}
-
-  const sorted=[...priced].sort((a,b)=>(b.total_price||0)-(a.total_price||0));
-  const maxC=sorted[0], minC=sorted[sorted.length-1];
-  const avg=priced.reduce((s,c)=>s+(c.total_price||0),0)/priced.length;
-  const median=sorted[Math.floor(sorted.length/2)];
-
-  // Рентабельность
-  const salByCalc={};
-  asgn.forEach(a=>{if(!a.is_admin_sale) salByCalc[a.calculation_id]=(salByCalc[a.calculation_id]||0)+(a.salary||0);});
-  let bestM=null,bestMPct=-Infinity;
-  priced.forEach(c=>{
-    const p=c.final_price||c.total_price||0, sal=salByCalc[c.id]||0;
-    if(p>0&&sal>0){const pct=(p-sal)/p*100;if(pct>bestMPct){bestMPct=pct;bestM=c;}}
-  });
-
-  cc.innerHTML=[
-    {icon:'🏆',label:'Самый большой чек',val:fmt(maxC.total_price||0)+'',sub:maxC.car_name||'—'},
-    {icon:'🐣',label:'Самый маленький чек',val:fmt(minC.total_price||0)+'',sub:minC.car_name||'—'},
-    {icon:'📐',label:'Медианный чек',val:fmt(median.total_price||0)+'',sub:sorted.length+' расчётов'},
-    bestM
-      ?{icon:'💎',label:'Лучшая рентабельность',val:Math.round(bestMPct)+'%',sub:bestM.car_name||'—'}
-      :{icon:'💎',label:'Лучшая рентабельность',val:'—',sub:'назначьте зарплаты для расчёта'},
-  ].map(x=>`<div class="cc"><div class="cc-icon">${x.icon}</div><div class="cc-label">${x.label}</div><div class="cc-val">${x.val}</div><div class="cc-sub">${x.sub}</div></div>`).join('');
-
-  const S=window.STATUSES||{};
-  const sCls=s=>s==='delivered'?'bg-g':s==='in_progress'?'bg-b':s==='cancelled'?'bg-r':'bg-y';
-  tb.innerHTML=sorted.slice(0,10).map((c,i)=>`<tr>
-    <td><span class="rn ${i<3?'r'+(i+1):''}">${i+1}</span></td>
-    <td>${c.car_name||'—'}</td>
-    <td>${new Date(c.created_at).toLocaleDateString('ru-RU',{day:'numeric',month:'short'})}</td>
-    <td><span class="badge ${sCls(ns(c.status))}">${S[ns(c.status)]?.short||c.status}</span></td>
-    <td class="r">${fmt(c.total_price||0)}</td>
-  </tr>`).join('');
-}
-
-// ─── Employees ────────────────────────────────────────
-function renderEmployees(cur, asgn) {
-  const w=document.getElementById('employeesContent'); if(!w) return;
-  const wa=asgn.filter(a=>!a.is_admin_sale);
-  if(!wa.length){w.innerHTML='<div class="no-data">Нет данных о назначениях сотрудников за период</div>';return;}
-
-  const stats={};
-  wa.forEach(a=>{
-    const n=a.executor_name||'Неизвестный';
-    if(!stats[n]) stats[n]={name:n,salary:0,jobs:0,cars:new Set};
-    stats[n].salary+=(a.salary||0);
-    stats[n].jobs++;
-    stats[n].cars.add(a.calculation_id);
-  });
-  const priceById={};
-  cur.forEach(c=>{priceById[c.id]=c.final_price||c.total_price||0;});
-
-  Object.values(stats).forEach(e=>{
-    e.revenue=0; e.cars.forEach(id=>{e.revenue+=(priceById[id]||0);}); e.carCnt=e.cars.size;
-    e.salShare=e.revenue>0?Math.round(e.salary/e.revenue*100):null;
-    e.score=e.salary>0?+(e.revenue/e.salary).toFixed(1):0;
-  });
-  const sorted=Object.values(stats).sort((a,b)=>b.score-a.score);
-  const maxR=Math.max(...sorted.map(e=>e.revenue),1);
-
-  const stars=s=>s>=10?'⭐⭐⭐':s>=5?'⭐⭐':'⭐';
-  const shCls=p=>p===null?'':p<20?'bg-g':p<35?'bg-y':'bg-r';
-
-  w.innerHTML=`<div style="overflow-x:auto"><table class="dt">
-    <thead><tr><th>#</th><th>Сотрудник</th><th>Работ</th><th>Машин</th><th class="r">Зарплата</th><th class="r">Выручка*</th><th class="r" title="Выручка ÷ Зарплата">Коэф.</th><th>ЗП/выручка</th><th>Рейтинг</th></tr></thead>
-    <tbody>
-    ${sorted.map((e,i)=>`<tr>
-      <td><span class="rn ${i<3?'r'+(i+1):''}">${i+1}</span></td>
-      <td style="font-weight:700">${e.name}</td>
-      <td>${e.jobs}</td><td>${e.carCnt}</td>
-      <td class="r">${fmt(e.salary)}</td>
-      <td class="r">${fmt(e.revenue)}</td>
-      <td class="r">${e.score>0?e.score+'x':'—'}</td>
-      <td>
-        ${e.salShare!==null?`<span class="badge ${shCls(e.salShare)}">${e.salShare}%</span>`:'<span style="color:#94a3b8;font-size:0.7rem">нет данных</span>'}
-        <div class="eff-bar"><div class="eff-fill ${e.salShare!==null&&e.salShare>35?'bad':''}" style="width:${Math.round(e.revenue/maxR*100)}%"></div></div>
-      </td>
-      <td style="font-size:1rem">${stars(e.score)}</td>
-    </tr>`).join('')}
-    </tbody>
-  </table></div>
-  <p style="font-size:0.72rem;color:#94a3b8;margin-top:10px">* Выручка по машинам, в работе над которыми участвовал сотрудник. Коэф. = выручка ÷ зарплата. ЗП/выручка: зелёный &lt;20%, жёлтый &lt;35%, красный ≥35%.</p>`;
-}
-
-// ─── Period label ─────────────────────────────────────
-function buildLabel(cur) {
-  let range;
-  if (isCustom) range=`${customFrom.toLocaleDateString('ru-RU')} — ${customTo.toLocaleDateString('ru-RU')}`;
-  else { const L={0:'Всё время',7:'7 дней',30:'30 дней',90:'3 месяца',365:'Год'}; range=L[activeDays]||`${activeDays} дней`; }
-  set('periodLabel', range+' · '+cur.length+' расчётов');
-}
-
-// ─── Main render ──────────────────────────────────────
-function render {
-  const range=getRange, prev=getPrevRange;
-  const cur=filterC(range), prevC=prev?filterC(prev):[];
-  const asgn=filterA(cur);
-  buildLabel(cur);
-  renderKPI(cur,prevC);
-  renderRevenueChart(cur);
-  renderStatusChart(cur);
-  renderFunnel(cur);
-  renderTopCars(cur);
-  renderTopChecks(cur,asgn);
-  renderMonthlyChart;
-  renderEmployees(cur,asgn);
-}
-
-// ─── Custom date ──────────────────────────────────────
-window.applyCustomDate = function {
-  const f=document.getElementById('dateFrom')?.value, t=document.getElementById('dateTo')?.value;
-  if(!f||!t) return;
-  customFrom=new Date(f+'T00:00:00'); customTo=new Date(t+'T23:59:59'); isCustom=true;
-  document.querySelectorAll('.period-tab').forEach(b=>b.classList.remove('active','custom-active'));
-  document.querySelector('[data-days=custom]')?.classList.add('custom-active');
-  render;
+    const STATUS = Object.fromEntries(
+      Object.entries(window.STATUSES || {}).map(([k,s]) => [k, s.icon + ' ' + s.short])
+    );
+    box.innerHTML = `<div class="calc-grid">` + found.map(c => `
+      <div class="calc-card" onclick="location.href='calculator.html?load=${c.id}'">
+        <h3>${c.car_name || 'Без названия'}</h3>
+        <div class="calc-price">${fmt(c.final_price || c.total_price || 0)}</div>
+        <div class="calc-actions">
+          <a class="btn btn-primary" href="calculator.html?load=${c.id}" onclick="event.stopPropagation()">📂 Открыть</a>
+          <a class="btn btn-success" href="assign-work.html?calc_id=${c.id}" onclick="event.stopPropagation()">👥 Работы</a>
+        </div>
+      </div>`).join('') + `</div>`;
+  }, 300);
 };
 
-// ─── Init ─────────────────────────────────────────────
-async function init {
-  initNav;
-  loadWidgetSettings;
+function showLockedDashboard() {
+  const fakeStats = [
+    { icon: '🚗', label: 'Расчётов за месяц', value: '██', change: '+██%' },
+    { icon: '💰', label: 'Сумма расчётов',     value: '███ ███', change: '+██%' },
+    { icon: '✅', label: 'Завершённые работы', value: '██', change: '' },
+    { icon: '📊', label: 'Средний чек',        value: '██ ██', change: '+██%' },
+  ];
 
-  const {data:{session}} = await sb.auth.getSession;
-  if(!session){window.location.href='welcome.html';return;}
+  const grid = document.getElementById('statsGrid');
+  if (grid) {
+    grid.innerHTML = fakeStats.map(s => `
+      <div class="stat-card" style="cursor:default">
+        <span class="stat-icon">${s.icon}</span>
+        <div class="stat-label">${s.label}</div>
+        <div class="stat-value" style="filter:blur(5px);user-select:none">${s.value}</div>
+        ${s.change ? `<div class="stat-change" style="filter:blur(4px);user-select:none">${s.change}</div>` : ''}
+      </div>`).join('');
+  }
 
-  const {data:member} = await sb.from('studio_members').select('studio_id').eq('user_id',session.user.id).eq('is_active',true).single;
-  if(!member){document.querySelector('.container').innerHTML='<div class="loading-state">⚠️ Студия не найдена</div>';return;}
-  studioId=member.studio_id; window._studioId=studioId;
+  const kanban = document.getElementById('miniKanban');
+  if (kanban) {
+    kanban.innerHTML = `
+      <div style="grid-column:1/-1;text-align:center;padding:32px 16px;color:#94a3b8">
+        <div style="font-size:2rem;margin-bottom:10px">📋</div>
+        <div style="font-size:0.88rem;font-weight:600;color:#64748b;margin-bottom:4px">Здесь будут ваши заказы</div>
+        <div style="font-size:0.8rem">Оформите подписку, чтобы увидеть доску</div>
+      </div>`;
+  }
 
-  const subStatus=await checkSubscription(studioId);
-  if(subStatus==='expired'||subStatus==='none'){showPaywall(subStatus==='expired');return;}
-
-  const [{data:calcs,error:ce},{data:assigns}] = await Promise.all([
-    sb.from('calculations').select('id,car_name,total_price,final_price,status,created_at').eq('studio_id',studioId).order('created_at',{ascending:true}),
-    sb.from('work_assignments').select('calculation_id,executor_name,executor_id,salary,is_admin_sale').eq('studio_id',studioId)
-  ]);
-
-  if(ce){document.querySelector('.container').innerHTML=`<div class="loading-state">❌ Ошибка: ${ce.message}</div>`;return;}
-  allCalcs=calcs||[]; allAssign=assigns||[];
-  render;
-
-  // Period tabs
-  document.querySelectorAll('.period-tab[data-days]').forEach(btn=>{
-    btn.addEventListener('click',=>{
-      const d=btn.dataset.days;
-      if(d==='custom'){document.getElementById('datePickerWrap').classList.toggle('show');return;}
-      isCustom=false; activeDays=parseInt(d);
-      document.getElementById('datePickerWrap').classList.remove('show');
-      document.querySelectorAll('.period-tab').forEach(b=>b.classList.remove('active','custom-active'));
-      btn.classList.add('active');
-      render;
-    });
-  });
-
-  const today=new Date, month=new Date(Date.now-30*86400000);
-  document.getElementById('dateTo').value=today.toISOString.split('T')[0];
-  document.getElementById('dateFrom').value=month.toISOString.split('T')[0];
+  const search = document.getElementById('searchInput');
+  if (search) { search.disabled = true; search.placeholder = '🔒 Доступно после оплаты'; }
 }
 
-document.addEventListener('DOMContentLoaded',init);
-});
+async function init() {
+  initNav();
+  if (!await checkAuth()) return;
+
+  const { data: member } = await sb
+    .from('studio_members')
+    .select('studio_id')
+    .eq('user_id', currentUser.id)
+    .eq('is_active', true)
+    .single();
+
+  if (!member) {
+    document.getElementById('miniKanban').innerHTML =
+      `<div class="loading" style="color:#dc2626">⚠️ Студия не найдена. Обратитесь к администратору.</div>`;
+    return;
+  }
+
+  const studioId = member.studio_id;
+
+  const { data: studioInfo } = await sb.from('studios').select('name').eq('id', studioId).single();
+  if (studioInfo) {
+    document.getElementById('studioNameHeader').textContent = studioInfo.name;
+    document.getElementById('studioSubheader').textContent  = 'Keep1R CRM';
+  }
+
+  const subStatus = await checkSubscription(studioId);
+  if (subStatus === 'expired' || subStatus === 'none') {
+    showPaywall(subStatus === 'expired');
+    showLockedDashboard();
+    return;
+  }
+
+  const { data: calcs } = await sb
+    .from('calculations')
+    .select('id, car_name, total_price, final_price, status, work_assigned, created_at')
+    .eq('studio_id', studioId)
+    .order('created_at', { ascending: false });
+
+  allCalcsForSearch = calcs || [];
+  updateStats(allCalcsForSearch);
+  await loadMiniKanban(studioId);
+}
+
+document.addEventListener('DOMContentLoaded', init);
+
+})();
 </script>
+
 </body>
 </html>
