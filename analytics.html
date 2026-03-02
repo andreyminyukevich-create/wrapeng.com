@@ -219,401 +219,537 @@ body {
 </div>
 
 <script src="footer.js"></script>
+
+<script src="footer.js"></script>
 <script>
-(function(){
+(function() {
 'use strict';
 
-const SB_URL = 'https://hdghijgrrnzmntistdvw.supabase.co';
-const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkZ2hpamdycm56bW50aXN0ZHZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMzMyNzksImV4cCI6MjA3NTYwOTI3OX0.D9EDTmVrFRVp0B8_5tCJM29gbFdtadsom0Ihsf4uQ8Q';
-const sb = window.supabase.createClient(SB_URL, SB_KEY);
+var SB_URL = 'https://hdghijgrrnzmntistdvw.supabase.co';
+var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkZ2hpamdycm56bW50aXN0ZHZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMzMyNzksImV4cCI6MjA3NTYwOTI3OX0.D9EDTmVrFRVp0B8_5tCJM29gbFdtadsom0Ihsf4uQ8Q';
+var sb = window.supabase.createClient(SB_URL, SB_KEY);
 window._crmSb = sb;
 
-let allCalcs = [], allAssign = [], studioId = null;
-let activeDays = 30, customFrom = null, customTo = null, isCustom = false;
-const charts = {};
+var allCalcs = [];
+var allAssign = [];
+var studioId = null;
+var activeDays = 30;
+var customFrom = null;
+var customTo = null;
+var isCustom = false;
+var charts = {};
 
-// ─── Widget settings ────────────────────────────────
-const WT_MAP = {
+// ── Widget settings ──────────────────────────────────
+var WT_MAP = {
   wKPI:'wt_kpi', wKPI2:'wt_kpi2', wRevChart:'wt_rev',
   wFunnel:'wt_funnel', wTopChecks:'wt_checks',
   wMonthly:'wt_monthly', wEmployees:'wt_employees'
 };
+
 function loadWidgetSettings() {
-  let saved = {};
-  try { saved = JSON.parse(localStorage.getItem('k1r_analytics_widgets')||'{}'); } catch(e){}
-  Object.entries(WT_MAP).forEach(([wid, cbid]) => {
-    const show = saved[wid] !== undefined ? saved[wid] : true;
-    const el = document.getElementById(wid);
-    const cb = document.getElementById(cbid);
+  var saved = {};
+  try { saved = JSON.parse(localStorage.getItem('k1r_analytics_widgets') || '{}'); } catch(e) {}
+  Object.keys(WT_MAP).forEach(function(wid) {
+    var cbid = WT_MAP[wid];
+    var show = saved[wid] !== undefined ? saved[wid] : true;
+    var el = document.getElementById(wid);
+    var cb = document.getElementById(cbid);
     if (el) el.classList.toggle('widget-hidden', !show);
     if (cb) cb.checked = show;
   });
 }
+
 window.toggleWidget = function(wid, cb) {
-  const el = document.getElementById(wid);
+  var el = document.getElementById(wid);
   if (el) el.classList.toggle('widget-hidden', !cb.checked);
   try {
-    const saved = JSON.parse(localStorage.getItem('k1r_analytics_widgets')||'{}');
+    var saved = JSON.parse(localStorage.getItem('k1r_analytics_widgets') || '{}');
     saved[wid] = cb.checked;
     localStorage.setItem('k1r_analytics_widgets', JSON.stringify(saved));
-  } catch(e){}
+  } catch(e) {}
 };
+
 window.toggleSettings = function() {
   document.getElementById('settingsPanel').classList.toggle('show');
   document.getElementById('btnGear').classList.toggle('active');
 };
 
-// ─── Helpers ────────────────────────────────────────
-const fmt  = n => new Intl.NumberFormat('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:2}).format(n||0);
-const fmtS = n => new Intl.NumberFormat('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:2}).format(n||0);
-const ns   = s => (!s||s===''||s==='draft'||s==='pending') ? 'new' : s;
-const set  = (id,v) => { const e=document.getElementById(id); if(e) e.textContent=v; };
+window.applyCustomDate = function() {
+  var f = document.getElementById('dateFrom').value;
+  var t = document.getElementById('dateTo').value;
+  if (!f || !t) return;
+  customFrom = new Date(f + 'T00:00:00');
+  customTo   = new Date(t + 'T23:59:59');
+  isCustom   = true;
+  document.querySelectorAll('.period-tab').forEach(function(b) { b.classList.remove('active','custom-active'); });
+  var btn = document.querySelector('[data-days=custom]');
+  if (btn) btn.classList.add('custom-active');
+  render();
+};
 
-// ─── Period ──────────────────────────────────────────
+// ── Helpers ──────────────────────────────────────────
+function fmt(n) {
+  return new Intl.NumberFormat('ru-RU', {minimumFractionDigits:2, maximumFractionDigits:2}).format(n || 0);
+}
+function fmtS(n) {
+  return new Intl.NumberFormat('ru-RU', {minimumFractionDigits:2, maximumFractionDigits:2}).format(n || 0);
+}
+function ns(s) {
+  return (!s || s === '' || s === 'draft' || s === 'pending') ? 'new' : s;
+}
+function set(id, v) {
+  var e = document.getElementById(id);
+  if (e) e.textContent = v;
+}
+
+// ── Period ───────────────────────────────────────────
 function getRange() {
-  if (isCustom && customFrom && customTo) return {from:customFrom, to:customTo};
-  if (activeDays===0) return {from:new Date(0), to:new Date};
-  return {from:new Date(Date.now()-activeDays*86400000), to:new Date};
+  if (isCustom && customFrom && customTo) return {from: customFrom, to: customTo};
+  if (activeDays === 0) return {from: new Date(0), to: new Date()};
+  return {from: new Date(Date.now() - activeDays * 86400000), to: new Date()};
 }
 function getPrevRange() {
-  if (isCustom||activeDays===0) return null;
-  return {from:new Date(Date.now()-2*activeDays*86400000), to:new Date(Date.now()-activeDays*86400000)};
+  if (isCustom || activeDays === 0) return null;
+  return {
+    from: new Date(Date.now() - 2 * activeDays * 86400000),
+    to:   new Date(Date.now() - activeDays * 86400000)
+  };
 }
-function filterC(range) { return allCalcs.filter(c => { const d=new Date(c.created_at); return d>=range.from&&d<=range.to; }); }
-function filterA(calcs) { const ids=new Set(calcs.map(c=>c.id)); return allAssign.filter(a=>ids.has(a.calculation_id)); }
+function filterC(range) {
+  return allCalcs.filter(function(c) {
+    var d = new Date(c.created_at);
+    return d >= range.from && d <= range.to;
+  });
+}
+function filterA(calcs) {
+  var ids = new Set(calcs.map(function(c) { return c.id; }));
+  return allAssign.filter(function(a) { return ids.has(a.calculation_id); });
+}
 
-// ─── Bucket ──────────────────────────────────────────
+// ── Bucket helpers ───────────────────────────────────
+function customDays() {
+  if (!customFrom || !customTo) return 30;
+  return Math.round((customTo - customFrom) / 86400000);
+}
 function bKey(dateStr, days) {
-  const d = new Date(dateStr);
-  if (days!==0&&days<=14) return d.toISOString().split('T')[0];
-  if (days!==0&&days<=90) {
-    const day=d.getDay(), diff=d.getDate()-day+(day===0?-6:1);
+  var d = new Date(dateStr);
+  if (days !== 0 && days <= 14) return d.toISOString().split('T')[0];
+  if (days !== 0 && days <= 90) {
+    var day  = d.getDay();
+    var diff = d.getDate() - day + (day === 0 ? -6 : 1);
     return new Date(new Date(d).setDate(diff)).toISOString().split('T')[0];
   }
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-01`;
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-01';
 }
 function bLabel(key, days) {
-  const d=new Date(key);
-  if (days!==0&&days<=14) return d.toLocaleDateString('ru-RU',{day:'numeric',month:'short'});
-  if (days!==0&&days<=90) return d.toLocaleDateString('ru-RU',{day:'numeric',month:'short'});
-  return d.toLocaleDateString('ru-RU',{month:'short',year:'2-digit'});
-}
-function customDays() {
-  if (!customFrom||!customTo) return 30;
-  return Math.round((customTo-customFrom)/86400000);
+  var d = new Date(key);
+  if (days !== 0 && days <= 14) return d.toLocaleDateString('ru-RU', {day:'numeric', month:'short'});
+  if (days !== 0 && days <= 90) return d.toLocaleDateString('ru-RU', {day:'numeric', month:'short'});
+  return d.toLocaleDateString('ru-RU', {month:'short', year:'2-digit'});
 }
 
-// ─── KPI ─────────────────────────────────────────────
+// ── KPI ──────────────────────────────────────────────
 function renderKPI(cur, prev) {
-  const total   = cur.length;
-  const prevN   = prev ? prev.length : 0;
-  const deliv   = cur.filter(c=>ns(c.status)==='delivered');
-  const revenue = deliv.reduce((s,c)=>s+(c.final_price||c.total_price||0),0);
-  const prevDel = prev ? prev.filter(c=>ns(c.status)==='delivered') : [];
-  const prevRev = prevDel.reduce((s,c)=>s+(c.final_price||c.total_price||0),0);
-  const prices  = cur.map(c=>c.total_price||0).filter(p=>p>0);
-  const avg     = total>0 ? cur.reduce((s,c)=>s+(c.total_price||0),0)/total : 0;
-  const prevAvg = prevN>0 ? prev.reduce((s,c)=>s+(c.total_price||0),0)/prevN : 0;
-  const conv    = total>0 ? Math.round(deliv.length/total*100) : 0;
-  const prevConv= prevN>0 ? Math.round(prevDel.length/prevN*100) : 0;
-  const maxP    = prices.length ? Math.max(...prices) : 0;
-  const minP    = prices.length ? Math.min(...prices) : 0;
-  const maxCar  = cur.find(c=>(c.total_price||0)===maxP);
-  const minCar  = cur.find(c=>(c.total_price||0)===minP);
-  const active  = allCalcs.filter(c=>['in_progress','scheduled'].includes(ns(c.status))).length;
-  const fot     = filterA(cur).filter(a=>!a.is_admin_sale).reduce((s,a)=>s+(a.salary||0),0);
+  var total   = cur.length;
+  var prevN   = prev ? prev.length : 0;
+  var deliv   = cur.filter(function(c) { return ns(c.status) === 'delivered'; });
+  var revenue = deliv.reduce(function(s,c) { return s + (c.final_price || c.total_price || 0); }, 0);
+  var prevDel = prev ? prev.filter(function(c) { return ns(c.status) === 'delivered'; }) : [];
+  var prevRev = prevDel.reduce(function(s,c) { return s + (c.final_price || c.total_price || 0); }, 0);
+  var prices  = cur.map(function(c) { return c.total_price || 0; }).filter(function(p) { return p > 0; });
+  var avg     = total > 0 ? cur.reduce(function(s,c) { return s + (c.total_price || 0); }, 0) / total : 0;
+  var prevAvg = prevN > 0 ? prev.reduce(function(s,c) { return s + (c.total_price || 0); }, 0) / prevN : 0;
+  var conv    = total > 0 ? Math.round(deliv.length / total * 100) : 0;
+  var prevConv= prevN > 0 ? Math.round(prevDel.length / prevN * 100) : 0;
+  var maxP    = prices.length ? Math.max.apply(null, prices) : 0;
+  var minP    = prices.length ? Math.min.apply(null, prices) : 0;
+  var maxCar  = cur.find(function(c) { return (c.total_price || 0) === maxP; });
+  var minCar  = cur.find(function(c) { return (c.total_price || 0) === minP; });
+  var active  = allCalcs.filter(function(c) { return ['in_progress','scheduled'].indexOf(ns(c.status)) >= 0; }).length;
+  var fot     = filterA(cur).filter(function(a) { return !a.is_admin_sale; })
+                            .reduce(function(s,a) { return s + (a.salary || 0); }, 0);
 
-  set('kpiTotal',   total); setChg('kpiTotalChg',total,prevN);
-  set('kpiRevenue', fmtS(revenue)); setChg('kpiRevChg',revenue,prevRev);
-  set('kpiAvg',     fmtS(avg)); setChg('kpiAvgChg',avg,prevAvg);
-  set('kpiConv',    conv+'%'); setChg('kpiConvChg',conv,prevConv,true);
-  set('kpiMax',     prices.length ? fmtS(maxP) : '—'); set('kpiMaxSub', maxCar?.car_name||'—');
-  set('kpiMin',     prices.length ? fmtS(minP) : '—'); set('kpiMinSub', minCar?.car_name||'—');
-  set('kpiActive',  active); set('kpiActiveSub','сейчас в работе');
+  set('kpiTotal',   total);   setChg('kpiTotalChg', total, prevN);
+  set('kpiRevenue', fmtS(revenue)); setChg('kpiRevChg', revenue, prevRev);
+  set('kpiAvg',     fmtS(avg)); setChg('kpiAvgChg', avg, prevAvg);
+  set('kpiConv',    conv + '%'); setChg('kpiConvChg', conv, prevConv, true);
+  set('kpiMax',     prices.length ? fmtS(maxP) : '—');
+  set('kpiMaxSub',  maxCar ? maxCar.car_name || '—' : '—');
+  set('kpiMin',     prices.length ? fmtS(minP) : '—');
+  set('kpiMinSub',  minCar ? minCar.car_name || '—' : '—');
+  set('kpiActive',  active);
+  set('kpiActiveSub', 'сейчас в работе');
   set('kpiFOT',     fmtS(fot));
 }
+
 function setChg(id, cur, prev, isPct) {
-  const el=document.getElementById(id); if(!el) return;
-  if (!prev||activeDays===0||isCustom) { el.textContent=cur>0?'Данные есть':'Нет данных'; el.className='kpi-change flat'; return; }
-  const pct=Math.round((cur-prev)/(prev||1)*100);
-  el.textContent=(pct>=0?'↑ +':'↓ ')+Math.abs(pct)+'% к пред. периоду';
-  el.className='kpi-change '+(pct>=0?'up':'down');
+  var el = document.getElementById(id);
+  if (!el) return;
+  if (!prev || activeDays === 0 || isCustom) {
+    el.textContent = cur > 0 ? 'Данные есть' : 'Нет данных';
+    el.className   = 'kpi-change flat';
+    return;
+  }
+  var pct = Math.round((cur - prev) / (prev || 1) * 100);
+  el.textContent = (pct >= 0 ? '↑ +' : '↓ ') + Math.abs(pct) + '% к пред. периоду';
+  el.className   = 'kpi-change ' + (pct >= 0 ? 'up' : 'down');
 }
 
-// ─── Revenue chart ────────────────────────────────────
+// ── Revenue chart ─────────────────────────────────────
 function renderRevenueChart(cur) {
-  const ctx=document.getElementById('revenueChart'); if(!ctx) return;
-  if(charts.rev){charts.rev.destroy();charts.rev=null;}
-  const days = isCustom ? customDays() : activeDays;
-  const buckets={};
-  cur.forEach(c=>{
-    const k=bKey(c.created_at,days);
-    if(!buckets[k]) buckets[k]={rev:0,cnt:0};
-    buckets[k].rev+=(c.final_price||c.total_price||0);
+  var ctx = document.getElementById('revenueChart');
+  if (!ctx) return;
+  if (charts.rev) { charts.rev.destroy(); charts.rev = null; }
+  var days = isCustom ? customDays() : activeDays;
+  var buckets = {};
+  cur.forEach(function(c) {
+    var k = bKey(c.created_at, days);
+    if (!buckets[k]) buckets[k] = {rev:0, cnt:0};
+    buckets[k].rev += (c.final_price || c.total_price || 0);
     buckets[k].cnt++;
   });
-  const keys=Object.keys(buckets).sort();
-  if(!keys.length){ctx.parentElement.innerHTML='<div class="no-data">Нет данных для графика</div>';return;}
-  const labels=keys.map(k=>bLabel(k,days));
-  charts.rev=new Chart(ctx,{
-    type:'bar',
-    data:{labels,datasets:[
-      {label:'Выручка',data:keys.map(k=>buckets[k].rev),backgroundColor:'rgba(37,99,235,0.72)',borderRadius:5,yAxisID:'y',order:2},
-      {label:'Расчётов',data:keys.map(k=>buckets[k].cnt),type:'line',borderColor:'#f59e0b',backgroundColor:'rgba(245,158,11,0.08)',borderWidth:2.5,pointRadius:4,pointBackgroundColor:'#f59e0b',fill:false,yAxisID:'y2',order:1,tension:0.3}
-    ]},
-    options:{responsive:true,maintainAspectRatio:false,
-      interaction:{mode:'index',intersect:false},
-      plugins:{legend:{position:'top',labels:{font:{size:11},padding:10,boxWidth:14}},tooltip:{callbacks:{label:c=>c.dataset.label==='Выручка'?` ${fmt(c.parsed.y)}`:` ${c.parsed.y} шт.`}}},
-      scales:{y:{position:'left',grid:{color:'rgba(0,0,0,0.04)'},ticks:{callback:v=>{if(v>=1e6)return(v/1e6).toFixed(1)+'M';if(v>=1e3)return Math.round(v/1e3)+'K';return v;},font:{size:10}}},y2:{position:'right',grid:{display:false},ticks:{font:{size:10},precision:0}},x:{ticks:{font:{size:10},maxRotation:45}}}
+  var keys = Object.keys(buckets).sort();
+  if (!keys.length) { ctx.parentElement.innerHTML = '<div class="no-data">Нет данных для графика</div>'; return; }
+  var labels = keys.map(function(k) { return bLabel(k, days); });
+  charts.rev = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [
+        {label:'Выручка', data:keys.map(function(k){return buckets[k].rev;}), backgroundColor:'rgba(37,99,235,0.72)', borderRadius:5, yAxisID:'y', order:2},
+        {label:'Расчётов', data:keys.map(function(k){return buckets[k].cnt;}), type:'line', borderColor:'#f59e0b', backgroundColor:'rgba(245,158,11,0.08)', borderWidth:2.5, pointRadius:4, pointBackgroundColor:'#f59e0b', fill:false, yAxisID:'y2', order:1, tension:0.3}
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      interaction:{mode:'index', intersect:false},
+      plugins:{
+        legend:{position:'top', labels:{font:{size:11}, padding:10, boxWidth:14}},
+        tooltip:{callbacks:{label:function(c){return c.dataset.label==='Выручка' ? ' '+fmt(c.parsed.y) : ' '+c.parsed.y+' шт.';}}}
+      },
+      scales:{
+        y:{position:'left', grid:{color:'rgba(0,0,0,0.04)'}, ticks:{callback:function(v){if(v>=1e6)return(v/1e6).toFixed(1)+'M';if(v>=1e3)return Math.round(v/1e3)+'K';return v;}, font:{size:10}}},
+        y2:{position:'right', grid:{display:false}, ticks:{font:{size:10}, precision:0}},
+        x:{ticks:{font:{size:10}, maxRotation:45}}
+      }
     }
   });
 }
 
-// ─── Status donut ─────────────────────────────────────
+// ── Status donut ──────────────────────────────────────
 function renderStatusChart(cur) {
-  const wrap=document.getElementById('statusChartWrap'); if(!wrap) return;
-  if(charts.status){charts.status.destroy();charts.status=null;}
-  const COLORS={new:'#94a3b8',scheduled:'#f59e0b',in_progress:'#2563eb',done:'#7c3aed',delivered:'#059669',cancelled:'#ef4444'};
-  const S=window.STATUSES||{};
-  const g={};
-  cur.forEach(c=>{const s=ns(c.status); g[s]=(g[s]||0)+(c.total_price||0);});
-  const keys=Object.keys(g).filter(k=>g[k]>0);
-  if(!keys.length){wrap.innerHTML='<div class="no-data">Нет данных</div>';return;}
-  if(!wrap.querySelector('canvas')){const cv=document.createElement('canvas');cv.id='statusChart';wrap.innerHTML='';wrap.appendChild(cv);}
-  const ctx=wrap.querySelector('canvas');
-  charts.status=new Chart(ctx,{
-    type:'doughnut',
-    data:{labels:keys.map(k=>S[k]?.short||k),datasets:[{data:keys.map(k=>g[k]),backgroundColor:keys.map(k=>COLORS[k]||'#94a3b8'),borderWidth:2,borderColor:'#fff'}]},
-    options:{responsive:true,maintainAspectRatio:false,cutout:'62%',plugins:{legend:{position:'right',labels:{font:{size:11},padding:8,boxWidth:11}},tooltip:{callbacks:{label:c=>` ${fmt(c.parsed)}`}}}}
-  });
-}
-
-// ─── Monthly chart ────────────────────────────────────
-function renderMonthlyChart() {
-  const ctx=document.getElementById('monthlyChart'); if(!ctx) return;
-  if(charts.monthly){charts.monthly.destroy();charts.monthly=null;}
-  const b={};
-  allCalcs.forEach(c=>{
-    const d=new Date(c.created_at);
-    const k=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-    if(!b[k]) b[k]={cnt:0,all:0,done:0};
-    b[k].cnt++; b[k].all+=(c.total_price||0);
-    if(ns(c.status)==='delivered') b[k].done+=(c.final_price||c.total_price||0);
-  });
-  const keys=Object.keys(b).sort().slice(-18);
-  if(!keys.length){ctx.parentElement.innerHTML='<div class="no-data">Нет данных</div>';return;}
-  const labels=keys.map(k=>{const[y,m]=k.split('-');return new Date(+y,+m-1,1).toLocaleDateString('ru-RU',{month:'short',year:'2-digit'});});
-  charts.monthly=new Chart(ctx,{
-    type:'bar',
-    data:{labels,datasets:[
-      {label:'Расчёты (сумма)',data:keys.map(k=>b[k].all),backgroundColor:'rgba(37,99,235,0.18)',borderColor:'rgba(37,99,235,0.45)',borderWidth:1.5,borderRadius:4},
-      {label:'Выдано (факт)',data:keys.map(k=>b[k].done),backgroundColor:'rgba(5,150,105,0.72)',borderRadius:4},
-      {label:'Кол-во',type:'line',data:keys.map(k=>b[k].cnt),borderColor:'#f59e0b',borderWidth:2.5,pointRadius:3,pointBackgroundColor:'#f59e0b',fill:false,yAxisID:'y2',tension:0.3}
-    ]},
-    options:{responsive:true,maintainAspectRatio:false,
-      interaction:{mode:'index',intersect:false},
-      plugins:{legend:{position:'top',labels:{font:{size:11},padding:10,boxWidth:13}},tooltip:{callbacks:{label:c=>c.dataset.label==='Кол-во'?` ${c.parsed.y} шт.`:` ${fmt(c.parsed.y)}`}}},
-      scales:{y:{position:'left',grid:{color:'rgba(0,0,0,0.04)'},ticks:{callback:v=>{if(v>=1e6)return(v/1e6).toFixed(1)+'M';if(v>=1e3)return Math.round(v/1e3)+'K';return v;},font:{size:10}}},y2:{position:'right',grid:{display:false},ticks:{font:{size:10},precision:0}},x:{ticks:{font:{size:10}}}}
+  var wrap = document.getElementById('statusChartWrap');
+  if (!wrap) return;
+  if (charts.status) { charts.status.destroy(); charts.status = null; }
+  var COLORS = {new:'#94a3b8', scheduled:'#f59e0b', in_progress:'#2563eb', done:'#7c3aed', delivered:'#059669', cancelled:'#ef4444'};
+  var S = window.STATUSES || {};
+  var g = {};
+  cur.forEach(function(c) { var s = ns(c.status); g[s] = (g[s] || 0) + (c.total_price || 0); });
+  var keys = Object.keys(g).filter(function(k) { return g[k] > 0; });
+  if (!keys.length) { wrap.innerHTML = '<div class="no-data">Нет данных</div>'; return; }
+  if (!wrap.querySelector('canvas')) {
+    var cv = document.createElement('canvas'); cv.id = 'statusChart';
+    wrap.innerHTML = ''; wrap.appendChild(cv);
+  }
+  var ctx = wrap.querySelector('canvas');
+  charts.status = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: keys.map(function(k) { return S[k] ? S[k].short : k; }),
+      datasets: [{data:keys.map(function(k){return g[k];}), backgroundColor:keys.map(function(k){return COLORS[k]||'#94a3b8';}), borderWidth:2, borderColor:'#fff'}]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false, cutout:'62%',
+      plugins:{
+        legend:{position:'right', labels:{font:{size:11}, padding:8, boxWidth:11}},
+        tooltip:{callbacks:{label:function(c){return ' '+fmt(c.parsed);}}}
+      }
     }
   });
 }
 
-// ─── Funnel ───────────────────────────────────────────
+// ── Monthly chart ─────────────────────────────────────
+function renderMonthlyChart() {
+  var ctx = document.getElementById('monthlyChart');
+  if (!ctx) return;
+  if (charts.monthly) { charts.monthly.destroy(); charts.monthly = null; }
+  var b = {};
+  allCalcs.forEach(function(c) {
+    var d = new Date(c.created_at);
+    var k = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+    if (!b[k]) b[k] = {cnt:0, all:0, done:0};
+    b[k].cnt++; b[k].all += (c.total_price || 0);
+    if (ns(c.status) === 'delivered') b[k].done += (c.final_price || c.total_price || 0);
+  });
+  var keys = Object.keys(b).sort().slice(-18);
+  if (!keys.length) { ctx.parentElement.innerHTML = '<div class="no-data">Нет данных</div>'; return; }
+  var labels = keys.map(function(k) {
+    var parts = k.split('-');
+    return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, 1).toLocaleDateString('ru-RU', {month:'short', year:'2-digit'});
+  });
+  charts.monthly = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [
+        {label:'Расчёты (сумма)', data:keys.map(function(k){return b[k].all;}), backgroundColor:'rgba(37,99,235,0.18)', borderColor:'rgba(37,99,235,0.45)', borderWidth:1.5, borderRadius:4},
+        {label:'Выдано (факт)',   data:keys.map(function(k){return b[k].done;}), backgroundColor:'rgba(5,150,105,0.72)', borderRadius:4},
+        {label:'Кол-во', type:'line', data:keys.map(function(k){return b[k].cnt;}), borderColor:'#f59e0b', borderWidth:2.5, pointRadius:3, pointBackgroundColor:'#f59e0b', fill:false, yAxisID:'y2', tension:0.3}
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      interaction:{mode:'index', intersect:false},
+      plugins:{
+        legend:{position:'top', labels:{font:{size:11}, padding:10, boxWidth:13}},
+        tooltip:{callbacks:{label:function(c){return c.dataset.label==='Кол-во' ? ' '+c.parsed.y+' шт.' : ' '+fmt(c.parsed.y);}}}
+      },
+      scales:{
+        y:{position:'left', grid:{color:'rgba(0,0,0,0.04)'}, ticks:{callback:function(v){if(v>=1e6)return(v/1e6).toFixed(1)+'M';if(v>=1e3)return Math.round(v/1e3)+'K';return v;}, font:{size:10}}},
+        y2:{position:'right', grid:{display:false}, ticks:{font:{size:10}, precision:0}},
+        x:{ticks:{font:{size:10}}}
+      }
+    }
+  });
+}
+
+// ── Funnel ────────────────────────────────────────────
 function renderFunnel(cur) {
-  const c=document.getElementById('funnelList'); if(!c) return;
-  const S=window.STATUSES||{};
-  const ORDER=['new','scheduled','in_progress','done','delivered','cancelled'];
-  const COLORS={new:'#94a3b8',scheduled:'#f59e0b',in_progress:'#2563eb',done:'#7c3aed',delivered:'#059669',cancelled:'#ef4444'};
-  const counts={};
-  cur.forEach(x=>{const s=ns(x.status);counts[s]=(counts[s]||0)+1;});
-  const total=cur.length, maxC=Math.max(...Object.values(counts),1);
-  if(!total){c.innerHTML='<div class="no-data">Нет данных</div>';return;}
-  c.innerHTML=ORDER.map(k=>{
-    const cnt=counts[k]||0, pct=Math.round(cnt/total*100), w=Math.round(cnt/maxC*100);
-    return `<div class="f-row"><div class="f-lbl">${S[k]?.label||k}</div><div class="f-bar-wrap"><div class="f-bar" style="width:${w}%;background:${COLORS[k]}"></div></div><div class="f-cnt">${cnt}</div><div class="f-pct">${pct}%</div></div>`;
+  var c = document.getElementById('funnelList');
+  if (!c) return;
+  var S = window.STATUSES || {};
+  var ORDER = ['new','scheduled','in_progress','done','delivered','cancelled'];
+  var COLORS = {new:'#94a3b8', scheduled:'#f59e0b', in_progress:'#2563eb', done:'#7c3aed', delivered:'#059669', cancelled:'#ef4444'};
+  var counts = {};
+  cur.forEach(function(x) { var s = ns(x.status); counts[s] = (counts[s] || 0) + 1; });
+  var total = cur.length;
+  var vals = ORDER.map(function(k) { return counts[k] || 0; });
+  var maxC = Math.max.apply(null, vals.concat([1]));
+  if (!total) { c.innerHTML = '<div class="no-data">Нет данных</div>'; return; }
+  c.innerHTML = ORDER.map(function(k) {
+    var cnt = counts[k] || 0;
+    var pct = Math.round(cnt / total * 100);
+    var w   = Math.round(cnt / maxC * 100);
+    var lbl = S[k] ? S[k].label : k;
+    return '<div class="f-row"><div class="f-lbl">' + lbl + '</div><div class="f-bar-wrap"><div class="f-bar" style="width:' + w + '%;background:' + COLORS[k] + '"></div></div><div class="f-cnt">' + cnt + '</div><div class="f-pct">' + pct + '%</div></div>';
   }).join('');
 }
 
-// ─── Top cars ─────────────────────────────────────────
+// ── Top cars ──────────────────────────────────────────
 function renderTopCars(cur) {
-  const w=document.getElementById('topCarsWrap'); if(!w) return;
-  const b={};
-  cur.forEach(c=>{const br=(c.car_name||'—').split(' ')[0];if(!b[br])b[br]={cnt:0,sum:0};b[br].cnt++;b[br].sum+=(c.total_price||0);});
-  const sorted=Object.entries(b).sort((a,x)=>x[1].sum-a[1].sum).slice(0,8);
-  if(!sorted.length){w.innerHTML='<div class="no-data">Нет данных</div>';return;}
-  w.innerHTML=`<table class="dt"><thead><tr><th>#</th><th>Марка</th><th>Шт.</th><th class="r">Сумма</th></tr></thead><tbody>
-    ${sorted.map(([br,d],i)=>`<tr><td><span class="rn ${i<3?'r'+(i+1):''}">${i+1}</span></td><td>${br}</td><td>${d.cnt}</td><td class="r">${fmt(d.sum)}</td></tr>`).join('')}
-  </tbody></table>`;
+  var w = document.getElementById('topCarsWrap');
+  if (!w) return;
+  var b = {};
+  cur.forEach(function(c) {
+    var br = (c.car_name || '—').split(' ')[0];
+    if (!b[br]) b[br] = {cnt:0, sum:0};
+    b[br].cnt++; b[br].sum += (c.total_price || 0);
+  });
+  var sorted = Object.keys(b).map(function(k) { return [k, b[k]]; })
+    .sort(function(a, x) { return x[1].sum - a[1].sum; }).slice(0, 8);
+  if (!sorted.length) { w.innerHTML = '<div class="no-data">Нет данных</div>'; return; }
+  w.innerHTML = '<table class="dt"><thead><tr><th>#</th><th>Марка</th><th>Шт.</th><th class="r">Сумма</th></tr></thead><tbody>' +
+    sorted.map(function(item, i) {
+      return '<tr><td><span class="rn ' + (i < 3 ? 'r'+(i+1) : '') + '">' + (i+1) + '</span></td><td>' + item[0] + '</td><td>' + item[1].cnt + '</td><td class="r">' + fmt(item[1].sum) + '</td></tr>';
+    }).join('') + '</tbody></table>';
 }
 
-// ─── Top checks ───────────────────────────────────────
+// ── Top checks ────────────────────────────────────────
 function renderTopChecks(cur, asgn) {
-  const cc=document.getElementById('checkCards'), tb=document.getElementById('checkTbody');
-  if(!cc||!tb) return;
-  const priced=cur.filter(c=>(c.total_price||0)>0);
-  if(!priced.length){cc.innerHTML='<div class="no-data" style="grid-column:1/-1">Нет данных</div>';tb.innerHTML='';return;}
+  var cc = document.getElementById('checkCards');
+  var tb = document.getElementById('checkTbody');
+  if (!cc || !tb) return;
+  var priced = cur.filter(function(c) { return (c.total_price || 0) > 0; });
+  if (!priced.length) {
+    cc.innerHTML = '<div class="no-data" style="grid-column:1/-1">Нет данных</div>';
+    tb.innerHTML = '';
+    return;
+  }
+  var sorted = priced.slice().sort(function(a,b) { return (b.total_price||0) - (a.total_price||0); });
+  var maxC   = sorted[0];
+  var minC   = sorted[sorted.length - 1];
+  var avg    = priced.reduce(function(s,c) { return s + (c.total_price||0); }, 0) / priced.length;
+  var median = sorted[Math.floor(sorted.length / 2)];
 
-  const sorted=[...priced].sort((a,b)=>(b.total_price||0)-(a.total_price||0));
-  const maxC=sorted[0], minC=sorted[sorted.length-1];
-  const avg=priced.reduce((s,c)=>s+(c.total_price||0),0)/priced.length;
-  const median=sorted[Math.floor(sorted.length/2)];
-
-  // Рентабельность
-  const salByCalc={};
-  asgn.forEach(a=>{if(!a.is_admin_sale) salByCalc[a.calculation_id]=(salByCalc[a.calculation_id]||0)+(a.salary||0);});
-  let bestM=null,bestMPct=-Infinity;
-  priced.forEach(c=>{
-    const p=c.final_price||c.total_price||0, sal=salByCalc[c.id]||0;
-    if(p>0&&sal>0){const pct=(p-sal)/p*100;if(pct>bestMPct){bestMPct=pct;bestM=c;}}
+  var salByCalc = {};
+  asgn.forEach(function(a) {
+    if (!a.is_admin_sale) salByCalc[a.calculation_id] = (salByCalc[a.calculation_id] || 0) + (a.salary || 0);
+  });
+  var bestM = null, bestMPct = -Infinity;
+  priced.forEach(function(c) {
+    var p = c.final_price || c.total_price || 0;
+    var sal = salByCalc[c.id] || 0;
+    if (p > 0 && sal > 0) { var pct = (p - sal) / p * 100; if (pct > bestMPct) { bestMPct = pct; bestM = c; } }
   });
 
-  cc.innerHTML=[
-    {icon:'🏆',label:'Самый большой чек',val:fmt(maxC.total_price||0)+'',sub:maxC.car_name||'—'},
-    {icon:'🐣',label:'Самый маленький чек',val:fmt(minC.total_price||0)+'',sub:minC.car_name||'—'},
-    {icon:'📐',label:'Медианный чек',val:fmt(median.total_price||0)+'',sub:sorted.length+' расчётов'},
+  var cards = [
+    {icon:'🏆', label:'Самый большой чек', val:fmt(maxC.total_price||0), sub:maxC.car_name||'—'},
+    {icon:'🐣', label:'Самый маленький чек', val:fmt(minC.total_price||0), sub:minC.car_name||'—'},
+    {icon:'📐', label:'Медианный чек', val:fmt(median.total_price||0), sub:sorted.length+' расчётов'},
     bestM
-      ?{icon:'💎',label:'Лучшая рентабельность',val:Math.round(bestMPct)+'%',sub:bestM.car_name||'—'}
-      :{icon:'💎',label:'Лучшая рентабельность',val:'—',sub:'назначьте зарплаты для расчёта'},
-  ].map(x=>`<div class="cc"><div class="cc-icon">${x.icon}</div><div class="cc-label">${x.label}</div><div class="cc-val">${x.val}</div><div class="cc-sub">${x.sub}</div></div>`).join('');
+      ? {icon:'💎', label:'Лучшая рентабельность', val:Math.round(bestMPct)+'%', sub:bestM.car_name||'—'}
+      : {icon:'💎', label:'Лучшая рентабельность', val:'—', sub:'назначьте зарплаты для расчёта'}
+  ];
+  cc.innerHTML = cards.map(function(x) {
+    return '<div class="cc"><div class="cc-icon">'+x.icon+'</div><div class="cc-label">'+x.label+'</div><div class="cc-val">'+x.val+'</div><div class="cc-sub">'+x.sub+'</div></div>';
+  }).join('');
 
-  const S=window.STATUSES||{};
-  const sCls=s=>s==='delivered'?'bg-g':s==='in_progress'?'bg-b':s==='cancelled'?'bg-r':'bg-y';
-  tb.innerHTML=sorted.slice(0,10).map((c,i)=>`<tr>
-    <td><span class="rn ${i<3?'r'+(i+1):''}">${i+1}</span></td>
-    <td>${c.car_name||'—'}</td>
-    <td>${new Date(c.created_at).toLocaleDateString('ru-RU',{day:'numeric',month:'short'})}</td>
-    <td><span class="badge ${sCls(ns(c.status))}">${S[ns(c.status)]?.short||c.status}</span></td>
-    <td class="r">${fmt(c.total_price||0)}</td>
-  </tr>`).join('');
+  var S = window.STATUSES || {};
+  function sCls(s) { return s==='delivered'?'bg-g':s==='in_progress'?'bg-b':s==='cancelled'?'bg-r':'bg-y'; }
+  tb.innerHTML = sorted.slice(0, 10).map(function(c, i) {
+    var st = ns(c.status);
+    var stLabel = S[st] ? S[st].short : st;
+    return '<tr><td><span class="rn '+(i<3?'r'+(i+1):'')+'">'+( i+1)+'</span></td><td>'+(c.car_name||'—')+'</td><td>'+new Date(c.created_at).toLocaleDateString('ru-RU',{day:'numeric',month:'short'})+'</td><td><span class="badge '+sCls(st)+'">'+stLabel+'</span></td><td class="r">'+fmt(c.total_price||0)+'</td></tr>';
+  }).join('');
 }
 
-// ─── Employees ────────────────────────────────────────
+// ── Employees ─────────────────────────────────────────
 function renderEmployees(cur, asgn) {
-  const w=document.getElementById('employeesContent'); if(!w) return;
-  const wa=asgn.filter(a=>!a.is_admin_sale);
-  if(!wa.length){w.innerHTML='<div class="no-data">Нет данных о назначениях сотрудников за период</div>';return;}
+  var w = document.getElementById('employeesContent');
+  if (!w) return;
+  var wa = asgn.filter(function(a) { return !a.is_admin_sale; });
+  if (!wa.length) { w.innerHTML = '<div class="no-data">Нет данных о назначениях сотрудников за период</div>'; return; }
 
-  const stats={};
-  wa.forEach(a=>{
-    const n=a.executor_name||'Неизвестный';
-    if(!stats[n]) stats[n]={name:n,salary:0,jobs:0,cars:new Set};
-    stats[n].salary+=(a.salary||0);
+  var stats = {};
+  wa.forEach(function(a) {
+    var n = a.executor_name || 'Неизвестный';
+    if (!stats[n]) stats[n] = {name:n, salary:0, jobs:0, cars:new Set()};
+    stats[n].salary += (a.salary || 0);
     stats[n].jobs++;
     stats[n].cars.add(a.calculation_id);
   });
-  const priceById={};
-  cur.forEach(c=>{priceById[c.id]=c.final_price||c.total_price||0;});
+  var priceById = {};
+  cur.forEach(function(c) { priceById[c.id] = c.final_price || c.total_price || 0; });
 
-  Object.values(stats).forEach(e=>{
-    e.revenue=0; e.cars.forEach(id=>{e.revenue+=(priceById[id]||0);}); e.carCnt=e.cars.size;
-    e.salShare=e.revenue>0?Math.round(e.salary/e.revenue*100):null;
-    e.score=e.salary>0?+(e.revenue/e.salary).toFixed(1):0;
+  var arr = Object.values(stats);
+  arr.forEach(function(e) {
+    e.revenue = 0;
+    e.cars.forEach(function(id) { e.revenue += (priceById[id] || 0); });
+    e.carCnt  = e.cars.size;
+    e.salShare = e.revenue > 0 ? Math.round(e.salary / e.revenue * 100) : null;
+    e.score    = e.salary > 0 ? parseFloat((e.revenue / e.salary).toFixed(1)) : 0;
   });
-  const sorted=Object.values(stats).sort((a,b)=>b.score-a.score);
-  const maxR=Math.max(...sorted.map(e=>e.revenue),1);
+  var sorted = arr.sort(function(a,b) { return b.score - a.score; });
+  var maxR = Math.max.apply(null, sorted.map(function(e){return e.revenue;}).concat([1]));
 
-  const stars=s=>s>=10?'⭐⭐⭐':s>=5?'⭐⭐':'⭐';
-  const shCls=p=>p===null?'':p<20?'bg-g':p<35?'bg-y':'bg-r';
+  function stars(s) { return s >= 10 ? '⭐⭐⭐' : s >= 5 ? '⭐⭐' : '⭐'; }
+  function shCls(p) { return p === null ? '' : p < 20 ? 'bg-g' : p < 35 ? 'bg-y' : 'bg-r'; }
 
-  w.innerHTML=`<div style="overflow-x:auto"><table class="dt">
-    <thead><tr><th>#</th><th>Сотрудник</th><th>Работ</th><th>Машин</th><th class="r">Зарплата</th><th class="r">Выручка*</th><th class="r" title="Выручка ÷ Зарплата">Коэф.</th><th>ЗП/выручка</th><th>Рейтинг</th></tr></thead>
-    <tbody>
-    ${sorted.map((e,i)=>`<tr>
-      <td><span class="rn ${i<3?'r'+(i+1):''}">${i+1}</span></td>
-      <td style="font-weight:700">${e.name}</td>
-      <td>${e.jobs}</td><td>${e.carCnt}</td>
-      <td class="r">${fmt(e.salary)}</td>
-      <td class="r">${fmt(e.revenue)}</td>
-      <td class="r">${e.score>0?e.score+'x':'—'}</td>
-      <td>
-        ${e.salShare!==null?`<span class="badge ${shCls(e.salShare)}">${e.salShare}%</span>`:'<span style="color:#94a3b8;font-size:0.7rem">нет данных</span>'}
-        <div class="eff-bar"><div class="eff-fill ${e.salShare!==null&&e.salShare>35?'bad':''}" style="width:${Math.round(e.revenue/maxR*100)}%"></div></div>
-      </td>
-      <td style="font-size:1rem">${stars(e.score)}</td>
-    </tr>`).join('')}
-    </tbody>
-  </table></div>
-  <p style="font-size:0.72rem;color:#94a3b8;margin-top:10px">* Выручка по машинам, в работе над которыми участвовал сотрудник. Коэф. = выручка ÷ зарплата. ЗП/выручка: зелёный &lt;20%, жёлтый &lt;35%, красный ≥35%.</p>`;
+  w.innerHTML = '<div style="overflow-x:auto"><table class="dt"><thead><tr><th>#</th><th>Сотрудник</th><th>Работ</th><th>Машин</th><th class="r">Зарплата</th><th class="r">Выручка*</th><th class="r">Коэф.</th><th>ЗП/выручка</th><th>Рейтинг</th></tr></thead><tbody>' +
+    sorted.map(function(e, i) {
+      return '<tr><td><span class="rn '+(i<3?'r'+(i+1):'')+'">'+(i+1)+'</span></td>' +
+        '<td style="font-weight:700">'+e.name+'</td><td>'+e.jobs+'</td><td>'+e.carCnt+'</td>' +
+        '<td class="r">'+fmt(e.salary)+'</td><td class="r">'+fmt(e.revenue)+'</td>' +
+        '<td class="r">'+(e.score > 0 ? e.score+'x' : '—')+'</td>' +
+        '<td>'+(e.salShare !== null ? '<span class="badge '+shCls(e.salShare)+'">'+e.salShare+'%</span>' : '<span style="color:#94a3b8;font-size:0.7rem">нет данных</span>') +
+        '<div class="eff-bar"><div class="eff-fill '+(e.salShare!==null&&e.salShare>35?'bad':'')+'" style="width:'+Math.round(e.revenue/maxR*100)+'%"></div></div></td>' +
+        '<td style="font-size:1rem">'+stars(e.score)+'</td></tr>';
+    }).join('') +
+    '</tbody></table></div><p style="font-size:0.72rem;color:#94a3b8;margin-top:10px">* Выручка по машинам, в работе над которыми участвовал сотрудник.</p>';
 }
 
-// ─── Period label ─────────────────────────────────────
+// ── Period label ──────────────────────────────────────
 function buildLabel(cur) {
-  let range;
-  if (isCustom) range=`${customFrom.toLocaleDateString('ru-RU')} — ${customTo.toLocaleDateString('ru-RU')}`;
-  else { const L={0:'Всё время',7:'7 дней',30:'30 дней',90:'3 месяца',365:'Год'}; range=L[activeDays]||`${activeDays} дней`; }
-  set('periodLabel', range+' · '+cur.length+' расчётов');
+  var range;
+  if (isCustom) {
+    range = customFrom.toLocaleDateString('ru-RU') + ' — ' + customTo.toLocaleDateString('ru-RU');
+  } else {
+    var L = {0:'Всё время', 7:'7 дней', 30:'30 дней', 90:'3 месяца', 365:'Год'};
+    range = L[activeDays] || (activeDays + ' дней');
+  }
+  set('periodLabel', range + ' · ' + cur.length + ' расчётов');
 }
 
-// ─── Main render() ──────────────────────────────────────
+// ── Main render ───────────────────────────────────────
 function render() {
-  const range=getRange(), prev=getPrevRange();
-  const cur=filterC(range), prevC=prev?filterC(prev):[];
-  const asgn=filterA(cur);
+  var range = getRange();
+  var prev  = getPrevRange();
+  var cur   = filterC(range);
+  var prevC = prev ? filterC(prev) : [];
+  var asgn  = filterA(cur);
   buildLabel(cur);
-  renderKPI(cur,prevC);
+  renderKPI(cur, prevC);
   renderRevenueChart(cur);
   renderStatusChart(cur);
   renderFunnel(cur);
   renderTopCars(cur);
-  renderTopChecks(cur,asgn);
+  renderTopChecks(cur, asgn);
   renderMonthlyChart();
-  renderEmployees(cur,asgn);
+  renderEmployees(cur, asgn);
 }
 
-// ─── Custom date ──────────────────────────────────────
-window.applyCustomDate = function() {
-  const f=document.getElementById('dateFrom')?.value, t=document.getElementById('dateTo')?.value;
-  if(!f||!t) return;
-  customFrom=new Date(f+'T00:00:00'); customTo=new Date(t+'T23:59:59'); isCustom=true;
-  document.querySelectorAll('.period-tab').forEach(b=>b.classList.remove('active','custom-active'));
-  document.querySelector('[data-days=custom]')?.classList.add('custom-active');
-  render();
-};
-
-// ─── Init ─────────────────────────────────────────────
+// ── Init ──────────────────────────────────────────────
 async function init() {
   initNav();
   loadWidgetSettings();
 
-  const {data:{session}} = await sb.auth.getSession();
-  if(!session){window.location.href='welcome.html';return;}
+  var sessionData = await sb.auth.getSession();
+  var session = sessionData.data.session;
+  if (!session) { window.location.href = 'welcome.html'; return; }
 
-  const {data:member} = await sb.from('studio_members').select('studio_id').eq('user_id',session.user.id).eq('is_active',true).single();
-  if(!member){document.querySelector('.container').innerHTML='<div class="loading-state">⚠️ Студия не найдена</div>';return;}
-  studioId=member.studio_id; window._studioId=studioId;
+  var memberData = await sb.from('studio_members')
+    .select('studio_id')
+    .eq('user_id', session.user.id)
+    .eq('is_active', true)
+    .single();
+  var member = memberData.data;
+  if (!member) {
+    document.querySelector('.container').innerHTML = '<div class="loading-state">⚠️ Студия не найдена</div>';
+    return;
+  }
+  studioId = member.studio_id;
+  window._studioId = studioId;
 
-  const subStatus=await checkSubscription(studioId);
-  if(subStatus==='expired'||subStatus==='none'){showPaywall(subStatus==='expired');return;}
+  var subStatus = await checkSubscription(studioId);
+  if (subStatus === 'expired' || subStatus === 'none') { showPaywall(subStatus === 'expired'); return; }
 
-  const [{data:calcs,error:ce},{data:assigns}] = await Promise.all([
-    sb.from('calculations').select('id,car_name,total_price,final_price,status,created_at').eq('studio_id',studioId).order('created_at',{ascending:true}),
-    sb.from('work_assignments').select('calculation_id,executor_name,executor_id,salary,is_admin_sale').eq('studio_id',studioId)
+  var results = await Promise.all([
+    sb.from('calculations')
+      .select('id,car_name,total_price,final_price,status,created_at')
+      .eq('studio_id', studioId)
+      .order('created_at', {ascending: true}),
+    sb.from('work_assignments')
+      .select('calculation_id,executor_name,executor_id,salary,is_admin_sale')
+      .eq('studio_id', studioId)
   ]);
+  var calcsResult  = results[0];
+  var assignResult = results[1];
 
-  if(ce){document.querySelector('.container').innerHTML=`<div class="loading-state">❌ Ошибка: ${ce.message}</div>`;return;}
-  allCalcs=calcs||[]; allAssign=assigns||[];
+  if (calcsResult.error) {
+    document.querySelector('.container').innerHTML = '<div class="loading-state">❌ Ошибка: ' + calcsResult.error.message + '</div>';
+    return;
+  }
+  allCalcs  = calcsResult.data  || [];
+  allAssign = assignResult.data || [];
   render();
 
-  // Period tabs
-  document.querySelectorAll('.period-tab[data-days]').forEach(btn=>{
-    btn.addEventListener('click', () =>{
-      const d=btn.dataset.days;
-      if(d==='custom'){document.getElementById('datePickerWrap').classList.toggle('show');return;}
-      isCustom=false; activeDays=parseInt(d);
+  // Period tab clicks
+  document.querySelectorAll('.period-tab[data-days]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var d = btn.dataset.days;
+      if (d === 'custom') {
+        document.getElementById('datePickerWrap').classList.toggle('show');
+        return;
+      }
+      isCustom   = false;
+      activeDays = parseInt(d);
       document.getElementById('datePickerWrap').classList.remove('show');
-      document.querySelectorAll('.period-tab').forEach(b=>b.classList.remove('active','custom-active'));
+      document.querySelectorAll('.period-tab').forEach(function(b) { b.classList.remove('active','custom-active'); });
       btn.classList.add('active');
       render();
     });
   });
 
-  const today=new Date, month=new Date(Date.now()-30*86400000);
-  document.getElementById('dateTo').value=today.toISOString().split('T')[0];
-  document.getElementById('dateFrom').value=month.toISOString().split('T')[0];
+  // Set default date picker values
+  var today = new Date();
+  var month = new Date(Date.now() - 30 * 86400000);
+  document.getElementById('dateTo').value   = today.toISOString().split('T')[0];
+  document.getElementById('dateFrom').value = month.toISOString().split('T')[0];
 }
 
-document.addEventListener('DOMContentLoaded',init);
-});
+document.addEventListener('DOMContentLoaded', init);
+
+})();
 </script>
 </body>
 </html>
