@@ -391,15 +391,15 @@ let studio         = null;  // studios row
 let logoBase64     = null;  // current logo as base64 string or null
 
 // ── Auth ─────────────────────────────────────────────
-async function checkAuth {
-  const { data: { session } } = await sb.auth.getSession();
+async function checkAuth() {
+  const { data: { session } } = await sb().auth.getSession();
   if (!session) { window.location.href = 'welcome.html'; return false; }
   currentUser = session.user;
   return true;
 }
 
-async function loadStudio {
-  const { data: member, error } = await sb
+async function loadStudio() {
+  const { data: member, error } = await sb()
     .from('studio_members')
     .select('studio_id, role')
     .eq('user_id', currentUser.id)
@@ -408,7 +408,7 @@ async function loadStudio {
   if (error || !member) { showError('Студия не найдена'); return false; }
   currentProfile = member;
 
-  const { data: studioData, error: stErr } = await sb
+  const { data: studioData, error: stErr } = await sb()
     .from('studios')
     .select('*')
     .eq('id', member.studio_id)
@@ -419,7 +419,7 @@ async function loadStudio {
 }
 
 // ── Render ────────────────────────────────────────────
-async function renderAll {
+async function renderAll() {
   const s = studio;
   const cfg = s.settings || {};
   const isOwner = currentProfile.role === 'owner';
@@ -607,11 +607,11 @@ async function renderAll {
   }
 
   // Загружаем участников
-  await loadMembers;
+  await loadMembers();
 }
 
 // ── KP Preview live update ────────────────────────────
-function updateKPPreview {
+function updateKPPreview() {
   const phone   = document.getElementById('kpPhone')?.value || '';
   const website = document.getElementById('kpWebsite')?.value || '';
   const el = document.getElementById('kpContactPreview');
@@ -648,7 +648,7 @@ window.removeLogo = function {
   updateKPLogoPreview;
 };
 
-function updateKPLogoPreview {
+function updateKPLogoPreview() {
   const preview = document.getElementById('kpPreviewBox');
   if (!preview) return;
   const ph = preview.querySelector('.kp-header-preview');
@@ -665,8 +665,8 @@ function updateKPLogoPreview {
 }
 
 // ── Members ───────────────────────────────────────────
-async function loadMembers {
-  const { data: members, error } = await sb
+async function loadMembers() {
+  const { data: members, error } = await sb()
     .from('studio_members')
     .select('id, role, is_active, user_id')
     .eq('studio_id', studio.id)
@@ -734,8 +734,8 @@ const POST_COLORS = [
 
 window._postsData = []; // глобально, чтобы inline-хендлеры видели
 
-async function loadPosts {
-  const { data, error } = await sb
+async function loadPosts() {
+  const { data, error } = await sb()
     .from('posts')
     .select('*')
     .eq('studio_id', studio.id)
@@ -750,7 +750,7 @@ async function loadPosts {
   renderPosts();
 }
 
-function syncPostsFromDOM {
+function syncPostsFromDOM() {
   // Считываем текущие значения из DOM перед перерисовкой
   const rows = document.querySelectorAll('#postsList .post-row');
   rows.forEach(row => {
@@ -765,7 +765,7 @@ function syncPostsFromDOM {
   });
 }
 
-function renderPosts {
+function renderPosts() {
   const list = document.getElementById('postsList');
   if (!list) return;
   if (!window._postsData.length) {
@@ -813,7 +813,7 @@ window._deletePost = async function(idx) {
   const p = window._postsData[idx];
   if (!p._new && p.id) {
     if (!confirm(`Удалить пост «${p.name || 'без названия'}»?`)) return;
-    await sb.from('posts').update({ is_active: false }).eq('id', p.id);
+    await sb().from('posts').update({ is_active: false }).eq('id', p.id);
   }
   window._postsData.splice(idx, 1);
   renderPosts();
@@ -844,10 +844,10 @@ window.savePosts = async function() {
       is_active: true,
     };
     if (p._new) {
-      const { error } = await sb.from('posts').insert(payload);
+      const { error } = await sb().from('posts').insert(payload);
       if (error) { hasError = true; console.error(error); }
     } else if (p.id) {
-      const { error } = await sb.from('posts').update(payload).eq('id', p.id);
+      const { error } = await sb().from('posts').update(payload).eq('id', p.id);
       if (error) { hasError = true; console.error(error); }
     }
   }
@@ -857,7 +857,7 @@ window.savePosts = async function() {
     alert('❌ Ошибка при сохранении. Возможно, таблица posts ещё не создана в БД.');
   } else {
     toast('✅ Посты сохранены');
-    await loadPosts;
+    await loadPosts();
   }
 };
 
@@ -877,7 +877,7 @@ window.saveMain = async function() {
     phone, city, website, contact_email: email, address
   };
 
-  const { error } = await sb
+  const { error } = await sb()
     .from('studios')
     .update({ name, settings: newSettings })
     .eq('id', studio.id);
@@ -902,7 +902,7 @@ window.saveBranding = async function() {
     kp_website: kpWebsite
   };
 
-  const { error } = await sb
+  const { error } = await sb()
     .from('studios')
     .update({ settings: newSettings })
     .eq('id', studio.id);
@@ -916,7 +916,7 @@ window.saveBranding = async function() {
 // ── Logout ────────────────────────────────────────────
 window.logout = async function() {
   if (!confirm('Выйти из аккаунта?')) return;
-  await sb.auth.signOut();
+  await sb().auth.signOut();
   window.location.href = 'welcome.html';
 };
 
@@ -939,12 +939,12 @@ function showError(msg) {
 }
 
 // ── Init ──────────────────────────────────────────────
-async function init {
+async function init() {
   initNav({ actionHref: 'dashboard.html', actionLabel: '← Панель' });
-  if (!await checkAuth) return;
-  if (!await loadStudio) return;
+  if (!await checkAuth()) return;
+  if (!await loadStudio()) return;
   await renderAll();
-  await loadPosts;
+  await loadPosts();
 }
 
 init();
