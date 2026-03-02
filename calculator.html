@@ -2793,7 +2793,7 @@ async function loadCalculationFromUrl() {
     
     if (error || !calculation) {
       console.error('Failed to load calculation:', error);
-      alert('❌ Не удалось загрузить расчёт');
+      console.error('❌ Не удалось загрузить расчёт');
       return;
     }
     
@@ -2827,7 +2827,7 @@ async function loadCalculationFromUrl() {
           const yearInput = q('#year');
           if (yearInput) yearInput.value = formData.car.year;
         }
-      }, 100);
+      }, 150);
     }
     
     // Заполняем пакет "Полная защита"
@@ -2902,15 +2902,54 @@ async function loadCalculationFromUrl() {
       if (formData.markups.misc) q('#miscMarkup').value = formData.markups.misc;
     }
     
+    // Восстанавливаем динамические строки из services_detail
+    if (formData.services_detail) {
+      // arm, det, gl, misc — структура details: [name, mat, mot]
+      [['arm', '#armDyn'], ['det', '#detDyn'], ['gl', '#glDyn'], ['misc', '#miscDyn']].forEach(([key, sel]) => {
+        const items = formData.services_detail[key === 'misc' ? 'ms' : key] || [];
+        items.forEach(d => {
+          addDynRow(sel, key);
+          const rows = qa(sel + ' .service-item');
+          const row = rows[rows.length - 1];
+          if (!row) return;
+          const nameInput = row.querySelector('input[type=text]');
+          if (nameInput) nameInput.value = d.name || '';
+          const matInput = row.querySelector('.' + key + '-mat');
+          const motInput = row.querySelector('.' + key + '-mot');
+          if (matInput) matInput.value = d.mat || 0;
+          if (motInput) motInput.value = d.mot || 0;
+        });
+      });
+
+      // wrap — структура details: [name, m, pr, mat, mot, itemMarkup]
+      const wrapItems = formData.services_detail.wrap || [];
+      // Фильтруем только динамические (не PPF/ПВХ стандартные)
+      const staticWrapNames = ['PPF прозрачный вкруг','PPF цветной вкруг','PPF матовый вкруг','ПВХ полная оклейка'];
+      wrapItems.filter(d => !staticWrapNames.some(s => d.name && d.name.startsWith(s.split(' ')[0]))).forEach(d => {
+        addDynRow('#wrapDyn', 'wrap');
+        const rows = qa('#wrapDyn .service-item');
+        const row = rows[rows.length - 1];
+        if (!row) return;
+        const nameInput = row.querySelector('input[type=text]');
+        if (nameInput) nameInput.value = d.name || '';
+        const nums = row.querySelectorAll('input[type=number]');
+        if (nums[0]) nums[0].value = d.m || 0;    // метры
+        if (nums[1]) nums[1].value = d.pr || 0;   // цена за метр
+        if (nums[2]) nums[2].value = d.mot || 0;  // мотивация
+      });
+
+      // Инициализируем тоглы у всех новых строк
+      initServiceToggles();
+    }
+
     // Пересчитываем всё
     setTimeout(() => {
       renderAll();
       console.log('✅ Calculation loaded and rendered');
-    }, 200);
+    }, 400);
     
   } catch (e) {
     console.error('Error loading calculation:', e);
-    alert('❌ Ошибка загрузки расчёта');
   }
 }
 
