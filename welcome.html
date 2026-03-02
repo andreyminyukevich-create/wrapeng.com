@@ -1,199 +1,518 @@
-/**
- * nav.js — Единая навигация CRM
- * Светлая тема, без переключателя.
- * Включает проверку подписки студии.
- */
-(function  {
-  'use strict';
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Keep1R CRM — Вход</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root {
+  --font: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
+  --bg:           #eef2f9;
+  --surface:      #ffffff;
+  --border:       rgba(15,23,42,0.09);
+  --text:         #0f172a;
+  --text-muted:   #64748b;
+  --text-dim:     #94a3b8;
+  --primary:      #2563eb;
+  --primary-dark: #1d4ed8;
+  --primary-bg:   rgba(37,99,235,0.07);
+  --danger:       #dc2626;
+  --radius:       16px;
+  --radius-sm:    10px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  min-height: 100%;
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+body {
+  display: flex;
+  flex-direction: column;
+}
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0;
+  background:
+    radial-gradient(ellipse 900px 600px at 20% -10%, rgba(37,99,235,0.07) 0%, transparent 55%),
+    radial-gradient(ellipse 700px 500px at 80% 110%, rgba(37,99,235,0.05) 0%, transparent 55%);
+  pointer-events: none;
+}
 
-  document.documentElement.setAttribute('data-theme', 'light');
+/* ── страница ── */
+.page {
+  position: relative; z-index: 1;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px 24px;
+}
 
-  // ── Единый справочник статусов ─────────────────────────────────
-  // Используйте window.STATUSES везде вместо хардкода меток.
-  // Ключи соответствуют полю status в таблице calculations.
-  window.STATUSES = {
-    new:         { label: 'Расчёт произведён',      short: 'Расчёт',    icon: '📋', cls: 'status-new' },
-    scheduled:   { label: 'Назначена дата и время', short: 'Дата',      icon: '📅', cls: 'status-scheduled' },
-    in_progress: { label: 'Принято в работу',       short: 'В работе',  icon: '🔧', cls: 'status-in_progress' },
-    done:        { label: 'Завершено',               short: 'Готово',   icon: '✅', cls: 'status-done' },
-    delivered:   { label: 'Выдано',                  short: 'Выдано',   icon: '🚗', cls: 'status-delivered' },
-    cancelled:   { label: 'Отказ',                   short: 'Отказ',    icon: '❌', cls: 'status-cancelled' },
-  };
+/* бренд */
+.brand-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+.brand-name {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--primary);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.brand-tagline {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.4px;
+  line-height: 1.25;
+  margin-bottom: 7px;
+}
+.brand-sub {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.55;
+}
 
+/* фичи */
+.features-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  width: 100%;
+  max-width: 440px;
+}
+.feat {
+  flex: 1;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 11px 6px;
+  text-align: center;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.feat-icon  { font-size: 1.1rem; margin-bottom: 4px; }
+.feat-label { font-size: 0.62rem; font-weight: 600; color: var(--text-muted); line-height: 1.3; }
 
-  var ADMIN_ID = 'c5db87ec-8e4a-4c48-bad3-5747513224d9';
+/* карточка */
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px 28px 24px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05), 0 12px 40px rgba(0,0,0,0.08);
+}
 
-  var PAGES = [
-    { href: 'dashboard.html',   icon: '🏠', label: 'Главная' },
-    { href: 'board.html',       icon: '📋', label: 'Доска' },
-    { href: 'executors.html',   icon: '👥', label: 'Сотрудники' },
-    { href: 'payouts.html',     icon: '💰', label: 'Зарплаты' },
-    { href: 'analytics.html',   icon: '📊', label: 'Аналитика' },
-    { href: 'calendar.html',    icon: '🗓', label: 'Календарь' },
-    { href: 'inventory.html',   icon: '📦', label: 'Закупки',    soon: true },
-    { href: 'settings.html',    icon: '⚙️', label: 'Настройки' },
-  ];
+/* табы */
+.auth-tabs {
+  display: flex;
+  gap: 3px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 3px;
+  margin-bottom: 22px;
+}
+.auth-tab {
+  flex: 1;
+  padding: 9px 6px;
+  border-radius: 8px;
+  border: none;
+  font-family: var(--font);
+  font-size: 0.81rem;
+  font-weight: 700;
+  cursor: pointer;
+  background: transparent;
+  color: var(--text-muted);
+  transition: all 0.15s;
+}
+.auth-tab.active {
+  background: var(--primary);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(37,99,235,0.25);
+}
 
-  function currentPage {
-    return window.location.pathname.split('/').pop || 'dashboard.html';
-  }
+/* экраны */
+.screen { display: none; }
+.screen.active { display: block; animation: fadeUp 0.2s ease; }
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(7px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.screen-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 2px;
+  letter-spacing: -0.2px;
+}
+.screen-sub {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-bottom: 18px;
+  line-height: 1.5;
+}
 
-  window.initNav = function (config) {
-    config = config || {};
-    var actionHref  = config.actionHref  !== undefined ? config.actionHref  : 'calculator.html';
-    var actionLabel = config.actionLabel !== undefined ? config.actionLabel : '➕ Новый расчёт';
-    var hideAction  = config.hideAction  || false;
-    var page = currentPage;
+/* форма */
+.form-group { margin-bottom: 10px; }
+.form-group label {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+  letter-spacing: 0.02em;
+}
+.form-group input {
+  width: 100%;
+  padding: 10px 13px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font);
+  font-size: 16px;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+  -webkit-appearance: none;
+}
+.form-group input::placeholder { color: var(--text-dim); }
+.form-group input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.10);
+  background: var(--surface);
+}
 
-    var links = PAGES.map(function (p) {
-      var isActive = p.href === page;
-      var cls = 'nav-link' + (isActive ? ' active' : '') + (p.soon ? ' nav-soon' : '');
-      var badge = p.soon ? ' <span class="nav-soon-badge">скоро</span>' : '';
-      return '<a href="' + (p.soon ? '#' : p.href) + '" class="' + cls + '">'
-        + p.icon + ' ' + p.label + badge + '</a>';
-    }).join('');
+/* кнопки */
+.btn {
+  width: 100%;
+  padding: 12px;
+  border-radius: var(--radius-sm);
+  border: none;
+  font-family: var(--font);
+  font-size: 0.87rem;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 7px;
+  transition: all 0.15s;
+  display: block;
+  text-align: center;
+  text-decoration: none;
+  -webkit-appearance: none;
+}
+.btn:disabled { opacity: 0.55; cursor: not-allowed; }
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+  box-shadow: 0 2px 10px rgba(37,99,235,0.22);
+}
+.btn-primary:hover:not(:disabled) { background: var(--primary-dark); transform: translateY(-1px); }
+.btn-primary:active:not(:disabled) { transform: translateY(0); }
+.btn-outline {
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+.btn-outline:hover:not(:disabled) { background: var(--bg); color: var(--text); }
 
-    var actionBtn = hideAction ? '' :
-      '<a href="' + actionHref + '" class="btn-nav-action">' + actionLabel + '</a>' +
-      '<button class="btn-nav-book" id="btnNavBook" onclick="window._openNavBooking">📅 Записать авто</button>';
-    var logoutBtn = '<button class="btn-nav-logout" onclick="(async=>{const s=window._crmSb||window.supabase.createClient(\'https://hdghijgrrnzmntistdvw.supabase.co\',\'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkZ2hpamdycm56bW50aXN0ZHZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMzMyNzksImV4cCI6MjA3NTYwOTI3OX0.D9EDTmVrFRVp0B8_5tCJM29gbFdtadsom0Ihsf4uQ8Q\');await s.auth.signOut;window.location.href=\'welcome.html\';})" style="background:transparent;border:1.5px solid rgba(124,58,237,0.3);color:#7c6fa0;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:0.82rem;font-weight:700;font-family:inherit;transition:all 0.2s" onmouseover="this.style.borderColor=\'#7c3aed\';this.style.color=\'#7c3aed\'" onmouseout="this.style.borderColor=\'rgba(124,58,237,0.3)\';this.style.color=\'#7c6fa0\'">Выйти →</button>';
+/* ошибки */
+.error-msg {
+  display: none;
+  background: rgba(220,38,38,0.07);
+  border: 1px solid rgba(220,38,38,0.18);
+  color: var(--danger);
+  border-radius: var(--radius-sm);
+  padding: 9px 12px;
+  font-size: 0.77rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
 
-    // Проверяем текущего пользователя для показа пункта Админ
-    var SUPABASE_URL = 'https://hdghijgrrnzmntistdvw.supabase.co';
-    var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkZ2hpamdycm56bW50aXN0ZHZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMzMyNzksImV4cCI6MjA3NTYwOTI3OX0.D9EDTmVrFRVp0B8_5tCJM29gbFdtadsom0Ihsf4uQ8Q';
-    var _sb = window._crmSb || window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    _sb.auth.getSession().then(function(res) {
-      var session = res.data && res.data.session;
-      if (session && session.user && session.user.id === ADMIN_ID) {
-        var adminLink = document.createElement('a');
-        adminLink.href = 'admin.html';
-        adminLink.className = 'nav-link' + (page === 'admin.html' ? ' active' : '');
-        adminLink.textContent = '⚙️ Админ';
-        adminLink.style.color = '#7c3aed';
-        var navLinks = document.querySelector('#navTopBar .nav-links');
-        if (navLinks) navLinks.appendChild(adminLink);
-      }
+.auth-footer {
+  text-align: center;
+  margin-top: 14px;
+  font-size: 0.76rem;
+  color: var(--text-muted);
+}
+.auth-footer a { color: var(--primary); text-decoration: none; font-weight: 700; }
+.auth-footer a:hover { text-decoration: underline; }
+
+.consent-note {
+  font-size: 0.67rem;
+  color: var(--text-dim);
+  text-align: center;
+  margin-top: 12px;
+  line-height: 1.55;
+}
+.consent-note a { color: var(--text-muted); text-decoration: underline; }
+
+/* статус */
+.status-box {
+  border-radius: var(--radius-sm);
+  padding: 18px;
+  text-align: center;
+  margin-bottom: 14px;
+  border: 1px solid var(--border);
+}
+.status-box.purple { background: rgba(124,58,237,0.06); border-color: rgba(124,58,237,0.15); }
+.status-box.amber  { background: rgba(217,119,6,0.07); border-color: rgba(217,119,6,0.18); }
+.status-icon  { font-size: 1.9rem; margin-bottom: 7px; }
+.status-title { font-size: 0.92rem; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+.status-desc  { font-size: 0.78rem; color: var(--text-muted); line-height: 1.5; }
+
+.creds-box {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 11px 14px;
+  margin-bottom: 12px;
+}
+.creds-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.79rem;
+}
+.creds-row:last-child { border-bottom: none; }
+.creds-label { color: var(--text-muted); font-weight: 600; }
+.creds-value { color: var(--text); font-weight: 700; }
+
+/* мобилка */
+@media (max-width: 480px) {
+  .page { padding: 32px 16px 16px; justify-content: flex-start; }
+  .brand-tagline { font-size: 1.35rem; }
+  .features-row { display: none; }
+  .auth-card { padding: 22px 18px 20px; }
+}
+@media (min-width: 481px) {
+  .features-row { display: flex; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="brand-header">
+    <div class="brand-name">Keep1R CRM</div>
+    <div class="brand-tagline">Управление детейлинг-студией</div>
+    <div class="brand-sub">Расчёты, заказы, сотрудники и зарплаты<br>в одном инструменте</div>
+  </div>
+
+  <div class="features-row">
+    <div class="feat"><div class="feat-icon">🧮</div><div class="feat-label">Калькулятор оклейки</div></div>
+    <div class="feat"><div class="feat-icon">🔧</div><div class="feat-label">Доска заказов</div></div>
+    <div class="feat"><div class="feat-icon">👥</div><div class="feat-label">Сотрудники</div></div>
+    <div class="feat"><div class="feat-icon">💰</div><div class="feat-label">Зарплаты</div></div>
+    <div class="feat"><div class="feat-icon">📄</div><div class="feat-label">PDF-экспорт</div></div>
+  </div>
+
+  <div class="auth-card">
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="showTab('login')">Войти</button>
+      <button class="auth-tab" onclick="showTab('register')">Заявка на доступ</button>
+    </div>
+
+    <div id="screen-login" class="screen active">
+      <div class="screen-title">Добро пожаловать 👋</div>
+      <div class="screen-sub">Введите данные для входа</div>
+      <div class="error-msg" id="login-error"></div>
+      <form id="login-form">
+        <div class="form-group"><label>Email</label><input type="email" id="login-email" placeholder="studio@example.com" required autocomplete="email"></div>
+        <div class="form-group"><label>Пароль</label><input type="password" id="login-password" placeholder="••••••••" required autocomplete="current-password"></div>
+        <button type="submit" class="btn btn-primary" id="login-btn">Войти →</button>
+        <button type="button" class="btn btn-outline" onclick="showTab('forgot')">Забыл пароль</button>
+      </form>
+      <div class="auth-footer">Нет доступа? <a href="#" onclick="showTab('register')">Оставить заявку</a></div>
+    </div>
+
+    <div id="screen-register" class="screen">
+      <div class="screen-title">Заявка на доступ 📋</div>
+      <div class="screen-sub">Свяжемся в течение 24 часов и откроем доступ</div>
+      <div class="error-msg" id="reg-error"></div>
+      <form id="reg-form">
+        <div class="form-group"><label>Название студии</label><input type="text" id="reg-studio" placeholder="Студия оклейки" required></div>
+        <div class="form-group"><label>Город</label><input type="text" id="reg-city" placeholder="Город" required></div>
+        <div class="form-group"><label>Телефон</label><input type="tel" id="reg-phone" placeholder="+7 900 000-00-00" required autocomplete="tel"></div>
+        <div class="form-group"><label>Email</label><input type="email" id="reg-email" placeholder="studio@example.com" required autocomplete="email"></div>
+        <div class="form-group"><label>Пароль</label><input type="password" id="reg-password" placeholder="Минимум 6 символов" required autocomplete="new-password" minlength="6"></div>
+        <button type="submit" class="btn btn-primary" id="reg-btn">Отправить заявку →</button>
+      </form>
+      <div class="consent-note">
+        Отправляя заявку, вы соглашаетесь с
+        <a href="user-agreement.html" target="_blank">Пользовательским соглашением</a>,
+        <a href="privacy-policy.html" target="_blank">Политикой конфиденциальности</a>
+        и <a href="consent.html" target="_blank">Согласием на обработку ПДн</a>
+      </div>
+      <div class="auth-footer">Есть доступ? <a href="#" onclick="showTab('login')">Войти</a></div>
+    </div>
+
+    <div id="screen-forgot" class="screen">
+      <div class="screen-title">Сброс пароля 🔑</div>
+      <div class="screen-sub">Отправим ссылку на ваш email</div>
+      <div class="error-msg" id="forgot-error"></div>
+      <form id="forgot-form">
+        <div class="form-group"><label>Email</label><input type="email" id="forgot-email" placeholder="studio@example.com" required></div>
+        <button type="submit" class="btn btn-primary" id="forgot-btn">Отправить письмо →</button>
+        <button type="button" class="btn btn-outline" onclick="showTab('login')">← Назад</button>
+      </form>
+    </div>
+
+    <div id="screen-success" class="screen">
+      <div class="status-box purple">
+        <div class="status-icon">📬</div>
+        <div class="status-title">Заявка отправлена!</div>
+        <div class="status-desc">Свяжемся по телефону или email<br>в течение <strong>24 часов</strong></div>
+      </div>
+      <div class="creds-box">
+        <div class="creds-row"><span class="creds-label">Email</span><span class="creds-value" id="success-email">—</span></div>
+        <div class="creds-row"><span class="creds-label">Телефон</span><span class="creds-value" id="success-phone">—</span></div>
+      </div>
+      <a href="https://t.me/PPFKeep1R" target="_blank" class="btn btn-primary">✈️ Написать в Telegram</a>
+      <div class="auth-footer"><a href="#" onclick="showTab('login')">← Вернуться ко входу</a></div>
+    </div>
+
+    <div id="screen-pending" class="screen">
+      <div class="status-box amber">
+        <div class="status-icon">⏳</div>
+        <div class="status-title">Заявка на рассмотрении</div>
+        <div class="status-desc">Обычно до 24 часов. Хотите ускорить?</div>
+      </div>
+      <a href="https://t.me/PPFKeep1R" target="_blank" class="btn btn-primary" style="margin-bottom:8px">✈️ Написать в Telegram</a>
+      <button class="btn btn-outline" onclick="logoutPending()">Выйти</button>
+    </div>
+  </div>
+</div>
+
+<script src="footer.js"></script>
+<script>
+(function() {
+'use strict';
+const SB_URL = 'https://hdghijgrrnzmntistdvw.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkZ2hpamdycm56bW50aXN0ZHZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMzMyNzksImV4cCI6MjA3NTYwOTI3OX0.D9EDTmVrFRVp0B8_5tCJM29gbFdtadsom0Ihsf4uQ8Q';
+const sb = window.supabase.createClient(SB_URL, SB_KEY, {auth:{persistSession:true,autoRefreshToken:true}});
+window._crmSb = sb;
+
+window.showTab = function(tab) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+  const map = {login:'screen-login',register:'screen-register',forgot:'screen-forgot',success:'screen-success',pending:'screen-pending'};
+  document.getElementById(map[tab]||'screen-login')?.classList.add('active');
+  if (tab==='login')    document.querySelectorAll('.auth-tab')[0]?.classList.add('active');
+  if (tab==='register') document.querySelectorAll('.auth-tab')[1]?.classList.add('active');
+};
+
+function err(id, msg) { const e=document.getElementById(id); if(e){e.textContent=msg;e.style.display='block';} }
+function clr(id) { const e=document.getElementById(id); if(e) e.style.display='none'; }
+
+async function checkSession() {
+  const {data:{session}} = await sb.auth.getSession();
+  if (!session) return;
+  const {data:m} = await sb.from('studio_members').select('studio_id,studios(subscription_tier)').eq('user_id',session.user.id).eq('is_active',true).single();
+  if (!m) return;
+  if (m.studios?.subscription_tier === 'pending') { showTab('pending'); return; }
+  window.location.href = 'dashboard.html';
+}
+
+document.getElementById('login-form').addEventListener('submit', async e => {
+  e.preventDefault(); clr('login-error');
+  const btn=document.getElementById('login-btn'); btn.disabled=true; btn.textContent='Входим...';
+  try {
+    const {data,error} = await sb.auth.signInWithPassword({
+      email: document.getElementById('login-email').value.trim(),
+      password: document.getElementById('login-password').value
     });
-
-    var html =
-      '<div id="navTopBar">' +
-        '<a href="dashboard.html" class="nav-brand">Keep1R CRM</a>' +
-        '<nav class="nav-links">' + links + '</nav>' +
-        '<div class="nav-right">' + actionBtn + logoutBtn + '</div>' +
-      '</div>';
-
-    var wrap = document.createElement('div');
-    wrap.innerHTML = html;
-    document.body.insertBefore(wrap.firstElementChild, document.body.firstChild);
-  };
-
-  // ── Кнопка «Записать авто» — динамическая загрузка попапа ──────
-  window._openNavBooking = async function() {
-    // Получаем studioId — сначала из глобальных переменных, потом из БД
-    var sid = window._boardStudioId || window._studioId || null;
-
-    if (!sid) {
-      var _sb = window._crmSb;
-      if (_sb) {
-        var sess = await _sb.auth.getSession();
-        var uid  = sess && sess.data && sess.data.session && sess.data.session.user && sess.data.session.user.id;
-        if (uid) {
-          var res = await _sb.from('studio_members')
-            .select('studio_id')
-            .eq('user_id', uid)
-            .eq('is_active', true)
-            .single();
-          if (res.data) {
-            sid = res.data.studio_id;
-            window._studioId = sid; // кэшируем
-          }
-        }
-      }
-    }
-
-    function doOpen {
-      BookingPopup.open({
-        studioId: sid,
-        onSaved: function { location.reload; }
-      });
-    }
-
-    if (window.BookingPopup) {
-      doOpen;
-      return;
-    }
-
-    // Загружаем booking-popup.js если ещё не загружен
-    var s = document.createElement('script');
-    s.src = 'booking-popup.js';
-    s.onload = function { doOpen; };
-    s.onerror = function { alert('Не удалось загрузить модуль записи.'); };
-    document.head.appendChild(s);
-  };
-
-  // ── Проверка подписки ──────────────────────────────────────────
-  // Возвращает: 'active' | 'trial' | 'expired' | 'none'
-  window.checkSubscription = async function(studioId) {
-    var sb = window._crmSb;
-    if (!sb) return 'none';
-
-    var res = await sb
-      .from('studios')
-      .select('subscription_tier, subscription_expires_at')
-      .eq('id', studioId)
-      .single();
-
-    if (res.error || !res.data) return 'none';
-
-    var tier    = res.data.subscription_tier;
-    var expires = res.data.subscription_expires_at;
-    var now     = new Date;
-
-    if (tier === 'active') {
-      return (!expires || new Date(expires) > now) ? 'active' : 'expired';
-    }
-    if (tier === 'trial') {
-      return (expires && new Date(expires) > now) ? 'trial' : 'expired';
-    }
-    return 'expired';
-  };
-
-  // ── Paywall оверлей ────────────────────────────────────────────
-  window.showPaywall = function(trialExpired) {
-    // Блюрим весь контент кроме nav
-    Array.from(document.body.children).forEach(function(el) {
-      if (el.id !== 'navTopBar') el.style.filter = 'blur(6px)';
-    });
-
-    var icon = trialExpired ? '⏰' : '🔒';
-    var title = trialExpired ? 'Пробный период завершён' : 'Требуется подписка';
-    var desc  = trialExpired
-      ? '72 часа бесплатного доступа истекли. Оформите подписку, чтобы продолжить работу.'
-      : 'Для доступа к CRM необходимо оформить подписку.';
-
-    var overlay = document.createElement('div');
-    overlay.innerHTML =
-      '<div style="position:fixed;inset:0;z-index:9000;display:flex;align-items:center;justify-content:center;' +
-      'background:rgba(240,244,251,0.75);backdrop-filter:blur(8px);padding:20px;font-family:-apple-system,BlinkMacSystemFont,sans-serif">' +
-        '<div style="background:#fff;border-radius:20px;box-shadow:0 16px 64px rgba(37,99,235,0.15);' +
-        'padding:44px 36px;max-width:400px;width:100%;text-align:center">' +
-          '<div style="font-size:3rem;margin-bottom:14px">' + icon + '</div>' +
-          '<div style="font-size:1.35rem;font-weight:800;color:#0f172a;margin-bottom:10px">' + title + '</div>' +
-          '<div style="font-size:0.88rem;color:#64748b;line-height:1.6;margin-bottom:24px">' + desc + '</div>' +
-          '<div style="background:#f8faff;border:1px solid rgba(37,99,235,0.1);border-radius:12px;padding:18px;margin-bottom:22px">' +
-            '<div style="font-size:0.72rem;color:#94a3b8;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px">Тариф CRM</div>' +
-            '<div style="font-size:2rem;font-weight:800;color:#0f172a;line-height:1">2 900' +
-              '<span style="font-size:0.95rem;font-weight:500;color:#64748b">/мес</span></div>' +
-            '<div style="font-size:0.8rem;color:#94a3b8;margin-top:6px">Сотрудники · Зарплаты · Аналитика · Заказы</div>' +
-          '</div>' +
-          '<a href="https://t.me/keeper_wrap" target="_blank" ' +
-          'style="display:block;background:#2563eb;color:#fff;padding:13px;border-radius:10px;' +
-          'font-weight:700;font-size:0.92rem;text-decoration:none;margin-bottom:10px;' +
-          'box-shadow:0 4px 14px rgba(37,99,235,0.3)">Написать для оформления</a>' +
-          '<a href="calculator.html" style="font-size:0.83rem;color:#94a3b8;text-decoration:none">Вернуться к калькулятору →</a>' +
-        '</div>' +
-      '</div>';
-    document.body.appendChild(overlay.firstElementChild);
-  };
-
+    if (error) throw error;
+    const {data:m} = await sb.from('studio_members').select('studios(subscription_tier)').eq('user_id',data.user.id).eq('is_active',true).single();
+    if (m?.studios?.subscription_tier === 'pending') { showTab('pending'); }
+    else window.location.href = 'dashboard.html';
+  } catch(e) {
+    const msgs={'Invalid login credentials':'Неверный email или пароль','Email not confirmed':'Подтвердите email'};
+    err('login-error', msgs[e.message]||e.message);
+  } finally { btn.disabled=false; btn.textContent='Войти →'; }
 });
+
+document.getElementById('reg-form').addEventListener('submit', async e => {
+  e.preventDefault(); clr('reg-error');
+  const btn=document.getElementById('reg-btn'); btn.disabled=true; btn.textContent='Отправляем...';
+  const studio=document.getElementById('reg-studio').value.trim();
+  const city=document.getElementById('reg-city').value.trim();
+  const phone=document.getElementById('reg-phone').value.trim();
+  const email=document.getElementById('reg-email').value.trim();
+  const pass=document.getElementById('reg-password').value;
+  if (phone.length < 10) { err('reg-error','Укажите корректный номер телефона'); btn.disabled=false; btn.textContent='Отправить заявку →'; return; }
+  try {
+    const {data:auth,error:ae} = await sb.auth.signUp({email,password:pass});
+    if (ae) throw ae;
+    const uid = auth.user?.id;
+    if (!uid) throw new Error('Ошибка создания аккаунта. Попробуйте ещё раз.');
+    if (auth.user?.identities?.length === 0) throw new Error('Этот email уже зарегистрирован. Войдите или сбросьте пароль.');
+    const refCode = Math.random().toString(36).substring(2,10).toUpperCase();
+    const {data:studioData,error:se} = await sb.from('studios').insert({
+      name: studio, owner_id: uid, subscription_tier: 'pending',
+      referral_code: refCode, settings: {phone, city, contact_email: email}
+    }).select('id').single();
+    if (se) {
+      const { error: reqErr } = await sb.from('access_requests').insert({studio_name:studio,city,phone,email,supabase_user_id:uid,status:'new'});
+      if (reqErr) { err('reg-error','Ошибка: '+(se.message||'попробуйте ещё раз')); await sb.auth.signOut(); btn.disabled=false; btn.textContent='Отправить заявку →'; return; }
+      await sb.auth.signOut();
+      document.getElementById('success-email').textContent=email;
+      document.getElementById('success-phone').textContent=phone;
+      showTab('success'); return;
+    }
+    await sb.from('studio_members').insert({studio_id:studioData.id,user_id:uid,role:'owner',is_active:true});
+    await sb.auth.signOut();
+    document.getElementById('success-email').textContent=email;
+    document.getElementById('success-phone').textContent=phone;
+    showTab('success');
+  } catch(e) {
+    err('reg-error', e.message==='User already registered'?'Этот email уже зарегистрирован':e.message);
+  } finally { btn.disabled=false; btn.textContent='Отправить заявку →'; }
+});
+
+document.getElementById('forgot-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const btn=document.getElementById('forgot-btn'); btn.disabled=true; btn.textContent='Отправляем...';
+  try {
+    const {error}=await sb.auth.resetPasswordForEmail(document.getElementById('forgot-email').value.trim(),{redirectTo:location.origin+'/welcome.html'});
+    if (error) throw error;
+    alert('✅ Письмо отправлено!'); showTab('login');
+  } catch(e) { err('forgot-error',e.message); }
+  finally { btn.disabled=false; btn.textContent='Отправить письмо →'; }
+});
+
+window.logoutPending = async function() { await sb.auth.signOut(); showTab('login'); };
+checkSession();
+
+// Автопрефикс +7 для телефона
+(function(){
+  const ph = document.getElementById('reg-phone');
+  if (!ph) return;
+  ph.addEventListener('focus', function(){
+    if (!this.value) this.value = '+7 ';
+  });
+  ph.addEventListener('input', function(){
+    if (!this.value.startsWith('+7')) {
+      const digits = this.value.replace(/\D/g,'');
+      this.value = '+7 ' + (digits.startsWith('7') ? digits.slice(1) : digits);
+    }
+  });
+  ph.addEventListener('keydown', function(e){
+    if ((e.key === 'Backspace' || e.key === 'Delete') && this.value === '+7 ') {
+      e.preventDefault();
+    }
+  });
+})();
+})();
+</script>
+</body>
+</html>
