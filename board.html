@@ -491,7 +491,7 @@ html, body {
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('modalInfo')">Закрыть</button>
-      <button class="btn btn-primary" onclick="openCalcFromInfo">📂 Открыть расчёт</button>
+      <button class="btn btn-primary" onclick="openCalcFromInfo()">📂 Открыть расчёт</button>
     </div>
   </div>
 </div>
@@ -534,7 +534,7 @@ html, body {
 
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('modalDone')">Отмена</button>
-      <button class="btn" style="background:var(--purple);color:#fff" onclick="saveDone">✅ Завершить</button>
+      <button class="btn" style="background:var(--purple);color:#fff" onclick="saveDone()">✅ Завершить</button>
     </div>
   </div>
 </div>
@@ -562,7 +562,7 @@ html, body {
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('modalDeliver')">Отмена</button>
-      <button class="btn" style="background:var(--success);color:#fff" onclick="saveDeliver">🚗 Выдать</button>
+      <button class="btn" style="background:var(--success);color:#fff" onclick="saveDeliver()">🚗 Выдать</button>
     </div>
   </div>
 </div>
@@ -570,7 +570,7 @@ html, body {
 <script src="footer.js"></script>
 <script src="booking-popup.js"></script>
 <script>
-(function {
+(function() {
 'use strict';
 
 const SUPABASE_URL = 'https://hdghijgrrnzmntistdvw.supabase.co';
@@ -595,7 +595,7 @@ const COLUMNS = Object.entries(window.STATUSES || {
 }).map(([key, s]) => ({ key, label: s.label, icon: s.icon }));
 
 function fmt(n) {
-  return new Intl.NumberFormat('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:2}).format(n || 0);
+  return new Intl.NumberFormat('ru-RU', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(n || 0);
 }
 
 function fmtDate(d) {
@@ -603,14 +603,14 @@ function fmtDate(d) {
   return new Date(d).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
 }
 
-async function checkAuth {
+async function checkAuth() {
   const { data: { session } } = await sb.auth.getSession();
   if (!session) { window.location.href = 'welcome.html'; return false; }
   currentUser = session.user;
   return true;
 }
 
-async function getStudio {
+async function getStudio() {
   const { data, error } = await sb
     .from('studio_members')
     .select('studio_id, role')
@@ -628,7 +628,7 @@ function normalizeStatus(status) {
   return status;
 }
 
-async function loadBoard {
+async function loadBoard() {
   const { data, error } = await sb
     .from('calculations')
     .select('id, car_name, total_price, final_price, status, checkin_date, checkin_time, schedule_note, work_assigned, created_at')
@@ -652,10 +652,10 @@ async function loadBoard {
     });
   }
 
-  renderBoard;
+  renderBoard();
 }
 
-function renderBoard {
+function renderBoard() {
   const board = document.getElementById('board');
 
   let html = '';
@@ -756,42 +756,39 @@ function renderCard(calc, status) {
   let actions = '';
   if (status === 'new') {
     actions = `
-      <button class="card-btn card-btn-secondary" onclick="event.stopPropagation;openCalc('${calc.id}')">📂 Открыть</button>
-      <button class="card-btn card-btn-primary" onclick="event.stopPropagation;openBookingPopup('${calc.id}','${escStr(calc.car_name)}',${calc.final_price||calc.total_price||0})">📅 Записать</button>
-      <button class="card-btn card-btn-cancel" onclick="event.stopPropagation;cancelOrder('${calc.id}','${escStr(calc.car_name)}')">❌ Отказ</button>
+      <button class="card-btn card-btn-secondary" onclick="event.stopPropagation();openCalc('${calc.id}')">📂 Открыть</button>
+      <button class="card-btn card-btn-primary" onclick="event.stopPropagation();openBookingPopup('${calc.id}','${escStr(calc.car_name)}',${calc.final_price||calc.total_price||0})">📅 Записать</button>
+      <button class="card-btn card-btn-cancel" onclick="event.stopPropagation();cancelOrder('${calc.id}','${escStr(calc.car_name)}')">❌ Отказ</button>
     `;
   } else if (status === 'scheduled') {
     actions = `
-      <button class="card-btn card-btn-secondary" onclick="event.stopPropagation;openBookingPopup('${calc.id}','${escStr(calc.car_name)}',${calc.final_price||calc.total_price||0})">✏️ Изменить запись</button>
-      <button class="card-btn card-btn-secondary" onclick="event.stopPropagation;window.location.href='acceptance-act.html?calc_id=${calc.id}'">📋 Акт приёма</button>
-      ${calc.work_assigned ? `<button class="card-btn card-btn-secondary" onclick="event.stopPropagation;window.location.href='work-order.html?calc_id=${calc.id}'">🖨️ Заказ-наряд</button>` : ''}
-      <button class="card-btn card-btn-primary" onclick="event.stopPropagation;goAssign('${calc.id}')">🔧 Взять в работу</button>
-      <button class="card-btn card-btn-cancel" onclick="event.stopPropagation;cancelOrder('${calc.id}','${escStr(calc.car_name)}')">❌ Отказ</button>
+      <button class="card-btn card-btn-secondary" onclick="event.stopPropagation();openBookingPopup('${calc.id}','${escStr(calc.car_name)}',${calc.final_price||calc.total_price||0})">✏️ Изменить запись</button>
+      <button class="card-btn card-btn-secondary" onclick="event.stopPropagation();window.location.href='acceptance-act.html?calc_id=${calc.id}'">📋 Принять авто</button>
+      <button class="card-btn card-btn-primary" onclick="event.stopPropagation();goAssign('${calc.id}')">🔧 Взять в работу</button>
+      <button class="card-btn card-btn-cancel" onclick="event.stopPropagation();cancelOrder('${calc.id}','${escStr(calc.car_name)}')">❌ Отказ</button>
     `;
   } else if (status === 'in_progress') {
     actions = `
-      <button class="card-btn card-btn-secondary" onclick="event.stopPropagation;goAssign('${calc.id}')">👥 Задачи</button>
-      <button class="card-btn card-btn-secondary" onclick="event.stopPropagation;window.location.href='acceptance-act.html?calc_id=${calc.id}'">📋 Акт приёма</button>
-      ${calc.work_assigned ? `<button class="card-btn card-btn-secondary" onclick="event.stopPropagation;window.location.href='work-order.html?calc_id=${calc.id}'">🖨️ Заказ-наряд</button>` : ''}
-      <button class="card-btn card-btn-primary" onclick="event.stopPropagation;openModal('modalDone','${calc.id}','${escStr(calc.car_name)}')" style="background:var(--purple)">✅ Завершить</button>
+      <button class="card-btn card-btn-secondary" onclick="event.stopPropagation();goAssign('${calc.id}')">👥 Задачи</button>
+      <button class="card-btn card-btn-primary" onclick="event.stopPropagation();openModal('modalDone','${calc.id}','${escStr(calc.car_name)}')" style="background:var(--purple)">✅ Завершить</button>
     `;
   } else if (status === 'done') {
     actions = `
-      <button class="card-btn card-btn-secondary" onclick="event.stopPropagation;window.location.href='calculator.html?load=${calc.id}'">📊 Расчёт</button>
-      <button class="card-btn card-btn-secondary" onclick="event.stopPropagation;window.location.href='acceptance-act.html?calc_id=${calc.id}'">📄 Акт приёмки</button>
-      <button class="card-btn card-btn-secondary" onclick="event.stopPropagation;window.location.href='work-order.html?calc_id=${calc.id}'">🖨️ Заказ-наряд</button>
-      <button class="card-btn card-btn-primary" onclick="event.stopPropagation;openModalDeliver('${calc.id}','${escStr(calc.car_name)}',${calc.total_price || 0})" style="background:var(--success)">🚗 Выдать клиенту</button>
+      <button class="card-btn card-btn-secondary" onclick="event.stopPropagation();window.location.href='calc-view.html?id=${calc.id}'">📊 Расчёт</button>
+      <button class="card-btn card-btn-secondary" onclick="event.stopPropagation();window.location.href='acceptance-act.html?calc_id=${calc.id}'">📄 Акт приёмки</button>
+      <button class="card-btn card-btn-secondary" onclick="event.stopPropagation();window.location.href='work-order.html?calc_id=${calc.id}'">🖨️ Заказ-наряд</button>
+      <button class="card-btn card-btn-primary" onclick="event.stopPropagation();openModalDeliver('${calc.id}','${escStr(calc.car_name)}',${calc.total_price || 0})" style="background:var(--success)">🚗 Выдать клиенту</button>
     `;
   } else if (status === 'delivered') {
     actions = `
-      <button class="card-btn card-btn-secondary" onclick="event.stopPropagation;window.location.href='calculator.html?load=${calc.id}'">📊 Расчёт</button>
-      <button class="card-btn card-btn-secondary" onclick="event.stopPropagation;window.location.href='acceptance-act.html?calc_id=${calc.id}'">📄 Акт приёмки</button>
-      <button class="card-btn card-btn-primary" onclick="event.stopPropagation;window.location.href='work-order.html?calc_id=${calc.id}'" style="background:#0f172a">🖨️ Акт передачи</button>
+      <button class="card-btn card-btn-secondary" onclick="event.stopPropagation();window.location.href='calc-view.html?id=${calc.id}'">📊 Расчёт</button>
+      <button class="card-btn card-btn-secondary" onclick="event.stopPropagation();window.location.href='acceptance-act.html?calc_id=${calc.id}'">📄 Акт приёмки</button>
+      <button class="card-btn card-btn-primary" onclick="event.stopPropagation();window.location.href='work-order.html?calc_id=${calc.id}'" style="background:#0f172a">🖨️ Акт передачи</button>
     `;
   } else if (status === 'cancelled') {
     actions = `
-      <button class="card-btn card-btn-secondary" onclick="event.stopPropagation;window.location.href='calculator.html?load=${calc.id}'">📊 Расчёт</button>
-      <button class="card-btn card-btn-secondary" onclick="event.stopPropagation;restoreOrder('${calc.id}','${escStr(calc.car_name)}')">↩️ Восстановить</button>
+      <button class="card-btn card-btn-secondary" onclick="event.stopPropagation();window.location.href='calc-view.html?id=${calc.id}'">📊 Расчёт</button>
+      <button class="card-btn card-btn-secondary" onclick="event.stopPropagation();restoreOrder('${calc.id}','${escStr(calc.car_name)}')">↩️ Восстановить</button>
     `;
   }
 
@@ -802,7 +799,7 @@ function renderCard(calc, status) {
       ${note}
       <div class="card-price">${price}</div>
       ${executorsBlock}
-      <div class="card-actions" onclick="event.stopPropagation">
+      <div class="card-actions" onclick="event.stopPropagation()">
         ${actions}
       </div>
     </div>
@@ -829,7 +826,7 @@ window.openBookingPopup = function(calcId, carName, price) {
     calcName:  carName,
     calcPrice: price,
     studioId:  window._boardStudioId,
-    onSaved:   function { loadBoard; },
+    onSaved:   function() { loadBoard(); },
   });
 };
 
@@ -873,7 +870,7 @@ window.openModalInfo = function(calcId, carName, status, price, checkinDate, che
   document.getElementById('modalInfo').classList.add('active');
 };
 
-window.openCalcFromInfo = function {
+window.openCalcFromInfo = function() {
   closeModal('modalInfo');
   window.location.href = `calculator.html?load=${activeCalcId}`;
 };
@@ -897,7 +894,7 @@ window.cancelOrder = async function(calcId, carName) {
     .update({ status: 'cancelled' })
     .eq('id', calcId);
   if (error) { alert('Ошибка: ' + error.message); return; }
-  await loadBoard;
+  await loadBoard();
 };
 
 window.restoreOrder = async function(calcId, carName) {
@@ -906,7 +903,7 @@ window.restoreOrder = async function(calcId, carName) {
     .update({ status: 'new' })
     .eq('id', calcId);
   if (error) { alert('Ошибка: ' + error.message); return; }
-  await loadBoard;
+  await loadBoard();
 };
 
 window.goAssign = function(calcId) {
@@ -930,7 +927,7 @@ let _donePlanItems = []; // [{key, name, plan}]
 function extractMaterials(calcData) {
   const items = [];
   const d = calcData || {};
-  const seen = new Set;
+  const seen = new Set();
 
   function add(key, name, mat) {
     const m = parseFloat(mat) || 0;
@@ -995,17 +992,17 @@ async function loadDoneMaterials(calcId) {
           data-key="${item.key}"
           value="${existing[item.key] !== undefined ? existing[item.key] : item.plan}"
           min="0" step="1"
-          oninput="updateDoneTotals"
+          oninput="updateDoneTotals()"
           style="width:100%;padding:5px 8px;background:rgba(124,58,237,0.05);border:1px solid rgba(124,58,237,0.25);border-radius:6px;font-size:0.82rem;font-weight:700;color:#7c3aed;outline:none;text-align:right;font-family:var(--font)"
         >
       </div>
     </div>
   `).join('');
 
-  updateDoneTotals;
+  updateDoneTotals();
 }
 
-window.updateDoneTotals = function {
+window.updateDoneTotals = function() {
   let planSum = 0, factSum = 0;
   _donePlanItems.forEach(item => { planSum += item.plan; });
   document.querySelectorAll('#doneMaterialsList input[data-key]').forEach(inp => {
@@ -1038,14 +1035,14 @@ window.saveDone = async function() {
 
   const extra = Object.keys(factMaterials).length > 0 ? { fact_materials: factMaterials } : {};
   const ok = await updateStatus(activeCalcId, 'done', extra);
-  if (ok) { closeModal('modalDone'); loadBoard; }
+  if (ok) { closeModal('modalDone'); loadBoard(); }
 };
 
 window.saveDeliver = async function() {
   const price = parseFloat(document.getElementById('deliverPrice').value) || null;
-  const note  = document.getElementById('deliverNote').value.trim;
+  const note  = document.getElementById('deliverNote').value.trim();
   const ok = await updateStatus(activeCalcId, 'delivered', { final_price: price, delivery_note: note });
-  if (ok) { closeModal('modalDeliver'); loadBoard; }
+  if (ok) { closeModal('modalDeliver'); loadBoard(); }
 };
 
 document.querySelectorAll('.modal').forEach(m => {
@@ -1054,16 +1051,16 @@ document.querySelectorAll('.modal').forEach(m => {
   });
 });
 
-async function init {
-  initNav;
-  if (!await checkAuth) return;
-  if (!await getStudio) return;
-  await loadBoard;
+async function init() {
+  initNav();
+  if (!await checkAuth()) return;
+  if (!await getStudio()) return;
+  await loadBoard();
 }
 
 init();
 
-});
+})();
 </script>
 
 </body>
