@@ -258,7 +258,7 @@ window.toggleWidget = function(wid, cb) {
     localStorage.setItem('k1r_analytics_widgets', JSON.stringify(saved));
   } catch(e){}
 };
-window.toggleSettings = function {
+window.toggleSettings = function() {
   document.getElementById('settingsPanel').classList.toggle('show');
   document.getElementById('btnGear').classList.toggle('active');
 };
@@ -287,10 +287,10 @@ function bKey(dateStr, days) {
   const d = new Date(dateStr);
   if (days!==0&&days<=14) return d.toISOString().split('T')[0];
   if (days!==0&&days<=90) {
-    const day=d.getDay, diff=d.getDate-day+(day===0?-6:1);
+    const day=d.getDay(), diff=d.getDate()-day+(day===0?-6:1);
     return new Date(new Date(d).setDate(diff)).toISOString().split('T')[0];
   }
-  return `${d.getFullYear}-${String(d.getMonth+1).padStart(2,'0')}-01`;
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-01`;
 }
 function bLabel(key, days) {
   const d=new Date(key);
@@ -395,7 +395,7 @@ function renderMonthlyChart() {
   const b={};
   allCalcs.forEach(c=>{
     const d=new Date(c.created_at);
-    const k=`${d.getFullYear}-${String(d.getMonth+1).padStart(2,'0')}`;
+    const k=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
     if(!b[k]) b[k]={cnt:0,all:0,done:0};
     b[k].cnt++; b[k].all+=(c.total_price||0);
     if(ns(c.status)==='delivered') b[k].done+=(c.final_price||c.total_price||0);
@@ -561,7 +561,7 @@ function render() {
 }
 
 // ─── Custom date ──────────────────────────────────────
-window.applyCustomDate = function {
+window.applyCustomDate = function() {
   const f=document.getElementById('dateFrom')?.value, t=document.getElementById('dateTo')?.value;
   if(!f||!t) return;
   customFrom=new Date(f+'T00:00:00'); customTo=new Date(t+'T23:59:59'); isCustom=true;
