@@ -5,11 +5,11 @@
  */
 
 // ── Инициализация Chart.js ────────────────────────────────────────
-function initChart {
+function initChart() {
   const ctx = q('#pieChart')?.getContext('2d');
   if (!ctx || !window.Chart) return;
 
-  const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text-primary').trim || '#f1f5f9';
+  const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text-primary').trim() || '#f1f5f9';
 
   chart = new Chart(ctx, {
     type: 'doughnut',
@@ -71,8 +71,8 @@ function renderServiceList(containerId, services, classPrefix) {
       </div>
       <div class="service-body">
         <div class="service-fields">
-          <div class="form-group"><label>Материалы :</label><input type="number" class="${classPrefix}-mat" placeholder="0" step="0.01"></div>
-          <div class="form-group"><label>Мотивация :</label><input type="number" class="${classPrefix}-mot" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Материалы ():</label><input type="number" class="${classPrefix}-mat" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Мотивация ():</label><input type="number" class="${classPrefix}-mot" placeholder="0" step="0.01"></div>
         </div>
         <div class="service-complexity">
           <input type="checkbox" class="${classPrefix}-complex" id="${classPrefix}${idx + 1}c">
@@ -106,7 +106,7 @@ function renderServiceList(containerId, services, classPrefix) {
 }
 
 // ── Рендер содержимого блока оклейки ─────────────────────────────
-function renderWrapContent {
+function renderWrapContent() {
   const container = q('#wrapContent');
   let html = `<h3 style="margin-bottom:10px;font-size:1.05rem;font-weight:700">PPF</h3>
     <div class="service-item">
@@ -114,8 +114,8 @@ function renderWrapContent {
       <div class="service-body">
         <div class="service-fields">
           <div class="form-group"><label>Метры (м):</label><input type="number" id="ppfClearM" placeholder="0" step="0.01"></div>
-          <div class="form-group"><label>Цена за метр :</label><input type="number" id="ppfClearPrice" placeholder="0" step="0.01"></div>
-          <div class="form-group"><label>Мотивация :</label><input type="number" id="ppfClearMot" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Цена за метр ():</label><input type="number" id="ppfClearPrice" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Мотивация ():</label><input type="number" id="ppfClearMot" placeholder="0" step="0.01"></div>
         </div>
         <div class="service-complexity"><input type="checkbox" id="ppfClearComplex"><label for="ppfClearComplex">Усложнение +10%</label></div>
       </div>
@@ -125,8 +125,8 @@ function renderWrapContent {
       <div class="service-body">
         <div class="service-fields">
           <div class="form-group"><label>Метры (м):</label><input type="number" id="ppfColorM" placeholder="0" step="0.01"></div>
-          <div class="form-group"><label>Цена за метр :</label><input type="number" id="ppfColorPrice" placeholder="0" step="0.01"></div>
-          <div class="form-group"><label>Мотивация :</label><input type="number" id="ppfColorMot" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Цена за метр ():</label><input type="number" id="ppfColorPrice" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Мотивация ():</label><input type="number" id="ppfColorMot" placeholder="0" step="0.01"></div>
         </div>
         <div class="service-complexity"><input type="checkbox" id="ppfColorComplex"><label for="ppfColorComplex">Усложнение +10%</label></div>
       </div>
@@ -136,8 +136,8 @@ function renderWrapContent {
       <div class="service-body">
         <div class="service-fields">
           <div class="form-group"><label>Метры (м):</label><input type="number" id="ppfMatM" placeholder="0" step="0.01"></div>
-          <div class="form-group"><label>Цена за метр :</label><input type="number" id="ppfMatPrice" placeholder="0" step="0.01"></div>
-          <div class="form-group"><label>Мотивация :</label><input type="number" id="ppfMatMot" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Цена за метр ():</label><input type="number" id="ppfMatPrice" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Мотивация ():</label><input type="number" id="ppfMatMot" placeholder="0" step="0.01"></div>
         </div>
         <div class="service-complexity"><input type="checkbox" id="ppfMatComplex"><label for="ppfMatComplex">Усложнение +10%</label></div>
       </div>
@@ -152,8 +152,8 @@ function renderWrapContent {
       <div class="service-body">
         <div class="service-fields">
           <div class="form-group"><label>Метры (м):</label><input type="number" id="pvcFullM" placeholder="0" step="0.01"></div>
-          <div class="form-group"><label>Цена за метр :</label><input type="number" id="pvcFullPrice" placeholder="0" step="0.01"></div>
-          <div class="form-group"><label>Мотивация :</label><input type="number" id="pvcFullMot" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Цена за метр ():</label><input type="number" id="pvcFullPrice" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Мотивация ():</label><input type="number" id="pvcFullMot" placeholder="0" step="0.01"></div>
         </div>
         <div class="service-complexity"><input type="checkbox" id="pvcFullComplex"><label for="pvcFullComplex">Усложнение +10%</label></div>
       </div>
@@ -186,7 +186,7 @@ function renderWrapContent {
 }
 
 // ── Рендер частичных списков PPF/PVC ─────────────────────────────
-function renderPartialLists {
+function renderPartialLists() {
   const ppf = q('#ppfPartContent');
   const pvc = q('#pvcPartContent');
   let ppfHtml = '', pvcHtml = '';
@@ -204,8 +204,8 @@ function renderPartialLists {
       <div class="service-body">
         <div class="service-fields">
           <div class="form-group"><label>Метры (м):</label><input type="number" class="ppf-part-m" placeholder="0" step="0.01"></div>
-          <div class="form-group"><label>Цена за метр :</label><input type="number" class="ppf-part-price" placeholder="0" step="0.01"></div>
-          <div class="form-group"><label>Мотивация :</label><input type="number" class="ppf-part-mot" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Цена за метр ():</label><input type="number" class="ppf-part-price" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Мотивация ():</label><input type="number" class="ppf-part-mot" placeholder="0" step="0.01"></div>
           <div class="form-group"><label>Своя наценка (%):</label><input type="number" class="ppf-part-markup" placeholder="0"></div>
         </div>
         <div class="chips" style="margin-top:10px">${chips}</div>
@@ -217,8 +217,8 @@ function renderPartialLists {
       <div class="service-body">
         <div class="service-fields">
           <div class="form-group"><label>Метры (м):</label><input type="number" class="pvc-part-m" placeholder="0" step="0.01"></div>
-          <div class="form-group"><label>Цена за метр :</label><input type="number" class="pvc-part-price" placeholder="0" step="0.01"></div>
-          <div class="form-group"><label>Мотивация :</label><input type="number" class="pvc-part-mot" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Цена за метр ():</label><input type="number" class="pvc-part-price" placeholder="0" step="0.01"></div>
+          <div class="form-group"><label>Мотивация ():</label><input type="number" class="pvc-part-mot" placeholder="0" step="0.01"></div>
           <div class="form-group"><label>Своя наценка (%):</label><input type="number" class="pvc-part-markup" placeholder="0"></div>
         </div>
         <div class="chips" style="margin-top:10px">${chipsVpc}</div>
@@ -239,9 +239,9 @@ function addCostRow(prefix) {
   row.innerHTML = `
     <div class="form-group">
       <input type="text" placeholder="Название затраты" class="${prefix}-cost-name">
-      <input type="number" placeholder="Сумма " class="${prefix}-cost-val" step="0.01">
+      <input type="number" placeholder="Сумма ()" class="${prefix}-cost-val" step="0.01">
     </div>
-    <button type="button" onclick="this.closest('.cost-row').remove;renderAll">❌</button>
+    <button type="button" onclick="this.closest('.cost-row').remove();renderAll()">❌</button>
   `;
   container.appendChild(row);
   renderAll();
@@ -262,8 +262,8 @@ function addDynRow(id, cls) {
     <div class="service-body open">
       <div class="service-fields">
         <div class="form-group"><label>Метры (м):</label><input type="number" class="${cls}-m" placeholder="0" step="0.01"></div>
-        <div class="form-group"><label>Цена за метр :</label><input type="number" class="${cls}-price" placeholder="0" step="0.01"></div>
-        <div class="form-group"><label>Мотивация :</label><input type="number" class="${cls}-mot" placeholder="0" step="0.01"></div>
+        <div class="form-group"><label>Цена за метр ():</label><input type="number" class="${cls}-price" placeholder="0" step="0.01"></div>
+        <div class="form-group"><label>Мотивация ():</label><input type="number" class="${cls}-mot" placeholder="0" step="0.01"></div>
       </div>
       <div class="service-complexity">
         <input type="checkbox" class="${cls}-complex" id="dyn${cls}${dynCounter}c">
@@ -277,8 +277,8 @@ function addDynRow(id, cls) {
     </div>
     <div class="service-body open">
       <div class="service-fields">
-        <div class="form-group"><label>Материалы :</label><input type="number" class="${cls}-mat" placeholder="0" step="0.01"></div>
-        <div class="form-group"><label>Мотивация :</label><input type="number" class="${cls}-mot" placeholder="0" step="0.01"></div>
+        <div class="form-group"><label>Материалы ():</label><input type="number" class="${cls}-mat" placeholder="0" step="0.01"></div>
+        <div class="form-group"><label>Мотивация ():</label><input type="number" class="${cls}-mot" placeholder="0" step="0.01"></div>
       </div>
       <div class="service-complexity">
         <input type="checkbox" class="${cls}-complex" id="dyn${cls}${dynCounter}c">
@@ -290,7 +290,7 @@ function addDynRow(id, cls) {
 }
 
 // ── Тогглы раскрытия услуг ────────────────────────────────────────
-function initServiceToggles {
+function initServiceToggles() {
   qa('.service-item').forEach(item => {
     const chk    = item.querySelector('.service-header input[type="checkbox"]');
     const body   = item.querySelector('.service-body');
@@ -299,9 +299,9 @@ function initServiceToggles {
 
     header.onclick = function(e) {
       if (e.target === chk || e.target.tagName === 'INPUT' || e.target.tagName === 'LABEL') return;
-      chk.click;
+      chk.click();
     };
-    chk.onchange = function {
+    chk.onchange = function() {
       body.classList.toggle('open', chk.checked);
     };
   });
@@ -311,11 +311,11 @@ function initServiceToggles {
     if (!chk) return;
     const content = q(`#${id.replace('Chk', 'Content')}`);
     let btnId = id.replace('Chk', '').replace('Costs', 'Cost');
-    btnId = btnId.charAt(0).toUpperCase + btnId.slice(1);
+    btnId = btnId.charAt(0).toUpperCase() + btnId.slice(1);
     const btn = q(`#btnAdd${btnId}`);
     if (!content) return;
 
-    chk.onchange = function {
+    chk.onchange = function() {
       content.classList.toggle('open', chk.checked);
       if (btn) btn.style.display = chk.checked ? 'block' : 'none';
     };
@@ -327,7 +327,7 @@ function renderKP(s, mu) {
   const tb = q('#kpTable tbody');
   if (!tb) return;
   tb.innerHTML = '';
-  const taxK = taxCoef;
+  const taxK = taxCoef();
   let tot = 0;
 
   const addRow = (name, base, markupPct) => {
@@ -479,7 +479,7 @@ function renderExecutors(s) {
       <div class="executor-row-header">${srv.name}</div>
       <div class="executor-fields-new">
         <div class="executor-field"><label>Исполнитель:</label><input type="text" id="${baseId}name" placeholder="ФИО" value=""></div>
-        <div class="executor-field"><label>Зарплата :</label><input type="number" id="${baseId}salary" placeholder="0" value="${srv.mot.toFixed(2)}" step="0.01" data-original-motivation="${srv.mot.toFixed(2)}"></div>
+        <div class="executor-field"><label>Зарплата ():</label><input type="number" id="${baseId}salary" placeholder="0" value="${srv.mot.toFixed(2)}" step="0.01" data-original-motivation="${srv.mot.toFixed(2)}"></div>
         <div class="executor-field"><label>Дата приема:</label><input type="date" id="${baseId}receive" value=""></div>
         <div class="executor-field"><label>Дата выдачи:</label><input type="date" id="${baseId}return" value=""></div>
         <div class="executor-field executor-field-note"><label>Примечание:</label><input type="text" id="${baseId}note" placeholder="Заметки" value=""></div>
@@ -497,7 +497,7 @@ function renderExecutors(s) {
   container.innerHTML = html;
 
   qa('.add-executor-chk').forEach(chk => {
-    chk.addEventListener('change', function {
+    chk.addEventListener('change', function() {
       if (!this.checked) return;
       const baseId        = this.getAttribute('data-exec-base');
       const extraContainer = q(`#${baseId}-extra`);
@@ -514,7 +514,7 @@ function renderExecutors(s) {
         </div>
         <div class="executor-fields-new">
           <div class="executor-field"><label>Исполнитель:</label><input type="text" id="${newId}name" placeholder="ФИО" value=""></div>
-          <div class="executor-field"><label>Зарплата :</label><input type="number" id="${newId}salary" placeholder="0" value="" step="0.01"></div>
+          <div class="executor-field"><label>Зарплата ():</label><input type="number" id="${newId}salary" placeholder="0" value="" step="0.01"></div>
           <div class="executor-field"><label>Дата приема:</label><input type="date" id="${newId}receive" value=""></div>
           <div class="executor-field"><label>Дата выдачи:</label><input type="date" id="${newId}return" value=""></div>
           <div class="executor-field executor-field-note"><label>Примечание:</label><input type="text" id="${newId}note" placeholder="Заметки" value=""></div>
@@ -530,8 +530,8 @@ function renderExecutors(s) {
       extraContainer.appendChild(row);
       this.checked = false;
 
-      row.querySelector('.btn-remove-executor').addEventListener('click', function {
-        if (confirm('Удалить этого исполнителя?')) row.remove;
+      row.querySelector('.btn-remove-executor').addEventListener('click', function() {
+        if (confirm('Удалить этого исполнителя?')) row.remove();
       });
     });
   });
@@ -624,7 +624,7 @@ function renderBadges(s, mu) {
                            r100(msTotal * (mu.ms || 0) / 100);
   const markupWithDisc   = r100(totalMarkup * (1 - disc / 100));
   const afterMarkup      = baseAll + markupWithDisc;
-  const taxK             = taxCoef;
+  const taxK             = taxCoef();
   const tax              = r100(afterMarkup * taxK);
   const fin              = afterMarkup + tax;
 
@@ -666,9 +666,9 @@ function highlightMarkupFields(s, mu) {
 }
 
 // ── Главная функция рендеринга ────────────────────────────────────
-function renderAll {
-  const s  = collectAll;
-  const mu = markups;
+function renderAll() {
+  const s  = collectAll();
+  const mu = markups();
   renderBadges(s, mu);
   renderKP(s, mu);
   renderCost(s);
