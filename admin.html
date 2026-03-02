@@ -30,6 +30,7 @@
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
+html { scrollbar-gutter: stable; }
 
 body {
   font-family: var(--font);
@@ -41,9 +42,9 @@ body {
 
 .page {
   max-width: 1360px;
+  min-width: 900px;
   margin: 0 auto;
   padding: 24px 20px 48px;
-  overflow-x: hidden;
 }
 
 /* ── Заголовок ───────────────────────────────────── */
@@ -145,7 +146,6 @@ body {
 /* ── Таблица ─────────────────────────────────────── */
 .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
-body { overflow-x: hidden; }
 thead th {
   background: var(--bg);
   padding: 9px 14px;
