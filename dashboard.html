@@ -420,7 +420,7 @@ body {
     </div>
     <div style="display:flex;gap:8px;align-items:center">
       <a href="settings.html" class="btn-logout" style="display:inline-flex;align-items:center;gap:5px;text-decoration:none;color:#64748b">⚙️ Настройки</a>
-      <button class="btn-logout" onclick="logout">Выйти →</button>
+      <button class="btn-logout" onclick="logout()">Выйти →</button>
     </div>
   </div>
 
@@ -430,13 +430,13 @@ body {
       <span class="stat-icon">🚗</span>
       <div class="stat-label">Расчётов за месяц</div>
       <div class="stat-value" id="statMonthTotal">—</div>
-      <div class="stat-change" id="statMonthTotalChange">За 30 дней</div>
+      <div class="stat-change" id="statMonthTotalChange">Текущий месяц</div>
     </a>
     <a class="stat-card" href="analytics.html">
       <span class="stat-icon">💰</span>
       <div class="stat-label">Сумма расчётов</div>
       <div class="stat-value" id="statMonthSum">—</div>
-      <div class="stat-change">За 30 дней</div>
+      <div class="stat-change">Текущий месяц</div>
     </a>
     <a class="stat-card" href="analytics.html">
       <span class="stat-icon">✅</span>
@@ -448,7 +448,7 @@ body {
       <span class="stat-icon">📊</span>
       <div class="stat-label">Средний чек</div>
       <div class="stat-value" id="statMonthAvg">—</div>
-      <div class="stat-change">За 30 дней</div>
+      <div class="stat-change">За месяц</div>
     </a>
   </div>
 
@@ -459,7 +459,7 @@ body {
       class="search-input"
       id="searchInput"
       placeholder="🔍 Поиск по машине..."
-      oninput="handleSearch"
+      oninput="handleSearch()"
       autocomplete="off"
     >
   </div>
@@ -487,7 +487,7 @@ body {
 
 <script src="footer.js"></script>
 <script>
-(function {
+(function() {
 'use strict';
 
 const SUPABASE_URL      = 'https://hdghijgrrnzmntistdvw.supabase.co';
@@ -498,7 +498,7 @@ window._crmSb = sb;
 let currentUser       = null;
 let allCalcsForSearch = [];
 
-async function checkAuth {
+async function checkAuth() {
   const { data: { session } } = await sb.auth.getSession();
   if (!session) { window.location.href = 'welcome.html'; return false; }
   currentUser = session.user;
@@ -511,7 +511,7 @@ window.logout = async function() {
 };
 
 function fmt(n) {
-  return new Intl.NumberFormat('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:2}).format(n || 0);
+  return new Intl.NumberFormat('ru-RU', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(n || 0);
 }
 
 function normalizeStatus(status) {
@@ -520,34 +520,20 @@ function normalizeStatus(status) {
 }
 
 function updateStats(calculations) {
-  const now        = new Date;
-  const d30ago     = new Date(now - 30 * 24 * 60 * 60 * 1000);
-  const d60ago     = new Date(now - 60 * 24 * 60 * 60 * 1000);
-  const period     = calculations.filter(c => new Date(c.created_at) >= d30ago);
-  const prevPeriod = calculations.filter(c => new Date(c.created_at) >= d60ago && new Date(c.created_at) < d30ago);
-
-  const total    = period.length;
-  const sum      = period.reduce((a, c) => a + (c.total_price || 0), 0);
-  const done     = period.filter(c => ['done','delivered'].includes(normalizeStatus(c.status)));
-  const doneSum  = done.reduce((a, c) => a + (c.final_price || c.total_price || 0), 0);
-  const avg      = total > 0 ? sum / total : 0;
-
-  const prevTotal = prevPeriod.length;
-  const prevSum   = prevPeriod.reduce((a, c) => a + (c.total_price || 0), 0);
-  const prevAvg   = prevTotal > 0 ? prevSum / prevTotal : 0;
-
-  function trend(cur, prev) {
-    if (prev === 0) return cur > 0 ? '↑ Новые данные' : 'Нет данных за предыдущий период';
-    const pct = Math.round((cur - prev) / prev * 100);
-    return (pct >= 0 ? '↑ +' : '↓ ') + Math.abs(pct) + '% к прошлым 30 дням';
-  }
+  const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+  const month      = calculations.filter(c => new Date(c.created_at) >= monthStart);
+  const total      = month.length;
+  const sum        = month.reduce((a, c) => a + (c.total_price || 0), 0);
+  const done       = month.filter(c => ['done','delivered'].includes(normalizeStatus(c.status)));
+  const doneSum    = done.reduce((a, c) => a + (c.final_price || c.total_price || 0), 0);
+  const avg        = total > 0 ? sum / total : 0;
 
   document.getElementById('statMonthTotal').textContent     = total;
   document.getElementById('statMonthSum').textContent       = fmt(sum);
   document.getElementById('statMonthDone').textContent      = fmt(doneSum);
   document.getElementById('statMonthAvg').textContent       = fmt(avg);
   document.getElementById('statMonthDoneCount').textContent = done.length + ' машин';
-  document.getElementById('statMonthTotalChange').textContent = trend(total, prevTotal);
+  document.getElementById('statMonthTotalChange').textContent = 'Текущий месяц';
 }
 
 // Берём из nav.js — единый источник правды
@@ -609,15 +595,15 @@ async function loadMiniKanban(studioId) {
 
 let searchTimeout;
 
-window.handleSearch = function {
+window.handleSearch = function() {
   clearTimeout(searchTimeout);
-  const term = document.getElementById('searchInput').value.trim.toLowerCase;
+  const term = document.getElementById('searchInput').value.trim().toLowerCase();
   const card = document.getElementById('searchResultsCard');
   const box  = document.getElementById('searchResults');
   if (!term) { card.style.display = 'none'; return; }
 
   searchTimeout = setTimeout(() => {
-    const found = allCalcsForSearch.filter(c => (c.car_name || '').toLowerCase.includes(term));
+    const found = allCalcsForSearch.filter(c => (c.car_name || '').toLowerCase().includes(term));
     card.style.display = 'block';
 
     if (found.length === 0) {
@@ -634,14 +620,14 @@ window.handleSearch = function {
         <h3>${c.car_name || 'Без названия'}</h3>
         <div class="calc-price">${fmt(c.final_price || c.total_price || 0)}</div>
         <div class="calc-actions">
-          <a class="btn btn-primary" href="calculator.html?load=${c.id}" onclick="event.stopPropagation">📂 Открыть</a>
-          <a class="btn btn-success" href="assign-work.html?calc_id=${c.id}" onclick="event.stopPropagation">👥 Работы</a>
+          <a class="btn btn-primary" href="calculator.html?load=${c.id}" onclick="event.stopPropagation()">📂 Открыть</a>
+          <a class="btn btn-success" href="assign-work.html?calc_id=${c.id}" onclick="event.stopPropagation()">👥 Работы</a>
         </div>
       </div>`).join('') + `</div>`;
   }, 300);
 };
 
-function showLockedDashboard {
+function showLockedDashboard() {
   const fakeStats = [
     { icon: '🚗', label: 'Расчётов за месяц', value: '██', change: '+██%' },
     { icon: '💰', label: 'Сумма расчётов',     value: '███ ███', change: '+██%' },
@@ -674,9 +660,9 @@ function showLockedDashboard {
   if (search) { search.disabled = true; search.placeholder = '🔒 Доступно после оплаты'; }
 }
 
-async function init {
-  initNav;
-  if (!await checkAuth) return;
+async function init() {
+  initNav();
+  if (!await checkAuth()) return;
 
   const kanban = document.getElementById('miniKanban');
 
@@ -721,7 +707,7 @@ async function init {
   const subStatus = await checkSubscription(studioId);
   if (subStatus === 'expired' || subStatus === 'none') {
     showPaywall(subStatus === 'expired');
-    showLockedDashboard;
+    showLockedDashboard();
     return;
   }
 
@@ -745,7 +731,7 @@ async function init {
 
 document.addEventListener('DOMContentLoaded', init);
 
-});
+})();
 </script>
 
 </body>
