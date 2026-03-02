@@ -445,15 +445,15 @@ function fmtMonth(str) {
   return `${months[parseInt(m)-1]} ${y}`;
 }
 
-async function checkAuth {
-  const { data: { session } } = await sb.auth.getSession;
+async function checkAuth() {
+  const { data: { session } } = await sb().auth.getSession;
   if (!session) { window.location.href = 'welcome.html'; return false; }
   currentUser = session.user;
   return true;
 }
 
-async function getStudio {
-  const { data, error } = await sb
+async function getStudio() {
+  const { data, error } = await sb()
     .from('studio_members')
     .select('studio_id, role')
     .eq('user_id', currentUser.id)
@@ -464,8 +464,8 @@ async function getStudio {
   return true;
 }
 
-async function loadAssignments {
-  const { data, error } = await sb
+async function loadAssignments() {
+  const { data, error } = await sb()
     .from('work_assignments')
     .select(`
       id,
@@ -501,7 +501,7 @@ async function loadAssignments {
   renderTab;
 }
 
-function populateFilters {
+function populateFilters() {
   const months = [...new Set(allAssignments.map(a => a.payment_month).filter(Boolean))].sort.reverse;
   const monthFilter = document.getElementById('monthFilter');
   monthFilter.innerHTML = '<option value="all">Все месяцы</option>';
@@ -520,7 +520,7 @@ function populateFilters {
 document.getElementById('monthFilter').addEventListener('change', renderTab);
 document.getElementById('executorFilter').addEventListener('change', renderTab);
 
-function updateSummary {
+function updateSummary() {
   const pending = allAssignments.filter(a => a.status === 'pending').reduce((acc, a) => acc + (a.salary || 0), 0);
   const paid    = allAssignments.filter(a => a.status === 'paid').reduce((acc, a) => acc + (a.salary || 0), 0);
   const total   = allAssignments.length;
@@ -542,7 +542,7 @@ window.switchTab = function(tab) {
   renderTab;
 };
 
-function renderTab {
+function renderTab() {
   const month    = document.getElementById('monthFilter').value;
   const executor = document.getElementById('executorFilter').value;
 
@@ -625,23 +625,23 @@ window.paySelected = async function {
 
 window.unpaySingle = async function(id) {
   if (!confirm('Отменить выплату? Запись вернётся в «К выплате».')) return;
-  const { error } = await sb.from('work_assignments').update({ status: 'pending' }).eq('id', id);
+  const { error } = await sb().from('work_assignments').update({ status: 'pending' }).eq('id', id);
   if (error) { alert('Ошибка: ' + error.message); return; }
-  await loadAssignments;
+  await loadAssignments();
 };
 
 async function markAsPaid(ids) {
-  const { error } = await sb.from('work_assignments').update({ status: 'paid' }).in('id', ids);
+  const { error } = await sb().from('work_assignments').update({ status: 'paid' }).in('id', ids);
   if (error) { console.error(error); alert('❌ Ошибка'); return; }
   selectedIds.clear;
-  await loadAssignments;
+  await loadAssignments();
 }
 
-async function init {
+async function init() {
   initNav;
-  if (!await checkAuth) return;
-  if (!await getStudio) return;
-  await loadAssignments;
+  if (!await checkAuth()) return;
+  if (!await getStudio()) return;
+  await loadAssignments();
 }
 
 init();
