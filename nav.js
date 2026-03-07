@@ -39,6 +39,9 @@
   }
 
   window.initNav = function (config) {
+    // Защита от двойного вызова
+    if (document.getElementById('navTopBar')) return;
+
     config = config || {};
     var actionHref  = config.actionHref  !== undefined ? config.actionHref  : 'calculator.html';
     var actionLabel = config.actionLabel !== undefined ? config.actionLabel : '➕ Новый расчёт';
@@ -71,12 +74,132 @@
         adminLink.textContent = '⚙️ Админ';
         adminLink.style.color = '#7c3aed';
         var navLinks = document.querySelector('#navTopBar .nav-links');
-        if (navLinks) navLinks.appendChild(adminLink);
+        if (navLinks && !navLinks.querySelector('a[href="admin.html"]')) navLinks.appendChild(adminLink);
       }
     });
 
     var html =
       '<div id="navTopBar">' +
+        '<a href="dashboard.html" class="nav-brand">Keep1R CRM</a>' +
+        '<nav class="nav-links">' + links + '</nav>' +
+        '<div class="nav-right">' + actionBtn + logoutBtn + '</div>' +
+      '</div>';
+
+    var wrap = document.createElement('div');
+    wrap.innerHTML = html;
+    document.body.insertBefore(wrap.firstElementChild, document.body.firstChild);
+  };
+
+  // ── Кнопка «Записать авто» — динамическая загрузка попапа ──────
+  window._openNavBooking = async function() {
+    // Получаем studioId — сначала из глобальных переменных, потом из БД
+    var sid = window._boardStudioId || window._studioId || null;
+
+    if (!sid) {
+      var _sb = window._crmSb;
+      if (_sb) {
+        var sess = await _sb.auth.getSession();
+        var uid  = sess && sess.data && sess.data.session && sess.data.session.user && sess.data.session.user.id;
+        if (uid) {
+          var res = await _sb.from('studio_members')
+            .select('studio_id')
+            .eq('user_id', uid)
+            .eq('is_active', true)
+            .single();
+          if (res.data) {
+            sid = res.data.studio_id;
+            window._studioId = sid; // кэшируем
+          }
+        }
+      }
+    }
+
+    function doOpen() {
+      BookingPopup.open({
+        studioId: sid,
+        onSaved: function() { location.reload(); }
+      });
+    }
+
+    if (window.BookingPopup) {
+      doOpen();
+      return;
+    }
+
+    // Загружаем booking-popup.js если ещё не загружен
+    var s = document.createElement('script');
+    s.src = 'booking-popup.js';
+    s.onload = function() { doOpen(); };
+    s.onerror = function() { alert('Не удалось загрузить модуль записи.'); };
+    document.head.appendChild(s);
+  };
+
+  // ── Проверка подписки ──────────────────────────────────────────
+  // Возвращает: 'active' | 'trial' | 'expired' | 'none'
+  window.checkSubscription = async function(studioId) {
+    var sb = window._crmSb;
+    if (!sb) return 'none';
+
+    var res = await sb
+      .from('studios')
+      .select('subscription_tier, subscription_expires_at')
+      .eq('id', studioId)
+      .single();
+
+    if (res.error || !res.data) return 'none';
+
+    var tier    = res.data.subscription_tier;
+    var expires = res.data.subscription_expires_at;
+    var now     = new Date();
+
+    if (tier === 'active') {
+      return (!expires || new Date(expires) > now) ? 'active' : 'expired';
+    }
+    if (tier === 'trial') {
+      return (expires && new Date(expires) > now) ? 'trial' : 'expired';
+    }
+    return 'expired';
+  };
+
+  // ── Paywall оверлей ────────────────────────────────────────────
+  window.showPaywall = function(trialExpired) {
+    // Блюрим весь контент кроме nav
+    Array.from(document.body.children).forEach(function(el) {
+      if (el.id !== 'navTopBar') el.style.filter = 'blur(6px)';
+    });
+
+    var icon = trialExpired ? '⏰' : '🔒';
+    var title = trialExpired ? 'Пробный период завершён' : 'Требуется подписка';
+    var desc  = trialExpired
+      ? '72 часа бесплатного доступа истекли. Оформите подписку, чтобы продолжить работу.'
+      : 'Для доступа к CRM необходимо оформить подписку.';
+
+    var overlay = document.createElement('div');
+    overlay.innerHTML =
+      '<div style="position:fixed;inset:0;z-index:9000;display:flex;align-items:center;justify-content:center;' +
+      'background:rgba(240,244,251,0.75);backdrop-filter:blur(8px);padding:20px;font-family:-apple-system,BlinkMacSystemFont,sans-serif">' +
+        '<div style="background:#fff;border-radius:20px;box-shadow:0 16px 64px rgba(37,99,235,0.15);' +
+        'padding:44px 36px;max-width:400px;width:100%;text-align:center">' +
+          '<div style="font-size:3rem;margin-bottom:14px">' + icon + '</div>' +
+          '<div style="font-size:1.35rem;font-weight:800;color:#0f172a;margin-bottom:10px">' + title + '</div>' +
+          '<div style="font-size:0.88rem;color:#64748b;line-height:1.6;margin-bottom:24px">' + desc + '</div>' +
+          '<div style="background:#f8faff;border:1px solid rgba(37,99,235,0.1);border-radius:12px;padding:18px;margin-bottom:22px">' +
+            '<div style="font-size:0.72rem;color:#94a3b8;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px">Тариф CRM</div>' +
+            '<div style="font-size:2rem;font-weight:800;color:#0f172a;line-height:1">2 900' +
+              '<span style="font-size:0.95rem;font-weight:500;color:#64748b">/мес</span></div>' +
+            '<div style="font-size:0.8rem;color:#94a3b8;margin-top:6px">Сотрудники · Зарплаты · Аналитика · Заказы</div>' +
+          '</div>' +
+          '<a href="https://t.me/keeper_wrap" target="_blank" ' +
+          'style="display:block;background:#2563eb;color:#fff;padding:13px;border-radius:10px;' +
+          'font-weight:700;font-size:0.92rem;text-decoration:none;margin-bottom:10px;' +
+          'box-shadow:0 4px 14px rgba(37,99,235,0.3)">Написать для оформления</a>' +
+          '<a href="calculator.html" style="font-size:0.83rem;color:#94a3b8;text-decoration:none">Вернуться к калькулятору →</a>' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(overlay.firstElementChild);
+  };
+
+})();      '<div id="navTopBar">' +
         '<a href="dashboard.html" class="nav-brand">Keep1R CRM</a>' +
         '<nav class="nav-links">' + links + '</nav>' +
         '<div class="nav-right">' + actionBtn + logoutBtn + '</div>' +
