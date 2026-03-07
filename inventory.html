@@ -54,7 +54,7 @@ body { background: var(--bg); color: var(--text); min-height: 100dvh; }
 .stat-sub { font-size: 0.72rem; color: var(--muted); margin-top: 3px; }
 
 /* ── Cards / Items ── */
-.items-grid { display: flex; flex-direction: column; gap: 12px; }
+.items-grid { display: flex; flex-direction: column; gap: 14px; }
 
 .item-card {
   background: var(--surface); border: 1px solid var(--border);
@@ -65,28 +65,35 @@ body { background: var(--bg); color: var(--text); min-height: 100dvh; }
 .item-card:hover { box-shadow: var(--shadow); }
 
 .item-header {
-  display: flex; align-items: center; gap: 12px;
-  padding: 14px 16px; cursor: pointer; user-select: none;
+  display: flex; align-items: center; gap: 14px;
+  padding: 18px 20px; cursor: pointer; user-select: none;
 }
-.item-icon { font-size: 1.3rem; flex-shrink: 0; }
+.item-icon { font-size: 1.6rem; flex-shrink: 0; }
 .item-meta { flex: 1; min-width: 0; }
-.item-name { font-size: 0.92rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.item-sku { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
+.item-name { font-size: 1rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.item-sku { font-size: 0.75rem; color: var(--muted); margin-top: 3px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.item-stats { display: flex; gap: 24px; flex-shrink: 0; align-items: center; }
+.item-stat { text-align: right; }
+.item-stat-val  { font-size: 1.1rem; font-weight: 800; color: var(--primary); line-height: 1.1; }
+.item-stat-unit { font-size: 0.7rem; color: var(--muted); margin-top: 1px; }
 .item-qty { text-align: right; flex-shrink: 0; }
-.item-qty-val { font-size: 1.05rem; font-weight: 800; color: var(--primary); }
+.item-qty-val { font-size: 1.1rem; font-weight: 800; color: var(--primary); }
 .item-qty-unit { font-size: 0.72rem; color: var(--muted); }
 .item-actions { display: flex; gap: 6px; flex-shrink: 0; }
 
-.item-body { border-top: 1px solid var(--border); padding: 14px 16px; display: none; }
+.item-body { border-top: 1px solid var(--border); padding: 16px 20px; display: none; }
 .item-body.open { display: block; }
 
 /* ── Rolls table ── */
-.rolls-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; margin-bottom: 12px; }
-.rolls-table th { text-align: left; padding: 6px 10px; font-size: 0.68rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--border); }
-.rolls-table td { padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.rolls-table { width: 100%; border-collapse: collapse; font-size: 0.84rem; margin-bottom: 14px; }
+.rolls-table th { text-align: left; padding: 8px 12px; font-size: 0.69rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--border); background: var(--bg); }
+.rolls-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
 .rolls-table tr:last-child td { border-bottom: none; }
-.roll-bar-wrap { width: 80px; background: var(--bg); border-radius: 4px; height: 6px; display: inline-block; vertical-align: middle; }
-.roll-bar { height: 6px; border-radius: 4px; background: var(--primary); transition: width 0.3s; }
+.rolls-table tr:hover td { background: var(--bg); }
+.roll-bar-wrap { width: 100px; background: rgba(0,0,0,0.06); border-radius: 4px; height: 7px; display: inline-block; vertical-align: middle; }
+.roll-bar { height: 7px; border-radius: 4px; background: var(--primary); transition: width 0.3s; }
+.roll-bar.low { background: var(--warning); }
+.roll-bar.empty { background: var(--danger); }
 .roll-bar.low { background: var(--warning); }
 .roll-bar.empty { background: var(--danger); }
 
@@ -337,8 +344,8 @@ textarea { resize: vertical; min-height: 64px; }
         </div>
       </div>
       <div id="vatRow" style="display:none" class="form-group">
-        <label>Сумма НДС (руб)</label>
-        <input type="number" id="pVat" placeholder="0" min="0" oninput="calcPurchaseTotal()">
+        <label>Ставка НДС (%)</label>
+        <input type="number" id="pVat" placeholder="20" min="0" max="100" step="1" oninput="calcPurchaseTotal()">
       </div>
 
       <div class="form-divider"></div>
@@ -646,22 +653,27 @@ function renderFilm() {
       : `<span class="badge badge-active">✓ В наличии</span>`;
     const rollsHtml = rolls.length ? `
       <table class="rolls-table">
-        <thead><tr><th>Метка</th><th>Тип</th><th>Остаток</th><th>Прогресс</th><th>Ширина</th><th></th></tr></thead>
+        <thead><tr><th>Метка</th><th>Тип</th><th>Остаток</th><th>Прогресс</th><th>Ширина</th><th>Цена / м</th><th>Сумма</th><th>Дата</th><th></th></tr></thead>
         <tbody>
           ${rolls.map(r => {
             const pct = r.qty_initial > 0 ? Math.round(r.qty_remaining / r.qty_initial * 100) : 0;
             const barClass = pct < 20 ? 'empty' : pct < 40 ? 'low' : '';
+            const dateStr = r.created_at ? new Date(r.created_at).toLocaleDateString('ru-RU', {day:'2-digit',month:'2-digit',year:'numeric'}) : '—';
+            const sumVal  = r.cost_per_unit ? fmt(r.qty_remaining * r.cost_per_unit) + ' ₽' : '—';
             return `<tr>
               <td><strong>${r.roll_number || '—'}</strong></td>
               <td><span class="badge badge-${r.roll_type}">${r.roll_type === 'roll' ? 'Рулон' : 'Отрез'}</span></td>
               <td><strong>${fmt(r.qty_remaining)} м</strong> <span style="color:var(--muted);font-size:0.75rem">/ ${fmt(r.qty_initial)}</span></td>
-              <td><span class="roll-bar-wrap"><span class="roll-bar ${barClass}" style="width:${pct}%"></span></span></td>
+              <td><span class="roll-bar-wrap"><span class="roll-bar ${barClass}" style="width:${pct}%"></span></span> <span style="font-size:0.72rem;color:var(--muted)">${pct}%</span></td>
               <td>${r.width_cm ? r.width_cm + ' см' : '—'}</td>
+              <td>${r.cost_per_unit ? fmt(r.cost_per_unit) + ' ₽' : '—'}</td>
+              <td>${sumVal}</td>
+              <td style="color:var(--muted);font-size:0.78rem">${dateStr}</td>
               <td><button class="btn btn-sm btn-secondary" onclick="openWriteoff('${item.id}','${r.id}',event)">📤</button></td>
             </tr>`;
           }).join('')}
         </tbody>
-      </table>` : `<div style="color:var(--muted);font-size:0.82rem;padding:8px 0">Рулонов нет. Проведите закупку.</div>`;
+      </table>` : `<div style="color:var(--muted);font-size:0.84rem;padding:10px 0">Рулонов нет. Проведите закупку.</div>`;
 
     return `
     <div class="item-card">
@@ -669,11 +681,26 @@ function renderFilm() {
         <div class="item-icon">🎞</div>
         <div class="item-meta">
           <div class="item-name">${item.name}</div>
-          <div class="item-sku">${item.sku ? item.sku + ' · ' : ''}${item.brand || ''} ${badge}</div>
+          <div class="item-sku">
+            ${item.sku ? `<span>#${item.sku}</span>` : ''}
+            ${item.brand ? `<span>${item.brand}</span>` : ''}
+            ${item.film_width_cm ? `<span>ширина ${item.film_width_cm} см</span>` : ''}
+            ${badge}
+          </div>
         </div>
-        <div class="item-qty">
-          <div class="item-qty-val">${fmt(item.qty_current)}</div>
-          <div class="item-qty-unit">${item.unit} · ср. ${fmt(item.avg_cost)} ₽/${item.unit}</div>
+        <div class="item-stats">
+          <div class="item-stat">
+            <div class="item-stat-val">${fmt(item.qty_current)}</div>
+            <div class="item-stat-unit">${item.unit} в наличии</div>
+          </div>
+          <div class="item-stat">
+            <div class="item-stat-val" style="color:var(--muted);font-size:0.95rem">${fmt(item.avg_cost)} ₽</div>
+            <div class="item-stat-unit">за ${item.unit}</div>
+          </div>
+          <div class="item-stat" style="color:var(--success)">
+            <div class="item-stat-val" style="color:var(--success)">${fmt(item.qty_current * item.avg_cost)} ₽</div>
+            <div class="item-stat-unit">сумма</div>
+          </div>
         </div>
         <div class="item-actions" onclick="event.stopPropagation()">
           <button class="btn btn-sm btn-ghost" onclick="openWriteoff('${item.id}',null,event)">📤 Списать</button>
@@ -709,11 +736,25 @@ function renderConsumables() {
         <div class="item-icon">🧴</div>
         <div class="item-meta">
           <div class="item-name">${item.name}</div>
-          <div class="item-sku">${item.sku ? item.sku + ' · ' : ''}${item.brand || ''} ${badge}</div>
+          <div class="item-sku">
+            ${item.sku ? `<span>#${item.sku}</span>` : ''}
+            ${item.brand ? `<span>${item.brand}</span>` : ''}
+            ${badge}
+          </div>
         </div>
-        <div class="item-qty">
-          <div class="item-qty-val">${fmt(item.qty_current)}</div>
-          <div class="item-qty-unit">${item.unit} · ср. ${fmt(item.avg_cost)} ₽/${item.unit}</div>
+        <div class="item-stats">
+          <div class="item-stat">
+            <div class="item-stat-val">${fmt(item.qty_current)}</div>
+            <div class="item-stat-unit">${item.unit} в наличии</div>
+          </div>
+          <div class="item-stat">
+            <div class="item-stat-val" style="color:var(--muted);font-size:0.95rem">${fmt(item.avg_cost)} ₽</div>
+            <div class="item-stat-unit">за ${item.unit}</div>
+          </div>
+          <div class="item-stat">
+            <div class="item-stat-val" style="color:var(--success)">${fmt(item.qty_current * item.avg_cost)} ₽</div>
+            <div class="item-stat-unit">сумма</div>
+          </div>
         </div>
         <div class="item-actions" onclick="event.stopPropagation()">
           <button class="btn btn-sm btn-ghost" onclick="openWriteoff('${item.id}',null,event)">📤</button>
@@ -721,7 +762,7 @@ function renderConsumables() {
         </div>
       </div>
       <div class="item-body" id="item-body-${item.id}">
-        <div style="font-size:0.82rem;color:var(--muted);margin-bottom:10px">${item.notes || 'Нет описания'}</div>
+        <div style="font-size:0.84rem;color:var(--muted);margin-bottom:12px">${item.notes || ''}</div>
         <button class="btn btn-sm btn-ghost" onclick="openPurchaseModal('${item.id}')">🛒 Закупить</button>
       </div>
     </div>`;
@@ -946,8 +987,10 @@ function calcPurchaseTotal() {
   });
   total += parseFloat(document.getElementById('pDelivery').value) || 0;
   total += parseFloat(document.getElementById('pOther').value) || 0;
-  total += parseFloat(document.getElementById('pVat').value) || 0;
-  document.getElementById('pTotal').value = fmt(total) + ' ₽';
+  const vatPct = parseFloat(document.getElementById('pVat').value) || 0;
+  const vatAmt = vatPct > 0 ? Math.round(total * vatPct / 100 * 100) / 100 : 0;
+  total += vatAmt;
+  document.getElementById('pTotal').value = fmt(total) + ' ₽' + (vatAmt ? ' (в т.ч. НДС ' + fmt(vatAmt) + ' ₽)' : '');
 }
 
 async function savePurchase() {
@@ -966,8 +1009,9 @@ async function savePurchase() {
 
   const delivery = parseFloat(document.getElementById('pDelivery').value) || 0;
   const other    = parseFloat(document.getElementById('pOther').value) || 0;
-  const vat      = parseFloat(document.getElementById('pVat').value) || 0;
+  const vatPct   = parseFloat(document.getElementById('pVat').value) || 0;
   const goods    = lines.reduce((s, l) => s + l.sum, 0);
+  const vatAmt   = vatPct > 0 ? Math.round((goods + delivery + other) * vatPct / 100 * 100) / 100 : 0;
 
   const { data: purchase, error: pErr } = await sb.from('purchases').insert({
     studio_id:      studioId,
@@ -977,8 +1021,8 @@ async function savePurchase() {
     purchase_date:  document.getElementById('pDate').value,
     total_goods:    goods,
     total_delivery: delivery,
-    total_other:    other + vat,
-    total_amount:   goods + delivery + other + vat,
+    total_other:    other + vatAmt,
+    total_amount:   goods + delivery + other + vatAmt,
     notes:          document.getElementById('pNotes').value.trim() || null,
     created_by:     currentUser.id,
   }).select().single();
