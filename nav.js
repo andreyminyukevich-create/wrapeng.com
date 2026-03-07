@@ -30,7 +30,7 @@
     { href: 'payouts.html',     icon: '💰', label: 'Зарплаты' },
     { href: 'analytics.html',   icon: '📊', label: 'Аналитика' },
     { href: 'calendar.html',    icon: '🗓', label: 'Календарь' },
-    { href: 'inventory.html',   icon: '📦', label: 'Закупки',    soon: true },
+    { href: 'inventory.html',   icon: '📦', label: 'Склад' },
     { href: 'settings.html',    icon: '⚙️', label: 'Настройки' },
   ];
 
