@@ -446,14 +446,14 @@ function fmtMonth(str) {
 }
 
 async function checkAuth() {
-  const { data: { session } } = await sb().auth.getSession;
+  const { data: { session } } = await sb.auth.getSession();
   if (!session) { window.location.href = 'welcome.html'; return false; }
   currentUser = session.user;
   return true;
 }
 
 async function getStudio() {
-  const { data, error } = await sb()
+  const { data, error } = await sb
     .from('studio_members')
     .select('studio_id, role')
     .eq('user_id', currentUser.id)
@@ -465,7 +465,7 @@ async function getStudio() {
 }
 
 async function loadAssignments() {
-  const { data, error } = await sb()
+  const { data, error } = await sb
     .from('work_assignments')
     .select(`
       id,
@@ -625,13 +625,13 @@ window.paySelected = async function {
 
 window.unpaySingle = async function(id) {
   if (!confirm('Отменить выплату? Запись вернётся в «К выплате».')) return;
-  const { error } = await sb().from('work_assignments').update({ status: 'pending' }).eq('id', id);
+  const { error } = awaitsb.from('work_assignments').update({ status: 'pending' }).eq('id', id);
   if (error) { alert('Ошибка: ' + error.message); return; }
   await loadAssignments();
 };
 
 async function markAsPaid(ids) {
-  const { error } = await sb().from('work_assignments').update({ status: 'paid' }).in('id', ids);
+  const { error } = awaitsb.from('work_assignments').update({ status: 'paid' }).in('id', ids);
   if (error) { console.error(error); alert('❌ Ошибка'); return; }
   selectedIds.clear;
   await loadAssignments();
