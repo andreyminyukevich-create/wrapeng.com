@@ -392,14 +392,14 @@ let logoBase64     = null;  // current logo as base64 string or null
 
 // ── Auth ─────────────────────────────────────────────
 async function checkAuth() {
-  const { data: { session } } = await sb().auth.getSession();
+  const { data: { session } } = await sb.auth.getSession();
   if (!session) { window.location.href = 'welcome.html'; return false; }
   currentUser = session.user;
   return true;
 }
 
 async function loadStudio() {
-  const { data: member, error } = await sb()
+  const { data: member, error } = await sb
     .from('studio_members')
     .select('studio_id, role')
     .eq('user_id', currentUser.id)
@@ -408,7 +408,7 @@ async function loadStudio() {
   if (error || !member) { showError('Студия не найдена'); return false; }
   currentProfile = member;
 
-  const { data: studioData, error: stErr } = await sb()
+  const { data: studioData, error: stErr } = await sb
     .from('studios')
     .select('*')
     .eq('id', member.studio_id)
@@ -666,7 +666,7 @@ function updateKPLogoPreview() {
 
 // ── Members ───────────────────────────────────────────
 async function loadMembers() {
-  const { data: members, error } = await sb()
+  const { data: members, error } = await sb
     .from('studio_members')
     .select('id, role, is_active, user_id')
     .eq('studio_id', studio.id)
@@ -735,7 +735,7 @@ const POST_COLORS = [
 window._postsData = []; // глобально, чтобы inline-хендлеры видели
 
 async function loadPosts() {
-  const { data, error } = await sb()
+  const { data, error } = await sb
     .from('posts')
     .select('*')
     .eq('studio_id', studio.id)
@@ -813,7 +813,7 @@ window._deletePost = async function(idx) {
   const p = window._postsData[idx];
   if (!p._new && p.id) {
     if (!confirm(`Удалить пост «${p.name || 'без названия'}»?`)) return;
-    await sb().from('posts').update({ is_active: false }).eq('id', p.id);
+    await sb.from('posts').update({ is_active: false }).eq('id', p.id);
   }
   window._postsData.splice(idx, 1);
   renderPosts();
@@ -844,10 +844,10 @@ window.savePosts = async function() {
       is_active: true,
     };
     if (p._new) {
-      const { error } = await sb().from('posts').insert(payload);
+      const { error } = await sb.from('posts').insert(payload);
       if (error) { hasError = true; console.error(error); }
     } else if (p.id) {
-      const { error } = await sb().from('posts').update(payload).eq('id', p.id);
+      const { error } = await sb.from('posts').update(payload).eq('id', p.id);
       if (error) { hasError = true; console.error(error); }
     }
   }
@@ -877,7 +877,7 @@ window.saveMain = async function() {
     phone, city, website, contact_email: email, address
   };
 
-  const { error } = await sb()
+  const { error } = await sb
     .from('studios')
     .update({ name, settings: newSettings })
     .eq('id', studio.id);
@@ -902,7 +902,7 @@ window.saveBranding = async function() {
     kp_website: kpWebsite
   };
 
-  const { error } = await sb()
+  const { error } = await sb
     .from('studios')
     .update({ settings: newSettings })
     .eq('id', studio.id);
@@ -916,7 +916,7 @@ window.saveBranding = async function() {
 // ── Logout ────────────────────────────────────────────
 window.logout = async function() {
   if (!confirm('Выйти из аккаунта?')) return;
-  await sb().auth.signOut();
+  await sb.auth.signOut();
   window.location.href = 'welcome.html';
 };
 
