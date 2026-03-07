@@ -319,11 +319,11 @@ textarea { resize: vertical; min-height: 64px; }
       <div class="form-row">
         <div class="form-group">
           <label>Поставщик</label>
-          <input type="text" id="pSupplier" placeholder="ГарантПлёнка, XPEL Russia...">
+          <input type="text" id="pSupplier" placeholder="">
         </div>
         <div class="form-group">
           <label>Номер счёта / накладной</label>
-          <input type="text" id="pInvoice" placeholder="№ 123 от...">
+          <input type="text" id="pInvoice" placeholder="">
         </div>
       </div>
       <div class="form-row">
@@ -333,12 +333,16 @@ textarea { resize: vertical; min-height: 64px; }
         </div>
         <div class="form-group">
           <label>Форма оплаты</label>
-          <select id="pPayment">
+          <select id="pPayment" onchange="onPaymentChange()">
             <option value="cash">Наличные</option>
-            <option value="card">Карта</option>
-            <option value="transfer">Перевод</option>
+            <option value="no_vat">Без НДС</option>
+            <option value="vat">С НДС</option>
           </select>
         </div>
+      </div>
+      <div id="vatRow" style="display:none" class="form-group">
+        <label>Сумма НДС (руб)</label>
+        <input type="number" id="pVat" placeholder="0" min="0" oninput="calcPurchaseTotal()">
       </div>
 
       <div class="form-divider"></div>
@@ -347,23 +351,23 @@ textarea { resize: vertical; min-height: 64px; }
       <button class="btn btn-ghost btn-sm" onclick="addPurchaseLine()">➕ Добавить позицию</button>
 
       <div class="form-divider"></div>
-      <div class="form-row triple">
+      <div class="form-row">
         <div class="form-group">
           <label>Доставка (руб)</label>
-          <input type="number" id="pDelivery" placeholder="0" min="0">
+          <input type="number" id="pDelivery" placeholder="0" min="0" oninput="calcPurchaseTotal()">
         </div>
         <div class="form-group">
           <label>Доп. расходы (руб)</label>
-          <input type="number" id="pOther" placeholder="0" min="0">
-        </div>
-        <div class="form-group">
-          <label>Итого</label>
-          <input type="text" id="pTotal" readonly style="font-weight:800;color:var(--primary)">
+          <input type="number" id="pOther" placeholder="0" min="0" oninput="calcPurchaseTotal()">
         </div>
       </div>
       <div class="form-group">
+        <label>Итого</label>
+        <input type="text" id="pTotal" readonly style="font-weight:800;color:var(--primary);background:var(--primary-light)">
+      </div>
+      <div class="form-group">
         <label>Заметки</label>
-        <textarea id="pNotes" placeholder="Комментарий к закупке..."></textarea>
+        <textarea id="pNotes" placeholder=""></textarea>
       </div>
       <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
         <button class="btn btn-secondary" onclick="closeModal('purchaseModal')">Отмена</button>
@@ -847,58 +851,73 @@ function openPurchaseModal(presetItemId) {
   document.getElementById('pSupplier').value  = '';
   document.getElementById('pInvoice').value   = '';
   document.getElementById('pDate').value      = new Date().toISOString().split('T')[0];
+  document.getElementById('pPayment').value   = 'cash';
+  document.getElementById('pVat').value       = '';
+  document.getElementById('vatRow').style.display = 'none';
   document.getElementById('pDelivery').value  = '';
   document.getElementById('pOther').value     = '';
   document.getElementById('pNotes').value     = '';
   document.getElementById('pTotal').value     = '';
-  addPurchaseLine(presetItemId);
+  addPurchaseLine();
   document.getElementById('purchaseModal').style.display = 'flex';
 }
 
-function addPurchaseLine(presetItemId) {
+function onPaymentChange() {
+  const val = document.getElementById('pPayment').value;
+  document.getElementById('vatRow').style.display = val === 'vat' ? 'block' : 'none';
+  calcPurchaseTotal();
+}
+
+function addPurchaseLine() {
   purchaseLineCount++;
   const idx = purchaseLineCount;
-  const filmItems = allItems.filter(i => i.type !== 'equipment');
-  const options = filmItems.map(i => `<option value="${i.id}" ${i.id === presetItemId ? 'selected' : ''}>${i.name} (${i.unit})</option>`).join('');
-  const isFilm = presetItemId ? (allItems.find(i => i.id === presetItemId)?.type === 'film') : true;
-
   const line = document.createElement('div');
   line.className = 'purchase-line';
   line.id = `pline-${idx}`;
   line.innerHTML = `
     <button class="purchase-line-del" onclick="this.closest('.purchase-line').remove();calcPurchaseTotal()">✕</button>
-    <div class="form-row" style="margin-bottom:6px">
-      <div class="form-group" style="margin-bottom:0">
-        <label>Позиция *</label>
-        <select id="pItem-${idx}" onchange="onPurchaseItemChange(${idx})" style="font-size:0.82rem">
-          <option value="">— выбрать —</option>
-          ${options}
-        </select>
-      </div>
-      <div class="form-group" style="margin-bottom:0">
-        <label>Кол-во *</label>
-        <input type="number" id="pQty-${idx}" placeholder="0" min="0" step="0.01" oninput="calcPurchaseTotal()">
-      </div>
+    <div class="form-group" style="margin-bottom:6px">
+      <label>Наименование</label>
+      <input type="text" id="pName-${idx}" placeholder="">
     </div>
     <div class="form-row" style="margin-bottom:0">
       <div class="form-group" style="margin-bottom:0">
-        <label>Цена за ед. (руб) *</label>
-        <input type="number" id="pPrice-${idx}" placeholder="0" min="0" step="0.01" oninput="calcPurchaseTotal()">
+        <label>Кол-во</label>
+        <input type="number" id="pQty-${idx}" placeholder="0" min="0" step="0.01"
+          oninput="onLineQtyPrice(${idx})">
       </div>
-      <div class="form-group pfilm-fields-${idx}" style="margin-bottom:0;${isFilm ? '' : 'display:none'}">
-        <label>Длина рулона (м)</label>
-        <input type="number" id="pRollLen-${idx}" placeholder="15" min="0">
+      <div class="form-group" style="margin-bottom:0">
+        <label>Цена за ед.</label>
+        <input type="number" id="pPrice-${idx}" placeholder="0" min="0" step="0.01"
+          oninput="onLinePrice(${idx})">
+      </div>
+      <div class="form-group" style="margin-bottom:0">
+        <label>Сумма</label>
+        <input type="number" id="pSum-${idx}" placeholder="0" min="0" step="0.01"
+          oninput="onLineSum(${idx})">
       </div>
     </div>`;
   document.getElementById('purchaseLines').appendChild(line);
-  if (presetItemId) onPurchaseItemChange(idx);
 }
 
-function onPurchaseItemChange(idx) {
-  const sel  = document.getElementById(`pItem-${idx}`);
-  const item = allItems.find(i => i.id === sel.value);
-  const filmFields = document.querySelector(`.pfilm-fields-${idx}`);
-  if (filmFields) filmFields.style.display = (item?.type === 'film') ? 'flex' : 'none';
+// Изменили кол-во или цену → считаем сумму
+function onLineQtyPrice(idx) {
+  const qty   = parseFloat(document.getElementById(`pQty-${idx}`)?.value) || 0;
+  const price = parseFloat(document.getElementById(`pPrice-${idx}`)?.value) || 0;
+  if (qty && price) document.getElementById(`pSum-${idx}`).value = (qty * price).toFixed(2);
+  calcPurchaseTotal();
+}
+
+// Изменили цену → если есть кол-во, пересчитываем сумму
+function onLinePrice(idx) {
+  onLineQtyPrice(idx);
+}
+
+// Изменили сумму → если есть кол-во, обратно считаем цену
+function onLineSum(idx) {
+  const qty = parseFloat(document.getElementById(`pQty-${idx}`)?.value) || 0;
+  const sum = parseFloat(document.getElementById(`pSum-${idx}`)?.value) || 0;
+  if (qty && sum) document.getElementById(`pPrice-${idx}`).value = (sum / qty).toFixed(2);
   calcPurchaseTotal();
 }
 
@@ -906,12 +925,14 @@ function calcPurchaseTotal() {
   let total = 0;
   document.querySelectorAll('.purchase-line').forEach(line => {
     const idx = line.id.replace('pline-','');
+    const sum = parseFloat(document.getElementById(`pSum-${idx}`)?.value) || 0;
     const qty   = parseFloat(document.getElementById(`pQty-${idx}`)?.value) || 0;
     const price = parseFloat(document.getElementById(`pPrice-${idx}`)?.value) || 0;
-    total += qty * price;
+    total += sum || (qty * price);
   });
   total += parseFloat(document.getElementById('pDelivery').value) || 0;
   total += parseFloat(document.getElementById('pOther').value) || 0;
+  total += parseFloat(document.getElementById('pVat').value) || 0;
   document.getElementById('pTotal').value = fmt(total) + ' ₽';
 }
 
@@ -920,17 +941,19 @@ async function savePurchase() {
   const lineEls = document.querySelectorAll('.purchase-line');
   for (const line of lineEls) {
     const idx   = line.id.replace('pline-', '');
-    const itemId = document.getElementById(`pItem-${idx}`)?.value;
-    const qty    = parseFloat(document.getElementById(`pQty-${idx}`)?.value);
-    const price  = parseFloat(document.getElementById(`pPrice-${idx}`)?.value);
-    if (!itemId || !qty || !price) continue;
-    lines.push({ itemId, qty, price, rollLen: parseFloat(document.getElementById(`pRollLen-${idx}`)?.value) || null });
+    const name  = document.getElementById(`pName-${idx}`)?.value.trim();
+    const qty   = parseFloat(document.getElementById(`pQty-${idx}`)?.value) || 0;
+    const price = parseFloat(document.getElementById(`pPrice-${idx}`)?.value) || 0;
+    const sum   = parseFloat(document.getElementById(`pSum-${idx}`)?.value) || (qty * price);
+    if (!name && !sum) continue;
+    lines.push({ name: name || '—', qty, price: price || (qty ? sum / qty : 0), sum });
   }
   if (!lines.length) { alert('Добавьте хотя бы одну позицию'); return; }
 
   const delivery = parseFloat(document.getElementById('pDelivery').value) || 0;
   const other    = parseFloat(document.getElementById('pOther').value) || 0;
-  const goods    = lines.reduce((s, l) => s + l.qty * l.price, 0);
+  const vat      = parseFloat(document.getElementById('pVat').value) || 0;
+  const goods    = lines.reduce((s, l) => s + l.sum, 0);
 
   const { data: purchase, error: pErr } = await sb.from('purchases').insert({
     studio_id:      studioId,
@@ -940,60 +963,21 @@ async function savePurchase() {
     purchase_date:  document.getElementById('pDate').value,
     total_goods:    goods,
     total_delivery: delivery,
-    total_other:    other,
-    total_amount:   goods + delivery + other,
+    total_other:    other + vat,
+    total_amount:   goods + delivery + other + vat,
     notes:          document.getElementById('pNotes').value.trim() || null,
     created_by:     currentUser.id,
   }).select().single();
   if (pErr) { alert('Ошибка создания закупки: ' + pErr.message); return; }
 
   for (const line of lines) {
-    const item = allItems.find(i => i.id === line.itemId);
-    const { error: liErr } = await sb.from('purchase_items').insert({
-      purchase_id:  purchase.id,
-      item_id:      line.itemId,
-      qty:          line.qty,
-      unit_price:   line.price,
-      roll_length_m: line.rollLen,
-      rolls_count:  (item?.type === 'film' && line.rollLen) ? Math.floor(line.qty / line.rollLen) : null,
-    });
-    if (liErr) console.error(liErr);
-
-    // Транзакция прихода
-    const { error: txErr } = await sb.from('inventory_transactions').insert({
-      studio_id:   studioId,
-      item_id:     line.itemId,
+    await sb.from('purchase_items').insert({
       purchase_id: purchase.id,
-      type:        'purchase',
-      qty:         line.qty,
-      unit_cost:   line.price,
-      created_by:  currentUser.id,
+      item_id:     null,
+      qty:         line.qty || 1,
+      unit_price:  line.price,
+      notes:       line.name,
     });
-    if (txErr) console.error(txErr);
-
-    // Для плёнки: создаём рулоны
-    if (item?.type === 'film' && line.rollLen) {
-      const rollsCount = Math.floor(line.qty / line.rollLen);
-      const remainder  = line.qty % line.rollLen;
-      const existingRolls = await sb.from('film_rolls').select('roll_number').eq('item_id', line.itemId).eq('studio_id', studioId);
-      let rollNum = (existingRolls.data?.length || 0) + 1;
-      for (let r = 0; r < rollsCount; r++) {
-        await sb.from('film_rolls').insert({
-          studio_id: studioId, item_id: line.itemId, purchase_id: purchase.id,
-          roll_number: `R-${String(rollNum++).padStart(3,'0')}`,
-          roll_type: 'roll', qty_initial: line.rollLen, qty_remaining: line.rollLen,
-          width_cm: item.film_width_cm, cost_per_unit: line.price,
-        });
-      }
-      if (remainder > 0.01) {
-        await sb.from('film_rolls').insert({
-          studio_id: studioId, item_id: line.itemId, purchase_id: purchase.id,
-          roll_number: `R-${String(rollNum).padStart(3,'0')} (отрез)`,
-          roll_type: 'cut', qty_initial: remainder, qty_remaining: remainder,
-          width_cm: item.film_width_cm, cost_per_unit: line.price,
-        });
-      }
-    }
   }
 
   closeModal('purchaseModal');
