@@ -47,10 +47,10 @@ body { background: var(--bg); color: var(--text); min-height: 100dvh; }
 .tab-panel.active { display: block; }
 
 /* ── Stats row ── */
-.stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 20px; }
-.stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; }
-.stat-label { font-size: 0.7rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
-.stat-value { font-size: 1.4rem; font-weight: 800; color: var(--text); line-height: 1; }
+.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+.stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; height: 84px; display: flex; flex-direction: column; justify-content: space-between; }
+.stat-label { font-size: 0.68rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+.stat-value { font-size: 1.5rem; font-weight: 800; color: var(--text); line-height: 1; }
 .stat-sub { font-size: 0.72rem; color: var(--muted); margin-top: 3px; }
 
 /* ── Cards / Items ── */
@@ -192,6 +192,7 @@ textarea { resize: vertical; min-height: 64px; }
   .page-wrap { padding: 16px 12px 48px; }
   .form-row, .form-row.triple { grid-template-columns: 1fr; }
   .stats-row { grid-template-columns: repeat(2, 1fr); }
+  .stat-card { height: auto; min-height: 72px; }
 }
 </style>
 </head>
