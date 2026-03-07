@@ -377,7 +377,7 @@ body {
 <div id="saveToast">✅ Сохранено</div>
 
 <script>
-(function {
+(function() {
 'use strict';
 
 const SUPABASE_URL      = 'https://hdghijgrrnzmntistdvw.supabase.co';
@@ -388,7 +388,9 @@ window._crmSb = sb;
 let currentUser    = null;
 let currentProfile = null;  // studio_members row
 let studio         = null;  // studios row
-let logoBase64     = null;  // current logo as base64 string or null
+let logoBase64     = null;  // только для превью до загрузки в Storage
+let logoUrl        = null;  // публичный URL из Supabase Storage
+const LOGO_BUCKET  = 'studio-logos';
 
 // ── Auth ─────────────────────────────────────────────
 async function checkAuth() {
@@ -424,7 +426,8 @@ async function renderAll() {
   const cfg = s.settings || {};
   const isOwner = currentProfile.role === 'owner';
 
-  logoBase64 = cfg.kp_logo || null;
+  logoBase64 = null;
+  logoUrl    = cfg.kp_logo || null;
 
   const subExpires = s.subscription_expires_at ? new Date(s.subscription_expires_at) : null;
   const now = new Date;
@@ -482,7 +485,7 @@ async function renderAll() {
       </div>
 
       <div style="margin-top:16px;display:flex;justify-content:flex-end">
-        <button class="btn btn-primary" onclick="saveMain">💾 Сохранить</button>
+        <button class="btn btn-primary" onclick="saveMain()">💾 Сохранить</button>
       </div>
     </div>
 
@@ -507,14 +510,14 @@ async function renderAll() {
           <label>Логотип студии</label>
           <div class="logo-upload-wrap">
             <div class="logo-preview" id="logoPreviewBox">
-              ${logoBase64
-                ? `<img src="${logoBase64}" id="logoPreviewImg" alt="logo">`
+              ${logoUrl
+                ? `<img src="${logoUrl}" id="logoPreviewImg" alt="logo">`
                 : `<span class="logo-preview-placeholder">🏢</span>`}
             </div>
             <div class="logo-actions">
-              <button class="btn btn-secondary btn-sm" onclick="document.getElementById('logoFileInput').click">📂 Загрузить логотип</button>
-              ${logoBase64 ? '<button class="btn btn-danger btn-sm" onclick="removeLogo">✕ Удалить</button>' : ''}
-              <div class="logo-filename" id="logoFilename">${cfg.kp_logo_name || (logoBase64 ? 'Логотип загружен' : 'PNG, SVG, WEBP — до 200KB')}</div>
+              <button class="btn btn-secondary btn-sm" id="btnUploadLogo" onclick="document.getElementById('logoFileInput').click()">📂 Загрузить логотип</button>
+              ${logoUrl ? '<button class="btn btn-danger btn-sm" onclick="removeLogo()">✕ Удалить</button>' : ''}
+              <div class="logo-filename" id="logoFilename">${logoUrl ? '✅ Логотип загружен' : 'PNG, JPG, WEBP — до 500KB'}</div>
             </div>
           </div>
           <input type="file" id="logoFileInput" accept="image/*" style="display:none" onchange="handleLogoChange(event)">
@@ -536,8 +539,8 @@ async function renderAll() {
         <div class="kp-preview" id="kpPreviewBox">
           <div class="kp-preview-label">Предпросмотр шапки КП</div>
           <div class="kp-header-preview">
-            ${logoBase64
-              ? `<img src="${logoBase64}" class="kp-logo-preview" id="kpLogoPreview" alt="logo">`
+            ${logoUrl
+              ? `<img src="${logoUrl}" class="kp-logo-preview" id="kpLogoPreview" alt="logo">`
               : `<div style="font-size:1.1rem;font-weight:800;color:var(--text)" id="kpNamePreview">${esc(s.name || 'Название студии')}</div>`}
             <div class="kp-contact-preview" id="kpContactPreview">
               ${esc(cfg.kp_phone || cfg.phone || '')}${(cfg.kp_phone || cfg.phone) && (cfg.kp_website || cfg.website) ? '<br>' : ''}${esc(cfg.kp_website || cfg.website || '')}
@@ -548,7 +551,7 @@ async function renderAll() {
 
       ${isPaid ? `
         <div style="margin-top:16px;display:flex;justify-content:flex-end">
-          <button class="btn btn-primary" onclick="saveBranding">💾 Сохранить</button>
+          <button class="btn btn-primary" onclick="saveBranding()">💾 Сохранить</button>
         </div>
       ` : ''}
     </div>
@@ -570,8 +573,8 @@ async function renderAll() {
       </div>
       <div class="posts-list" id="postsList"></div>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-        <button class="btn btn-secondary btn-sm" onclick="addPost">➕ Добавить пост</button>
-        <button class="btn btn-primary btn-sm" onclick="savePosts">💾 Сохранить посты</button>
+        <button class="btn btn-secondary btn-sm" onclick="addPost()">➕ Добавить пост</button>
+        <button class="btn btn-primary btn-sm" onclick="savePosts()">💾 Сохранить посты</button>
       </div>
     </div>
 
@@ -595,7 +598,7 @@ async function renderAll() {
         <div style="font-size:0.82rem;color:var(--muted);margin-bottom:14px">
           Выход из CRM завершит текущую сессию.
         </div>
-        <button class="btn btn-danger" onclick="logout">🚪 Выйти из аккаунта</button>
+        <button class="btn btn-danger" onclick="logout()">🚪 Выйти из аккаунта</button>
       </div>
     ` : ''}
   `;
@@ -618,34 +621,70 @@ function updateKPPreview() {
   if (el) el.innerHTML = `${esc(phone)}${phone && website ? '<br>' : ''}${esc(website)}`;
 }
 
-// ── Logo handling ─────────────────────────────────────
-window.handleLogoChange = function(e) {
+// ── Logo handling — Supabase Storage ─────────────────
+window.handleLogoChange = async function(e) {
   const file = e.target.files[0];
   if (!file) return;
-  if (file.size > 200 * 1024) {
-    alert('❌ Файл слишком большой. Максимум — 200KB.');
+  if (file.size > 500 * 1024) {
+    alert('❌ Файл слишком большой. Максимум — 500KB.');
     return;
   }
-  const reader = new FileReader;
-  reader.onload = function(ev) {
-    logoBase64 = ev.target.result;
+
+  const btn = document.getElementById('btnUploadLogo');
+  const fn  = document.getElementById('logoFilename');
+  if (btn) { btn.textContent = '⏳ Загружаем...'; btn.disabled = true; }
+  if (fn)  fn.textContent = 'Загрузка...';
+
+  try {
+    const ext  = file.name.split('.').pop().toLowerCase();
+    const path = `${studio.id}/logo.${ext}`;
+
+    // Удаляем старый файл если был
+    await sb.storage.from(LOGO_BUCKET).remove([path]);
+
+    // Загружаем новый
+    const { error: upErr } = await sb.storage
+      .from(LOGO_BUCKET)
+      .upload(path, file, { upsert: true, contentType: file.type });
+
+    if (upErr) throw upErr;
+
+    // Получаем публичный URL
+    const { data: urlData } = sb.storage.from(LOGO_BUCKET).getPublicUrl(path);
+    // Добавляем cache-bust чтобы браузер не кешировал старый лого
+    logoUrl = urlData.publicUrl + '?v=' + Date.now();
+
+    // Превью
     const box = document.getElementById('logoPreviewBox');
-    if (box) box.innerHTML = `<img src="${logoBase64}" id="logoPreviewImg" alt="logo">`;
-    const fn = document.getElementById('logoFilename');
-    if (fn) fn.textContent = file.name;
-    // Update KP preview
-    updateKPLogoPreview;
-  };
-  reader.readAsDataURL(file);
+    if (box) box.innerHTML = `<img src="${logoUrl}" id="logoPreviewImg" alt="logo">`;
+    if (fn)  fn.textContent = '✅ Логотип загружен';
+    updateKPLogoPreview();
+  } catch(err) {
+    alert('❌ Ошибка загрузки: ' + err.message);
+    if (fn) fn.textContent = 'Ошибка загрузки';
+  } finally {
+    if (btn) { btn.textContent = '📂 Загрузить логотип'; btn.disabled = false; }
+  }
 };
 
-window.removeLogo = function {
+window.removeLogo = async function() {
+  if (!confirm('Удалить логотип?')) return;
+  if (logoUrl) {
+    // Удаляем из Storage
+    const extensions = ['png','jpg','jpeg','webp','svg'];
+    for (const ext of extensions) {
+      await sb.storage.from(LOGO_BUCKET).remove([`${studio.id}/logo.${ext}`]);
+    }
+  }
+  logoUrl    = null;
   logoBase64 = null;
   const box = document.getElementById('logoPreviewBox');
   if (box) box.innerHTML = `<span class="logo-preview-placeholder">🏢</span>`;
   const fn = document.getElementById('logoFilename');
-  if (fn) fn.textContent = 'PNG, SVG, WEBP — до 200KB';
-  updateKPLogoPreview;
+  if (fn) fn.textContent = 'PNG, JPG, WEBP — до 500KB';
+  // Убираем кнопку удаления
+  document.querySelector('.btn-danger.btn-sm[onclick="removeLogo()"]')?.remove();
+  updateKPLogoPreview();
 };
 
 function updateKPLogoPreview() {
@@ -653,11 +692,10 @@ function updateKPLogoPreview() {
   if (!preview) return;
   const ph = preview.querySelector('.kp-header-preview');
   if (!ph) return;
-  // Update left side
   const existing = ph.querySelector('img.kp-logo-preview, #kpNamePreview');
   if (existing) {
-    if (logoBase64) {
-      existing.outerHTML = `<img src="${logoBase64}" class="kp-logo-preview" id="kpLogoPreview" alt="logo">`;
+    if (logoUrl) {
+      existing.outerHTML = `<img src="${logoUrl}" class="kp-logo-preview" id="kpLogoPreview" alt="logo">`;
     } else {
       existing.outerHTML = `<div style="font-size:1.1rem;font-weight:800;color:var(--text)" id="kpNamePreview">${esc(studio.name || 'Название студии')}</div>`;
     }
@@ -829,15 +867,15 @@ window._cycleColor = function(idx) {
 
 window.savePosts = async function() {
   syncPostsFromDOM; // финальный снимок перед сохранением
-  const btn = document.querySelector('[onclick="savePosts"]');
+  const btn = document.querySelector('[onclick="savePosts()"]');
   if (btn) { btn.textContent = '⏳ Сохранение...'; btn.disabled = true; }
 
   let hasError = false;
   for (const p of window._postsData) {
-    if (!p.name?.trim) continue;
+    if (!p.name?.trim()) continue;
     const payload = {
       studio_id: studio.id,
-      name:      p.name.trim,
+      name:      p.name.trim(),
       type:      p.type || 'universal',
       color:     p.color || '#2563eb',
       capacity:  p.capacity || 1,
@@ -863,12 +901,12 @@ window.savePosts = async function() {
 
 // ── Save main ─────────────────────────────────────────
 window.saveMain = async function() {
-  const name    = document.getElementById('studioName')?.value.trim;
-  const phone   = document.getElementById('studioPhone')?.value.trim;
-  const city    = document.getElementById('studioCity')?.value.trim;
-  const website = document.getElementById('studioWebsite')?.value.trim;
-  const email   = document.getElementById('studioEmail')?.value.trim;
-  const address = document.getElementById('studioAddress')?.value.trim;
+  const name    = document.getElementById('studioName')?.value.trim();
+  const phone   = document.getElementById('studioPhone')?.value.trim();
+  const city    = document.getElementById('studioCity')?.value.trim();
+  const website = document.getElementById('studioWebsite')?.value.trim();
+  const email   = document.getElementById('studioEmail')?.value.trim();
+  const address = document.getElementById('studioAddress')?.value.trim();
 
   if (!name) { alert('Введите название студии'); return; }
 
@@ -891,13 +929,12 @@ window.saveMain = async function() {
 
 // ── Save branding ─────────────────────────────────────
 window.saveBranding = async function() {
-  const kpPhone   = document.getElementById('kpPhone')?.value.trim;
-  const kpWebsite = document.getElementById('kpWebsite')?.value.trim;
+  const kpPhone   = document.getElementById('kpPhone')?.value.trim();
+  const kpWebsite = document.getElementById('kpWebsite')?.value.trim();
 
   const newSettings = {
     ...(studio.settings || {}),
-    kp_logo:    logoBase64 || null,
-    kp_logo_name: logoBase64 ? (document.getElementById('logoFilename')?.textContent || '') : null,
+    kp_logo:    logoUrl || null,
     kp_phone:   kpPhone,
     kp_website: kpWebsite
   };
@@ -949,7 +986,7 @@ async function init() {
 
 init();
 
-});
+})();
 </script>
 
 <script src="footer.js"></script>
