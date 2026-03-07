@@ -517,7 +517,7 @@ async function renderAll() {
             <div class="logo-actions">
               <button class="btn btn-secondary btn-sm" id="btnUploadLogo" onclick="document.getElementById('logoFileInput').click()">📂 Загрузить логотип</button>
               ${logoUrl ? '<button class="btn btn-danger btn-sm" onclick="removeLogo()">✕ Удалить</button>' : ''}
-              <div class="logo-filename" id="logoFilename">${logoUrl ? '✅ Логотип загружен' : 'PNG, JPG, WEBP — до 500KB'}</div>
+              <div class="logo-filename" id="logoFilename">${logoUrl ? '✅ Логотип загружен' : 'PNG, JPG, WEBP — до 2MB'}</div>
             </div>
           </div>
           <input type="file" id="logoFileInput" accept="image/*" style="display:none" onchange="handleLogoChange(event)">
@@ -625,8 +625,8 @@ function updateKPPreview() {
 window.handleLogoChange = async function(e) {
   const file = e.target.files[0];
   if (!file) return;
-  if (file.size > 500 * 1024) {
-    alert('❌ Файл слишком большой. Максимум — 500KB.');
+  if (file.size > 2 * 1024 * 1024) {
+    alert('❌ Файл слишком большой. Максимум — 2MB.');
     return;
   }
 
@@ -681,7 +681,7 @@ window.removeLogo = async function() {
   const box = document.getElementById('logoPreviewBox');
   if (box) box.innerHTML = `<span class="logo-preview-placeholder">🏢</span>`;
   const fn = document.getElementById('logoFilename');
-  if (fn) fn.textContent = 'PNG, JPG, WEBP — до 500KB';
+  if (fn) fn.textContent = 'PNG, JPG, WEBP — до 2MB';
   // Убираем кнопку удаления
   document.querySelector('.btn-danger.btn-sm[onclick="removeLogo()"]')?.remove();
   updateKPLogoPreview();
