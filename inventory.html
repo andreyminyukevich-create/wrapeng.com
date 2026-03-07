@@ -121,14 +121,11 @@ body { background: var(--bg); color: var(--text); min-height: 100dvh; }
 .empty-desc { font-size: 0.82rem; line-height: 1.5; }
 
 /* ── Equipment grid ── */
-.equip-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
-.equip-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; transition: box-shadow 0.15s; }
-.equip-card:hover { box-shadow: var(--shadow); }
-.equip-name { font-size: 0.92rem; font-weight: 700; margin-bottom: 4px; }
-.equip-sku { font-size: 0.72rem; color: var(--muted); margin-bottom: 8px; }
-.equip-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; margin-bottom: 5px; }
+.equip-name { font-size: 0.92rem; font-weight: 700; }
+.equip-sku { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
+.equip-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; padding: 4px 0; border-bottom: 1px solid var(--border); }
+.equip-row:last-child { border-bottom: none; }
 .equip-row-label { color: var(--muted); }
-.equip-actions { display: flex; gap: 6px; margin-top: 12px; }
 
 /* ── Modal / Popup ── */
 .modal-overlay {
@@ -187,7 +184,6 @@ textarea { resize: vertical; min-height: 64px; }
 @media (max-width: 640px) {
   .page-wrap { padding: 16px 12px 48px; }
   .form-row, .form-row.triple { grid-template-columns: 1fr; }
-  .equip-grid { grid-template-columns: 1fr; }
   .stats-row { grid-template-columns: repeat(2, 1fr); }
 }
 </style>
@@ -232,7 +228,7 @@ textarea { resize: vertical; min-height: 64px; }
 
   <!-- Equipment tab -->
   <div class="tab-panel" id="tab-equipment">
-    <div id="equipList" class="equip-grid"><div class="loader" style="grid-column:1/-1">⏳ Загрузка...</div></div>
+    <div id="equipList" class="items-grid"><div class="loader">⏳ Загрузка...</div></div>
   </div>
 </div>
 
@@ -736,38 +732,52 @@ function renderConsumables() {
 function renderEquipment() {
   const el = document.getElementById('equipList');
   if (!allEquipment.length) {
-    el.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">🔧</div><div class="empty-title">Оборудования пока нет</div><div class="empty-desc">Добавьте инструменты, технику, инвентарь</div></div>`;
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">🔧</div><div class="empty-title">Оборудования пока нет</div><div class="empty-desc">Добавьте инструменты, технику, инвентарь</div></div>`;
     return;
   }
   const conditionLabel = { excellent: 'Отличное', good: 'Хорошее', fair: 'Требует обслуживания', poor: 'Плохое' };
-  const statusBadge = { active: 'badge-active', repair: 'badge-repair', written_off: 'badge-written_off' };
+  const statusBadge    = { active: 'badge-active', repair: 'badge-repair', written_off: 'badge-written_off' };
 
   el.innerHTML = allEquipment.map(eq => {
     const activeAssignment = (eq.equipment_assignments || []).find(a => !a.returned_at);
     const monthlyDepr = (eq.purchase_price && eq.useful_life_months)
       ? Math.round((eq.purchase_price - (eq.residual_value || 0)) / eq.useful_life_months)
       : null;
+    const statusLabel = eq.status === 'active' ? '✓ Активно' : eq.status === 'repair' ? '🔧 Ремонт' : '✗ Списано';
     return `
-    <div class="equip-card">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
-        <div>
-          <div class="equip-name">${eq.name}</div>
-          <div class="equip-sku">${eq.sku ? '# ' + eq.sku + ' · ' : ''}${eq.brand || ''}${eq.model ? ' ' + eq.model : ''}</div>
+    <div class="item-card">
+      <div class="item-header" onclick="toggleItemBody('item-body-eq-${eq.id}')">
+        <div class="item-icon">🔧</div>
+        <div class="item-meta">
+          <div class="item-name">${eq.name}</div>
+          <div class="item-sku">
+            ${eq.sku ? '# ' + eq.sku + ' · ' : ''}${eq.brand || ''}${eq.model ? ' ' + eq.model : ''}
+            <span class="badge ${statusBadge[eq.status] || 'badge-active'}" style="margin-left:4px">${statusLabel}</span>
+            ${activeAssignment ? `<span class="assigned-to" style="margin-left:4px">👤 ${activeAssignment.executor_name}</span>` : ''}
+          </div>
         </div>
-        <span class="badge ${statusBadge[eq.status] || 'badge-active'}">${eq.status === 'active' ? '✓ Активно' : eq.status === 'repair' ? '🔧 Ремонт' : '✗ Списано'}</span>
+        <div class="item-qty">
+          ${monthlyDepr ? `<div class="item-qty-val">${fmt(monthlyDepr)} ₽</div><div class="item-qty-unit">аморт./мес</div>` : '<div class="item-qty-val" style="color:var(--muted)">—</div>'}
+        </div>
+        <div class="item-actions" onclick="event.stopPropagation()">
+          ${!activeAssignment
+            ? `<button class="btn btn-sm btn-ghost" onclick="openAssignModal('${eq.id}')">👤 Выдать</button>`
+            : `<button class="btn btn-sm btn-secondary" onclick="returnEquipment('${activeAssignment.id}','${eq.id}')">↩ Вернуть</button>`}
+          <button class="btn btn-sm btn-secondary btn-icon" onclick="openEquipModal('${eq.id}')">✏️</button>
+        </div>
       </div>
-      ${activeAssignment ? `<div class="assigned-to">👤 ${activeAssignment.executor_name}</div>` : ''}
-      <div style="margin-top:10px">
-        ${eq.purchase_price ? `<div class="equip-row"><span class="equip-row-label">Стоимость</span><span>${fmt(eq.purchase_price)} ₽</span></div>` : ''}
-        ${monthlyDepr ? `<div class="equip-row"><span class="equip-row-label">Амортизация/мес</span><span>${fmt(monthlyDepr)} ₽</span></div>` : ''}
-        ${eq.condition ? `<div class="equip-row"><span class="equip-row-label">Состояние</span><span>${conditionLabel[eq.condition] || eq.condition}</span></div>` : ''}
-        ${eq.location ? `<div class="equip-row"><span class="equip-row-label">Местонахождение</span><span>${eq.location}</span></div>` : ''}
-      </div>
-      <div class="equip-actions">
-        ${!activeAssignment
-          ? `<button class="btn btn-sm btn-ghost" onclick="openAssignModal('${eq.id}')">👤 Выдать</button>`
-          : `<button class="btn btn-sm btn-secondary" onclick="returnEquipment('${activeAssignment.id}','${eq.id}')">↩ Вернуть</button>`}
-        <button class="btn btn-sm btn-secondary btn-icon" onclick="openEquipModal('${eq.id}')">✏️</button>
+      <div class="item-body" id="item-body-eq-${eq.id}">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 24px">
+          ${eq.purchase_price ? `<div class="equip-row"><span class="equip-row-label">Стоимость покупки</span><span>${fmt(eq.purchase_price)} ₽</span></div>` : ''}
+          ${eq.purchase_date  ? `<div class="equip-row"><span class="equip-row-label">Дата покупки</span><span>${eq.purchase_date}</span></div>` : ''}
+          ${monthlyDepr       ? `<div class="equip-row"><span class="equip-row-label">Амортизация в мес</span><span>${fmt(monthlyDepr)} ₽</span></div>` : ''}
+          ${eq.useful_life_months ? `<div class="equip-row"><span class="equip-row-label">Срок службы</span><span>${eq.useful_life_months} мес</span></div>` : ''}
+          ${eq.condition      ? `<div class="equip-row"><span class="equip-row-label">Состояние</span><span>${conditionLabel[eq.condition] || eq.condition}</span></div>` : ''}
+          ${eq.serial_number  ? `<div class="equip-row"><span class="equip-row-label">Серийный номер</span><span>${eq.serial_number}</span></div>` : ''}
+          ${eq.location       ? `<div class="equip-row"><span class="equip-row-label">Местонахождение</span><span>${eq.location}</span></div>` : ''}
+          ${eq.supplier_name  ? `<div class="equip-row"><span class="equip-row-label">Поставщик</span><span>${eq.supplier_name}</span></div>` : ''}
+        </div>
+        ${eq.notes ? `<div style="margin-top:8px;font-size:0.82rem;color:var(--muted)">${eq.notes}</div>` : ''}
       </div>
     </div>`;
   }).join('');
@@ -874,11 +884,15 @@ function addPurchaseLine() {
   const line = document.createElement('div');
   line.className = 'purchase-line';
   line.id = `pline-${idx}`;
+  // datalist из существующих позиций номенклатуры
+  const datalistId = `pNameList-${idx}`;
+  const options = allItems.map(i => `<option value="${i.name}">`).join('');
   line.innerHTML = `
     <button class="purchase-line-del" onclick="this.closest('.purchase-line').remove();calcPurchaseTotal()">✕</button>
     <div class="form-group" style="margin-bottom:6px">
       <label>Наименование</label>
-      <input type="text" id="pName-${idx}" placeholder="">
+      <input type="text" id="pName-${idx}" list="${datalistId}" placeholder="" autocomplete="off">
+      <datalist id="${datalistId}">${options}</datalist>
     </div>
     <div class="form-row" style="margin-bottom:0">
       <div class="form-group" style="margin-bottom:0">
@@ -971,13 +985,37 @@ async function savePurchase() {
   if (pErr) { alert('Ошибка создания закупки: ' + pErr.message); return; }
 
   for (const line of lines) {
+    // Ищем существующую позицию номенклатуры по имени
+    let item = allItems.find(i => i.name.toLowerCase() === line.name.toLowerCase());
+    // Если не нашли — создаём автоматически
+    if (!item && line.name !== '—') {
+      const { data: newItem } = await sb.from('inventory_items').insert({
+        studio_id: studioId,
+        name:      line.name,
+        type:      'consumable',
+        unit:      'шт',
+      }).select().single();
+      if (newItem) { item = newItem; allItems.push(newItem); }
+    }
     await sb.from('purchase_items').insert({
       purchase_id: purchase.id,
-      item_id:     null,
+      item_id:     item?.id || null,
       qty:         line.qty || 1,
       unit_price:  line.price,
       notes:       line.name,
     });
+    // Транзакция прихода — только если привязали к номенклатуре
+    if (item) {
+      await sb.from('inventory_transactions').insert({
+        studio_id:   studioId,
+        item_id:     item.id,
+        purchase_id: purchase.id,
+        type:        'purchase',
+        qty:         line.qty || 1,
+        unit_cost:   line.price,
+        created_by:  currentUser.id,
+      });
+    }
   }
 
   closeModal('purchaseModal');
