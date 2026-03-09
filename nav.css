@@ -1,218 +1,213 @@
-/* ═══════════════════════════════════════════
-   nav.css — Единая навигация CRM
-   Светлая тема, без переключателя.
-   Использует #navTopBar чтобы не конфликтовать
-   с .top-bar на отдельных страницах.
-═══════════════════════════════════════════ */
+/**
+ * nav.js — Единая навигация CRM
+ * Светлая тема, без переключателя.
+ * Включает проверку подписки студии.
+ */
+(function () {
+  'use strict';
 
-/* Системный шрифт Apple — SF Pro на Mac/iOS, лучший на каждой платформе */
-:root {
-  --font: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
-  --bg-primary:    #f0f4fb;
-  --bg-card:       #ffffff;
-  --bg-input:      #f1f5ff;
-  --text:          #0f172a;
-  --text-muted:    #64748b;
-  --border:        rgba(15,23,42,0.10);
-  --primary:       #2563eb;
-  --primary-dark:  #1d4ed8;
-  --primary-light: rgba(37,99,235,0.10);
-  --success:       #059669;
-  --success-bg:    rgba(5,150,105,0.10);
-  --danger:        #dc2626;
-  --danger-bg:     rgba(220,38,38,0.10);
-  --warning:       #d97706;
-  --warning-bg:    rgba(217,119,6,0.12);
-  --shadow:        0 1px 6px rgba(0,0,0,0.08);
-  --shadow-md:     0 4px 16px rgba(0,0,0,0.10);
-  --shadow-lg:     0 8px 32px rgba(0,0,0,0.12);
-  --radius:        12px;
-  --radius-sm:     8px;
-}
+  document.documentElement.setAttribute('data-theme', 'light');
 
-/* ── Top Bar ─────────────────────────────── */
-#navTopBar {
-  display: flex !important;
-  align-items: center !important;
-  padding: 0 24px !important;
-  height: 54px !important;
-  min-height: 54px !important;
-  background: #ffffff !important;
-  border-bottom: 1px solid var(--border) !important;
-  border-radius: 0 !important;
-  position: sticky !important;
-  top: 0 !important;
-  z-index: 500 !important;
-  box-shadow: 0 1px 8px rgba(0,0,0,0.07) !important;
-  gap: 10px !important;
-  margin: 0 !important;
-  width: 100% !important;
-  box-sizing: border-box !important;
-}
+  // ── Единый справочник статусов ─────────────────────────────────
+  // Используйте window.STATUSES везде вместо хардкода меток.
+  // Ключи соответствуют полю status в таблице calculations.
+  window.STATUSES = {
+    new:         { label: 'Расчёт произведён',      short: 'Расчёт',    icon: '📋', cls: 'status-new' },
+    scheduled:   { label: 'Назначена дата и время', short: 'Дата',      icon: '📅', cls: 'status-scheduled' },
+    in_progress: { label: 'Принято в работу',       short: 'В работе',  icon: '🔧', cls: 'status-in_progress' },
+    done:        { label: 'Завершено',               short: 'Готово',    icon: '✅', cls: 'status-done' },
+    delivered:   { label: 'Выдано',                  short: 'Выдано',    icon: '🚗', cls: 'status-delivered' },
+    cancelled:   { label: 'Отказ',                   short: 'Отказ',     icon: '❌', cls: 'status-cancelled' },
+  };
 
-#navTopBar .nav-brand {
-  flex-shrink: 0;
-  font-size: 0.95rem;
-  font-weight: 800;
-  color: var(--primary);
-  white-space: nowrap;
-  font-family: var(--font);
-  text-decoration: none;
-}
+  // ── Константы Supabase ─────────────────────────────────────────
+  var SUPABASE_URL     = 'https://hdghijgrrnzmntistdvw.supabase.co';
+  var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkZ2hpamdycm56bW50aXN0ZHZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMzMyNzksImV4cCI6MjA3NTYwOTI3OX0.D9EDTmVrFRVp0B8_5tCJM29gbFdtadsom0Ihsf4uQ8Q';
 
-/* ── Nav Links ───────────────────────────── */
-#navTopBar .nav-links {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  flex: 1;
-  overflow-x: auto;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-#navTopBar .nav-links::-webkit-scrollbar { display: none; }
+  var ADMIN_ID = 'c5db87ec-8e4a-4c48-bad3-5747513224d9';
 
-#navTopBar .nav-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 6px 12px;
-  border-radius: 7px;
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  white-space: nowrap;
-  border: none;
-  background: transparent;
-  transition: all 0.15s;
-  flex-shrink: 0;
-  cursor: pointer;
-  font-family: var(--font);
-  text-decoration: none !important;
-}
-#navTopBar .nav-link:hover:not(.nav-soon) {
-  background: var(--bg-input);
-  color: var(--text);
-}
-#navTopBar .nav-link.active {
-  background: var(--primary-light);
-  color: var(--primary) !important;
-  font-weight: 700;
-}
-#navTopBar .nav-link.nav-soon {
-  opacity: 0.4;
-  cursor: not-allowed;
-  pointer-events: none;
-}
+  var PAGES = [
+    { href: 'dashboard.html',  icon: '🏠', label: 'Главная' },
+    { href: 'board.html',      icon: '📋', label: 'Доска' },
+    { href: 'executors.html',  icon: '👥', label: 'Сотрудники' },
+    { href: 'payouts.html',    icon: '💰', label: 'Зарплаты' },
+    { href: 'analytics.html',  icon: '📊', label: 'Аналитика' },
+    { href: 'calendar.html',   icon: '🗓', label: 'Календарь' },
+    { href: 'inventory.html',  icon: '📦', label: 'Склад' },
+    { href: 'settings.html',   icon: '⚙️', label: 'Настройки' },
+  ];
 
-.nav-soon-badge {
-  font-size: 0.6rem;
-  background: var(--warning-bg);
-  color: var(--warning);
-  border-radius: 4px;
-  padding: 1px 4px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  flex-shrink: 0;
-}
-
-/* ── Right Side ──────────────────────────── */
-#navTopBar .nav-right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
-#navTopBar .btn-nav-book {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 7px 16px;
-  background: #f59e0b;
-  color: #fff !important;
-  border-radius: 8px;
-  font-size: 0.82rem;
-  font-weight: 700;
-  white-space: nowrap;
-  border: none;
-  cursor: pointer;
-  transition: all 0.15s;
-  font-family: var(--font);
-  box-shadow: 0 2px 8px rgba(245,158,11,0.3);
-}
-#navTopBar .btn-nav-book:hover {
-  background: #d97706;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(245,158,11,0.4);
-}
-
-#navTopBar .btn-nav-action {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 7px 16px;
-  background: var(--primary);
-  color: #fff !important;
-  border-radius: 8px;
-  font-size: 0.82rem;
-  font-weight: 600;
-  white-space: nowrap;
-  border: none;
-  cursor: pointer;
-  transition: all 0.15s;
-  font-family: var(--font);
-  text-decoration: none !important;
-  box-shadow: 0 2px 8px rgba(37,99,235,0.25);
-}
-#navTopBar .btn-nav-action:hover {
-  background: var(--primary-dark);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(37,99,235,0.35);
-}
-
-/* ── Responsive ──────────────────────────── */
-@media (max-width: 1024px) {
-  #navTopBar { padding: 0 16px !important; }
-  #navTopBar .nav-link { font-size: 0.78rem; padding: 5px 9px; }
-}
-@media (max-width: 640px) {
-  #navTopBar {
-    flex-wrap: wrap !important;
-    height: auto !important;
-    padding: 8px 14px !important;
-    gap: 6px !important;
+  function currentPage() {
+    return window.location.pathname.split('/').pop() || 'dashboard.html';
   }
-  #navTopBar .nav-links { order: 3; width: 100%; padding-bottom: 2px; }
-  #navTopBar .nav-right  { margin-left: auto; }
-  #navTopBar .nav-brand  { font-size: 0.88rem; }
-}
 
-/* Глобальный шрифт — применяется ко всем страницам через nav.css */
-body {
-  font-family: var(--font);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
+  // ── Выход из аккаунта ──────────────────────────────────────────
+  window._navLogout = async function() {
+    var s = window._crmSb || window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    await s.auth.signOut();
+    window.location.href = 'welcome.html';
+  };
 
-/* ── Logout Button ───────────────────────── */
-#navTopBar .btn-nav-logout {
-  display: inline-flex;
-  align-items: center;
-  padding: 6px 14px;
-  background: transparent;
-  color: #7c6fa0;
-  border: 1.5px solid rgba(124,58,237,0.3);
-  border-radius: 8px;
-  font-size: 0.82rem;
-  font-weight: 700;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: all 0.2s;
-  font-family: var(--font);
-  flex-shrink: 0;
-}
-#navTopBar .btn-nav-logout:hover {
-  border-color: #7c3aed;
-  color: #7c3aed;
-}
+  // ── Инициализация навигации ────────────────────────────────────
+  window.initNav = function (config) {
+    // Защита от двойного вызова
+    if (document.getElementById('navTopBar')) return;
+
+    config = config || {};
+    var actionHref  = config.actionHref  !== undefined ? config.actionHref  : 'calculator.html';
+    var actionLabel = config.actionLabel !== undefined ? config.actionLabel : '➕ Новый расчёт';
+    var hideAction  = config.hideAction  || false;
+    // activePage позволяет явно указать активный пункт (для страниц вне PAGES)
+    var page = config.activePage || currentPage();
+
+    var links = PAGES.map(function (p) {
+      var isActive = p.href === page;
+      var cls = 'nav-link' + (isActive ? ' active' : '') + (p.soon ? ' nav-soon' : '');
+      var badge = p.soon ? ' <span class="nav-soon-badge">скоро</span>' : '';
+      return '<a href="' + (p.soon ? '#' : p.href) + '" class="' + cls + '">'
+        + p.icon + ' ' + p.label + badge + '</a>';
+    }).join('');
+
+    var actionBtn = hideAction ? '' :
+      '<a href="' + actionHref + '" class="btn-nav-action">' + actionLabel + '</a>' +
+      '<button class="btn-nav-book" id="btnNavBook" onclick="window._openNavBooking()">📅 Записать авто</button>';
+
+    var logoutBtn = '<button class="btn-nav-logout" onclick="window._navLogout()">Выйти →</button>';
+
+    // Проверяем текущего пользователя для показа пункта Админ
+    var _sb = window._crmSb || window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    _sb.auth.getSession().then(function(res) {
+      var session = res.data && res.data.session;
+      if (session && session.user && session.user.id === ADMIN_ID) {
+        var adminLink = document.createElement('a');
+        adminLink.href = 'admin.html';
+        adminLink.className = 'nav-link' + (page === 'admin.html' ? ' active' : '');
+        adminLink.textContent = '⚙️ Админ';
+        adminLink.style.color = '#7c3aed';
+        var navLinks = document.querySelector('#navTopBar .nav-links');
+        if (navLinks && !navLinks.querySelector('a[href="admin.html"]')) {
+          navLinks.appendChild(adminLink);
+        }
+      }
+    });
+
+    var html =
+      '<div id="navTopBar">' +
+        '<a href="dashboard.html" class="nav-brand">Keep1R CRM</a>' +
+        '<nav class="nav-links">' + links + '</nav>' +
+        '<div class="nav-right">' + actionBtn + logoutBtn + '</div>' +
+      '</div>';
+
+    var wrap = document.createElement('div');
+    wrap.innerHTML = html;
+    document.body.insertBefore(wrap.firstElementChild, document.body.firstChild);
+  };
+
+  // ── Кнопка «Записать авто» — динамическая загрузка попапа ──────
+  window._openNavBooking = async function() {
+    var sid = window._boardStudioId || window._studioId || null;
+
+    if (!sid) {
+      var _sb = window._crmSb;
+      if (_sb) {
+        var sess = await _sb.auth.getSession();
+        var uid  = sess && sess.data && sess.data.session && sess.data.session.user && sess.data.session.user.id;
+        if (uid) {
+          var res = await _sb.from('studio_members')
+            .select('studio_id')
+            .eq('user_id', uid)
+            .eq('is_active', true)
+            .single();
+          if (res.data) {
+            sid = res.data.studio_id;
+            window._studioId = sid;
+          }
+        }
+      }
+    }
+
+    function doOpen() {
+      BookingPopup.open({
+        studioId: sid,
+        onSaved: function() { location.reload(); }
+      });
+    }
+
+    if (window.BookingPopup) {
+      doOpen();
+      return;
+    }
+
+    var s = document.createElement('script');
+    s.src = 'booking-popup.js';
+    s.onload = function() { doOpen(); };
+    s.onerror = function() { alert('Не удалось загрузить модуль записи.'); };
+    document.head.appendChild(s);
+  };
+
+  // ── Проверка подписки ──────────────────────────────────────────
+  // Возвращает: 'active' | 'trial' | 'expired' | 'none'
+  window.checkSubscription = async function(studioId) {
+    var sb = window._crmSb;
+    if (!sb) return 'none';
+
+    var res = await sb
+      .from('studios')
+      .select('subscription_tier, subscription_expires_at')
+      .eq('id', studioId)
+      .single();
+
+    if (res.error || !res.data) return 'none';
+
+    var tier    = res.data.subscription_tier;
+    var expires = res.data.subscription_expires_at;
+    var now     = new Date();
+
+    if (tier === 'active') {
+      return (!expires || new Date(expires) > now) ? 'active' : 'expired';
+    }
+    if (tier === 'trial') {
+      return (expires && new Date(expires) > now) ? 'trial' : 'expired';
+    }
+    return 'expired';
+  };
+
+  // ── Paywall оверлей ────────────────────────────────────────────
+  window.showPaywall = function(trialExpired) {
+    Array.from(document.body.children).forEach(function(el) {
+      if (el.id !== 'navTopBar') el.style.filter = 'blur(6px)';
+    });
+
+    var icon  = trialExpired ? '⏰' : '🔒';
+    var title = trialExpired ? 'Пробный период завершён' : 'Требуется подписка';
+    var desc  = trialExpired
+      ? '72 часа бесплатного доступа истекли. Оформите подписку, чтобы продолжить работу.'
+      : 'Для доступа к CRM необходимо оформить подписку.';
+
+    var overlay = document.createElement('div');
+    overlay.innerHTML =
+      '<div style="position:fixed;inset:0;z-index:9000;display:flex;align-items:center;justify-content:center;' +
+      'background:rgba(240,244,251,0.75);backdrop-filter:blur(8px);padding:20px;' +
+      'font-family:-apple-system,BlinkMacSystemFont,sans-serif">' +
+        '<div style="background:#fff;border-radius:20px;box-shadow:0 16px 64px rgba(37,99,235,0.15);' +
+        'padding:44px 36px;max-width:400px;width:100%;text-align:center">' +
+          '<div style="font-size:3rem;margin-bottom:14px">' + icon + '</div>' +
+          '<div style="font-size:1.35rem;font-weight:800;color:#0f172a;margin-bottom:10px">' + title + '</div>' +
+          '<div style="font-size:0.88rem;color:#64748b;line-height:1.6;margin-bottom:24px">' + desc + '</div>' +
+          '<div style="background:#f8faff;border:1px solid rgba(37,99,235,0.1);border-radius:12px;padding:18px;margin-bottom:22px">' +
+            '<div style="font-size:0.72rem;color:#94a3b8;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px">Тариф CRM</div>' +
+            '<div style="font-size:2rem;font-weight:800;color:#0f172a;line-height:1">2 900' +
+              '<span style="font-size:0.95rem;font-weight:500;color:#64748b">/мес</span></div>' +
+            '<div style="font-size:0.8rem;color:#94a3b8;margin-top:6px">Сотрудники · Зарплаты · Аналитика · Заказы</div>' +
+          '</div>' +
+          '<a href="https://t.me/keeper_wrap" target="_blank" ' +
+          'style="display:block;background:#2563eb;color:#fff;padding:13px;border-radius:10px;' +
+          'font-weight:700;font-size:0.92rem;text-decoration:none;margin-bottom:10px;' +
+          'box-shadow:0 4px 14px rgba(37,99,235,0.3)">Написать для оформления</a>' +
+          '<a href="calculator.html" style="font-size:0.83rem;color:#94a3b8;text-decoration:none">Вернуться к калькулятору →</a>' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(overlay.firstElementChild);
+  };
+
+})();
