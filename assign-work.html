@@ -1096,7 +1096,23 @@ async function init() {
     .eq('calculation_id', calcId);
 
   const services = extractServices(calcData.calculation_data || {});
-  renderContent(services, existingData || []);
+
+  // Если нет сохранённых назначений из work_assignments,
+  // но есть назначения из записи (booking-popup) — используем их как преднаполнение
+  let assignments = existingData || [];
+  if (!assignments.length) {
+    const bookingAssignments = calcData.calculation_data?.service_assignments || [];
+    assignments = bookingAssignments
+      .filter(a => a.executor_id)
+      .map(a => ({
+        service_key:  a.key,
+        service_name: a.name,
+        executor_id:  a.executor_id,
+        salary:       0,  // зарплату всё равно нужно указать вручную
+      }));
+  }
+
+  renderContent(services, assignments);
 }
 
 init();
