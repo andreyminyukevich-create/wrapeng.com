@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="nav.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
+body { visibility: hidden; }
 :root {
   --bg: #f0f4fb;
   --surface: #fff;
@@ -565,6 +566,7 @@ const fmt = n => Number(n || 0).toLocaleString('ru-RU', { minimumFractionDigits:
 // ── Auth ──────────────────────────────────────────────────────
 async function init() {
   initNav({ actionHref: 'calculator.html', actionLabel: '➕ Новый расчёт' });
+  document.body.style.visibility = 'visible';
 
   const { data: { session } } = await sb.auth.getSession();
   if (!session) { location.href = 'welcome.html'; return; }
