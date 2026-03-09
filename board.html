@@ -626,6 +626,7 @@ function buildCardActions(calcId, status, calc) {
     );
   } else if (status === 'scheduled') {
     wrap.append(
+      btn('📂 Открыть',         'open-calc'),
       btn('✏️ Изменить запись', 'book'),
       btn('📋 Принять авто',   'accept-act'),
       btn('🔧 Взять в работу', 'go-assign', 'card-btn-primary'),
@@ -633,12 +634,13 @@ function buildCardActions(calcId, status, calc) {
     );
   } else if (status === 'in_progress') {
     wrap.append(
+      btn('📂 Открыть',   'open-calc'),
       btn('👥 Задачи',    'go-assign'),
       btn('✅ Завершить', 'done',   'card-btn-primary', 'background:var(--purple);color:#fff'),
     );
   } else if (status === 'done') {
     wrap.append(
-      btn('📊 Расчёт',          'view-calc'),
+      btn('📂 Открыть',         'open-calc'),
       btn('📄 Акт приёмки',     'accept-act'),
       btn('🖨️ Заказ-наряд',    'work-order'),
       btn('🚗 Выдать клиенту',  'deliver', 'card-btn-primary', 'background:var(--success);color:#fff'),
@@ -647,13 +649,13 @@ function buildCardActions(calcId, status, calc) {
     wrap.dataset.totalPrice = String(calc.total_price || 0);
   } else if (status === 'delivered') {
     wrap.append(
-      btn('📊 Расчёт',      'view-calc'),
+      btn('📂 Открыть',     'open-calc'),
       btn('📄 Акт приёмки', 'accept-act'),
       btn('🖨️ Акт передачи', 'work-order', 'card-btn-primary', 'background:#0f172a;color:#fff'),
     );
   } else if (status === 'cancelled') {
     wrap.append(
-      btn('📊 Расчёт',       'view-calc'),
+      btn('📂 Открыть',      'open-calc'),
       btn('↩️ Восстановить', 'restore'),
     );
   }
@@ -684,17 +686,13 @@ function bindBoardEvents() {
 
 async function handleCardAction(action, calcId, btnEl) {
   const calc = allCalcs.find(c => c.id === calcId);
-  if (!calc && !['open-calc','view-calc'].includes(action)) return;
+  if (!calc && action !== 'open-calc') return;
 
   const carName = calc?.car_name || 'Без названия';
 
   switch (action) {
     case 'open-calc':
       window.location.href = `calculator.html?load=${encodeURIComponent(calcId)}`;
-      break;
-
-    case 'view-calc':
-      window.location.href = `calc-view.html?id=${encodeURIComponent(calcId)}`;
       break;
 
     case 'book':
