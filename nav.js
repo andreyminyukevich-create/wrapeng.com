@@ -1,140 +1,166 @@
 /**
- * nav.js - Единая навигация CRM
+ * nav.js — Единая навигация CRM
+ *
+ * Зависит от: supabase.js (должен быть загружен раньше через type="module")
+ * Подключение: <script src="nav.js"></script>  (классический скрипт, не модуль)
+ *
+ * Supabase-клиент берётся исключительно из window._crmSb (инициализирован в supabase.js).
+ * Никакого createClient здесь нет.
  */
 (function () {
   'use strict';
 
   document.documentElement.setAttribute('data-theme', 'light');
 
+  // ── Статусы заказов (глобально для всех страниц) ─────────────────
   window.STATUSES = {
-    new:         { label: 'Расчёт произведён',      short: 'Расчёт',    icon: '&#x1F4CB;', cls: 'status-new' },
-    scheduled:   { label: 'Назначена дата и время', short: 'Дата',      icon: '&#x1F4C5;', cls: 'status-scheduled' },
-    in_progress: { label: 'Принято в работу',       short: 'В работе',  icon: '&#x1F527;', cls: 'status-in_progress' },
-    done:        { label: 'Завершено',               short: 'Готово',    icon: '&#x2705;', cls: 'status-done' },
-    delivered:   { label: 'Выдано',                  short: 'Выдано',    icon: '&#x1F697;', cls: 'status-delivered' },
-    cancelled:   { label: 'Отказ',                   short: 'Отказ',     icon: '&#x274C;', cls: 'status-cancelled' },
+    new:         { label: 'Расчёт произведён',      short: 'Расчёт',   icon: '📋', cls: 'status-new' },
+    scheduled:   { label: 'Назначена дата и время', short: 'Дата',     icon: '📅', cls: 'status-scheduled' },
+    in_progress: { label: 'Принято в работу',       short: 'В работе', icon: '🔧', cls: 'status-in_progress' },
+    done:        { label: 'Завершено',              short: 'Готово',   icon: '✅', cls: 'status-done' },
+    delivered:   { label: 'Выдано',                 short: 'Выдано',   icon: '🚗', cls: 'status-delivered' },
+    cancelled:   { label: 'Отказ',                  short: 'Отказ',    icon: '❌', cls: 'status-cancelled' },
   };
 
-  var SUPABASE_URL      = 'https://hdghijgrrnzmntistdvw.supabase.co';
-  var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkZ2hpamdycm56bW50aXN0ZHZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMzMyNzksImV4cCI6MjA3NTYwOTI3OX0.D9EDTmVrFRVp0B8_5tCJM29gbFdtadsom0Ihsf4uQ8Q';
-  var ADMIN_ID          = 'c5db87ec-8e4a-4c48-bad3-5747513224d9';
+  // ADMIN_ID не является секретом — это публичный UUID для UI-ветки.
+  // Источник истины: core/auth.js → ADMIN_ID.
+  const ADMIN_ID = 'c5db87ec-8e4a-4c48-bad3-5747513224d9';
 
-  var PAGES = [
-    { href: 'dashboard.html',  icon: '&#x1F3E0;', label: 'Главная' },
-    { href: 'board.html',      icon: '&#x1F4CB;', label: 'Доска' },
-    { href: 'executors.html',  icon: '&#x1F465;', label: 'Сотрудники' },
-    { href: 'payouts.html',    icon: '&#x1F4B0;', label: 'Зарплаты' },
-    { href: 'analytics.html',  icon: '&#x1F4CA;', label: 'Аналитика' },
-    { href: 'calendar.html',   icon: '&#x1F5D3;', label: 'Календарь' },
-    { href: 'inventory.html',  icon: '&#x1F4E6;', label: 'Склад' },
-    { href: 'settings.html',   icon: '&#x1F527;', label: 'Настройки' },
+  const PAGES = [
+    { href: 'dashboard.html', icon: '🏠', label: 'Главная' },
+    { href: 'board.html',     icon: '📋', label: 'Доска' },
+    { href: 'executors.html', icon: '👥', label: 'Сотрудники' },
+    { href: 'payouts.html',   icon: '💰', label: 'Зарплаты' },
+    { href: 'analytics.html', icon: '📊', label: 'Аналитика' },
+    { href: 'calendar.html',  icon: '🗓', label: 'Календарь' },
+    { href: 'inventory.html', icon: '📦', label: 'Склад' },
+    { href: 'settings.html',  icon: '🔧', label: 'Настройки' },
   ];
 
   function currentPage() {
     return window.location.pathname.split('/').pop() || 'dashboard.html';
   }
 
+  // Получаем клиент — только из window._crmSb, без fallback createClient
+  function getSb() {
+    if (!window._crmSb) {
+      console.warn('[nav] window._crmSb не найден. Убедись, что supabase.js подключён раньше nav.js.');
+    }
+    return window._crmSb ?? null;
+  }
+
+  // ── Выход ─────────────────────────────────────────────────────────
   window._navLogout = async function () {
-    var s = window._crmSb || window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    await s.auth.signOut();
+    const sb = getSb();
+    if (sb) await sb.auth.signOut();
     window.location.href = 'welcome.html';
   };
 
+  // ── Инициализация навигации ───────────────────────────────────────
   window.initNav = function (config) {
-    if (document.getElementById('navTopBar')) return;
+    if (document.getElementById('navTopBar')) return; // защита от двойного вызова
 
     config = config || {};
-    var actionHref  = config.actionHref  !== undefined ? config.actionHref  : 'calculator.html';
-    var actionLabel = config.actionLabel !== undefined ? config.actionLabel : '&#x2795; Новый расчёт';
-    var hideAction  = config.hideAction  || false;
-    var page        = config.activePage  || currentPage();
+    const actionHref  = config.actionHref  ?? 'calculator.html';
+    const actionLabel = config.actionLabel ?? '➕ Новый расчёт';
+    const hideAction  = config.hideAction  ?? false;
+    const page        = config.activePage  ?? currentPage();
 
-    var links = PAGES.map(function (p) {
-      var isActive = p.href === page;
-      var cls = 'nav-link' + (isActive ? ' active' : '') + (p.soon ? ' nav-soon' : '');
-      var badge = p.soon ? ' <span class="nav-soon-badge">скоро</span>' : '';
-      return '<a href="' + (p.soon ? '#' : p.href) + '" class="' + cls + '">'
-        + p.icon + ' ' + p.label + badge + '</a>';
+    // Ссылки верхней панели
+    const links = PAGES.map(p => {
+      const isActive = p.href === page;
+      const cls = 'nav-link' + (isActive ? ' active' : '') + (p.soon ? ' nav-soon' : '');
+      const badge = p.soon ? ' <span class="nav-soon-badge">скоро</span>' : '';
+      return `<a href="${p.soon ? '#' : p.href}" class="${cls}">${p.icon} ${p.label}${badge}</a>`;
     }).join('');
 
-    var actionBtn = hideAction ? '' :
-      '<a href="' + actionHref + '" class="btn-nav-action">' + actionLabel + '</a>' +
-      '<button class="btn-nav-book" id="btnNavBook" onclick="window._openNavBooking()">&#x1F4C5; Записать авто</button>';
+    const actionBtn = hideAction ? '' :
+      `<a href="${actionHref}" class="btn-nav-action">${actionLabel}</a>` +
+      `<button class="btn-nav-book" id="btnNavBook">📅 Записать авто</button>`;
 
-    var logoutBtn = '<button class="btn-nav-logout" onclick="window._navLogout()">Выйти &rarr;</button>';
+    const logoutBtn = `<button class="btn-nav-logout" id="btnNavLogout">Выйти →</button>`;
 
-    var _sb = window._crmSb || window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    _sb.auth.getSession().then(function (res) {
-      var session = res.data && res.data.session;
-      if (session && session.user && session.user.id === ADMIN_ID) {
-        var adminLink = document.createElement('a');
-        adminLink.href = 'admin.html';
-        adminLink.className = 'nav-link' + (page === 'admin.html' ? ' active' : '');
-        adminLink.innerHTML = '&#x1F511; Админ';
-        adminLink.style.color = '#7c3aed';
-        var navLinks = document.querySelector('#navTopBar .nav-links');
-        if (navLinks && !navLinks.querySelector('a[href="admin.html"]')) {
-          navLinks.appendChild(adminLink);
-        }
-      }
-    });
-
-    // Bottom tab bar — 5 основных разделов + кнопка «+» по центру
-    var BOTTOM_TABS = [
-      { href: 'dashboard.html',  icon: '&#x1F3E0;', label: 'Главная' },
-      { href: 'board.html',      icon: '&#x1F4CB;', label: 'Доска' },
-      { href: actionHref,        icon: null,         label: 'Расчёт', isMain: true },
-      { href: 'analytics.html',  icon: '&#x1F4CA;', label: 'Аналитика' },
-      { href: 'settings.html',   icon: '&#x2699;&#xFE0F;', label: 'Ещё' },
+    // Bottom tab bar
+    const BOTTOM_TABS = [
+      { href: 'dashboard.html', icon: '🏠', label: 'Главная' },
+      { href: 'board.html',     icon: '📋', label: 'Доска' },
+      { href: actionHref,       icon: null,  label: 'Расчёт', isMain: true },
+      { href: 'analytics.html', icon: '📊', label: 'Аналитика' },
+      { href: 'settings.html',  icon: '⚙️', label: 'Ещё' },
     ];
 
-    var bottomHtml = '<div id="navBottomBar">';
-    BOTTOM_TABS.forEach(function(tab) {
-      var isActive = tab.href === page;
+    const bottomTabs = BOTTOM_TABS.map(tab => {
+      const isActive = tab.href === page;
       if (tab.isMain) {
-        bottomHtml += '<a href="' + tab.href + '" class="nav-tab nav-tab-main">' +
-          '<div class="nav-tab-icon-wrap">&#x2795;</div>' +
-          '<span class="nav-tab-label">' + tab.label + '</span>' +
-        '</a>';
-      } else {
-        bottomHtml += '<a href="' + tab.href + '" class="nav-tab' + (isActive ? ' active' : '') + '">' +
-          '<span class="nav-tab-icon">' + tab.icon + '</span>' +
-          '<span class="nav-tab-label">' + tab.label + '</span>' +
-        '</a>';
+        return `<a href="${tab.href}" class="nav-tab nav-tab-main">
+          <div class="nav-tab-icon-wrap">➕</div>
+          <span class="nav-tab-label">${tab.label}</span>
+        </a>`;
       }
-    });
-    bottomHtml += '</div>';
+      return `<a href="${tab.href}" class="nav-tab${isActive ? ' active' : ''}">
+        <span class="nav-tab-icon">${tab.icon}</span>
+        <span class="nav-tab-label">${tab.label}</span>
+      </a>`;
+    }).join('');
 
-    var html =
-      '<div id="navTopBar">' +
-        '<a href="dashboard.html" class="nav-brand">Keep1R CRM</a>' +
-        '<nav class="nav-links">' + links + '</nav>' +
-        '<div class="nav-right">' + actionBtn + logoutBtn + '</div>' +
-      '</div>' +
-      bottomHtml;
+    // Вставляем topBar
+    const topBar = document.createElement('div');
+    topBar.id = 'navTopBar';
+    topBar.innerHTML =
+      `<a href="dashboard.html" class="nav-brand">Keep1R CRM</a>` +
+      `<nav class="nav-links">${links}</nav>` +
+      `<div class="nav-right">${actionBtn}${logoutBtn}</div>`;
+    document.body.insertBefore(topBar, document.body.firstChild);
 
-    var wrap = document.createElement('div');
-    wrap.innerHTML = html;
-    document.body.insertBefore(wrap.children[0], document.body.firstChild); // topBar
-    document.body.appendChild(wrap.children[0]); // bottomBar
+    // Вставляем bottomBar
+    const bottomBar = document.createElement('div');
+    bottomBar.id = 'navBottomBar';
+    bottomBar.innerHTML = bottomTabs;
+    document.body.appendChild(bottomBar);
+
+    // Навешиваем обработчики через addEventListener (не onclick)
+    document.getElementById('btnNavLogout')?.addEventListener('click', window._navLogout);
+    document.getElementById('btnNavBook')?.addEventListener('click', window._openNavBooking);
+
+    // Ссылка «Админ» — только для global admin
+    const sb = getSb();
+    if (sb) {
+      sb.auth.getSession().then(res => {
+        const user = res.data?.session?.user;
+        if (user?.id === ADMIN_ID) {
+          const adminLink = document.createElement('a');
+          adminLink.href      = 'admin.html';
+          adminLink.className = 'nav-link' + (page === 'admin.html' ? ' active' : '');
+          adminLink.textContent = '🔑 Админ';
+          adminLink.style.color = '#7c3aed';
+          const navLinks = document.querySelector('#navTopBar .nav-links');
+          if (navLinks && !navLinks.querySelector('a[href="admin.html"]')) {
+            navLinks.appendChild(adminLink);
+          }
+        }
+      }).catch(() => {}); // тихо — юзер просто не увидит ссылку
+    }
   };
 
+  // ── Открыть попап записи авто ─────────────────────────────────────
   window._openNavBooking = async function () {
-    var sid = window._boardStudioId || window._studioId || null;
+    // studioId берём из кэша studio-context.js или из legacy-переменных
+    let sid = window._studioId || window._boardStudioId || null;
 
     if (!sid) {
-      var _sb = window._crmSb;
-      if (_sb) {
-        var sess = await _sb.auth.getSession();
-        var uid  = sess && sess.data && sess.data.session && sess.data.session.user && sess.data.session.user.id;
+      const sb = getSb();
+      if (sb) {
+        const sess = await sb.auth.getSession();
+        const uid  = sess.data?.session?.user?.id;
         if (uid) {
-          var res = await _sb.from('studio_members')
+          const { data } = await sb
+            .from('studio_members')
             .select('studio_id')
             .eq('user_id', uid)
             .eq('is_active', true)
-            .single();
-          if (res.data) {
-            sid = res.data.studio_id;
+            .maybeSingle();
+          if (data) {
+            sid = data.studio_id;
             window._studioId = sid;
           }
         }
@@ -142,74 +168,103 @@
     }
 
     function doOpen() {
-      BookingPopup.open({ studioId: sid, onSaved: function () { location.reload(); } });
+      BookingPopup.open({ studioId: sid, onSaved: () => location.reload() });
     }
 
     if (window.BookingPopup) { doOpen(); return; }
 
-    var s = document.createElement('script');
-    s.src = 'booking-popup.js';
-    s.onload = function () { doOpen(); };
-    s.onerror = function () { alert('Не удалось загрузить модуль записи.'); };
+    const s = document.createElement('script');
+    s.src    = 'booking-popup.js';
+    s.onload = doOpen;
+    s.onerror = () => alert('Не удалось загрузить модуль записи.');
     document.head.appendChild(s);
   };
 
+  // ── Проверка подписки (legacy-совместимость) ──────────────────────
+  // Используется на страницах до перехода на studio-context.js.
+  // После перехода всех страниц — удалить.
   window.checkSubscription = async function (studioId) {
-    var sb = window._crmSb;
+    const sb = getSb();
     if (!sb) return 'none';
 
-    var res = await sb
+    const { data, error } = await sb
       .from('studios')
       .select('subscription_tier, subscription_expires_at')
       .eq('id', studioId)
       .single();
 
-    if (res.error || !res.data) return 'none';
+    if (error || !data) return 'none';
 
-    var tier    = res.data.subscription_tier;
-    var expires = res.data.subscription_expires_at;
-    var now     = new Date();
+    const { subscription_tier: tier, subscription_expires_at: expires } = data;
+    const now = new Date();
 
     if (tier === 'active') return (!expires || new Date(expires) > now) ? 'active' : 'expired';
     if (tier === 'trial')  return (expires && new Date(expires) > now)  ? 'trial'  : 'expired';
     return 'expired';
   };
 
+  // ── Paywall-экран ─────────────────────────────────────────────────
   window.showPaywall = function (trialExpired) {
-    Array.from(document.body.children).forEach(function (el) {
+    // Размываем весь контент кроме навбара
+    Array.from(document.body.children).forEach(el => {
       if (el.id !== 'navTopBar') el.style.filter = 'blur(6px)';
     });
 
-    var icon  = trialExpired ? '&#x23F0;' : '&#x1F512;';
-    var title = trialExpired ? 'Пробный период завершён' : 'Требуется подписка';
-    var desc  = trialExpired
+    const icon  = trialExpired ? '⏰' : '🔒';
+    const title = trialExpired ? 'Пробный период завершён' : 'Требуется подписка';
+    const desc  = trialExpired
       ? '72 часа бесплатного доступа истекли. Оформите подписку, чтобы продолжить работу.'
       : 'Для доступа к CRM необходимо оформить подписку.';
 
-    var overlay = document.createElement('div');
-    overlay.innerHTML =
-      '<div style="position:fixed;inset:0;z-index:9000;display:flex;align-items:center;justify-content:center;' +
-      'background:rgba(240,244,251,0.75);backdrop-filter:blur(8px);padding:20px;' +
-      'font-family:-apple-system,BlinkMacSystemFont,sans-serif">' +
-        '<div style="background:#fff;border-radius:20px;box-shadow:0 16px 64px rgba(37,99,235,0.15);' +
-        'padding:44px 36px;max-width:400px;width:100%;text-align:center">' +
-          '<div style="font-size:3rem;margin-bottom:14px">' + icon + '</div>' +
-          '<div style="font-size:1.35rem;font-weight:800;color:#0f172a;margin-bottom:10px">' + title + '</div>' +
-          '<div style="font-size:0.88rem;color:#64748b;line-height:1.6;margin-bottom:24px">' + desc + '</div>' +
-          '<div style="background:#f8faff;border:1px solid rgba(37,99,235,0.1);border-radius:12px;padding:18px;margin-bottom:22px">' +
-            '<div style="font-size:0.72rem;color:#94a3b8;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px">Тариф CRM</div>' +
-            '<div style="font-size:2rem;font-weight:800;color:#0f172a;line-height:1">2 900' +
-              '<span style="font-size:0.95rem;font-weight:500;color:#64748b">/мес</span></div>' +
-            '<div style="font-size:0.8rem;color:#94a3b8;margin-top:6px">Сотрудники &middot; Зарплаты &middot; Аналитика &middot; Заказы</div>' +
-          '</div>' +
-          '<a href="https://t.me/keeper_wrap" target="_blank" ' +
-          'style="display:block;background:#2563eb;color:#fff;padding:13px;border-radius:10px;' +
-          'font-weight:700;font-size:0.92rem;text-decoration:none;margin-bottom:10px;' +
-          'box-shadow:0 4px 14px rgba(37,99,235,0.3)">Написать для оформления</a>' +
-          '<a href="calculator.html" style="font-size:0.83rem;color:#94a3b8;text-decoration:none">Вернуться к калькулятору &rarr;</a>' +
-        '</div>' +
-      '</div>';
-    document.body.appendChild(overlay.firstElementChild);
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:9000;display:flex;align-items:center;' +
+      'justify-content:center;background:rgba(240,244,251,0.75);backdrop-filter:blur(8px);padding:20px;' +
+      'font-family:-apple-system,BlinkMacSystemFont,sans-serif';
+
+    const card = document.createElement('div');
+    card.style.cssText = 'background:#fff;border-radius:20px;box-shadow:0 16px 64px rgba(37,99,235,0.15);' +
+      'padding:44px 36px;max-width:400px;width:100%;text-align:center';
+
+    // Собираем карточку через DOM, не через innerHTML
+    const iconEl = document.createElement('div');
+    iconEl.style.cssText = 'font-size:3rem;margin-bottom:14px';
+    iconEl.textContent = icon;
+
+    const titleEl = document.createElement('div');
+    titleEl.style.cssText = 'font-size:1.35rem;font-weight:800;color:#0f172a;margin-bottom:10px';
+    titleEl.textContent = title;
+
+    const descEl = document.createElement('div');
+    descEl.style.cssText = 'font-size:0.88rem;color:#64748b;line-height:1.6;margin-bottom:24px';
+    descEl.textContent = desc;
+
+    const priceBox = document.createElement('div');
+    priceBox.style.cssText = 'background:#f8faff;border:1px solid rgba(37,99,235,0.1);border-radius:12px;' +
+      'padding:18px;margin-bottom:22px';
+    priceBox.innerHTML =
+      '<div style="font-size:0.72rem;color:#94a3b8;font-weight:700;letter-spacing:0.08em;' +
+      'text-transform:uppercase;margin-bottom:6px">Тариф CRM</div>' +
+      '<div style="font-size:2rem;font-weight:800;color:#0f172a;line-height:1">2 900' +
+      '<span style="font-size:0.95rem;font-weight:500;color:#64748b">/мес</span></div>' +
+      '<div style="font-size:0.8rem;color:#94a3b8;margin-top:6px">Сотрудники · Зарплаты · Аналитика · Заказы</div>';
+
+    const ctaLink = document.createElement('a');
+    ctaLink.href   = 'https://t.me/keeper_wrap';
+    ctaLink.target = '_blank';
+    ctaLink.rel    = 'noopener noreferrer';
+    ctaLink.style.cssText = 'display:block;background:#2563eb;color:#fff;padding:13px;border-radius:10px;' +
+      'font-weight:700;font-size:0.92rem;text-decoration:none;margin-bottom:10px;' +
+      'box-shadow:0 4px 14px rgba(37,99,235,0.3)';
+    ctaLink.textContent = 'Написать для оформления';
+
+    const backLink = document.createElement('a');
+    backLink.href  = 'calculator.html';
+    backLink.style.cssText = 'font-size:0.83rem;color:#94a3b8;text-decoration:none';
+    backLink.textContent = 'Вернуться к калькулятору →';
+
+    card.append(iconEl, titleEl, descEl, priceBox, ctaLink, backLink);
+    overlay.appendChild(card);
+    document.body.appendChild(overlay);
   };
 
 })();
