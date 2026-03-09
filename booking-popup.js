@@ -235,7 +235,7 @@ const CSS = `
 // ── Справочники ────────────────────────────────────────
 const POST_TYPE_RU = { box:'Бокс', lift:'Подъёмник', outdoor:'Открытая зона', other:'Другое' };
 const MONTHS = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
-const ROLE_RU = { owner:'Владелец', admin:'Администратор', manager:'Менеджер', executor:'Исполнитель', viewer:'Просмотр' };
+const ROLE_RU = { owner:'Владелец', admin:'Администратор', manager:'Менеджер', executor:'Исполнитель', viewer:'Просмотр', wrapper:'Оклейщик', preparer:'Подготовщик', armature:'Арматурщик', detailer:'Детейлер', universal:'Универсал', outsource:'Аутсорсинг' };
 
 function roleRu(r) { return ROLE_RU[r] || r || 'Сотрудник'; }
 function toISO(d)   { return d.toISOString().slice(0,10); }
@@ -383,7 +383,7 @@ async function loadData() {
     sb.from('executors').select('id,full_name,role').eq('studio_id',_studioId).eq('is_active',true).order('full_name'),
     sb.from('calendar_bookings').select('post_id,date_from,date_to,executor_ids').eq('studio_id',_studioId),
     sb.from('calculations').select('id,car_name,status,final_price,total_price,calculation_data')
-      .eq('studio_id',_studioId).not('status','eq','delivered').not('status','eq','cancelled')
+      .eq('studio_id',_studioId).in('status',['new','draft'])
       .order('created_at',{ascending:false}).limit(100),
   ]);
 
@@ -407,13 +407,15 @@ async function loadData() {
 function renderCalcSelect() {
   const el = document.getElementById('bpCalcSel');
   if (!el) return;
-  const STATUS = { new:'Расчёт', scheduled:'Дата', in_progress:'В работе' };
+  const STATUS = { new:'Расчёт', draft:'', scheduled:'Дата', in_progress:'В работе' };
   el.innerHTML = '<option value="">— Выберите расчёт —</option>' +
     _calcs.map(c => {
-      const st  = STATUS[c.status] || c.status;
+      const st  = STATUS[c.status];
       const pr  = fmt(c.final_price || c.total_price || 0);
       const sel = c.id === _calcId ? ' selected' : '';
-      return `<option value="${c.id}"${sel}>${c.car_name||'Без названия'} · ${st} · ${pr} &#x20BD;</option>`;
+      const label = st ? `${c.car_name||'Без названия'} · ${st} · ${pr} &#x20BD;`
+                       : `${c.car_name||'Без названия'} · ${pr} &#x20BD;`;
+      return `<option value="${c.id}"${sel}>${label}</option>`;
     }).join('');
 }
 
@@ -457,10 +459,9 @@ function renderServices() {
   }
 
   const execOptions = '<option value="">— не назначен —</option>' +
-    _executors.map(e => {
-      const ini = (e.full_name||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-      return `<option value="${e.id}">${e.full_name} (${roleRu(e.role)})</option>`;
-    }).join('');
+    _executors.map(e =>
+      `<option value="${e.id}">${e.full_name} (${roleRu(e.role)})</option>`
+    ).join('');
 
   el.innerHTML = _calcServices.map(svc => {
     const assigned = _serviceExecs[svc.key] || '';
@@ -782,18 +783,23 @@ window.BookingPopup = {
       date_to:      _dateTo,
       note,
       executor_ids: execIds.length ? execIds : null,
-      service_assignments: serviceAssignments,
     });
 
     if (bErr) { console.error(bErr); }
     let ok = !bErr;
 
     if (ok && finalCalcId) {
+      // Сохраняем назначения исполнителей в calculation_data для заказ-наряда
+      const calcToUpdate = _calcs.find(c => c.id === finalCalcId);
+      const existingData = calcToUpdate?.calculation_data || {};
+      const updatedData  = { ...existingData, service_assignments: serviceAssignments };
+
       await sb.from('calculations').update({
-        status:         'scheduled',
-        scheduled_from: _dateFrom,
-        scheduled_to:   _dateTo,
-        post_id:        _selectedPost || null,
+        status:           'scheduled',
+        scheduled_from:   _dateFrom,
+        scheduled_to:     _dateTo,
+        post_id:          _selectedPost || null,
+        calculation_data: updatedData,
       }).eq('id', finalCalcId);
     }
 
