@@ -355,28 +355,52 @@ async function loadData() {
   const sb = window._crmSb;
   if (!sb || !_studioId) return;
 
+  // Если calcId уже известен — сразу грузим его данные, не ждём весь список
+  if (_calcId) {
+    const { data: thisCalc } = await sb
+      .from('calculations')
+      .select('id,car_name,status,final_price,total_price,calculation_data')
+      .eq('id', _calcId)
+      .single();
+
+    if (thisCalc) {
+      // Добавляем в список если ещё нет
+      if (!_calcs.find(c => c.id === thisCalc.id)) _calcs.push(thisCalc);
+      _calcServices = extractServices(thisCalc);
+      _serviceExecs = {};
+      renderServices();
+
+      const titleEl = document.getElementById('bpCarTitle');
+      const priceEl = document.getElementById('bpCarPrice');
+      if (titleEl) titleEl.innerHTML = `&#x1F4C5; ${thisCalc.car_name || 'Авто'}`;
+      if (priceEl) priceEl.innerHTML = `&#x20BD; ${fmt(thisCalc.final_price || thisCalc.total_price || 0)}`;
+    }
+  }
+
+  // Грузим посты, сотрудников и остальные расчёты параллельно
   const [pr, er, br, cr] = await Promise.all([
     sb.from('posts').select('*').eq('studio_id',_studioId).eq('is_active',true).order('created_at'),
     sb.from('executors').select('id,full_name,role').eq('studio_id',_studioId).eq('is_active',true).order('full_name'),
     sb.from('calendar_bookings').select('post_id,date_from,date_to,executor_ids').eq('studio_id',_studioId),
     sb.from('calculations').select('id,car_name,status,final_price,total_price,calculation_data')
-      .eq('studio_id',_studioId).in('status',['new','scheduled','in_progress']).order('created_at',{ascending:false}).limit(100),
+      .eq('studio_id',_studioId).not('status','eq','delivered').not('status','eq','cancelled')
+      .order('created_at',{ascending:false}).limit(100),
   ]);
 
   _posts     = pr.data || [];
   _executors = er.data || [];
   _bookings  = br.data || [];
-  _calcs     = cr.data || [];
+  // Мержим — чтобы текущий расчёт точно был в списке
+  const loaded = cr.data || [];
+  loaded.forEach(c => { if (!_calcs.find(x => x.id === c.id)) _calcs.push(c); });
 
   renderCalcSelect();
   renderPosts();
+  renderServices(); // перерендер с загруженными исполнителями
 
-  // Если calcId уже передан при открытии — выбираем и подгружаем услуги
-  if (_calcId) {
-    const sel = document.getElementById('bpCalcSel');
-    if (sel) sel.value = _calcId;
-    _onCalcSelectInternal(_calcId);
-  }
+  // Выставляем select
+  const sel = document.getElementById('bpCalcSel');
+  if (sel && _calcId) sel.value = _calcId;
 }
 
 // ── Рендер: расчёты ───────────────────────────────────
