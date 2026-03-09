@@ -79,61 +79,44 @@
       }
     });
 
-    var mobileLinks = PAGES.map(function(p) {
-      var isActive = p.href === page;
-      return '<a href="' + (p.soon ? '#' : p.href) + '" class="nav-mobile-link' + (isActive ? ' active' : '') + '" onclick="window._closeMobileNav()">' +
-        '<span class="nav-mobile-link-icon">' + p.icon + '</span>' + p.label +
-      '</a>';
-    }).join('');
+    // Bottom tab bar — 5 основных разделов + кнопка «+» по центру
+    var BOTTOM_TABS = [
+      { href: 'dashboard.html',  icon: '&#x1F3E0;', label: 'Главная' },
+      { href: 'board.html',      icon: '&#x1F4CB;', label: 'Доска' },
+      { href: actionHref,        icon: null,         label: 'Расчёт', isMain: true },
+      { href: 'analytics.html',  icon: '&#x1F4CA;', label: 'Аналитика' },
+      { href: 'settings.html',   icon: '&#x2699;&#xFE0F;', label: 'Ещё' },
+    ];
 
-    var mobileActions =
-      (hideAction ? '' :
-        '<a href="' + actionHref + '" class="nav-mobile-btn-primary">' + actionLabel + '</a>' +
-        '<button class="nav-mobile-btn-secondary" onclick="window._closeMobileNav();window._openNavBooking()">&#x1F4C5; Записать авто</button>'
-      ) +
-      '<button class="nav-mobile-btn-logout" onclick="window._navLogout()">Выйти &rarr;</button>';
+    var bottomHtml = '<div id="navBottomBar">';
+    BOTTOM_TABS.forEach(function(tab) {
+      var isActive = tab.href === page;
+      if (tab.isMain) {
+        bottomHtml += '<a href="' + tab.href + '" class="nav-tab nav-tab-main">' +
+          '<div class="nav-tab-icon-wrap">&#x2795;</div>' +
+          '<span class="nav-tab-label">' + tab.label + '</span>' +
+        '</a>';
+      } else {
+        bottomHtml += '<a href="' + tab.href + '" class="nav-tab' + (isActive ? ' active' : '') + '">' +
+          '<span class="nav-tab-icon">' + tab.icon + '</span>' +
+          '<span class="nav-tab-label">' + tab.label + '</span>' +
+        '</a>';
+      }
+    });
+    bottomHtml += '</div>';
 
     var html =
       '<div id="navTopBar">' +
         '<a href="dashboard.html" class="nav-brand">Keep1R CRM</a>' +
         '<nav class="nav-links">' + links + '</nav>' +
         '<div class="nav-right">' + actionBtn + logoutBtn + '</div>' +
-        '<button id="navHamburger" onclick="window._toggleMobileNav()" aria-label="Меню">&#9776;</button>' +
       '</div>' +
-      '<div id="navMobileOverlay" onclick="window._closeMobileNav()"></div>' +
-      '<div id="navMobileMenu">' +
-        '<div class="nav-mobile-section">' + mobileLinks + '</div>' +
-        '<div class="nav-mobile-section nav-mobile-actions">' + mobileActions + '</div>' +
-      '</div>';
+      bottomHtml;
 
     var wrap = document.createElement('div');
     wrap.innerHTML = html;
-    // Insert topBar
-    document.body.insertBefore(wrap.children[0], document.body.firstChild);
-    // Insert overlay and mobile menu after topBar
-    document.body.insertBefore(wrap.children[0], document.body.children[1]);
-    document.body.insertBefore(wrap.children[0], document.body.children[2]);
-  };
-
-  window._toggleMobileNav = function() {
-    var menu    = document.getElementById('navMobileMenu');
-    var overlay = document.getElementById('navMobileOverlay');
-    var btn     = document.getElementById('navHamburger');
-    if (!menu) return;
-    var isOpen = menu.classList.toggle('open');
-    if (overlay) overlay.classList.toggle('open', isOpen);
-    if (btn) btn.textContent = isOpen ? '✕' : '☰';
-    document.body.style.overflow = isOpen ? 'hidden' : '';
-  };
-
-  window._closeMobileNav = function() {
-    var menu    = document.getElementById('navMobileMenu');
-    var overlay = document.getElementById('navMobileOverlay');
-    var btn     = document.getElementById('navHamburger');
-    if (menu)    menu.classList.remove('open');
-    if (overlay) overlay.classList.remove('open');
-    if (btn) btn.textContent = '☰';
-    document.body.style.overflow = '';
+    document.body.insertBefore(wrap.children[0], document.body.firstChild); // topBar
+    document.body.appendChild(wrap.children[0]); // bottomBar
   };
 
   window._openNavBooking = async function () {
