@@ -1,9 +1,9 @@
 /**
- * core/studio-context.js
+ * studio-context.js
  * Единый контекст: пользователь + студия + роль + подписка.
  *
  * Использование:
- *   import { getStudioContext, clearContextCache } from './core/studio-context.js';
+ *   import { getStudioContext, clearContextCache } from './studio-context.js';
  *
  *   const ctx = await getStudioContext();
  *   // ctx.user, ctx.studioId, ctx.role, ctx.studio, ctx.subscriptionStatus
@@ -15,14 +15,14 @@
 import { sb } from './supabase.js';
 import { getCurrentSession } from './auth.js';
 
-// ── Кэш ──────────────────────────────────────────────────────────
+// ── Кэш ──────────────────────────────────────────────────────────────
 let _cache = null;
 
 export function clearContextCache() {
   _cache = null;
 }
 
-// ── Статусы подписки ─────────────────────────────────────────────
+// ── Статусы подписки ──────────────────────────────────────────────────
 export const SUBSCRIPTION = {
   ACTIVE:  'active',
   TRIAL:   'trial',
@@ -31,7 +31,7 @@ export const SUBSCRIPTION = {
 };
 
 function resolveSubscriptionStatus(tier, expiresAt) {
-  const now = new Date();
+  const now     = new Date();
   const expires = expiresAt ? new Date(expiresAt) : null;
 
   if (tier === 'active') {
@@ -43,7 +43,7 @@ function resolveSubscriptionStatus(tier, expiresAt) {
   return SUBSCRIPTION.EXPIRED;
 }
 
-// ── Основная функция ─────────────────────────────────────────────
+// ── Основная функция ──────────────────────────────────────────────────
 /**
  * Возвращает контекст текущего пользователя.
  *
@@ -51,12 +51,12 @@ function resolveSubscriptionStatus(tier, expiresAt) {
  *   null — если нет сессии (пользователь не авторизован)
  *
  * @typedef {object} StudioContext
- * @property {object}   user                — Supabase user object
- * @property {string|null} studioId         — ID студии (null если не найдена)
- * @property {string}   role                — 'owner' | 'manager' | 'staff' | 'none'
- * @property {object|null} studio           — строка из таблицы studios
- * @property {string}   subscriptionStatus  — SUBSCRIPTION.* константа
- * @property {boolean}  hasAccess           — true если подписка активна или trial
+ * @property {object}      user               — Supabase user object
+ * @property {string|null} studioId           — ID студии (null если не найдена)
+ * @property {string}      role               — 'owner' | 'manager' | 'staff' | 'none'
+ * @property {object|null} studio             — строка из таблицы studios
+ * @property {string}      subscriptionStatus — SUBSCRIPTION.* константа
+ * @property {boolean}     hasAccess          — true если подписка активна или trial
  */
 export async function getStudioContext() {
   if (_cache) return _cache;
@@ -66,7 +66,6 @@ export async function getStudioContext() {
 
   const user = session.user;
 
-  // Получаем членство + данные студии одним запросом
   const { data: member, error: memberErr } = await sb
     .from('studio_members')
     .select(`
@@ -78,8 +77,7 @@ export async function getStudioContext() {
         name,
         subscription_tier,
         subscription_expires_at,
-        settings,
-        logo_url
+        settings
       )
     `)
     .eq('user_id', user.id)
@@ -91,7 +89,6 @@ export async function getStudioContext() {
   }
 
   if (!member) {
-    // Пользователь авторизован, но студия не привязана
     _cache = {
       user,
       studioId:           null,
@@ -103,7 +100,7 @@ export async function getStudioContext() {
     return _cache;
   }
 
-  const studio = member.studios;
+  const studio             = member.studios;
   const subscriptionStatus = resolveSubscriptionStatus(
     studio?.subscription_tier,
     studio?.subscription_expires_at,
@@ -120,16 +117,16 @@ export async function getStudioContext() {
   };
 
   // Совместимость с legacy-кодом (nav.js, BookingPopup и др.)
-  window._studioId       = _cache.studioId;
-  window._boardStudioId  = _cache.studioId;
+  window._studioId      = _cache.studioId;
+  window._boardStudioId = _cache.studioId;
 
   return _cache;
 }
 
-// ── Хелперы для частых проверок ───────────────────────────────────
+// ── Хелперы для частых проверок ───────────────────────────────────────
 export async function requireStudio({ onMissing } = {}) {
   const ctx = await getStudioContext();
-  if (!ctx) return null;               // нет сессии — обработает requireAuth
+  if (!ctx) return null;
   if (!ctx.studioId) {
     if (typeof onMissing === 'function') onMissing(ctx);
     return null;
