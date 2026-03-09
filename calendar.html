@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="nav.css">
 <script src="nav.js"></script>
 <style>
+body { visibility: hidden; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
@@ -933,6 +934,7 @@ window.removeAssignment = async function() {
 // ── Init ──────────────────────────────────────────
 async function init() {
   initNav({ actionHref: 'calculator.html', actionLabel: '➕ Новый расчёт' });
+  document.body.style.visibility = 'visible';
 
   if (!await checkAuth()) return;
   if (!await loadStudio()) {
