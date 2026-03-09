@@ -4,365 +4,115 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Акт приёмки — Keep1R CRM</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <link rel="stylesheet" href="nav.css">
 <script src="nav.js"></script>
-
 <style>
-/* ── Base ─────────────────────────────────────────── */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
   --font: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
-  --bg: #eef2f9;
-  --card: #fff;
-  --border: rgba(15,23,42,0.10);
-  --text: #0f172a;
-  --muted: #64748b;
-  --primary: #2563eb;
-  --success: #059669;
-  --danger: #dc2626;
-  --radius: 12px;
+  --bg: #eef2f9; --card: #fff;
+  --border: rgba(15,23,42,0.10); --text: #0f172a;
+  --muted: #64748b; --primary: #2563eb;
+  --success: #059669; --danger: #dc2626; --radius: 12px;
 }
-body {
-  font-family: var(--font);
-  background: var(--bg);
-  color: var(--text);
-  min-height: 100svh;
-  -webkit-font-smoothing: antialiased;
-}
-.container {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 24px 20px 60px;
-}
+body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100svh; -webkit-font-smoothing: antialiased; }
+.container { max-width: 900px; margin: 0 auto; padding: 24px 20px 60px; }
 
-/* ── Page header ──────────────────────────────────── */
-.page-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-.page-title {
-  font-size: 1.3rem;
-  font-weight: 800;
-  color: var(--text);
-  letter-spacing: -0.3px;
-}
-.page-sub {
-  font-size: 0.8rem;
-  color: var(--muted);
-  margin-top: 2px;
-}
-.btn {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 9px 18px; border-radius: 9px; border: none;
-  font-size: 0.85rem; font-weight: 700; cursor: pointer;
-  font-family: var(--font); transition: all 0.15s;
-}
-.btn-primary { background: var(--primary); color: #fff; }
+.page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+.page-title  { font-size: 1.3rem; font-weight: 800; color: var(--text); letter-spacing: -0.3px; }
+.page-sub    { font-size: 0.8rem; color: var(--muted); margin-top: 2px; }
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px; border-radius: 9px; border: none; font-size: 0.85rem; font-weight: 700; cursor: pointer; font-family: var(--font); transition: all 0.15s; }
+.btn-primary   { background: var(--primary); color: #fff; }
 .btn-primary:hover { background: #1d4ed8; }
 .btn-secondary { background: #f1f5f9; color: var(--text); border: 1px solid var(--border); }
 .btn-secondary:hover { background: #e2e8f0; }
-.btn-success { background: var(--success); color: #fff; }
-.btn-success:hover { background: #047857; }
 .btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
 
-/* ── Card ─────────────────────────────────────────── */
-.card {
-  background: var(--card);
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-  margin-bottom: 16px;
-  overflow: hidden;
-}
-.card-head {
-  padding: 14px 18px 10px;
-  border-bottom: 1px solid var(--border);
-  font-size: 0.82rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--muted);
-}
+.card { background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: 0 1px 4px rgba(0,0,0,0.06); margin-bottom: 16px; overflow: hidden; }
+.card-head { padding: 14px 18px 10px; border-bottom: 1px solid var(--border); font-size: 0.82rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
 .card-body { padding: 16px 18px; }
 
-/* ── Form ─────────────────────────────────────────── */
-.form-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 12px;
-  margin-bottom: 12px;
-}
+.form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 12px; }
 .form-group { display: flex; flex-direction: column; gap: 5px; }
-.form-group label {
-  font-size: 0.74rem; font-weight: 700; color: var(--muted);
-  text-transform: uppercase; letter-spacing: 0.04em;
-}
-.form-group input, .form-group textarea, .form-group select {
-  padding: 9px 12px;
-  border: 1.5px solid var(--border);
-  border-radius: 8px;
-  font-size: 0.88rem;
-  font-family: var(--font);
-  color: var(--text);
-  background: #f8fafc;
-  transition: border-color 0.15s;
-  width: 100%;
-}
-.form-group input:focus, .form-group textarea:focus {
-  outline: none;
-  border-color: var(--primary);
-  background: #fff;
-}
+.form-group label { font-size: 0.74rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.form-group input, .form-group textarea, .form-group select { padding: 9px 12px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 0.88rem; font-family: var(--font); color: var(--text); background: #f8fafc; transition: border-color 0.15s; width: 100%; }
+.form-group input:focus, .form-group textarea:focus { outline: none; border-color: var(--primary); background: #fff; }
 .form-group textarea { resize: vertical; min-height: 68px; }
 
-/* ── Checkboxes ───────────────────────────────────── */
 .check-list { display: flex; flex-direction: column; gap: 8px; }
-.check-item {
-  display: flex; align-items: flex-start; gap: 10px;
-  padding: 10px 14px;
-  border-radius: 8px;
-  border: 1.5px solid var(--border);
-  background: #f8fafc;
-  cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
-}
-.check-item:has(input:checked) {
-  border-color: var(--primary);
-  background: rgba(37,99,235,0.04);
-}
-.check-item input[type=checkbox] {
-  margin-top: 1px; flex-shrink: 0;
-  width: 16px; height: 16px; accent-color: var(--primary);
-  cursor: pointer;
-}
+.check-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 14px; border-radius: 8px; border: 1.5px solid var(--border); background: #f8fafc; cursor: pointer; transition: border-color 0.15s, background 0.15s; }
+.check-item:has(input:checked) { border-color: var(--primary); background: rgba(37,99,235,0.04); }
+.check-item input[type=checkbox] { margin-top: 1px; flex-shrink: 0; width: 16px; height: 16px; accent-color: var(--primary); cursor: pointer; }
 .check-item-text { font-size: 0.86rem; line-height: 1.45; }
 .check-item-text strong { display: block; font-weight: 700; margin-bottom: 1px; }
 .check-item-text span { color: var(--muted); font-size: 0.79rem; }
 
-/* ── Car diagram ──────────────────────────────────── */
-.diagram-wrap {
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 12px;
-  background: #f8fafc;
-  border-radius: 10px;
-  border: 1.5px solid var(--border);
-  min-height: 280px;
-  cursor: crosshair;
-  user-select: none;
-}
-.diagram-wrap svg {
-  max-width: 100%;
-  height: auto;
-  pointer-events: none;
-}
-.diagram-hint {
-  text-align: center;
-  font-size: 0.75rem;
-  color: var(--muted);
-  margin-top: 8px;
-  font-weight: 600;
-}
-
-/* Defect markers */
-.defect-marker {
-  position: absolute;
-  width: 24px; height: 24px;
-  border-radius: 50%;
-  background: var(--danger);
-  color: #fff;
-  font-size: 0.65rem;
-  font-weight: 900;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer;
-  border: 2px solid #fff;
-  box-shadow: 0 2px 8px rgba(220,38,38,0.4);
-  transform: translate(-50%, -50%);
-  transition: transform 0.15s;
-  z-index: 10;
-  font-family: var(--font);
-}
+.diagram-wrap { position: relative; display: flex; justify-content: center; align-items: center; padding: 12px; background: #f8fafc; border-radius: 10px; border: 1.5px solid var(--border); min-height: 280px; cursor: crosshair; user-select: none; }
+.diagram-wrap svg { max-width: 100%; height: auto; pointer-events: none; }
+.diagram-hint { text-align: center; font-size: 0.75rem; color: var(--muted); margin-top: 8px; font-weight: 600; }
+.defect-marker { position: absolute; width: 24px; height: 24px; border-radius: 50%; background: var(--danger); color: #fff; font-size: 0.65rem; font-weight: 900; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px solid #fff; box-shadow: 0 2px 8px rgba(220,38,38,0.4); transform: translate(-50%, -50%); transition: transform 0.15s; z-index: 10; font-family: var(--font); }
 .defect-marker:hover { transform: translate(-50%,-50%) scale(1.2); }
-.defect-marker.selected { background: var(--primary); box-shadow: 0 2px 8px rgba(37,99,235,0.4); }
-
-/* Defect legend */
-.defect-legend {
-  margin-top: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.defect-legend-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.82rem;
-}
-.defect-legend-num {
-  width: 22px; height: 22px; border-radius: 50%;
-  background: var(--danger); color: #fff;
-  font-size: 0.65rem; font-weight: 900;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-}
-.defect-legend-input {
-  flex: 1;
-  padding: 5px 10px;
-  border: 1.5px solid var(--border);
-  border-radius: 6px;
-  font-size: 0.82rem;
-  font-family: var(--font);
-  background: #f8fafc;
-}
+.defect-legend { margin-top: 12px; display: flex; flex-direction: column; gap: 6px; }
+.defect-legend-item { display: flex; align-items: center; gap: 8px; font-size: 0.82rem; }
+.defect-legend-num { width: 22px; height: 22px; border-radius: 50%; background: var(--danger); color: #fff; font-size: 0.65rem; font-weight: 900; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.defect-legend-input { flex: 1; padding: 5px 10px; border: 1.5px solid var(--border); border-radius: 6px; font-size: 0.82rem; font-family: var(--font); background: #f8fafc; }
 .defect-legend-input:focus { outline: none; border-color: var(--primary); background: #fff; }
-.defect-del {
-  background: none; border: none; cursor: pointer;
-  color: var(--danger); font-size: 1rem; padding: 2px 4px; line-height: 1;
-}
-.diagram-controls {
-  display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap;
-}
+.defect-del { background: none; border: none; cursor: pointer; color: var(--danger); font-size: 1rem; padding: 2px 4px; line-height: 1; }
+.diagram-controls { display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
 
-/* ── Services table ───────────────────────────────── */
-.services-table {
-  width: 100%; border-collapse: collapse;
-  font-size: 0.85rem;
-}
-.services-table th {
-  text-align: left;
-  padding: 7px 10px;
-  font-size: 0.72rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--muted);
-  border-bottom: 1.5px solid var(--border);
-}
-.services-table td {
-  padding: 9px 10px;
-  border-bottom: 1px solid var(--border);
-  vertical-align: top;
-}
+.services-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+.services-table th { text-align: left; padding: 7px 10px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); border-bottom: 1.5px solid var(--border); }
+.services-table td { padding: 9px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
 .services-table tr:last-child td { border-bottom: none; }
-.services-table .total-row td {
-  font-weight: 800;
-  padding-top: 11px;
-  border-top: 2px solid var(--border);
-  border-bottom: none;
-}
+.services-table .total-row td { font-weight: 800; padding-top: 11px; border-top: 2px solid var(--border); border-bottom: none; }
 .price-cell { text-align: right; white-space: nowrap; font-weight: 700; }
 
-/* ── Signature block ──────────────────────────────── */
-.sign-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
-  margin-top: 4px;
-}
+.sign-row   { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 4px; }
 .sign-block { display: flex; flex-direction: column; gap: 10px; }
-.sign-label { font-size: 0.75rem; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
-.sign-line {
-  border-bottom: 1.5px solid #94a3b8;
-  height: 40px;
-  position: relative;
-}
-.sign-caption {
-  font-size: 0.73rem;
-  color: var(--muted);
-  text-align: center;
-}
+.sign-label   { font-size: 0.75rem; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+.sign-line    { border-bottom: 1.5px solid #94a3b8; height: 40px; position: relative; }
+.sign-caption { font-size: 0.73rem; color: var(--muted); text-align: center; }
 
-/* ── Print ────────────────────────────────────────── */
+#loadingMsg { text-align: center; padding: 60px 20px; color: var(--muted); font-size: 0.9rem; }
+#errorMsg   { display: none; text-align: center; padding: 40px 20px; color: var(--danger); }
+
 @media print {
   * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
   body { background: #fff !important; font-size: 11px !important; }
   #navTopBar, .no-print, .page-header .btn-group { display: none !important; }
   .container { padding: 0 !important; max-width: 100% !important; }
-
-  /* Компактные отступы */
   .card { box-shadow: none !important; margin-bottom: 6px !important; break-inside: avoid; }
   .card-head { padding: 7px 12px 6px !important; font-size: 0.68rem !important; }
   .card-body { padding: 8px 12px !important; }
   .form-row { gap: 6px !important; margin-bottom: 6px !important; }
-  .form-group input, .form-group textarea {
-    padding: 5px 8px !important; font-size: 0.8rem !important;
-    border: 1px solid #cbd5e1 !important; background: #fff !important;
-  }
+  .form-group input, .form-group textarea { padding: 5px 8px !important; font-size: 0.8rem !important; border: 1px solid #cbd5e1 !important; background: #fff !important; }
   .form-group label { font-size: 0.63rem !important; }
   .form-group textarea { min-height: 36px !important; }
-
-  /* Чекбоксы компактнее */
   .check-item { padding: 5px 8px !important; border: 1px solid #cbd5e1 !important; background: #f8fafc !important; }
   .check-item:has(input:checked) { border: 1.5px solid #2563eb !important; background: #eff6ff !important; }
   .check-item-text { font-size: 0.78rem !important; }
   .check-item-text strong { margin-bottom: 0 !important; }
   .check-item-text span { font-size: 0.7rem !important; }
   .check-list { gap: 4px !important; }
-
-  /* Схема авто — меньше */
-  .diagram-wrap {
-    border: 1px solid #cbd5e1 !important;
-    min-height: 160px !important;
-    padding: 6px !important;
-  }
+  .diagram-wrap { border: 1px solid #cbd5e1 !important; min-height: 160px !important; padding: 6px !important; }
   #carSvg { width: 160px !important; height: 280px !important; }
   .defect-marker { width: 18px !important; height: 18px !important; font-size: 0.55rem !important; }
   .defect-legend-input { padding: 3px 6px !important; font-size: 0.75rem !important; }
   .defect-legend { gap: 3px !important; margin-top: 6px !important; }
-
-  /* Таблица услуг */
   .services-table th, .services-table td { padding: 5px 8px !important; font-size: 0.8rem !important; }
-
-  /* Подписи */
   .sign-row { gap: 16px !important; }
   .sign-label { font-size: 0.65rem !important; }
   .sign-line { height: 30px !important; }
-  .disclaimer { padding: 7px 10px !important; font-size: 0.72rem !important; margin-top: 8px !important; }
-
-  /* Разрывы страниц: блок дефектов+услуги+подписи на стр.2 */
   .card:nth-of-type(3) { break-before: page !important; }
-
-  /* Print header */
-  #printStudioHeader { display: flex !important; }
-  #printStudioHeader { padding-bottom: 8px !important; margin-bottom: 10px !important; }
+  #printStudioHeader { display: flex !important; padding-bottom: 8px !important; margin-bottom: 10px !important; }
+  @page { margin: 15mm; size: A4; }
 }
 
-/* Studio header (print only) */
-#printStudioHeader {
-  display: none;
-  align-items: center;
-  justify-content: space-between;
-  padding-bottom: 14px;
-  border-bottom: 2px solid #0f172a;
-  margin-bottom: 18px;
-}
-#printStudioHeader .studio-logo {
-  max-height: 48px;
-  max-width: 120px;
-  object-fit: contain;
-}
-#printStudioHeader .studio-name-block {
-  text-align: right;
-  font-size: 0.78rem;
-  line-height: 1.6;
-  color: #475569;
-}
-#printStudioHeader .studio-name-main {
-  font-size: 1rem;
-  font-weight: 800;
-  color: #0f172a;
-}
-
-/* ── Loading / error ──────────────────────────────── */
-#loadingMsg { text-align: center; padding: 60px 20px; color: var(--muted); font-size: 0.9rem; }
-#errorMsg { display: none; text-align: center; padding: 40px 20px; color: var(--danger); }
+#printStudioHeader { display: none; align-items: center; justify-content: space-between; padding-bottom: 14px; border-bottom: 2px solid #0f172a; margin-bottom: 18px; }
+#printStudioHeader .studio-logo { max-height: 48px; max-width: 120px; object-fit: contain; }
+#printStudioHeader .studio-name-block { text-align: right; font-size: 0.78rem; line-height: 1.6; color: #475569; }
+#printStudioHeader .studio-name-main { font-size: 1rem; font-weight: 800; color: #0f172a; }
 </style>
 </head>
 <body>
@@ -378,7 +128,7 @@ body {
 
 <div class="container">
 
-  <!-- Print studio header -->
+  <!-- Print header -->
   <div id="printStudioHeader">
     <img id="psh-logo" src="" alt="" style="display:none" class="studio-logo">
     <div id="psh-title" style="font-size:1.3rem;font-weight:900;letter-spacing:-0.5px">АКТ ПРИЁМКИ АВТОМОБИЛЯ</div>
@@ -395,15 +145,15 @@ body {
 
   <div id="mainContent" style="display:none">
 
-    <!-- Page header -->
+    <!-- Шапка -->
     <div class="page-header no-print">
       <div>
         <div class="page-title">📋 Акт приёмки автомобиля</div>
         <div class="page-sub" id="headerSub">Загрузка…</div>
       </div>
       <div class="btn-group">
-        <button class="btn btn-secondary" onclick="history.back()">← Назад</button>
-        <button class="btn btn-primary" onclick="window.print()">🖨️ Распечатать</button>
+        <button class="btn btn-secondary" id="btnBack">← Назад</button>
+        <button class="btn btn-primary"   id="btnPrint">🖨️ Распечатать</button>
       </div>
     </div>
 
@@ -456,7 +206,7 @@ body {
       </div>
     </div>
 
-    <!-- ② Состояние авто — чекбоксы -->
+    <!-- ② Состояние при приёмке -->
     <div class="card">
       <div class="card-head">📝 Состояние при приёмке</div>
       <div class="card-body">
@@ -509,95 +259,45 @@ body {
       <div class="card-head">🗺️ Схема дефектов (кликните по авто — поставьте метку)</div>
       <div class="card-body">
         <div class="diagram-controls no-print">
-          <button class="btn btn-secondary" onclick="clearDefects()" style="font-size:0.78rem;padding:6px 12px">🗑️ Очистить все метки</button>
+          <button class="btn btn-secondary" id="btnClearDefects" style="font-size:0.78rem;padding:6px 12px">🗑️ Очистить все метки</button>
           <span style="font-size:0.78rem;color:var(--muted);align-self:center">Кликните на схему чтобы добавить дефект. Кликните по метке чтобы удалить.</span>
         </div>
 
-        <!-- Car diagram: top-down SVG -->
-        <div class="diagram-wrap" id="diagramWrap" onclick="addDefect(event)">
+        <div class="diagram-wrap" id="diagramWrap">
           <svg id="carSvg" viewBox="0 0 400 700" width="300" height="525" xmlns="http://www.w3.org/2000/svg">
-            <!-- Body shadow -->
             <ellipse cx="200" cy="350" rx="115" ry="295" fill="#e2e8f0"/>
-
-            <!-- Main body -->
-            <path d="
-              M130,120
-              Q130,60 200,50
-              Q270,60 270,120
-              L278,250
-              Q285,280 285,350
-              L285,500
-              Q280,580 260,610
-              Q240,640 200,645
-              Q160,640 140,610
-              Q120,580 115,500
-              L115,350
-              Q115,280 122,250
-              Z"
-              fill="#cbd5e1" stroke="#94a3b8" stroke-width="2"/>
-
-            <!-- Windshield front -->
-            <path d="M148,130 Q148,90 200,85 Q252,90 252,130 L248,200 Q200,190 152,200 Z"
-              fill="#93c5fd" stroke="#64748b" stroke-width="1.5" opacity="0.7"/>
-
-            <!-- Windshield rear -->
-            <path d="M148,490 L152,560 Q200,575 248,560 L252,490 Q200,480 148,490 Z"
-              fill="#93c5fd" stroke="#64748b" stroke-width="1.5" opacity="0.7"/>
-
-            <!-- Hood lines -->
+            <path d="M130,120 Q130,60 200,50 Q270,60 270,120 L278,250 Q285,280 285,350 L285,500 Q280,580 260,610 Q240,640 200,645 Q160,640 140,610 Q120,580 115,500 L115,350 Q115,280 122,250 Z" fill="#cbd5e1" stroke="#94a3b8" stroke-width="2"/>
+            <path d="M148,130 Q148,90 200,85 Q252,90 252,130 L248,200 Q200,190 152,200 Z" fill="#93c5fd" stroke="#64748b" stroke-width="1.5" opacity="0.7"/>
+            <path d="M148,490 L152,560 Q200,575 248,560 L252,490 Q200,480 148,490 Z" fill="#93c5fd" stroke="#64748b" stroke-width="1.5" opacity="0.7"/>
             <path d="M165,130 L165,210 M235,130 L235,210" stroke="#94a3b8" stroke-width="1" fill="none"/>
-
-            <!-- Trunk lines -->
             <path d="M165,490 L165,575 M235,490 L235,575" stroke="#94a3b8" stroke-width="1" fill="none"/>
-
-            <!-- Doors outline -->
             <path d="M118,240 L118,470 M282,240 L282,470" stroke="#94a3b8" stroke-width="1.5" fill="none"/>
             <path d="M120,355 L280,355" stroke="#94a3b8" stroke-width="1" fill="none" stroke-dasharray="4,3"/>
-
-            <!-- Left mirror -->
             <ellipse cx="108" cy="220" rx="16" ry="10" fill="#94a3b8" stroke="#64748b" stroke-width="1.5"/>
-
-            <!-- Right mirror -->
             <ellipse cx="292" cy="220" rx="16" ry="10" fill="#94a3b8" stroke="#64748b" stroke-width="1.5"/>
-
-            <!-- Front bumper -->
-            <path d="M145,70 Q200,55 255,70 L255,95 Q200,80 145,95 Z"
-              fill="#94a3b8" stroke="#64748b" stroke-width="1.5"/>
-
-            <!-- Headlights -->
+            <path d="M145,70 Q200,55 255,70 L255,95 Q200,80 145,95 Z" fill="#94a3b8" stroke="#64748b" stroke-width="1.5"/>
             <path d="M148,72 Q155,62 175,65 L175,85 Q158,88 148,80 Z" fill="#fde68a" stroke="#64748b" stroke-width="1"/>
             <path d="M252,72 Q245,62 225,65 L225,85 Q242,88 252,80 Z" fill="#fde68a" stroke="#64748b" stroke-width="1"/>
-
-            <!-- Rear bumper -->
-            <path d="M145,625 Q200,640 255,625 L255,610 Q200,625 145,610 Z"
-              fill="#94a3b8" stroke="#64748b" stroke-width="1.5"/>
-
-            <!-- Taillights -->
+            <path d="M145,625 Q200,640 255,625 L255,610 Q200,625 145,610 Z" fill="#94a3b8" stroke="#64748b" stroke-width="1.5"/>
             <path d="M148,623 Q155,633 175,630 L175,610 Q158,607 148,615 Z" fill="#fca5a5" stroke="#64748b" stroke-width="1"/>
             <path d="M252,623 Q245,633 225,630 L225,610 Q242,607 252,615 Z" fill="#fca5a5" stroke="#64748b" stroke-width="1"/>
-
-            <!-- Wheels -->
             <ellipse cx="128" cy="200" rx="24" ry="32" fill="#475569" stroke="#334155" stroke-width="1.5"/>
             <ellipse cx="128" cy="200" rx="14" ry="20" fill="#64748b"/>
             <ellipse cx="272" cy="200" rx="24" ry="32" fill="#475569" stroke="#334155" stroke-width="1.5"/>
             <ellipse cx="272" cy="200" rx="14" ry="20" fill="#64748b"/>
-
             <ellipse cx="128" cy="500" rx="24" ry="32" fill="#475569" stroke="#334155" stroke-width="1.5"/>
             <ellipse cx="128" cy="500" rx="14" ry="20" fill="#64748b"/>
             <ellipse cx="272" cy="500" rx="24" ry="32" fill="#475569" stroke="#334155" stroke-width="1.5"/>
             <ellipse cx="272" cy="500" rx="14" ry="20" fill="#64748b"/>
-
-            <!-- Labels -->
             <text x="200" y="165" text-anchor="middle" font-size="11" fill="#64748b" font-family="Arial">Перёд</text>
             <text x="200" y="540" text-anchor="middle" font-size="11" fill="#64748b" font-family="Arial">Зад</text>
-            <text x="88" y="355" text-anchor="middle" font-size="10" fill="#64748b" font-family="Arial" transform="rotate(-90,88,355)">Лево</text>
+            <text x="88"  y="355" text-anchor="middle" font-size="10" fill="#64748b" font-family="Arial" transform="rotate(-90,88,355)">Лево</text>
             <text x="312" y="355" text-anchor="middle" font-size="10" fill="#64748b" font-family="Arial" transform="rotate(90,312,355)">Право</text>
           </svg>
         </div>
 
         <div class="diagram-hint no-print">↑ Кликните по схеме чтобы отметить дефект. Кликните по красной метке чтобы удалить.</div>
 
-        <!-- Defect legend -->
         <div class="defect-legend" id="defectLegend" style="margin-top:14px;display:none">
           <div style="font-size:0.74rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);margin-bottom:4px">Описание дефектов:</div>
           <div id="defectList"></div>
@@ -653,212 +353,216 @@ body {
 </div><!-- /container -->
 
 <script src="footer.js"></script>
-<script>
-(function() {
-'use strict';
+<script type="module">
+import { sb }               from './supabase.js';
+import { requireAuth }       from './auth.js';
+import { getStudioContext }   from './studio-context.js';
 
-const SUPABASE_URL      = 'https://hdghijgrrnzmntistdvw.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkZ2hpamdycm56bW50aXN0ZHZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMzMyNzksImV4cCI6MjA3NTYwOTI3OX0.D9EDTmVrFRVp0B8_5tCJM29gbFdtadsom0Ihsf4uQ8Q';
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// ── Состояние ────────────────────────────────────────────────────────
+let defects = []; // [{ id, xPct, yPct, desc }]
 
-let currentUser  = null;
-let calcId       = null;
-let defects      = [];   // [{id, x%, y%, desc}]
-
-// ── Auth ────────────────────────────────────────────
-async function checkAuth() {
-  const { data: { session } } = await sb.auth.getSession();
-  if (!session) { window.location.href = 'welcome.html'; return false; }
-  currentUser = session.user;
-  return true;
-}
-
-// ── Format ──────────────────────────────────────────
+// ── Утилиты ───────────────────────────────────────────────────────────
 function fmt(n) {
   return new Intl.NumberFormat('ru-RU', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(n || 0);
 }
 
-// ── Load studio settings ────────────────────────────
-async function loadStudio() {
-  const { data: member } = await sb.from('studio_members')
-    .select('studio_id').eq('user_id', currentUser.id).eq('is_active', true).single();
-  if (!member) return {};
-
-  const { data: studio } = await sb.from('studios')
-    .select('name, settings').eq('id', member.studio_id).single();
-  if (!studio) return {};
-
+// ── Данные студии ─────────────────────────────────────────────────────
+function renderStudioInfo(studio) {
+  if (!studio) return;
   const cfg = studio.settings || {};
-  // Populate print header
-  document.getElementById('psh-name').textContent   = studio.name || '';
-  document.getElementById('psh-phone').textContent  = cfg.phone || cfg.kp_phone || '';
-  document.getElementById('psh-address').textContent = [cfg.city, cfg.address].filter(Boolean).join(', ');
-  document.getElementById('psh-site').textContent   = cfg.website || cfg.kp_website || '';
+  document.getElementById('psh-name').textContent     = studio.name || '';
+  document.getElementById('psh-phone').textContent    = cfg.phone   || cfg.kp_phone || '';
+  document.getElementById('psh-address').textContent  = [cfg.city, cfg.address].filter(Boolean).join(', ');
+  document.getElementById('psh-site').textContent     = cfg.website || cfg.kp_website || '';
   document.getElementById('signStudioName').textContent = studio.name || '______________________';
-
   if (cfg.kp_logo) {
     const img = document.getElementById('psh-logo');
     img.src = cfg.kp_logo;
     img.style.display = 'block';
   }
-
-  return { studioName: studio.name, cfg };
 }
 
-// ── Build services list from calculation_data ───────
-function buildServicesList(calcData) {
+// ── Список услуг ──────────────────────────────────────────────────────
+function buildServicesList(cd) {
   const services = [];
-  const cd = calcData || {};
-
   const sections = [
-    { key: 'pkg',       label: 'Полная защита вкруг',    priceKey: 'pkgTotal' },
-    { key: 'impact',    label: 'Защита ударной части',   priceKey: 'impactTotal' },
-    { key: 'arm',       label: 'Арматурка',              priceKey: 'armTotal' },
-    { key: 'wrap',      label: 'Оклейка плёнкой',        priceKey: 'wrapTotal' },
-    { key: 'det',       label: 'Детейлинг',              priceKey: 'detTotal' },
-    { key: 'gl',        label: 'Антигравийная защита',   priceKey: 'glTotal' },
-    { key: 'misc',      label: 'Прочие работы',          priceKey: 'miscTotal' },
+    { key: 'pkgTotal',    label: 'Полная защита вкруг'  },
+    { key: 'impactTotal', label: 'Защита ударной части' },
+    { key: 'armTotal',    label: 'Арматурка'            },
+    { key: 'wrapTotal',   label: 'Оклейка плёнкой'      },
+    { key: 'detTotal',    label: 'Детейлинг'            },
+    { key: 'glTotal',     label: 'Антигравийная защита' },
+    { key: 'miscTotal',   label: 'Прочие работы'        },
   ];
-
   sections.forEach(s => {
-    const total = parseFloat(cd[s.priceKey] || 0);
+    const total = parseFloat(cd[s.key] || 0);
     if (total > 0) services.push({ name: s.label, price: total });
   });
-
-  // Miscellaneous custom items
-  if (cd.miscItems && Array.isArray(cd.miscItems)) {
+  if (Array.isArray(cd.miscItems)) {
     cd.miscItems.forEach(item => {
-      if (item.name && item.price > 0) {
-        services.push({ name: item.name, price: parseFloat(item.price) });
-      }
+      if (item.name && item.price > 0) services.push({ name: item.name, price: parseFloat(item.price) });
     });
   }
-
   return services;
 }
 
-// ── Render services table ───────────────────────────
 function renderServices(calc) {
   const cd = calc.calculation_data || {};
   let services = buildServicesList(cd);
-
-  // Fallback: if no breakdown, just show total
   if (services.length === 0 && calc.total_price) {
     services = [{ name: calc.car_name || 'Работы по автомобилю', price: calc.total_price }];
   }
 
   const tbody = document.getElementById('servicesTbody');
+  tbody.innerHTML = '';
+
   if (services.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="3" style="color:var(--muted);font-style:italic;padding:12px 10px">Нет данных по услугам</td></tr>';
+    const tr = document.createElement('tr');
+    const td = document.createElement('td');
+    td.colSpan = 3;
+    td.style.cssText = 'color:var(--muted);font-style:italic;padding:12px 10px';
+    td.textContent = 'Нет данных по услугам';
+    tr.appendChild(td);
+    tbody.appendChild(tr);
     return;
   }
 
   const total = services.reduce((s, x) => s + x.price, 0);
-  tbody.innerHTML = services.map((s, i) => `
-    <tr>
-      <td style="color:var(--muted);font-size:0.8rem">${i+1}</td>
-      <td>${s.name}</td>
-      <td class="price-cell">${fmt(s.price)}</td>
-    </tr>
-  `).join('') + `
-    <tr class="total-row">
-      <td></td>
-      <td style="font-weight:800">ИТОГО</td>
-      <td class="price-cell">${fmt(total)}</td>
-    </tr>
-  `;
-}
+  const frag  = document.createDocumentFragment();
 
-// ── Defect markers ──────────────────────────────────
-window.addDefect = function(e) {
-  const wrap = document.getElementById('diagramWrap');
-  if (e.target.closest('.defect-marker')) return; // clicked on marker
-  if (e.target.closest('.diagram-controls')) return;
+  services.forEach((s, i) => {
+    const tr = document.createElement('tr');
 
-  const rect = wrap.getBoundingClientRect();
-  const xPct = ((e.clientX - rect.left) / rect.width * 100).toFixed(1);
-  const yPct = ((e.clientY - rect.top) / rect.height * 100).toFixed(1);
-  const id   = Date.now();
+    const tdNum = document.createElement('td');
+    tdNum.style.cssText = 'color:var(--muted);font-size:0.8rem';
+    tdNum.textContent = String(i + 1);
 
-  defects.push({ id, xPct, yPct, desc: '' });
-  renderDefects();
-};
+    const tdName = document.createElement('td');
+    tdName.textContent = s.name; // textContent — безопасно
 
-window.deleteDefect = function(id) {
-  defects = defects.filter(d => d.id !== id);
-  renderDefects();
-};
+    const tdPrice = document.createElement('td');
+    tdPrice.className = 'price-cell';
+    tdPrice.textContent = fmt(s.price);
 
-window.clearDefects = function() {
-  defects = [];
-  renderDefects();
-};
-
-function renderDefects() {
-  const wrap = document.getElementById('diagramWrap');
-  // Remove existing markers
-  wrap.querySelectorAll('.defect-marker').forEach(el => el.remove());
-
-  // Add markers
-  defects.forEach((d, idx) => {
-    const el = document.createElement('div');
-    el.className = 'defect-marker';
-    el.textContent = idx + 1;
-    el.style.left = d.xPct + '%';
-    el.style.top  = d.yPct + '%';
-    el.title = 'Кликните чтобы удалить';
-    el.onclick = (e) => { e.stopPropagation(); deleteDefect(d.id); };
-    wrap.appendChild(el);
+    tr.append(tdNum, tdName, tdPrice);
+    frag.appendChild(tr);
   });
 
-  // Legend
-  const legend   = document.getElementById('defectLegend');
-  const listEl   = document.getElementById('defectList');
-  const noMsg    = document.getElementById('noDefectsMsg');
-  const chkBox   = document.getElementById('chkScratchesExist');
+  // Итого
+  const trTotal = document.createElement('tr');
+  trTotal.className = 'total-row';
+  const tdEmpty = document.createElement('td');
+  const tdLabel = document.createElement('td');
+  tdLabel.style.fontWeight = '800';
+  tdLabel.textContent = 'ИТОГО';
+  const tdTotal = document.createElement('td');
+  tdTotal.className = 'price-cell';
+  tdTotal.textContent = fmt(total);
+  trTotal.append(tdEmpty, tdLabel, tdTotal);
+  frag.appendChild(trTotal);
+
+  tbody.appendChild(frag);
+}
+
+// ── Дефекты ───────────────────────────────────────────────────────────
+function deleteDefect(id) {
+  defects = defects.filter(d => d.id !== id);
+  renderDefects();
+}
+
+function renderDefects() {
+  const wrap    = document.getElementById('diagramWrap');
+  const legend  = document.getElementById('defectLegend');
+  const listEl  = document.getElementById('defectList');
+  const noMsg   = document.getElementById('noDefectsMsg');
+  const chkBox  = document.getElementById('chkScratchesExist');
+
+  // Убираем старые маркеры
+  wrap.querySelectorAll('.defect-marker').forEach(el => el.remove());
+
+  // Ставим маркеры
+  defects.forEach((d, idx) => {
+    const el = document.createElement('div');
+    el.className   = 'defect-marker';
+    el.textContent = String(idx + 1);
+    el.style.left  = d.xPct + '%';
+    el.style.top   = d.yPct + '%';
+    el.title       = 'Кликните чтобы удалить';
+    el.addEventListener('click', e => { e.stopPropagation(); deleteDefect(d.id); });
+    wrap.appendChild(el);
+  });
 
   if (defects.length === 0) {
     legend.style.display = 'none';
     noMsg.style.display  = '';
     if (chkBox) chkBox.checked = false;
-  } else {
-    legend.style.display = '';
-    noMsg.style.display  = 'none';
-    if (chkBox) chkBox.checked = true;
-
-    listEl.innerHTML = defects.map((d, idx) => `
-      <div class="defect-legend-item">
-        <div class="defect-legend-num">${idx+1}</div>
-        <input class="defect-legend-input" type="text" value="${d.desc}"
-          placeholder="Описание дефекта №${idx+1} (царапина, скол, вмятина…)"
-          oninput="defects[${idx}].desc=this.value"
-        >
-        <button class="defect-del no-print" onclick="deleteDefect(${d.id})" title="Удалить">✕</button>
-      </div>
-    `).join('');
+    return;
   }
+
+  legend.style.display = '';
+  noMsg.style.display  = 'none';
+  if (chkBox) chkBox.checked = true;
+
+  // Легенда
+  listEl.innerHTML = '';
+  const frag = document.createDocumentFragment();
+
+  defects.forEach((d, idx) => {
+    const item = document.createElement('div');
+    item.className = 'defect-legend-item';
+
+    const num = document.createElement('div');
+    num.className   = 'defect-legend-num';
+    num.textContent = String(idx + 1);
+
+    const input = document.createElement('input');
+    input.type        = 'text';
+    input.className   = 'defect-legend-input';
+    input.value       = d.desc;
+    input.placeholder = `Описание дефекта №${idx + 1} (царапина, скол, вмятина…)`;
+    input.addEventListener('input', e => { d.desc = e.target.value; });
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'defect-del no-print';
+    delBtn.title     = 'Удалить';
+    delBtn.textContent = '✕';
+    delBtn.addEventListener('click', () => deleteDefect(d.id));
+
+    item.append(num, input, delBtn);
+    frag.appendChild(item);
+  });
+
+  listEl.appendChild(frag);
 }
 
-// ── Set today's date ────────────────────────────────
-function setToday() {
-  const today = new Date().toISOString().slice(0, 10);
-  document.getElementById('intakeDate').value = today;
+function addDefect(e) {
+  const wrap = document.getElementById('diagramWrap');
+  if (e.target.closest('.defect-marker'))    return;
+  if (e.target.closest('.diagram-controls')) return;
+  const rect = wrap.getBoundingClientRect();
+  const xPct = ((e.clientX - rect.left)  / rect.width  * 100).toFixed(1);
+  const yPct = ((e.clientY - rect.top)   / rect.height * 100).toFixed(1);
+  defects.push({ id: Date.now(), xPct, yPct, desc: '' });
+  renderDefects();
 }
 
-// ── Update signature line ───────────────────────────
-document.getElementById('clientName').addEventListener('input', function() {
-  const v = this.value.trim();
-  document.getElementById('signClientName').textContent = v ? 'ФИО: ' + v : 'ФИО: ______________________';
-});
+// ── Точка входа ───────────────────────────────────────────────────────
+async function initPage() {
+  document.getElementById('btnBack').addEventListener('click', () => history.back());
+  document.getElementById('btnPrint').addEventListener('click', () => window.print());
+  document.getElementById('btnClearDefects').addEventListener('click', () => { defects = []; renderDefects(); });
+  document.getElementById('diagramWrap').addEventListener('click', addDefect);
 
-// ── Main init ───────────────────────────────────────
-(async function init() {
-  const ok = await checkAuth();
-  if (!ok) return;
+  document.getElementById('clientName').addEventListener('input', function() {
+    const v = this.value.trim();
+    document.getElementById('signClientName').textContent = v ? 'ФИО: ' + v : 'ФИО: ______________________';
+  });
 
-  const params = new URLSearchParams(window.location.search);
-  calcId = params.get('calc_id');
+  const user = await requireAuth({ redirectTo: 'welcome.html' });
+  if (!user) return;
 
+  const params  = new URLSearchParams(window.location.search);
+  const calcId  = params.get('calc_id');
   const loading = document.getElementById('loadingMsg');
   const errMsg  = document.getElementById('errorMsg');
   const content = document.getElementById('mainContent');
@@ -870,11 +574,14 @@ document.getElementById('clientName').addEventListener('input', function() {
     return;
   }
 
-  // Load studio + calc in parallel
-  const [studioInfo, calcResult] = await Promise.all([
-    loadStudio(),
-    sb.from('calculations').select('*').eq('id', calcId).single()
-  ]);
+  let ctx;
+  try {
+    ctx = await getStudioContext();
+  } catch (err) {
+    console.error('[acceptance-act] getStudioContext:', err);
+  }
+
+  const calcResult = await sb.from('calculations').select('*').eq('id', calcId).single();
 
   if (calcResult.error || !calcResult.data) {
     loading.style.display = 'none';
@@ -884,23 +591,25 @@ document.getElementById('clientName').addEventListener('input', function() {
 
   const calc = calcResult.data;
 
-  // Fill car info
-  document.getElementById('carName').value = calc.car_name || '';
-  document.getElementById('headerSub').textContent = `${calc.car_name || 'Авто'} · ${new Date().toLocaleDateString('ru-RU')}`;
+  renderStudioInfo(ctx?.studio || null);
 
-  setToday();
+  document.getElementById('carName').value        = calc.car_name || '';
+  document.getElementById('headerSub').textContent =
+    `${calc.car_name || 'Авто'} · ${new Date().toLocaleDateString('ru-RU')}`;
+
+  // Дата сегодня
+  document.getElementById('intakeDate').value = new Date().toISOString().slice(0, 10);
+
   renderServices(calc);
-  renderDefects(); // empty state
+  renderDefects(); // пустое состояние
 
   loading.style.display = 'none';
   content.style.display = '';
 
-  // Init nav
   if (window.initNav) window.initNav({ activePage: 'acceptance-act.html' });
+}
 
-})();
-
-})();
+document.addEventListener('DOMContentLoaded', initPage);
 </script>
 </body>
 </html>
