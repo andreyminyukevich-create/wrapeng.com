@@ -408,7 +408,7 @@ td {
   <!-- Массовые действия -->
   <div class="bulk-actions" id="bulkActions" style="display:none">
     <span id="selectedCount" style="font-size:0.82rem;color:var(--text-muted);font-weight:600">Выбрано: 0</span>
-    <button class="btn btn-success" onclick="paySelected">💰 Выплатить выбранные</button>
+    <button class="btn btn-success" onclick="paySelected()">💰 Выплатить выбранные</button>
   </div>
 
   <!-- Контент -->
@@ -420,29 +420,29 @@ td {
 
 <script src="footer.js"></script>
 <script>
-(function {
+(function() {
 'use strict';
 
-const SUPABASE_URL = 'https://hdghijgrrnzmntistdvw.supabase.co';
+const SUPABASE_URL     = 'https://hdghijgrrnzmntistdvw.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkZ2hpamdycm56bW50aXN0ZHZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMzMyNzksImV4cCI6MjA3NTYwOTI3OX0.D9EDTmVrFRVp0B8_5tCJM29gbFdtadsom0Ihsf4uQ8Q';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 window._crmSb = sb;
 
-let currentUser     = null;
-let currentStudio   = null;
-let allAssignments  = [];
-let currentTab      = 'pending';
-let selectedIds     = new Set;
+let currentUser    = null;
+let currentStudio  = null;
+let allAssignments = [];
+let currentTab     = 'pending';
+let selectedIds    = new Set();
 
 function fmt(n) {
-  return new Intl.NumberFormat('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:2}).format(n || 0);
+  return new Intl.NumberFormat('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n || 0);
 }
 
 function fmtMonth(str) {
   if (!str) return '';
   const [y, m] = str.split('-');
   const months = ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
-  return `${months[parseInt(m)-1]} ${y}`;
+  return `${months[parseInt(m) - 1]} ${y}`;
 }
 
 async function checkAuth() {
@@ -496,20 +496,20 @@ async function loadAssignments() {
     car_display:      a.calculations?.car_name || 'Неизвестно'
   }));
 
-  populateFilters;
+  populateFilters();
   updateSummary();
-  renderTab;
+  renderTab();
 }
 
 function populateFilters() {
-  const months = [...new Set(allAssignments.map(a => a.payment_month).filter(Boolean))].sort.reverse;
+  const months = [...new Set(allAssignments.map(a => a.payment_month).filter(Boolean))].sort().reverse();
   const monthFilter = document.getElementById('monthFilter');
   monthFilter.innerHTML = '<option value="all">Все месяцы</option>';
   months.forEach(m => {
     monthFilter.innerHTML += `<option value="${m}">${fmtMonth(m)}</option>`;
   });
 
-  const executors = [...new Set(allAssignments.map(a => a.executor_display))].sort;
+  const executors = [...new Set(allAssignments.map(a => a.executor_display))].sort();
   const execFilter = document.getElementById('executorFilter');
   execFilter.innerHTML = '<option value="all">Все исполнители</option>';
   executors.forEach(e => {
@@ -525,8 +525,8 @@ function updateSummary() {
   const paid    = allAssignments.filter(a => a.status === 'paid').reduce((acc, a) => acc + (a.salary || 0), 0);
   const total   = allAssignments.length;
 
-  document.getElementById('summaryPending').textContent = fmt(pending) ;
-  document.getElementById('summaryPaid').textContent    = fmt(paid) ;
+  document.getElementById('summaryPending').textContent = fmt(pending);
+  document.getElementById('summaryPaid').textContent    = fmt(paid);
   document.getElementById('summaryTotal').textContent   = total;
 
   document.getElementById('badgePending').textContent   = allAssignments.filter(a => a.status === 'pending').length;
@@ -536,10 +536,10 @@ function updateSummary() {
 
 window.switchTab = function(tab) {
   currentTab = tab;
-  selectedIds.clear;
+  selectedIds.clear();
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
-  renderTab;
+  renderTab();
 };
 
 function renderTab() {
@@ -566,7 +566,9 @@ function renderTab() {
   document.getElementById('bulkActions').style.display = currentTab === 'pending' ? 'flex' : 'none';
 
   let html = '<div class="table-wrap"><table><thead><tr>';
-  if (currentTab === 'pending') html += '<th class="checkbox-cell"><input type="checkbox" id="selectAll" onchange="toggleSelectAll"></th>';
+  if (currentTab === 'pending') {
+    html += '<th class="checkbox-cell"><input type="checkbox" id="selectAll" onchange="toggleSelectAll()"></th>';
+  }
   html += '<th>Исполнитель</th><th>Машина</th><th>Услуга</th><th>Месяц</th><th>Сумма</th>';
   if (currentTab === 'pending' || currentTab === 'paid') html += '<th></th>';
   html += '</tr></thead><tbody>';
@@ -574,7 +576,7 @@ function renderTab() {
   filtered.forEach(a => {
     html += '<tr>';
     if (currentTab === 'pending') {
-      html += `<td class="checkbox-cell"><input type="checkbox" class="row-checkbox" data-id="${a.id}" onchange="updateSelection"></td>`;
+      html += `<td class="checkbox-cell"><input type="checkbox" class="row-checkbox" data-id="${a.id}" onchange="updateSelection()"></td>`;
     }
     html += `
       <td class="executor-name">${a.executor_display}</td>
@@ -596,18 +598,18 @@ function renderTab() {
   content.innerHTML = html;
 }
 
-window.toggleSelectAll = function {
+window.toggleSelectAll = function() {
   const checked = document.getElementById('selectAll').checked;
   document.querySelectorAll('.row-checkbox').forEach(cb => {
     cb.checked = checked;
     if (checked) selectedIds.add(cb.dataset.id);
     else selectedIds.delete(cb.dataset.id);
   });
-  updateSelection;
+  updateSelection();
 };
 
-window.updateSelection = function {
-  selectedIds.clear;
+window.updateSelection = function() {
+  selectedIds.clear();
   document.querySelectorAll('.row-checkbox:checked').forEach(cb => selectedIds.add(cb.dataset.id));
   document.getElementById('selectedCount').textContent = `Выбрано: ${selectedIds.size}`;
 };
@@ -617,7 +619,7 @@ window.paySingle = async function(id) {
   await markAsPaid([id]);
 };
 
-window.paySelected = async function {
+window.paySelected = async function() {
   if (selectedIds.size === 0) { alert('Выберите записи'); return; }
   if (!confirm(`Выплатить ${selectedIds.size} записей?`)) return;
   await markAsPaid([...selectedIds]);
@@ -625,20 +627,20 @@ window.paySelected = async function {
 
 window.unpaySingle = async function(id) {
   if (!confirm('Отменить выплату? Запись вернётся в «К выплате».')) return;
-  const { error } = awaitsb.from('work_assignments').update({ status: 'pending' }).eq('id', id);
+  const { error } = await sb.from('work_assignments').update({ status: 'pending' }).eq('id', id);
   if (error) { alert('Ошибка: ' + error.message); return; }
   await loadAssignments();
 };
 
 async function markAsPaid(ids) {
-  const { error } = awaitsb.from('work_assignments').update({ status: 'paid' }).in('id', ids);
+  const { error } = await sb.from('work_assignments').update({ status: 'paid' }).in('id', ids);
   if (error) { console.error(error); alert('❌ Ошибка'); return; }
-  selectedIds.clear;
+  selectedIds.clear();
   await loadAssignments();
 }
 
 async function init() {
-  initNav;
+  initNav();
   if (!await checkAuth()) return;
   if (!await getStudio()) return;
   await loadAssignments();
@@ -646,7 +648,7 @@ async function init() {
 
 init();
 
-});
+})();
 </script>
 
 </body>
