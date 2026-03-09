@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Заказ-наряд — Keep1R CRM</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <link rel="stylesheet" href="nav.css">
 <script src="nav.js"></script>
 <style>
@@ -18,35 +18,13 @@
 body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100svh; -webkit-font-smoothing: antialiased; }
 .container { max-width: 900px; margin: 0 auto; padding: 24px 20px 60px; }
 
-/* ── Кнопки ── */
 .btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px; border-radius: 9px; border: none; font-size: 0.85rem; font-weight: 700; cursor: pointer; font-family: var(--font); transition: all 0.15s; text-decoration: none; }
 .btn-secondary { background: #f1f5f9; color: var(--text); border: 1px solid var(--border); }
 .btn-secondary:hover { background: #e2e8f0; }
 .btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
 
-/* ── Переключатель режима ── */
-.mode-switcher {
-  display: flex;
-  background: #f1f5f9;
-  border-radius: 10px;
-  padding: 4px;
-  gap: 4px;
-  border: 1px solid var(--border);
-}
-.mode-btn {
-  flex: 1;
-  padding: 8px 16px;
-  border-radius: 7px;
-  border: none;
-  font-size: 0.84rem;
-  font-weight: 700;
-  cursor: pointer;
-  font-family: var(--font);
-  transition: all 0.18s;
-  background: transparent;
-  color: var(--muted);
-  white-space: nowrap;
-}
+.mode-switcher { display: flex; background: #f1f5f9; border-radius: 10px; padding: 4px; gap: 4px; border: 1px solid var(--border); }
+.mode-btn { flex: 1; padding: 8px 16px; border-radius: 7px; border: none; font-size: 0.84rem; font-weight: 700; cursor: pointer; font-family: var(--font); transition: all 0.18s; background: transparent; color: var(--muted); white-space: nowrap; }
 .mode-btn.active-client   { background: #2563eb; color: #fff; box-shadow: 0 2px 8px rgba(37,99,235,0.25); }
 .mode-btn.active-workshop { background: #0f172a; color: #fff; box-shadow: 0 2px 8px rgba(15,23,42,0.2); }
 
@@ -54,12 +32,10 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
 .page-title  { font-size: 1.3rem; font-weight: 800; letter-spacing: -0.3px; }
 .page-sub    { font-size: 0.8rem; color: var(--muted); margin-top: 3px; }
 
-/* ── Бейдж режима ── */
 .mode-badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; margin-left: 8px; vertical-align: middle; }
 .mode-badge.client   { background: rgba(37,99,235,0.1); color: #1d4ed8; }
 .mode-badge.workshop { background: rgba(5,150,105,0.1); color: #047857; }
 
-/* ── Карточки ── */
 .card { background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: 0 1px 4px rgba(0,0,0,0.06); margin-bottom: 14px; overflow: hidden; }
 .card-head { padding: 11px 18px 9px; border-bottom: 1px solid var(--border); font-size: 0.74rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); background: #f8fafc; }
 .card-body { padding: 16px 18px; }
@@ -73,19 +49,17 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
 .info-value.empty { color: var(--muted); font-weight: 400; font-style: italic; }
 @media (max-width: 540px) {
   .info-grid { grid-template-columns: repeat(2, 1fr); }
-  .info-cell:nth-child(3n)      { border-right: 1px solid var(--border); }
-  .info-cell:nth-child(2n)      { border-right: none; }
+  .info-cell:nth-child(3n)        { border-right: 1px solid var(--border); }
+  .info-cell:nth-child(2n)        { border-right: none; }
   .info-cell:nth-last-child(-n+3) { border-bottom: 1px solid var(--border); }
   .info-cell:nth-last-child(-n+2) { border-bottom: none; }
 }
 
-/* ── Таблица работ (клиент) ── */
 .wo-table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
 .wo-table th { text-align: left; padding: 8px 12px; background: #f8fafc; font-size: 0.71rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); border-bottom: 1.5px solid var(--border); }
 .wo-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
 .wo-table tr:last-child td { border-bottom: none; }
 
-/* ── Таблица работ (цех) ── */
 .ws-table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
 .ws-table th { text-align: left; padding: 8px 12px; background: #f0fdf4; font-size: 0.71rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #047857; border-bottom: 1.5px solid #bbf7d0; }
 .ws-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
@@ -95,14 +69,12 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
 .exec-pill { display: inline-flex; align-items: center; gap: 3px; padding: 2px 8px; border-radius: 20px; background: rgba(37,99,235,0.08); color: #1e40af; font-size: 0.74rem; font-weight: 700; margin: 2px; }
 .execs { display: flex; flex-wrap: wrap; }
 
-/* ── Итог (клиент) ── */
 .totals-row { display: flex; justify-content: flex-end; gap: 40px; align-items: center; flex-wrap: wrap; }
 .total-item { text-align: right; }
 .total-item-label { font-size: 0.71rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin-bottom: 4px; }
 .total-item-value { font-size: 1.5rem; font-weight: 900; letter-spacing: -0.5px; }
 .total-item-value.sm { font-size: 0.95rem; font-weight: 700; }
 
-/* ── Подписи ── */
 .sign-row   { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
 .sign-block { display: flex; flex-direction: column; gap: 8px; }
 .sign-label { font-size: 0.71rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
@@ -114,11 +86,9 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
 #loadingMsg { text-align: center; padding: 60px 20px; color: var(--muted); }
 #errMsg     { display: none; text-align: center; padding: 40px; color: #dc2626; }
 
-/* ── Скрытие блоков по режиму — и на экране, и при печати ── */
 .view-client   .workshop-view { display: none !important; }
 .view-workshop .client-view   { display: none !important; }
 
-/* ══ PRINT ════════════════════════════════════════ */
 @media print {
   * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
   body { background: #fff !important; font-size: 11px !important; }
@@ -139,17 +109,11 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
   .disclaimer { font-size: 0.71rem !important; padding: 7px 10px !important; margin-top: 8px !important; }
   #printHeader { display: flex !important; padding-bottom: 10px !important; margin-bottom: 12px !important; }
   @page { margin: 15mm; size: A4; }
-
-  /* Скрытие по режиму при печати — берём из класса body */
   .view-client   .workshop-view { display: none !important; }
   .view-workshop .client-view   { display: none !important; }
 }
 
-/* ── Print header ── */
-#printHeader {
-  display: none; align-items: center; justify-content: space-between;
-  padding-bottom: 14px; border-bottom: 2.5px solid #0f172a; margin-bottom: 18px; gap: 16px;
-}
+#printHeader { display: none; align-items: center; justify-content: space-between; padding-bottom: 14px; border-bottom: 2.5px solid #0f172a; margin-bottom: 18px; gap: 16px; }
 #ph-logo { max-height: 52px; max-width: 130px; object-fit: contain; }
 .ph-center { text-align: center; }
 .ph-doc-title { font-size: 1.15rem; font-weight: 900; letter-spacing: 0.5px; color: #0f172a; text-transform: uppercase; }
@@ -177,7 +141,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
     <img id="ph-logo" src="" alt="" style="display:none">
     <div class="ph-center">
       <div class="ph-doc-title" id="ph-doc-type">Заказ-наряд</div>
-      <div class="ph-doc-num" id="ph-num">№ —</div>
+      <div class="ph-doc-num"   id="ph-num">№ —</div>
     </div>
     <div class="ph-right">
       <div class="ph-studio-name" id="ph-name"></div>
@@ -190,7 +154,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
 
   <div id="mainContent" style="display:none">
 
-    <!-- Шапка страницы -->
+    <!-- Шапка -->
     <div class="page-header no-print">
       <div>
         <div class="page-title">
@@ -200,16 +164,16 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
         <div class="page-sub" id="headerSub"></div>
       </div>
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-        <button class="btn btn-secondary" onclick="history.back()">← Назад</button>
+        <button class="btn btn-secondary" id="btnBack">← Назад</button>
         <div class="mode-switcher">
-          <button class="mode-btn active-client"  id="btnModeClient"   onclick="setMode('client')">👤 Для клиента</button>
-          <button class="mode-btn"                id="btnModeWorkshop" onclick="setMode('workshop')">🔧 Для цеха</button>
+          <button class="mode-btn active-client"  id="btnModeClient">👤 Для клиента</button>
+          <button class="mode-btn"                id="btnModeWorkshop">🔧 Для цеха</button>
         </div>
-        <button class="btn btn-secondary no-print" onclick="window.print()">🖨️ Печать</button>
+        <button class="btn btn-secondary no-print" id="btnPrint">🖨️ Печать</button>
       </div>
     </div>
 
-    <!-- ① Шапка — авто и клиент (общая для обоих режимов) -->
+    <!-- ① Авто и клиент -->
     <div class="card">
       <div class="card-head">🚗 Автомобиль и клиент</div>
       <div class="card-body">
@@ -217,7 +181,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
       </div>
     </div>
 
-    <!-- ② Таблица работ — ДЛЯ КЛИЕНТА (только список, без цен) -->
+    <!-- ② Список работ — для клиента -->
     <div class="card client-view">
       <div class="card-head">📋 Перечень работ</div>
       <div class="card-body">
@@ -233,7 +197,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
       </div>
     </div>
 
-    <!-- ② Таблица работ — ДЛЯ ЦЕХА (исполнители + подпись, без денег) -->
+    <!-- ② Список работ — для цеха -->
     <div class="card workshop-view">
       <div class="card-head" style="background:#f0fdf4;color:#047857;border-bottom-color:#bbf7d0">🔧 Перечень работ</div>
       <div class="card-body">
@@ -251,7 +215,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
       </div>
     </div>
 
-    <!-- ③ Итог — только для клиента (статус + сумма, без формы оплаты) -->
+    <!-- ③ Итог -->
     <div class="card client-view">
       <div class="card-head">💰 Итог</div>
       <div class="card-body">
@@ -268,7 +232,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
       </div>
     </div>
 
-    <!-- ④ Подписи — только для клиента -->
+    <!-- ④ Подписи -->
     <div class="card client-view">
       <div class="card-head">✍️ Подписи сторон</div>
       <div class="card-body">
@@ -298,27 +262,27 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
 </div>
 
 <script src="footer.js"></script>
-<script>
-(function() {
-'use strict';
+<script type="module">
+import { sb }              from './supabase.js';
+import { requireAuth }     from './auth.js';
+import { getStudioContext } from './studio-context.js';
+import { showToast }        from './ui.js';
 
-var SUPABASE_URL      = 'https://hdghijgrrnzmntistdvw.supabase.co';
-var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkZ2hpamdycm56bW50aXN0ZHZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMzMyNzksImV4cCI6MjA3NTYwOTI3OX0.D9EDTmVrFRVp0B8_5tCJM29gbFdtadsom0Ihsf4uQ8Q';
-var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-var currentUser = null;
-
+// ── Утилиты ───────────────────────────────────────────────────────────
 function fmt(n)     { return new Intl.NumberFormat('ru-RU').format(Math.round(n || 0)); }
-function fmtDate(s) { if (!s) return '—'; return new Date(s).toLocaleDateString('ru-RU', {day:'2-digit', month:'2-digit', year:'numeric'}); }
-function esc(s)     { return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-function r(n)       { return parseFloat(n) || 0; }
+function fmtDate(s) {
+  if (!s) return '—';
+  return new Date(s).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+function r(n) { return parseFloat(n) || 0; }
 
-// ── Переключение режима ─────────────────────────────────
-window.setMode = function(mode) {
+// ── Переключение режима ────────────────────────────────────────────────
+function setMode(mode) {
   document.body.className = 'view-' + mode;
-  var badge   = document.getElementById('modeBadge');
-  var btnC    = document.getElementById('btnModeClient');
-  var btnW    = document.getElementById('btnModeWorkshop');
-  var docType = document.getElementById('ph-doc-type');
+  const badge   = document.getElementById('modeBadge');
+  const btnC    = document.getElementById('btnModeClient');
+  const btnW    = document.getElementById('btnModeWorkshop');
+  const docType = document.getElementById('ph-doc-type');
 
   if (mode === 'client') {
     badge.textContent   = 'Для клиента';
@@ -333,81 +297,108 @@ window.setMode = function(mode) {
     btnW.className      = 'mode-btn active-workshop';
     if (docType) docType.textContent = 'Заказ-наряд · Для цеха';
   }
-};
-
-// ── Auth ────────────────────────────────────────────────
-async function checkAuth() {
-  var res = await sb.auth.getSession();
-  if (!res.data.session) { window.location.href = 'welcome.html'; return false; }
-  currentUser = res.data.session.user;
-  return true;
 }
 
-// ── Студия ──────────────────────────────────────────────
-async function loadStudio() {
-  var m = await sb.from('studio_members').select('studio_id').eq('user_id', currentUser.id).eq('is_active', true).single();
-  if (!m.data) return;
-  var s = await sb.from('studios').select('name,settings').eq('id', m.data.studio_id).single();
-  if (!s.data) return;
-  var cfg = s.data.settings || {};
-  document.getElementById('ph-name').textContent = s.data.name || '';
-  var lines = [cfg.phone || cfg.kp_phone, [cfg.city, cfg.address].filter(Boolean).join(', '), cfg.website || cfg.kp_website].filter(Boolean);
-  document.getElementById('ph-info').innerHTML = lines.map(esc).join('<br>');
-  if (cfg.kp_logo) { var img = document.getElementById('ph-logo'); img.src = cfg.kp_logo; img.style.display = 'block'; }
-  document.getElementById('signStudio').textContent = s.data.name || '______________________________';
+// ── Данные студии ─────────────────────────────────────────────────────
+function renderStudioInfo(studio) {
+  if (!studio) return;
+  const cfg = studio.settings || {};
+
+  document.getElementById('ph-name').textContent = studio.name || '';
+  document.getElementById('signStudio').textContent = studio.name || '______________________________';
+
+  // ph-info — строки через DOM, не innerHTML
+  const infoEl = document.getElementById('ph-info');
+  infoEl.innerHTML = ''; // пустой, данных пользователя нет — это конфиг студии, но всё равно DOM
+  const lines = [
+    cfg.phone || cfg.kp_phone,
+    [cfg.city, cfg.address].filter(Boolean).join(', '),
+    cfg.website || cfg.kp_website,
+  ].filter(Boolean);
+
+  lines.forEach((line, i) => {
+    if (i > 0) infoEl.appendChild(document.createElement('br'));
+    infoEl.appendChild(document.createTextNode(line));
+  });
+
+  if (cfg.kp_logo) {
+    const img = document.getElementById('ph-logo');
+    img.src = cfg.kp_logo;
+    img.style.display = 'block';
+  }
 }
 
-// ── Информация об авто ──────────────────────────────────
+// ── Инфо об авто ──────────────────────────────────────────────────────
 function renderCarInfo(calc) {
-  var cd  = calc.calculation_data || {};
-  var car = cd.car || {};
-  var cells = [
-    {label:'Автомобиль',     value: calc.car_name || '—'},
-    {label:'Год выпуска',    value: car.year || calc.year || '—'},
-    {label:'Дата',           value: fmtDate(calc.checkin_date || calc.created_at)},
-    {label:'Гос. номер',     value: cd.plate || '—'},
-    {label:'VIN / № кузова', value: cd.vin || '—'},
-    {label:'Клиент',         value: cd.client_name || cd.clientName || '—'},
+  const cd  = calc.calculation_data || {};
+  const car = cd.car || {};
+
+  const cells = [
+    { label: 'Автомобиль',     value: calc.car_name || '—' },
+    { label: 'Год выпуска',    value: car.year || calc.year || '—' },
+    { label: 'Дата',           value: fmtDate(calc.checkin_date || calc.created_at) },
+    { label: 'Гос. номер',     value: cd.plate || '—' },
+    { label: 'VIN / № кузова', value: cd.vin || '—' },
+    { label: 'Клиент',         value: cd.client_name || cd.clientName || '—' },
   ];
-  document.getElementById('carInfoGrid').innerHTML = cells.map(function(c) {
-    return '<div class="info-cell"><div class="info-label">' + c.label + '</div>' +
-      '<div class="info-value' + (c.value === '—' ? ' empty' : '') + '">' + esc(c.value) + '</div></div>';
-  }).join('');
+
+  const grid = document.getElementById('carInfoGrid');
+  grid.innerHTML = '';
+  const frag = document.createDocumentFragment();
+
+  cells.forEach(c => {
+    const cell = document.createElement('div');
+    cell.className = 'info-cell';
+
+    const lbl = document.createElement('div');
+    lbl.className = 'info-label';
+    lbl.textContent = c.label;
+
+    const val = document.createElement('div');
+    val.className = c.value === '—' ? 'info-value empty' : 'info-value';
+    val.textContent = c.value; // textContent — безопасно
+
+    cell.append(lbl, val);
+    frag.appendChild(cell);
+  });
+
+  grid.appendChild(frag);
 }
 
-// ── Список услуг из данных расчёта ─────────────────────
+// ── Список услуг из данных расчёта ────────────────────────────────────
 function buildServiceList(cd) {
-  var services = [];
-  var pkg = cd.package || {};
-  if (r(pkg.wrapMat) + r(pkg.wrapMot) > 0) services.push({name: 'Оклейка (Полная защита вкруг)'});
-  if (r(pkg.prepMat) + r(pkg.prepMot) > 0) services.push({name: 'Подготовка (Полная защита вкруг)'});
-  if (r(pkg.armMat)  + r(pkg.armMot)  > 0) services.push({name: 'Арматурные работы (Полная защита вкруг)'});
-  (pkg.costs || []).forEach(function(c) { if (r(c.value) > 0) services.push({name: c.name || 'Доп. затраты (Полная защита)'}); });
+  const services = [];
+  const pkg = cd.package || {};
+  if (r(pkg.wrapMat) + r(pkg.wrapMot) > 0) services.push({ name: 'Оклейка (Полная защита вкруг)' });
+  if (r(pkg.prepMat) + r(pkg.prepMot) > 0) services.push({ name: 'Подготовка (Полная защита вкруг)' });
+  if (r(pkg.armMat)  + r(pkg.armMot)  > 0) services.push({ name: 'Арматурные работы (Полная защита вкруг)' });
+  (pkg.costs || []).forEach(c => { if (r(c.value) > 0) services.push({ name: c.name || 'Доп. затраты (Полная защита)' }); });
 
-  var imp = cd.impact || {};
-  if (r(imp.wrapMat) + r(imp.wrapMot) > 0) services.push({name: 'Оклейка (Ударная часть)'});
-  if (r(imp.prepMat) + r(imp.prepMot) > 0) services.push({name: 'Подготовка (Ударная часть)'});
-  if (r(imp.armMat)  + r(imp.armMot)  > 0) services.push({name: 'Арматурные работы (Ударная часть)'});
-  (imp.costs || []).forEach(function(c) { if (r(c.value) > 0) services.push({name: c.name || 'Доп. затраты (Ударная часть)'}); });
+  const imp = cd.impact || {};
+  if (r(imp.wrapMat) + r(imp.wrapMot) > 0) services.push({ name: 'Оклейка (Ударная часть)' });
+  if (r(imp.prepMat) + r(imp.prepMot) > 0) services.push({ name: 'Подготовка (Ударная часть)' });
+  if (r(imp.armMat)  + r(imp.armMot)  > 0) services.push({ name: 'Арматурные работы (Ударная часть)' });
+  (imp.costs || []).forEach(c => { if (r(c.value) > 0) services.push({ name: c.name || 'Доп. затраты (Ударная часть)' }); });
 
-  var sd = cd.services_detail || {};
-  ['arm','det','gl','ms'].forEach(function(key) {
-    (sd[key] || []).forEach(function(svc) {
-      if (r(svc.mat) + r(svc.mot) > 0) services.push({name: svc.name || 'Работа'});
+  const sd = cd.services_detail || {};
+  ['arm', 'det', 'gl', 'ms'].forEach(key => {
+    (sd[key] || []).forEach(svc => {
+      if (r(svc.mat) + r(svc.mot) > 0) services.push({ name: svc.name || 'Работа' });
     });
   });
-  (sd.wrap || []).forEach(function(svc) {
-    if (r(svc.mat) + r(svc.mot) > 0) services.push({name: svc.name || 'Оклейка'});
+  (sd.wrap || []).forEach(svc => {
+    if (r(svc.mat) + r(svc.mot) > 0) services.push({ name: svc.name || 'Оклейка' });
   });
+
   return services;
 }
 
-// ── Карта исполнителей ──────────────────────────────────
+// ── Карта исполнителей ────────────────────────────────────────────────
 function buildExecMap(assignments) {
-  var map = {};
-  assignments.forEach(function(a) {
+  const map = {};
+  assignments.forEach(a => {
     if (a.is_admin_sale) return;
-    var key = a.service_name || 'Работы';
+    const key = a.service_name || 'Работы';
     if (!map[key]) map[key] = new Set();
     if (a.executor_name) map[key].add(a.executor_name);
   });
@@ -416,114 +407,192 @@ function buildExecMap(assignments) {
 
 function findExecs(execMap, serviceName) {
   if (execMap[serviceName]) return execMap[serviceName];
-  var result = new Set();
-  var sn = serviceName.toLowerCase();
-  Object.keys(execMap).forEach(function(key) {
-    var k = key.toLowerCase();
+  const result = new Set();
+  const sn = serviceName.toLowerCase();
+  Object.keys(execMap).forEach(key => {
+    const k = key.toLowerCase();
     if (sn.includes(k) || k.includes(sn) ||
-        (sn.includes('оклейка')    && k.includes('оклейка'))   ||
+        (sn.includes('оклейка')    && k.includes('оклейка'))    ||
         (sn.includes('подготовка') && k.includes('подготовка')) ||
         (sn.includes('арматур')    && k.includes('арматур'))) {
-      execMap[key].forEach(function(n) { result.add(n); });
+      execMap[key].forEach(n => result.add(n));
     }
   });
   return result;
 }
 
-// ── Рендер обеих таблиц ─────────────────────────────────
+// ── Рендер таблиц услуг ────────────────────────────────────────────────
 function renderServices(calc, assignments) {
-  var cd    = calc.calculation_data || {};
-  var total = calc.final_price || calc.total_price || 0;
+  const cd    = calc.calculation_data || {};
+  const total = calc.final_price || calc.total_price || 0;
 
-  // Итог
   document.getElementById('totalAmount').textContent = fmt(total) + ' ₽';
-  var isPaid = calc.status === 'delivered';
-  var payEl  = document.getElementById('paymentStatus');
+
+  const isPaid = calc.status === 'delivered';
+  const payEl  = document.getElementById('paymentStatus');
   payEl.textContent = isPaid ? '✅ Оплачено' : '⏳ Ожидает оплаты';
   payEl.style.color = isPaid ? 'var(--success)' : 'var(--muted)';
 
-  if (cd.client_name || cd.clientName) {
-    document.getElementById('signClient').textContent = 'ФИО: ' + (cd.client_name || cd.clientName);
+  const clientName = cd.client_name || cd.clientName;
+  if (clientName) {
+    document.getElementById('signClient').textContent = 'ФИО: ' + clientName;
   }
 
-  var services = buildServiceList(cd);
-  var execMap  = buildExecMap(assignments);
-  var noSvc    = '<tr><td colspan="4" style="color:var(--muted);font-style:italic;padding:14px 12px">Услуги не заполнены</td></tr>';
+  const services = buildServiceList(cd);
+  const execMap  = buildExecMap(assignments);
+
+  const tbodyClient   = document.getElementById('servicesTbodyClient');
+  const tbodyWorkshop = document.getElementById('servicesTbodyWorkshop');
+  tbodyClient.innerHTML   = '';
+  tbodyWorkshop.innerHTML = '';
 
   if (!services.length) {
-    document.getElementById('servicesTbodyClient').innerHTML   = noSvc;
-    document.getElementById('servicesTbodyWorkshop').innerHTML = noSvc;
+    const noSvcMsg = 'Услуги не заполнены';
+
+    const trC = document.createElement('tr');
+    const tdC = document.createElement('td');
+    tdC.colSpan = 2;
+    tdC.style.cssText = 'color:var(--muted);font-style:italic;padding:14px 12px';
+    tdC.textContent = noSvcMsg;
+    trC.appendChild(tdC);
+    tbodyClient.appendChild(trC);
+
+    const trW = document.createElement('tr');
+    const tdW = document.createElement('td');
+    tdW.colSpan = 4;
+    tdW.style.cssText = 'color:var(--muted);font-style:italic;padding:14px 12px';
+    tdW.textContent = noSvcMsg;
+    trW.appendChild(tdW);
+    tbodyWorkshop.appendChild(trW);
     return;
   }
 
-  // Для клиента: только №, название
-  document.getElementById('servicesTbodyClient').innerHTML = services.map(function(svc, i) {
-    return '<tr>' +
-      '<td style="color:var(--muted);font-size:0.76rem">' + (i+1) + '</td>' +
-      '<td style="font-weight:600">' + esc(svc.name) + '</td>' +
-      '</tr>';
-  }).join('');
+  const fragC = document.createDocumentFragment();
+  const fragW = document.createDocumentFragment();
 
-  // Для цеха: №, название, исполнители, подпись — БЕЗ денег
-  document.getElementById('servicesTbodyWorkshop').innerHTML = services.map(function(svc, i) {
-    var execs   = findExecs(execMap, svc.name);
-    var execArr = Array.from(execs);
-    var execCell = execArr.length
-      ? execArr.map(function(n) { return '<span class="exec-pill">👤 ' + esc(n) + '</span>'; }).join('')
-      : '<span style="color:var(--muted);font-style:italic;font-size:0.78rem">Не назначен</span>';
-    return '<tr>' +
-      '<td style="color:var(--muted);font-size:0.76rem">' + (i+1) + '</td>' +
-      '<td style="font-weight:600">' + esc(svc.name) + '</td>' +
-      '<td><div class="execs">' + execCell + '</div></td>' +
-      '<td><div class="ws-sign-line"></div></td>' +
-      '</tr>';
-  }).join('');
+  services.forEach((svc, i) => {
+    // ── Клиент ──
+    const trC = document.createElement('tr');
+
+    const tdCNum = document.createElement('td');
+    tdCNum.style.cssText = 'color:var(--muted);font-size:0.76rem';
+    tdCNum.textContent = String(i + 1);
+
+    const tdCName = document.createElement('td');
+    tdCName.style.fontWeight = '600';
+    tdCName.textContent = svc.name; // textContent — безопасно
+
+    trC.append(tdCNum, tdCName);
+    fragC.appendChild(trC);
+
+    // ── Цех ──
+    const trW = document.createElement('tr');
+
+    const tdWNum = document.createElement('td');
+    tdWNum.style.cssText = 'color:var(--muted);font-size:0.76rem';
+    tdWNum.textContent = String(i + 1);
+
+    const tdWName = document.createElement('td');
+    tdWName.style.fontWeight = '600';
+    tdWName.textContent = svc.name;
+
+    const tdWExec = document.createElement('td');
+    const execsDiv = document.createElement('div');
+    execsDiv.className = 'execs';
+    const execs = findExecs(execMap, svc.name);
+    const execArr = Array.from(execs);
+
+    if (execArr.length > 0) {
+      execArr.forEach(name => {
+        const pill = document.createElement('span');
+        pill.className = 'exec-pill';
+        pill.textContent = '👤 ' + name; // textContent — безопасно
+        execsDiv.appendChild(pill);
+      });
+    } else {
+      const noExec = document.createElement('span');
+      noExec.style.cssText = 'color:var(--muted);font-style:italic;font-size:0.78rem';
+      noExec.textContent = 'Не назначен';
+      execsDiv.appendChild(noExec);
+    }
+    tdWExec.appendChild(execsDiv);
+
+    const tdWSign = document.createElement('td');
+    const signLine = document.createElement('div');
+    signLine.className = 'ws-sign-line';
+    tdWSign.appendChild(signLine);
+
+    trW.append(tdWNum, tdWName, tdWExec, tdWSign);
+    fragW.appendChild(trW);
+  });
+
+  tbodyClient.appendChild(fragC);
+  tbodyWorkshop.appendChild(fragW);
 }
 
-// ── Init ────────────────────────────────────────────────
-(async function init() {
-  if (!await checkAuth()) return;
+// ── Точка входа ────────────────────────────────────────────────────────
+async function initPage() {
+  // Кнопки управления
+  document.getElementById('btnBack').addEventListener('click', () => history.back());
+  document.getElementById('btnPrint').addEventListener('click', () => window.print());
+  document.getElementById('btnModeClient').addEventListener('click', () => setMode('client'));
+  document.getElementById('btnModeWorkshop').addEventListener('click', () => setMode('workshop'));
 
-  var params  = new URLSearchParams(window.location.search);
-  var calcId  = params.get('calc_id');
-  var loading = document.getElementById('loadingMsg');
-  var errMsg  = document.getElementById('errMsg');
-  var content = document.getElementById('mainContent');
+  const user = await requireAuth({ redirectTo: 'welcome.html' });
+  if (!user) return;
+
+  const params  = new URLSearchParams(window.location.search);
+  const calcId  = params.get('calc_id');
+  const loading = document.getElementById('loadingMsg');
+  const errMsg  = document.getElementById('errMsg');
+  const content = document.getElementById('mainContent');
 
   if (!calcId) {
-    loading.style.display = 'none'; errMsg.style.display = '';
-    errMsg.textContent = '❌ Не указан ID заказа. Откройте заказ-наряд со страницы доски.';
+    loading.style.display = 'none';
+    errMsg.style.display  = '';
+    errMsg.textContent    = '❌ Не указан ID заказа. Откройте заказ-наряд со страницы доски.';
     return;
   }
 
-  var results = await Promise.all([
-    loadStudio(),
-    sb.from('calculations').select('*').eq('id', calcId).single(),
-    sb.from('work_assignments').select('executor_name,service_name,salary,is_admin_sale,admin_percent').eq('calculation_id', calcId)
-  ]);
-
-  var calcRes   = results[1];
-  var assignRes = results[2];
-
-  if (calcRes.error || !calcRes.data) {
-    loading.style.display = 'none'; errMsg.style.display = ''; return;
+  // Загружаем всё параллельно
+  let ctx;
+  try {
+    ctx = await getStudioContext();
+  } catch (err) {
+    console.error('[work-order] getStudioContext:', err);
   }
 
-  var calc    = calcRes.data;
-  var shortId = calcId.slice(-8).toUpperCase();
+  const [calcRes, assignRes] = await Promise.all([
+    sb.from('calculations').select('*').eq('id', calcId).single(),
+    sb.from('work_assignments')
+      .select('executor_name, service_name, salary, is_admin_sale, admin_percent')
+      .eq('calculation_id', calcId),
+  ]);
+
+  if (calcRes.error || !calcRes.data) {
+    loading.style.display = 'none';
+    errMsg.style.display  = '';
+    return;
+  }
+
+  const calc    = calcRes.data;
+  const shortId = calcId.slice(-8).toUpperCase();
+
   document.getElementById('ph-num').textContent    = '№ ' + shortId;
   document.getElementById('headerSub').textContent = (calc.car_name || 'Автомобиль') + ' · ' + shortId;
   document.title = 'Заказ-наряд ' + shortId;
 
+  renderStudioInfo(ctx?.studio || null);
   renderCarInfo(calc);
   renderServices(calc, assignRes.data || []);
 
   loading.style.display = 'none';
   content.style.display = '';
-  if (window.initNav) window.initNav({activePage: 'work-order.html'});
-})();
 
-})();
+  if (window.initNav) window.initNav({ activePage: 'work-order.html' });
+}
+
+document.addEventListener('DOMContentLoaded', initPage);
 </script>
 </body>
 </html>
