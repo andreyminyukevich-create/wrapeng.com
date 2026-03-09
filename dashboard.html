@@ -9,6 +9,7 @@
 <link rel="stylesheet" href="nav.css">
 <script src="nav.js"></script>
 <style>
+body { visibility: hidden; }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -662,6 +663,7 @@ function showLockedDashboard() {
 
 async function init() {
   initNav();
+  document.body.style.visibility = 'visible';
   if (!await checkAuth()) return;
 
   const kanban = document.getElementById('miniKanban');
