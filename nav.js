@@ -79,16 +79,61 @@
       }
     });
 
+    var mobileLinks = PAGES.map(function(p) {
+      var isActive = p.href === page;
+      return '<a href="' + (p.soon ? '#' : p.href) + '" class="nav-mobile-link' + (isActive ? ' active' : '') + '" onclick="window._closeMobileNav()">' +
+        '<span class="nav-mobile-link-icon">' + p.icon + '</span>' + p.label +
+      '</a>';
+    }).join('');
+
+    var mobileActions =
+      (hideAction ? '' :
+        '<a href="' + actionHref + '" class="nav-mobile-btn-primary">' + actionLabel + '</a>' +
+        '<button class="nav-mobile-btn-secondary" onclick="window._closeMobileNav();window._openNavBooking()">&#x1F4C5; Записать авто</button>'
+      ) +
+      '<button class="nav-mobile-btn-logout" onclick="window._navLogout()">Выйти &rarr;</button>';
+
     var html =
       '<div id="navTopBar">' +
         '<a href="dashboard.html" class="nav-brand">Keep1R CRM</a>' +
         '<nav class="nav-links">' + links + '</nav>' +
         '<div class="nav-right">' + actionBtn + logoutBtn + '</div>' +
+        '<button id="navHamburger" onclick="window._toggleMobileNav()" aria-label="Меню">&#9776;</button>' +
+      '</div>' +
+      '<div id="navMobileOverlay" onclick="window._closeMobileNav()"></div>' +
+      '<div id="navMobileMenu">' +
+        '<div class="nav-mobile-section">' + mobileLinks + '</div>' +
+        '<div class="nav-mobile-section nav-mobile-actions">' + mobileActions + '</div>' +
       '</div>';
 
     var wrap = document.createElement('div');
     wrap.innerHTML = html;
-    document.body.insertBefore(wrap.firstElementChild, document.body.firstChild);
+    // Insert topBar
+    document.body.insertBefore(wrap.children[0], document.body.firstChild);
+    // Insert overlay and mobile menu after topBar
+    document.body.insertBefore(wrap.children[0], document.body.children[1]);
+    document.body.insertBefore(wrap.children[0], document.body.children[2]);
+  };
+
+  window._toggleMobileNav = function() {
+    var menu    = document.getElementById('navMobileMenu');
+    var overlay = document.getElementById('navMobileOverlay');
+    var btn     = document.getElementById('navHamburger');
+    if (!menu) return;
+    var isOpen = menu.classList.toggle('open');
+    if (overlay) overlay.classList.toggle('open', isOpen);
+    if (btn) btn.textContent = isOpen ? '✕' : '☰';
+    document.body.style.overflow = isOpen ? 'hidden' : '';
+  };
+
+  window._closeMobileNav = function() {
+    var menu    = document.getElementById('navMobileMenu');
+    var overlay = document.getElementById('navMobileOverlay');
+    var btn     = document.getElementById('navHamburger');
+    if (menu)    menu.classList.remove('open');
+    if (overlay) overlay.classList.remove('open');
+    if (btn) btn.textContent = '☰';
+    document.body.style.overflow = '';
   };
 
   window._openNavBooking = async function () {
