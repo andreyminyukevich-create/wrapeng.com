@@ -732,7 +732,7 @@ async function loadMembers() {
       <tbody>
         ${members.map(m => {
           const isMe = m.user_id === currentUser.id;
-          const initials = m.user_id.slice(0, 2).toUpperCase;
+          const initials = m.user_id.slice(0, 2).toUpperCase();
           const roleClass = ROLE_CLASS[m.role] || 'staff';
           const roleLabel = ROLE_LABELS[m.role] || m.role;
           return `
@@ -829,8 +829,8 @@ function renderPosts() {
   }).join('');
 }
 
-window.addPost = function {
-  syncPostsFromDOM; // сохраняем что уже введено
+window.addPost = function() {
+  syncPostsFromDOM(); // сохраняем что уже введено
   const idx = window._postsData.length;
   window._postsData.push({
     _new: true,
@@ -843,11 +843,11 @@ window.addPost = function {
   renderPosts();
   // Фокус на последний input
   const inputs = document.querySelectorAll('.post-name-input');
-  if (inputs.length) inputs[inputs.length - 1].focus;
+  if (inputs.length) inputs[inputs.length - 1].focus();
 };
 
 window._deletePost = async function(idx) {
-  syncPostsFromDOM;
+  syncPostsFromDOM();
   const p = window._postsData[idx];
   if (!p._new && p.id) {
     if (!confirm(`Удалить пост «${p.name || 'без названия'}»?`)) return;
@@ -858,7 +858,7 @@ window._deletePost = async function(idx) {
 };
 
 window._cycleColor = function(idx) {
-  syncPostsFromDOM;
+  syncPostsFromDOM();
   const p = window._postsData[idx];
   const cur = POST_COLORS.indexOf(p.color);
   p.color = POST_COLORS[(cur + 1) % POST_COLORS.length];
@@ -866,7 +866,7 @@ window._cycleColor = function(idx) {
 };
 
 window.savePosts = async function() {
-  syncPostsFromDOM; // финальный снимок перед сохранением
+  syncPostsFromDOM(); // финальный снимок перед сохранением
   const btn = document.querySelector('[onclick="savePosts()"]');
   if (btn) { btn.textContent = '⏳ Сохранение...'; btn.disabled = true; }
 
