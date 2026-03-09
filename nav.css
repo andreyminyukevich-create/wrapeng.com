@@ -194,3 +194,25 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+/* ── Logout Button ───────────────────────── */
+#navTopBar .btn-nav-logout {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 14px;
+  background: transparent;
+  color: #7c6fa0;
+  border: 1.5px solid rgba(124,58,237,0.3);
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: var(--font);
+  flex-shrink: 0;
+}
+#navTopBar .btn-nav-logout:hover {
+  border-color: #7c3aed;
+  color: #7c3aed;
+}
