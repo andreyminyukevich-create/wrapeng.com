@@ -1,360 +1,567 @@
 /**
- * calculator-ui.js
- * UI-логика: инициализация, биндинги, форматирование
- * Зависит от: calculator-data.js, calculator-engine.js, calculator-render.js,
- *             calculator-persistence.js, calculator-pdf.js
+ * calculator-persistence.js
+ * Аутентификация, автосохранение, загрузка расчёта из URL.
+ * Зависит от: calculator-engine.js (collectAll, markups, taxCoef, r100)
+ *             calculator-ui.js (collectFormData, q, qa, addDynRow, addCostRow, initServiceToggles)
  */
 
-// ── Аккордеоны (event delegation) ────────────────────────────────
-document.addEventListener('click', function(e) {
-  const h2 = e.target.closest('h2.collapsible');
-  if (!h2) return;
-  const card    = h2.closest('.card');
-  if (!card) return;
-  const content = card.querySelector('.card-content');
-  if (!content) return;
-  h2.classList.toggle('collapsed');
-  content.classList.toggle('collapsed');
-});
+async function checkAccess(user) {
+  try {
+    const { data: profile, error } = await sb.from('profiles').select('*').eq('id', user.id).single();
+    
+    if (error || !profile) {
+      console.error('Profile not found:', error);
+      return false;
+    }
 
-// ── Тема ──────────────────────────────────────────────────────────
-function initTheme() {
-  document.body.setAttribute('data-theme', 'light');
-  qa('.toggle-btn').forEach(b () => {
-    b.addEventListener('click', () => {
-      const r = b.querySelector('input[type=radio]');
-      if (r) {
-        r.checked = true;
-        qa('.toggle-btn').forEach(x => x.classList.remove('active'));
-        b.classList.add('active');
-        renderAll();
+    currentProfile = profile;
+
+    if (profile.is_paid) {
+      return true;
+    }
+
+    const now = new Date();
+    const trialEnds = profile.trial_ends_at ? new Date(profile.trial_ends_at) : null;
+    
+    if (!trialEnds || trialEnds <= now) {
+      return false;
+    }
+
+    return true;
+  } catch (e) {
+    console.error('checkAccess error:', e);
+    return false;
+  }
+}
+
+async function checkAuth() {
+  try {
+    if (!sb) return true; // Supabase не загружен — пропускаем авторизацию
+    const { data: { session } } = await sb.auth.getSession();
+    if (session) {
+      currentUser = session.user;
+      // Загружаем профиль студии чтобы сохранение работало
+      const { data: member } = await sb
+        .from('studio_members')
+        .select('studio_id, studios(name, subscription_tier, subscription_expires_at, settings)')
+        .eq('user_id', session.user.id)
+        .eq('is_active', true)
+        .single();
+      if (member) {
+        currentProfile = {
+          id: session.user.id,
+          studio_name: member.studios?.name || 'Студия',
+          studio_id: member.studio_id,
+          is_paid: ['active','trial'].includes(member.studios?.subscription_tier),
+          trial_ends_at: member.studios?.subscription_expires_at,
+          settings: member.studios?.settings || {},
+        };
+      } else {
+        // Нет студии — разрешаем пользоваться, но без сохранения
+        currentProfile = null;
       }
-    });
-  });
+      displayUserInfo();
+    }
+    return true;
+  } catch (e) {
+    console.error('Auth check error:', e);
+    return true;
+  }
 }
 
-// ── Скидки ───────────────────────────────────────────────────────
-function initDiscounts() {
-  qa('.discount-btn').forEach(b () => {
-    b.addEventListener('click', () => {
-      disc = parseInt(b.dataset.discount) || 0;
-      qa('.discount-btn').forEach(x => x.classList.toggle('active', parseInt(x.dataset.discount) === disc));
-      q('#customDiscount').value = '';
-      renderAll();
-    });
-  });
+function displayUserInfo() {
+  const userInfo = document.getElementById('user-info');
+  
+  if (!userInfo || !currentProfile) return;
 
-  q('#customDiscount')?.addEventListener('input', e () => {
-    disc = Math.max(0, Math.min(100, parseFloat(e.target.value) || 0));
-    qa('.discount-btn').forEach(b => b.classList.remove('active'));
-    renderAll();
-  });
+  let statusText = '';
+  if (currentProfile.is_paid) {
+    statusText = '✅ Оплачен';
+  } else if (currentProfile.trial_ends_at) {
+    const now = new Date();
+    const end = new Date(currentProfile.trial_ends_at);
+    const hours = Math.floor((end - now) / (1000 * 60 * 60));
+    statusText = hours > 0 ? `🕐 Триал: ${hours}ч` : '⚠️ Истёк';
+  }
+
+  userInfo.innerHTML = `<div>${currentProfile.studio_name || 'Студия'}</div><div style="font-size:0.75rem">${statusText}</div>`;
+  userInfo.style.display = 'block';
 }
 
-// ── Бренды / Модели ───────────────────────────────────────────────
-function fillBrands() {
-  const s = q('#brand');
-  if (s.options.length > 2) {
-    const yearInput = q('#year');
-    if (yearInput && !yearInput.value) yearInput.value = '2026';
+function goToDashboard() {
+  window.location.href = 'dashboard.html';
+}
+
+// ========================================
+// AUTOSAVE FUNCTIONS
+// ========================================
+
+let saveTimeout = null;
+let lastSavedData = null;
+
+function collectFormData() {
+  // Собираем все данные формы
+  const data = {
+    // Автомобиль
+    car: {
+      brand: q('#brandManual')?.classList.contains('invis') ? q('#brand')?.value : q('#brandManual')?.value,
+      model: q('#modelManual')?.classList.contains('invis') ? q('#model')?.value : q('#modelManual')?.value,
+      year: q('#year')?.value
+    },
+    
+    // Полная защита вкруг
+    package: {
+      wrapMat: q('#pkgWrapMat')?.value,
+      wrapMot: q('#pkgWrapMot')?.value,
+      prepMat: q('#pkgPrepMat')?.value,
+      prepMot: q('#pkgPrepMot')?.value,
+      armMat: q('#pkgArmMat')?.value,
+      armMot: q('#pkgArmMot')?.value,
+      markup: q('#pkgMarkup')?.value,
+      costs: []
+    },
+    
+    // Защита ударной части
+    impact: {
+      wrapMat: q('#impactWrapMat')?.value,
+      wrapMot: q('#impactWrapMot')?.value,
+      prepMat: q('#impactPrepMat')?.value,
+      prepMot: q('#impactPrepMot')?.value,
+      armMat: q('#impactArmMat')?.value,
+      armMot: q('#impactArmMot')?.value,
+      markup: q('#impactMarkup')?.value,
+      costs: []
+    },
+    
+    // Форма оплаты
+    paymentMode: q('input[name=payMode]:checked')?.value || 'cash',
+    
+    // Скидка
+    discount: q('#customDiscount')?.value || '0',
+    
+    // Наценки
+    markups: {
+      arm: q('#armMarkup')?.value,
+      wrap: q('#wrapMarkup')?.value,
+      det: q('#detMarkup')?.value,
+      gl: q('#glMarkup')?.value,
+      misc: q('#miscMarkup')?.value
+    }
+  };
+  
+  // Собираем доп затраты для пакетов
+  qa('#pkgCostsContent .cost-row').forEach(row => {
+    data.package.costs.push({
+      name: row.querySelector('.pkg-cost-name')?.value,
+      value: row.querySelector('.pkg-cost-val')?.value
+    });
+  });
+  
+  qa('#impactCostsContent .cost-row').forEach(row => {
+    data.impact.costs.push({
+      name: row.querySelector('.impact-cost-name')?.value,
+      value: row.querySelector('.impact-cost-val')?.value
+    });
+  });
+  
+  // Добавляем детали по услугам из collectAll (для assign-work)
+  try {
+    const sums = collectAll();
+    data.services_detail = {
+      arm: sums.arm.details.map(d => ({ name: d[0], mat: d[1], mot: d[2] })),
+      det: sums.det.details.map(d => ({ name: d[0], mat: d[1], mot: d[2] })),
+      gl:  sums.gl.details.map(d => ({ name: d[0], mat: d[1], mot: d[2] })),
+      ms:  sums.ms.details.map(d => ({ name: d[0], mat: d[1], mot: d[2] })),
+      wrap: sums.wrap.details.map(d => ({ name: d[0], mat: d[3], mot: d[4] })),
+    };
+  } catch(e) { /* collectAll может не быть при загрузке */ }
+
+  // Собираем исполнителей
+  data.executors = [];
+  qa('#executorsContent .executor-row').forEach(row => {
+    const baseId = row.getAttribute('data-exec-id');
+    if (!baseId) return;
+    
+    const serviceName = row.querySelector('.executor-row-header')?.textContent?.trim();
+    const executorName = row.querySelector(`#${baseId}name`)?.value || '';
+    const salary = row.querySelector(`#${baseId}salary`)?.value || '0';
+    const receive = row.querySelector(`#${baseId}receive`)?.value || '';
+    const returnDate = row.querySelector(`#${baseId}return`)?.value || '';
+    const note = row.querySelector(`#${baseId}note`)?.value || '';
+    
+    // Основной исполнитель
+    if (executorName || parseFloat(salary) > 0) {
+      data.executors.push({
+        service: serviceName,
+        name: executorName,
+        salary: parseFloat(salary) || 0,
+        receive_date: receive,
+        return_date: returnDate,
+        note: note
+      });
+    }
+    
+    // Дополнительные исполнители
+    const extraContainer = row.querySelector('.extra-executors');
+    if (extraContainer) {
+      extraContainer.querySelectorAll('.extra-executor-row').forEach(extraRow => {
+        const extraName = extraRow.querySelector('input[id*="name"]')?.value || '';
+        const extraSalary = extraRow.querySelector('input[id*="salary"]')?.value || '0';
+        const extraReceive = extraRow.querySelector('input[id*="receive"]')?.value || '';
+        const extraReturn = extraRow.querySelector('input[id*="return"]')?.value || '';
+        const extraNote = extraRow.querySelector('input[id*="note"]')?.value || '';
+        
+        if (extraName || parseFloat(extraSalary) > 0) {
+          data.executors.push({
+            service: serviceName,
+            name: extraName,
+            salary: parseFloat(extraSalary) || 0,
+            receive_date: extraReceive,
+            return_date: extraReturn,
+            note: extraNote
+          });
+        }
+      });
+    }
+  });
+  
+  return data;
+}
+
+async function saveCalculation() {
+  if (!sb || !currentUser) {
+    console.log('No user - skip save');
     return;
   }
-  s.innerHTML = '<option value="">Выберите бренд</option><option value="manual">Ввести вручную</option>';
-  Object.keys(carDB).sort().forEach(b () => {
-    const o = document.createElement('option');
-    o.value = b; o.textContent = b;
-    s.appendChild(o);
-  });
-  const yearInput = q('#year');
-  if (yearInput && !yearInput.value) yearInput.value = '2026';
-}
-
-function fillModels(brandValue) {
-  const m  = q('#model');
-  const bm = q('#brandManual');
-  m.innerHTML = '<option value="">Выберите модель</option><option value="manual">Ввести вручную</option>';
-
-  if (brandValue && carDB[brandValue]) {
-    bm.classList.add('invis');
-    carDB[brandValue].forEach(md () => {
-      const o = document.createElement('option');
-      o.value = md; o.textContent = md;
-      m.appendChild(o);
-    });
-  } else if (brandValue === 'manual') {
-    bm.classList.remove('invis');
-    m.innerHTML = '<option value="manual">Ввести вручную</option>';
-    q('#modelManual')?.classList.remove('invis');
-  }
-}
-
-function onBrandChange() {
-  fillModels(q('#brand').value);
-  renderAll();
-}
-
-function onModelChange() {
-  const m = q('#model').value;
-  q('#modelManual')?.classList.toggle('invis', m !== 'manual');
-  renderAll();
-}
-
-// ── Форматирование ────────────────────────────────────────────────
-function formatYearInput(input) {
-  let val = input.value.replace(/\D/g, '');
-  if (val.length > 4) val = val.slice(0, 4);
-  input.value = val;
-}
-
-function formatNumberInput(input) {
-  const val = parseFloat(input.value);
-  if (!isNaN(val) && val >= 0) input.value = val.toFixed(2);
-}
-
-function setDefaultMarkups() {
-  ['#pkgMarkup','#impactMarkup','#armMarkup','#wrapMarkup','#detMarkup','#glMarkup','#miscMarkup'].forEach(id () => {
-    const field = q(id);
-    if (field) field.value = 40;
-  });
-}
-
-// ── Состояние страницы ────────────────────────────────────────────
-function initPageState() {
-  const isTelegram = window.TelegramWebviewProxy !== undefined || navigator.userAgent.includes('Telegram');
-  if (isTelegram) {
-    const warning = q('#telegramWarning');
-    if (warning) warning.style.display = 'block';
-  }
-}
-
-// ── Зоны инициализации ────────────────────────────────────────────
-function initUI() {
-  initTheme();
-
-  initDiscounts();
-
-}
-
-function initDataSources() {
-  fillBrands();
-
-  q('#brand')?.addEventListener('change', onBrandChange);
-  q('#model')?.addEventListener('change', onModelChange);
-}
-
-function initRender() {
-  renderServiceList('#armContent',  armServices,    'arm');
-  renderWrapContent();
-
-  renderPartialLists();
-
-  renderServiceList('#detContent',  detailServices, 'det');
-  renderServiceList('#glContent',   glassServices,  'gl');
-  renderServiceList('#miscContent', miscServices,   'misc');
-  initServiceToggles();
-
-  setDefaultMarkups();
-
-  initChart();
-
-  renderAll();
-}
-
-function initBindings() {
-  // Добавление строк
-  const addRowBindings = [
-    { sel: '#btnAddPkgCost',    action: () => addCostRow('pkg') },
-    { sel: '#btnAddImpactCost', action: () => addCostRow('impact') },
-    { sel: '#btnAddArm',        action: () => { addDynRow('#armDyn',  'arm');  initServiceToggles(); } },
-    { sel: '#btnAddArmCost',    action: () => addCostRow('arm') },
-    { sel: '#btnAddWrap',       action: () => { addDynRow('#wrapDyn', 'wrap'); initServiceToggles(); } },
-    { sel: '#btnAddWrapCost',   action: () => addCostRow('wrap') },
-    { sel: '#btnAddDet',        action: () => { addDynRow('#detDyn',  'det');  initServiceToggles(); } },
-    { sel: '#btnAddDetCost',    action: () => addCostRow('det') },
-    { sel: '#btnAddGl',         action: () => { addDynRow('#glDyn',   'gl');   initServiceToggles(); } },
-    { sel: '#btnAddGlCost',     action: () => addCostRow('gl') },
-    { sel: '#btnAddMisc',       action: () => { addDynRow('#miscDyn', 'misc'); initServiceToggles(); } },
-    { sel: '#btnAddMiscCost',   action: () => addCostRow('misc') },
-  ];
-  addRowBindings.forEach(({ sel, action }) => q(sel)?.addEventListener('click', action));
-
-  // Форма оплаты
-  qa('input[name=payMode]').forEach(r => r.addEventListener('change', () => { renderAll(); scheduleSave(); }));
-
-  // Управляющие кнопки
-  q('#btnSaveCalc')?.addEventListener('click', async () => {
-    const btn = q('#btnSaveCalc');
-    const orig = btn?.textContent;
-    if (btn) { btn.textContent = '⏳ Сохранение...'; btn.disabled = true; }
-    await saveCalculation();
-
-    if (btn) { btn.textContent = orig; btn.disabled = false; }
-  });
-
-  // "Новый расчёт" — сохраняет текущий и сбрасывает форму
-  q('#btnReset')?.addEventListener('click', async () => {
-    const btn = q('#btnReset');
-    if (!confirm('Сохранить текущий расчёт и начать новый?')) return;
-    if (btn) { btn.textContent = '⏳ Сохраняем...'; btn.disabled = true; }
-    await saveCalculation();
-
-    // Сбрасываем ID чтобы следующий расчёт создался новым
-    if (typeof currentCalculationId !== 'undefined') {
-      try { window._calcNewMode = true; } catch(e) {}
+  
+  try {
+    // Получаем studio_id текущего пользователя
+    const { data: memberData, error: memberError } = await sb
+      .from('studio_members')
+      .select('studio_id')
+      .eq('user_id', currentUser.id)
+      .eq('is_active', true)
+      .single();
+    
+    if (memberError || !memberData) {
+      console.error('No studio found for user:', memberError);
+      // Fallback - сохраняем БЕЗ studio_id (для обратной совместимости)
+      // В следующий раз при логине студия создастся автоматически
     }
-    location.href = location.pathname; // перезагрузка без ?load=
-  });
-
-  // Экспорт PDF — только скачать КП
-  q('#btnDownloadKP')?.addEventListener('click', () => {
-    prepKP();
-
-    setTimeout(() => exportPDF('#pdfKP', 'Коммерческое_предложение.pdf'), 100);
-  });
-  q('#btnExportExecutors')?.addEventListener('click', () => {
-    prepExecutors();
-
-    setTimeout(() => exportPDF('#pdfExecutors', 'Список_исполнителей.pdf'), 100);
-  });
-  q('#btnExportExecutorsWithSalary')?.addEventListener('click', () => {
-    prepExecutorsWithSalary();
-
-    setTimeout(() => exportPDF('#pdfExecutorsWithSalary', 'Список_исполнителей_ЗП.pdf'), 100);
-  });
-
-  // Chips (наценки)
-  qa('.chip').forEach(ch () => {
-    ch.addEventListener('click', () => {
-      const sel    = ch.getAttribute('data-markup-target');
-      const ppfIdx = ch.getAttribute('data-ppf-markup');
-      const pvcIdx = ch.getAttribute('data-pvc-markup');
-      if (sel) {
-        const tgt = q(sel);
-        if (tgt) { tgt.value = ch.textContent.trim(); renderAll(); }
-      } else if (ppfIdx !== null) {
-        const inp = ch.closest('.service-item')?.querySelector('.ppf-part-markup');
-        if (inp) { inp.value = ch.textContent.trim(); renderAll(); }
-      } else if (pvcIdx !== null) {
-        const inp = ch.closest('.service-item')?.querySelector('.pvc-part-markup');
-        if (inp) { inp.value = ch.textContent.trim(); renderAll(); }
+    
+    const studioId = memberData?.studio_id;
+    
+    const formData = collectFormData();
+    const dataStr = JSON.stringify(formData);
+    
+    // Проверяем изменились ли данные
+    if (dataStr === lastSavedData) {
+      console.log('No changes - skip save');
+      return;
+    }
+    
+    // Собираем итоги
+    const s = collectAll();
+    const mu = markups();
+    const taxK = taxCoef();
+    
+    const baseAll = (s.pkg.mat + s.pkg.mot) + (s.impact.mat + s.impact.mot) + 
+                    (s.arm.mat + s.arm.mot) + (s.wrap.mat + s.wrap.mot) + 
+                    (s.det.mat + s.det.mot) + (s.gl.mat + s.gl.mot) + (s.ms.mat + s.ms.mot);
+    
+    const pkgTotal = s.pkg.mat + s.pkg.mot;
+    const impactTotal = s.impact.mat + s.impact.mot;
+    const armTotal = s.arm.mat + s.arm.mot;
+    const wrapTotal = s.wrap.mat + s.wrap.mot;
+    const detTotal = s.det.mat + s.det.mot;
+    const glTotal = s.gl.mat + s.gl.mot;
+    const msTotal = s.ms.mat + s.ms.mot;
+    
+    const totalMarkup = 
+      r100(pkgTotal * (mu.pkg || 0) / 100) +
+      r100(impactTotal * (mu.impact || 0) / 100) +
+      r100(armTotal * (mu.arm || 0) / 100) +
+      r100(wrapTotal * (mu.wrap || 0) / 100) +
+      r100(detTotal * (mu.det || 0) / 100) +
+      r100(glTotal * (mu.gl || 0) / 100) +
+      r100(msTotal * (mu.ms || 0) / 100);
+    
+    const disc = parseFloat(q('#customDiscount')?.value) || 0;
+    const markupWithDiscount = r100(totalMarkup * (1 - disc / 100));
+    const afterMarkup = baseAll + markupWithDiscount;
+    const tax = r100(afterMarkup * taxK);
+    const finalTotal = afterMarkup + tax;
+    
+    const car_name = `${formData.car.brand || ''} ${formData.car.model || ''} ${formData.car.year || ''}`.trim();
+    
+    // Подготавливаем данные для сохранения
+    const calcData = {
+      user_id: currentUser.id,
+      car_name: car_name || 'Без названия',
+      brand: formData.car.brand || null,
+      model: formData.car.model || null,
+      year: formData.car.year || null,
+      total_price: finalTotal,
+      calculation_data: formData,
+      status: 'draft',
+      updated_at: new Date().toISOString()
+    };
+    
+    // Добавляем studio_id если есть
+    if (studioId) {
+      calcData.studio_id = studioId;
+    }
+    
+    // Умная логика сохранения:
+    // - Если открыли существующий расчёт (currentCalculationId) → UPDATE
+    // - Если новый расчёт → INSERT один раз, запоминаем ID, дальше UPDATE
+    let error;
+    let savedData;
+    
+    if (currentCalculationId) {
+      // UPDATE существующего
+      ({ error } = await sb
+        .from('calculations')
+        .update(calcData)
+        .eq('id', currentCalculationId));
+      console.log('Updated existing calculation:', currentCalculationId);
+    } else {
+      // INSERT нового
+      ({ data: savedData, error } = await sb
+        .from('calculations')
+        .insert(calcData)
+        .select()
+        .single());
+      
+      if (savedData) {
+        currentCalculationId = savedData.id; // Запоминаем ID
+        console.log('Created new calculation:', currentCalculationId);
       }
-    });
-  });
-
-  // Глобальные input-события
-  document.addEventListener('input', e () => {
-    if (e.target.id === 'year') { formatYearInput(e.target); renderAll(); scheduleSave(); return; }
-    if (e.target.id && e.target.id.includes('salary')) e.target.dataset.manuallySet = 'true';
-    if (e.target.matches('input[type="number"]')) {
-      const val = parseFloat(e.target.value);
-      if (!isNaN(val) && val < 0) e.target.value = '';
     }
-    if (e.target.matches('input, select')) { renderAll(); scheduleSave(); }
-  });
-
-  document.addEventListener('blur', e () => {
-    if (e.target.matches('input[type="number"]') && e.target.value !== '') {
-      formatNumberInput(e.target); renderAll(); scheduleSave();
-
+    
+    if (error) {
+      console.error('Save error details:', JSON.stringify(error));
+      // Показываем пользователю ошибку
+      const btn2 = q('#btnSaveCalc');
+      if (btn2) {
+        const orig = btn2.textContent;
+        btn2.textContent = '❌ Ошибка сохранения';
+        btn2.style.background = '#ef4444';
+        setTimeout(() => { btn2.textContent = orig; btn2.style.background = ''; }, 3000);
+      }
+      return;
     }
-  }, true);
+    
+    lastSavedData = dataStr;
+    console.log('✅ Saved successfully');
+    
+    // Показываем индикатор сохранения
+    const btn = q('#btnSaveCalc');
+    if (btn) {
+      const originalText = btn.textContent;
+      btn.textContent = '✅ Сохранено';
+      showToast();
+      btn.style.background = 'linear-gradient(135deg, var(--success), var(--success-dark))';
+      setTimeout(() => {
+        btn.textContent = originalText;
+        btn.style.background = '';
+      }, 2000);
+    }
+  } catch (e) {
+    console.error('Save error:', e);
+  }
+}
+
+function scheduleSave() {
+  if (saveTimeout) clearTimeout(saveTimeout);
+  saveTimeout = setTimeout(saveCalculation, 2000); // Автосохранение через 2 сек после последнего изменения
+}
+
+// ========================================
+// ЗАГРУЗКА РАСЧЁТА ИЗ URL
+// ========================================
+
+async function loadCalculationFromUrl() {
+  // Получаем ID из URL параметров
+  const urlParams = new URLSearchParams(window.location.search);
+  const calcId = urlParams.get('load');
+  const fromBoard = urlParams.get('from') === 'board' || !!calcId;
+
+  if (!calcId) return; // Нет ID - ничего не делаем
+  
+  try {
+    console.log('Loading calculation:', calcId);
+    
+    // Загружаем расчёт из Supabase
+    const { data: calculation, error } = await sb
+      .from('calculations')
+      .select('*')
+      .eq('id', calcId)
+      .single();
+    
+    if (error || !calculation) {
+      console.error('Failed to load calculation:', error);
+      console.error('❌ Не удалось загрузить расчёт');
+      return;
+    }
+    
+    console.log('Calculation loaded:', calculation);
+    
+    // Запоминаем ID открытого расчёта
+    currentCalculationId = calcId;
+    
+    const formData = calculation.calculation_data;
+    if (!formData) return;
+    
+    // Заполняем автомобиль
+    if (formData.car) {
+      if (formData.car.brand) {
+        const brandSelect = q('#brand');
+        const brandManual = q('#brandManual');
+        if (brandSelect) brandSelect.value = formData.car.brand;
+        if (brandManual) brandManual.value = formData.car.brand;
+        // Загружаем модели для бренда
+        fillModels(formData.car.brand);
+      }
+      
+      setTimeout(() => {
+        if (formData.car.model) {
+          const modelSelect = q('#model');
+          const modelManual = q('#modelManual');
+          if (modelSelect) modelSelect.value = formData.car.model;
+          if (modelManual) modelManual.value = formData.car.model;
+        }
+        if (formData.car.year) {
+          const yearInput = q('#year');
+          if (yearInput) yearInput.value = formData.car.year;
+        }
+      }, 150);
+    }
+    
+    // Заполняем пакет "Полная защита"
+    if (formData.package) {
+      if (formData.package.wrapMat) q('#pkgWrapMat').value = formData.package.wrapMat;
+      if (formData.package.wrapMot) q('#pkgWrapMot').value = formData.package.wrapMot;
+      if (formData.package.prepMat) q('#pkgPrepMat').value = formData.package.prepMat;
+      if (formData.package.prepMot) q('#pkgPrepMot').value = formData.package.prepMot;
+      if (formData.package.armMat) q('#pkgArmMat').value = formData.package.armMat;
+      if (formData.package.armMot) q('#pkgArmMot').value = formData.package.armMot;
+      if (formData.package.markup) q('#pkgMarkup').value = formData.package.markup;
+      
+      // Доп затраты для пакета
+      if (formData.package.costs && formData.package.costs.length > 0) {
+        formData.package.costs.forEach(cost => {
+          addCostRow('pkg');
+          const rows = qa('#pkgCostsContent .cost-row');
+          const lastRow = rows[rows.length - 1];
+          if (lastRow) {
+            const nameInput = lastRow.querySelector('.pkg-cost-name');
+            const valInput = lastRow.querySelector('.pkg-cost-val');
+            if (nameInput) nameInput.value = cost.name || '';
+            if (valInput) valInput.value = cost.value || '';
+          }
+        });
+      }
+    }
+    
+    // Заполняем пакет "Защита ударной части"
+    if (formData.impact) {
+      if (formData.impact.wrapMat) q('#impactWrapMat').value = formData.impact.wrapMat;
+      if (formData.impact.wrapMot) q('#impactWrapMot').value = formData.impact.wrapMot;
+      if (formData.impact.prepMat) q('#impactPrepMat').value = formData.impact.prepMat;
+      if (formData.impact.prepMot) q('#impactPrepMot').value = formData.impact.prepMot;
+      if (formData.impact.armMat) q('#impactArmMat').value = formData.impact.armMat;
+      if (formData.impact.armMot) q('#impactArmMot').value = formData.impact.armMot;
+      if (formData.impact.markup) q('#impactMarkup').value = formData.impact.markup;
+      
+      // Доп затраты
+      if (formData.impact.costs && formData.impact.costs.length > 0) {
+        formData.impact.costs.forEach(cost => {
+          addCostRow('impact');
+          const rows = qa('#impactCostsContent .cost-row');
+          const lastRow = rows[rows.length - 1];
+          if (lastRow) {
+            const nameInput = lastRow.querySelector('.impact-cost-name');
+            const valInput = lastRow.querySelector('.impact-cost-val');
+            if (nameInput) nameInput.value = cost.name || '';
+            if (valInput) valInput.value = cost.value || '';
+          }
+        });
+      }
+    }
+    
+    // Форма оплаты
+    if (formData.paymentMode) {
+      const payModeRadio = q(`input[name=payMode][value="${formData.paymentMode}"]`);
+      if (payModeRadio) payModeRadio.checked = true;
+    }
+    
+    // Скидка
+    if (formData.discount) {
+      q('#customDiscount').value = formData.discount;
+    }
+    
+    // Наценки
+    if (formData.markups) {
+      if (formData.markups.arm) q('#armMarkup').value = formData.markups.arm;
+      if (formData.markups.wrap) q('#wrapMarkup').value = formData.markups.wrap;
+      if (formData.markups.det) q('#detMarkup').value = formData.markups.det;
+      if (formData.markups.gl) q('#glMarkup').value = formData.markups.gl;
+      if (formData.markups.misc) q('#miscMarkup').value = formData.markups.misc;
+    }
+    
+    // Восстанавливаем динамические строки из services_detail
+    if (formData.services_detail) {
+      // arm, det, gl, misc — структура details: [name, mat, mot]
+      [['arm', '#armDyn'], ['det', '#detDyn'], ['gl', '#glDyn'], ['misc', '#miscDyn']].forEach(([key, sel]) => {
+        const items = formData.services_detail[key === 'misc' ? 'ms' : key] || [];
+        items.forEach(d => {
+          addDynRow(sel, key);
+          const rows = qa(sel + ' .service-item');
+          const row = rows[rows.length - 1];
+          if (!row) return;
+          const nameInput = row.querySelector('input[type=text]');
+          if (nameInput) nameInput.value = d.name || '';
+          const matInput = row.querySelector('.' + key + '-mat');
+          const motInput = row.querySelector('.' + key + '-mot');
+          if (matInput) matInput.value = d.mat || 0;
+          if (motInput) motInput.value = d.mot || 0;
+        });
+      });
+
+      // wrap — структура details: [name, m, pr, mat, mot, itemMarkup]
+      const wrapItems = formData.services_detail.wrap || [];
+      // Фильтруем только динамические (не PPF/ПВХ стандартные)
+      const staticWrapNames = ['PPF прозрачный вкруг','PPF цветной вкруг','PPF матовый вкруг','ПВХ полная оклейка'];
+      wrapItems.filter(d => !staticWrapNames.some(s => d.name && d.name.startsWith(s.split(' ')[0]))).forEach(d => {
+        addDynRow('#wrapDyn', 'wrap');
+        const rows = qa('#wrapDyn .service-item');
+        const row = rows[rows.length - 1];
+        if (!row) return;
+        const nameInput = row.querySelector('input[type=text]');
+        if (nameInput) nameInput.value = d.name || '';
+        const nums = row.querySelectorAll('input[type=number]');
+        if (nums[0]) nums[0].value = d.m || 0;    // метры
+        if (nums[1]) nums[1].value = d.pr || 0;   // цена за метр
+        if (nums[2]) nums[2].value = d.mot || 0;  // мотивация
+      });
+
+      // Инициализируем тоглы у всех новых строк
+      initServiceToggles();
+    }
+
+    // Пересчитываем всё
+    setTimeout(() => {
+      renderAll();
+      console.log('✅ Calculation loaded and rendered');
+    }, 400);
+    
+  } catch (e) {
+    console.error('Error loading calculation:', e);
+  }
 }
 
 async function initAuthAndAccess() {
-  return await checkAuth();
-
-}
-
-// ── Точка входа ───────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', async () => {
-  const hasAccess = await initAuthAndAccess;
-  if (!hasAccess) return;
-
-  initPageState();
-
-  initUI();
-
-  initDataSources();
-
-  initRender();
-
-  initBindings();
-
-  await loadCalculationFromUrl();
-
-});
-
-// ── Глобальный экспорт для inline handlers ────────────────────────
-window.fillModels    = fillModels;
-window.onBrandChange = onBrandChange;
-window.onModelChange = onModelChange;
-window.renderAll = renderAll;
-
-// ── Брендинг КП ─────────────────────────────────────────────────────
-// isTrial      — true = пробный/нет подписки → Keep1R-брендинг
-// studioSettings — объект settings из таблицы studios
-// studioName   — studios.name (основное название студии)
-window.applyKPBranding = function(isTrial, studioSettings = {}, studioName = '') {
-  const headerEl = document.getElementById('kpBrandHeader');
-  const footerEl = document.getElementById('kpBrandFooter');
-  if (!headerEl) return;
-
-  // Для триала — ничего не меняем, Keep1R-брендинг остаётся из HTML
-  if (isTrial) return;
-
-  // Для платной подписки — берём данные студии
-  const phone   = studioSettings.kp_phone   || studioSettings.phone   || '';
-  const website = studioSettings.kp_website || studioSettings.website || '';
-  // Название: сначала kp_name из настроек, потом основное название студии
-  const name    = studioSettings.kp_name   || studioName || '';
-  const logo    = studioSettings.kp_logo   || null;
-
-  if (logo) {
-    // ── С логотипом ──
-    headerEl.innerHTML = `
-      <div style="max-height:60px;max-width:180px;overflow:hidden">
-        <img src="${logo}" alt="logo"
-          style="max-height:60px;max-width:180px;object-fit:contain;display:block">
-      </div>
-      <div style="text-align:right;font-size:8px;color:#475569;line-height:1.9">
-        ${name    ? `<div style="font-weight:800;font-size:9px;color:#0f172a">${esc(name)}</div>` : ''}
-        ${phone   ? `<div>📞 ${esc(phone)}</div>`   : ''}
-        ${website ? `<div>🌐 ${esc(website)}</div>` : ''}
-      </div>
-    `;
-  } else if (name) {
-    // ── Без логотипа, но есть название ──
-    headerEl.innerHTML = `
-      <div style="font-size:22px;font-weight:900;letter-spacing:-1px;color:#0f172a">${esc(name)}</div>
-      <div style="text-align:right;font-size:8px;color:#475569;line-height:1.9">
-        ${phone   ? `<div>📞 ${esc(phone)}</div>`   : ''}
-        ${website ? `<div>🌐 ${esc(website)}</div>` : ''}
-      </div>
-    `;
-  } else {
-    // ── Совсем ничего не настроено — ставим заглушку ──
-    headerEl.innerHTML = `
-      <div style="font-size:14px;font-weight:700;color:#94a3b8;font-style:italic">
-        Настройте брендинг в разделе «Настройки»
-      </div>
-    `;
-  }
-
-  // Футер для платной студии — убираем Keep1R, ставим контакты студии
-  if (footerEl) {
-    footerEl.innerHTML = `
-      <div style="font-size:7.5px;color:#94a3b8;display:flex;justify-content:space-between;align-items:center;width:100%">
-        <span style="color:#cbd5e1">Создано в Keep1R CRM</span>
-        <span style="display:flex;gap:14px;white-space:nowrap">
-          ${name    ? `<span style="font-weight:700;color:#475569">${esc(name)}</span>` : ''}
-          ${phone   ? `<span>${esc(phone)}</span>`   : ''}
-          ${website ? `<span>${esc(website)}</span>` : ''}
-        </span>
-      </div>
-    `;
-  }
-};
-
-function esc(s) {
-  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const hasAccess = await checkAuth();
+  return hasAccess;
 }
