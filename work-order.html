@@ -18,18 +18,48 @@
 body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100svh; -webkit-font-smoothing: antialiased; }
 .container { max-width: 900px; margin: 0 auto; padding: 24px 20px 60px; }
 
+/* ── Кнопки ── */
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px; border-radius: 9px; border: none; font-size: 0.85rem; font-weight: 700; cursor: pointer; font-family: var(--font); transition: all 0.15s; text-decoration: none; }
+.btn-secondary { background: #f1f5f9; color: var(--text); border: 1px solid var(--border); }
+.btn-secondary:hover { background: #e2e8f0; }
+.btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* ── Переключатель режима ── */
+.mode-switcher {
+  display: flex;
+  background: #f1f5f9;
+  border-radius: 10px;
+  padding: 4px;
+  gap: 4px;
+  border: 1px solid var(--border);
+}
+.mode-btn {
+  flex: 1;
+  padding: 8px 16px;
+  border-radius: 7px;
+  border: none;
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: var(--font);
+  transition: all 0.18s;
+  background: transparent;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.mode-btn.active-client   { background: #2563eb; color: #fff; box-shadow: 0 2px 8px rgba(37,99,235,0.25); }
+.mode-btn.active-workshop { background: #0f172a; color: #fff; box-shadow: 0 2px 8px rgba(15,23,42,0.2); }
+
 .page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
 .page-title  { font-size: 1.3rem; font-weight: 800; letter-spacing: -0.3px; }
 .page-sub    { font-size: 0.8rem; color: var(--muted); margin-top: 3px; }
-.btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px; border-radius: 9px; border: none; font-size: 0.85rem; font-weight: 700; cursor: pointer; font-family: var(--font); transition: all 0.15s; }
-.btn-secondary { background: #f1f5f9; color: var(--text); border: 1px solid var(--border); }
-.btn-secondary:hover { background: #e2e8f0; }
-.btn-dark { background: #0f172a; color: #fff; }
-.btn-dark:hover { background: #1e293b; }
-.btn-blue { background: #2563eb; color: #fff; }
-.btn-blue:hover { background: #1d4ed8; }
-.btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
 
+/* ── Бейдж режима ── */
+.mode-badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; margin-left: 8px; vertical-align: middle; }
+.mode-badge.client   { background: rgba(37,99,235,0.1); color: #1d4ed8; }
+.mode-badge.workshop { background: rgba(5,150,105,0.1); color: #047857; }
+
+/* ── Карточки ── */
 .card { background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: 0 1px 4px rgba(0,0,0,0.06); margin-bottom: 14px; overflow: hidden; }
 .card-head { padding: 11px 18px 9px; border-bottom: 1px solid var(--border); font-size: 0.74rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); background: #f8fafc; }
 .card-body { padding: 16px 18px; }
@@ -43,29 +73,37 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
 .info-value.empty { color: var(--muted); font-weight: 400; font-style: italic; }
 @media (max-width: 540px) {
   .info-grid { grid-template-columns: repeat(2, 1fr); }
-  .info-cell:nth-child(3n) { border-right: 1px solid var(--border); }
-  .info-cell:nth-child(2n) { border-right: none; }
+  .info-cell:nth-child(3n)      { border-right: 1px solid var(--border); }
+  .info-cell:nth-child(2n)      { border-right: none; }
   .info-cell:nth-last-child(-n+3) { border-bottom: 1px solid var(--border); }
   .info-cell:nth-last-child(-n+2) { border-bottom: none; }
 }
 
+/* ── Таблица работ (клиент) ── */
 .wo-table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
 .wo-table th { text-align: left; padding: 8px 12px; background: #f8fafc; font-size: 0.71rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); border-bottom: 1.5px solid var(--border); }
 .wo-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
 .wo-table tr:last-child td { border-bottom: none; }
-.total-row td { font-weight: 800; border-top: 2px solid #0f172a !important; border-bottom: none !important; background: #f8fafc; padding-top: 12px; }
-.right { text-align: right; white-space: nowrap; }
+
+/* ── Таблица работ (цех) ── */
+.ws-table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+.ws-table th { text-align: left; padding: 8px 12px; background: #f0fdf4; font-size: 0.71rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #047857; border-bottom: 1.5px solid #bbf7d0; }
+.ws-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.ws-table tr:last-child td { border-bottom: none; }
+.ws-sign-line { border-bottom: 1.5px solid #94a3b8; height: 32px; width: 90px; margin-top: 4px; }
+
 .exec-pill { display: inline-flex; align-items: center; gap: 3px; padding: 2px 8px; border-radius: 20px; background: rgba(37,99,235,0.08); color: #1e40af; font-size: 0.74rem; font-weight: 700; margin: 2px; }
-.exec-pill.admin { background: rgba(124,58,237,0.08); color: #6d28d9; }
 .execs { display: flex; flex-wrap: wrap; }
 
+/* ── Итог (клиент) ── */
 .totals-row { display: flex; justify-content: flex-end; gap: 40px; align-items: center; flex-wrap: wrap; }
 .total-item { text-align: right; }
 .total-item-label { font-size: 0.71rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin-bottom: 4px; }
 .total-item-value { font-size: 1.5rem; font-weight: 900; letter-spacing: -0.5px; }
 .total-item-value.sm { font-size: 0.95rem; font-weight: 700; }
 
-.sign-row { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+/* ── Подписи ── */
+.sign-row   { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
 .sign-block { display: flex; flex-direction: column; gap: 8px; }
 .sign-label { font-size: 0.71rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
 .sign-name  { font-size: 0.83rem; color: var(--muted); min-height: 1.1em; }
@@ -73,51 +111,41 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
 .sign-cap   { font-size: 0.71rem; color: var(--muted); text-align: center; }
 .disclaimer { padding: 11px 14px; background: #fef9c3; border: 1px solid #fde68a; border-radius: 8px; font-size: 0.78rem; color: #78350f; line-height: 1.5; margin-top: 14px; }
 
-/* Метка режима печати */
-.print-mode-label { display: none; text-align: center; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; padding: 5px 14px; border-radius: 20px; margin-bottom: 12px; }
-.print-mode-label.client-label  { background: rgba(37,99,235,0.1); color: #1d4ed8; }
-.print-mode-label.workshop-label { background: rgba(5,150,105,0.1); color: #047857; }
-
 #loadingMsg { text-align: center; padding: 60px 20px; color: var(--muted); }
 #errMsg     { display: none; text-align: center; padding: 40px; color: #dc2626; }
 
-/* ══ PRINT ══════════════════════════════════════════ */
+/* ── Скрытие блоков по режиму — и на экране, и при печати ── */
+.view-client   .workshop-view { display: none !important; }
+.view-workshop .client-view   { display: none !important; }
+
+/* ══ PRINT ════════════════════════════════════════ */
 @media print {
   * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
   body { background: #fff !important; font-size: 11px !important; }
-  #navTopBar, .no-print { display: none !important; }
+  #navTopBar, #navBottomBar, .no-print { display: none !important; }
   .container { padding: 0 !important; max-width: 100% !important; }
   .card { box-shadow: none !important; border: 1px solid #e2e8f0 !important; margin-bottom: 8px !important; break-inside: avoid; }
-  .card-head { padding: 7px 12px 6px !important; font-size: 0.67rem !important; background: #f1f5f9 !important; }
+  .card-head { padding: 7px 12px 6px !important; font-size: 0.67rem !important; }
   .card-body { padding: 10px 12px !important; }
   .info-cell { padding: 7px 10px !important; }
   .info-label { font-size: 0.62rem !important; }
   .info-value { font-size: 0.82rem !important; }
-  .wo-table th { padding: 6px 10px !important; font-size: 0.64rem !important; background: #f1f5f9 !important; }
-  .wo-table td { padding: 7px 10px !important; font-size: 0.82rem !important; }
+  .wo-table th, .ws-table th { padding: 6px 10px !important; font-size: 0.64rem !important; }
+  .wo-table td, .ws-table td { padding: 7px 10px !important; font-size: 0.82rem !important; }
   .exec-pill { font-size: 0.68rem !important; padding: 1px 6px !important; }
   .total-item-value { font-size: 1.2rem !important; }
-  .totals-row { gap: 24px !important; }
   .sign-line { height: 32px !important; }
+  .ws-sign-line { height: 26px !important; width: 80px !important; }
   .disclaimer { font-size: 0.71rem !important; padding: 7px 10px !important; margin-top: 8px !important; }
   #printHeader { display: flex !important; padding-bottom: 10px !important; margin-bottom: 12px !important; }
-  .print-mode-label { display: inline-block !important; }
   @page { margin: 15mm; size: A4; }
 
-  /* Режим "для клиента": скрываем исполнителей и колонку исполнителей */
-  body.print-client .workshop-only { display: none !important; }
-  body.print-client .col-exec { display: none !important; }
-  body.print-client #card-payment { display: block !important; }
-
-  /* Режим "для цеха": скрываем цены, форму оплаты, итог, подписи клиента */
-  body.print-workshop .client-only { display: none !important; }
-  body.print-workshop .col-price { display: none !important; }
-  body.print-workshop #card-payment { display: none !important; }
-  body.print-workshop #card-totals  { display: none !important; }
-  body.print-workshop #card-signs   { display: none !important; }
+  /* Скрытие по режиму при печати — берём из класса body */
+  .view-client   .workshop-view { display: none !important; }
+  .view-workshop .client-view   { display: none !important; }
 }
 
-/* ── Print header ─────────────────────────────────── */
+/* ── Print header ── */
 #printHeader {
   display: none; align-items: center; justify-content: space-between;
   padding-bottom: 14px; border-bottom: 2.5px solid #0f172a; margin-bottom: 18px; gap: 16px;
@@ -131,7 +159,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
 .ph-studio-info { font-size: 0.74rem; color: var(--muted); line-height: 1.6; margin-top: 2px; }
 </style>
 </head>
-<body>
+<body class="view-client">
 
 <div id="navTopBar">
   <a href="board.html" class="nav-brand">Keep1R CRM</a>
@@ -144,7 +172,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
 
 <div class="container">
 
-  <!-- Print header (hidden on screen) -->
+  <!-- Print header -->
   <div id="printHeader">
     <img id="ph-logo" src="" alt="" style="display:none">
     <div class="ph-center">
@@ -162,19 +190,26 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
 
   <div id="mainContent" style="display:none">
 
+    <!-- Шапка страницы -->
     <div class="page-header no-print">
       <div>
-        <div class="page-title">🖨️ Заказ-наряд</div>
+        <div class="page-title">
+          🖨️ Заказ-наряд
+          <span class="mode-badge client" id="modeBadge">Для клиента</span>
+        </div>
         <div class="page-sub" id="headerSub"></div>
       </div>
-      <div class="btn-group">
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
         <button class="btn btn-secondary" onclick="history.back()">← Назад</button>
-        <button class="btn btn-blue" onclick="printClient()">👤 Для клиента</button>
-        <button class="btn btn-dark" onclick="printWorkshop()">🔧 Для цеха</button>
+        <div class="mode-switcher">
+          <button class="mode-btn active-client"  id="btnModeClient"   onclick="setMode('client')">👤 Для клиента</button>
+          <button class="mode-btn"                id="btnModeWorkshop" onclick="setMode('workshop')">🔧 Для цеха</button>
+        </div>
+        <button class="btn btn-secondary no-print" onclick="window.print()">🖨️ Печать</button>
       </div>
     </div>
 
-    <!-- ① Авто и клиент -->
+    <!-- ① Шапка — авто и клиент (общая для обоих режимов) -->
     <div class="card">
       <div class="card-head">🚗 Автомобиль и клиент</div>
       <div class="card-body">
@@ -182,34 +217,46 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
       </div>
     </div>
 
-    <!-- ② Перечень работ (для клиента — без колонки исполнителей) -->
-    <div class="card">
-      <div class="card-head">🔧 Перечень работ</div>
+    <!-- ② Таблица работ — ДЛЯ КЛИЕНТА (только список, без цен) -->
+    <div class="card client-view">
+      <div class="card-head">📋 Перечень работ</div>
       <div class="card-body">
         <table class="wo-table">
           <thead>
             <tr>
               <th style="width:32px">№</th>
               <th>Наименование работы</th>
-              <th class="workshop-only col-exec">Исполнитель(и)</th>
-              <th class="right col-price client-only" style="width:110px">Стоимость</th>
             </tr>
           </thead>
-          <tbody id="servicesTbody"></tbody>
+          <tbody id="servicesTbodyClient"></tbody>
         </table>
       </div>
     </div>
 
-    <!-- ③ Итог и оплата (только для клиента) -->
-    <div class="card" id="card-payment">
+    <!-- ② Таблица работ — ДЛЯ ЦЕХА (исполнители + подпись, без денег) -->
+    <div class="card workshop-view">
+      <div class="card-head" style="background:#f0fdf4;color:#047857;border-bottom-color:#bbf7d0">🔧 Перечень работ</div>
+      <div class="card-body">
+        <table class="ws-table">
+          <thead>
+            <tr>
+              <th style="width:32px">№</th>
+              <th>Наименование работы</th>
+              <th style="width:180px">Исполнитель(и)</th>
+              <th style="width:110px">Подпись исп.</th>
+            </tr>
+          </thead>
+          <tbody id="servicesTbodyWorkshop"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ③ Итог — только для клиента (статус + сумма, без формы оплаты) -->
+    <div class="card client-view">
       <div class="card-head">💰 Итог</div>
       <div class="card-body">
         <div class="totals-row">
-          <div class="total-item client-only">
-            <div class="total-item-label">Форма оплаты</div>
-            <div class="total-item-value sm" id="paymentMethod">—</div>
-          </div>
-          <div class="total-item client-only">
+          <div class="total-item">
             <div class="total-item-label">Статус</div>
             <div class="total-item-value sm" id="paymentStatus">—</div>
           </div>
@@ -221,12 +268,12 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
       </div>
     </div>
 
-    <!-- ④ Подписи -->
-    <div class="card" id="card-signs">
+    <!-- ④ Подписи — только для клиента -->
+    <div class="card client-view">
       <div class="card-head">✍️ Подписи сторон</div>
       <div class="card-body">
         <div class="sign-row">
-          <div class="sign-block client-only">
+          <div class="sign-block">
             <div class="sign-label">Клиент</div>
             <div class="sign-name" id="signClient">ФИО: ______________________________</div>
             <div class="sign-line"></div>
@@ -239,7 +286,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
             <div class="sign-cap">Подпись / дата</div>
           </div>
         </div>
-        <div class="disclaimer client-only">
+        <div class="disclaimer">
           Подписывая настоящий заказ-наряд, клиент подтверждает согласие с перечнем и стоимостью работ.
           После выполнения работ клиент обязуется принять автомобиль и произвести оплату в полном объёме.
           Студия гарантирует качество выполненных работ согласно действующим стандартам.
@@ -247,7 +294,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
       </div>
     </div>
 
-  </div>
+  </div><!-- /mainContent -->
 </div>
 
 <script src="footer.js"></script>
@@ -260,35 +307,43 @@ var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
 var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 var currentUser = null;
 
-function fmt(n)    { return new Intl.NumberFormat('ru-RU').format(Math.round(n || 0)); }
-function fmtDate(s){ if (!s) return '—'; return new Date(s).toLocaleDateString('ru-RU', {day:'2-digit', month:'2-digit', year:'numeric'}); }
-function esc(s)    { return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-function r(n)      { return parseFloat(n) || 0; }
+function fmt(n)     { return new Intl.NumberFormat('ru-RU').format(Math.round(n || 0)); }
+function fmtDate(s) { if (!s) return '—'; return new Date(s).toLocaleDateString('ru-RU', {day:'2-digit', month:'2-digit', year:'numeric'}); }
+function esc(s)     { return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function r(n)       { return parseFloat(n) || 0; }
 
-// ── Печать ─────────────────────────────────────────
-window.printClient = function() {
-  document.getElementById('ph-doc-type').textContent = 'Заказ-наряд · Для клиента';
-  document.body.className = 'print-client';
-  window.print();
-  document.body.className = '';
-};
-window.printWorkshop = function() {
-  document.getElementById('ph-doc-type').textContent = 'Заказ-наряд · Для цеха';
-  document.body.className = 'print-workshop';
-  window.print();
-  document.body.className = '';
+// ── Переключение режима ─────────────────────────────────
+window.setMode = function(mode) {
+  document.body.className = 'view-' + mode;
+  var badge   = document.getElementById('modeBadge');
+  var btnC    = document.getElementById('btnModeClient');
+  var btnW    = document.getElementById('btnModeWorkshop');
+  var docType = document.getElementById('ph-doc-type');
+
+  if (mode === 'client') {
+    badge.textContent   = 'Для клиента';
+    badge.className     = 'mode-badge client';
+    btnC.className      = 'mode-btn active-client';
+    btnW.className      = 'mode-btn';
+    if (docType) docType.textContent = 'Заказ-наряд · Для клиента';
+  } else {
+    badge.textContent   = 'Для цеха';
+    badge.className     = 'mode-badge workshop';
+    btnC.className      = 'mode-btn';
+    btnW.className      = 'mode-btn active-workshop';
+    if (docType) docType.textContent = 'Заказ-наряд · Для цеха';
+  }
 };
 
-// ── Auth ───────────────────────────────────────────
+// ── Auth ────────────────────────────────────────────────
 async function checkAuth() {
   var res = await sb.auth.getSession();
-  var session = res.data.session;
-  if (!session) { window.location.href = 'welcome.html'; return false; }
-  currentUser = session.user;
+  if (!res.data.session) { window.location.href = 'welcome.html'; return false; }
+  currentUser = res.data.session.user;
   return true;
 }
 
-// ── Студия ─────────────────────────────────────────
+// ── Студия ──────────────────────────────────────────────
 async function loadStudio() {
   var m = await sb.from('studio_members').select('studio_id').eq('user_id', currentUser.id).eq('is_active', true).single();
   if (!m.data) return;
@@ -302,7 +357,7 @@ async function loadStudio() {
   document.getElementById('signStudio').textContent = s.data.name || '______________________________';
 }
 
-// ── Авто и клиент ──────────────────────────────────
+// ── Информация об авто ──────────────────────────────────
 function renderCarInfo(calc) {
   var cd  = calc.calculation_data || {};
   var car = cd.car || {};
@@ -315,84 +370,40 @@ function renderCarInfo(calc) {
     {label:'Клиент',         value: cd.client_name || cd.clientName || '—'},
   ];
   document.getElementById('carInfoGrid').innerHTML = cells.map(function(c) {
-    return '<div class="info-cell"><div class="info-label">' + c.label + '</div><div class="info-value' + (c.value === '—' ? ' empty' : '') + '">' + esc(c.value) + '</div></div>';
+    return '<div class="info-cell"><div class="info-label">' + c.label + '</div>' +
+      '<div class="info-value' + (c.value === '—' ? ' empty' : '') + '">' + esc(c.value) + '</div></div>';
   }).join('');
 }
 
-// ── Разбиваем данные расчёта в список услуг ────────
+// ── Список услуг из данных расчёта ─────────────────────
 function buildServiceList(cd) {
   var services = [];
-  var markup = cd.markups || {};
-
-  // Коэффициент налога
-  var taxCoef = cd.paymentMode === 'card' ? 1.13 : cd.paymentMode === 'ooo' ? 1.22 : 1;
-
-  function calcPrice(mat, mot, mkp) {
-    var base = (r(mat) + r(mot)) * (1 + r(mkp) / 100) * taxCoef;
-    var disc = r(cd.discount) > 0 ? base * (1 - r(cd.discount) / 100) : base;
-    return Math.round(disc);
-  }
-
-  // Полная защита вкруг — разбиваем на 3 подуслуги
   var pkg = cd.package || {};
-  if (r(pkg.wrapMat) + r(pkg.wrapMot) > 0) {
-    services.push({name: 'Оклейка (Полная защита вкруг)', price: calcPrice(pkg.wrapMat, pkg.wrapMot, pkg.markup || markup.wrap)});
-  }
-  if (r(pkg.prepMat) + r(pkg.prepMot) > 0) {
-    services.push({name: 'Подготовка (Полная защита вкруг)', price: calcPrice(pkg.prepMat, pkg.prepMot, pkg.markup || markup.det)});
-  }
-  if (r(pkg.armMat) + r(pkg.armMot) > 0) {
-    services.push({name: 'Арматурные работы (Полная защита вкруг)', price: calcPrice(pkg.armMat, pkg.armMot, pkg.markup || markup.arm)});
-  }
-  if ((pkg.costs || []).length) {
-    pkg.costs.forEach(function(c) {
-      if (r(c.value) > 0) services.push({name: c.name || 'Доп. затраты (Полная защита)', price: Math.round(r(c.value))});
-    });
-  }
+  if (r(pkg.wrapMat) + r(pkg.wrapMot) > 0) services.push({name: 'Оклейка (Полная защита вкруг)'});
+  if (r(pkg.prepMat) + r(pkg.prepMot) > 0) services.push({name: 'Подготовка (Полная защита вкруг)'});
+  if (r(pkg.armMat)  + r(pkg.armMot)  > 0) services.push({name: 'Арматурные работы (Полная защита вкруг)'});
+  (pkg.costs || []).forEach(function(c) { if (r(c.value) > 0) services.push({name: c.name || 'Доп. затраты (Полная защита)'}); });
 
-  // Защита ударной части — разбиваем на 3 подуслуги
   var imp = cd.impact || {};
-  if (r(imp.wrapMat) + r(imp.wrapMot) > 0) {
-    services.push({name: 'Оклейка (Ударная часть)', price: calcPrice(imp.wrapMat, imp.wrapMot, imp.markup || markup.wrap)});
-  }
-  if (r(imp.prepMat) + r(imp.prepMot) > 0) {
-    services.push({name: 'Подготовка (Ударная часть)', price: calcPrice(imp.prepMat, imp.prepMot, imp.markup || markup.det)});
-  }
-  if (r(imp.armMat) + r(imp.armMot) > 0) {
-    services.push({name: 'Арматурные работы (Ударная часть)', price: calcPrice(imp.armMat, imp.armMot, imp.markup || markup.arm)});
-  }
-  if ((imp.costs || []).length) {
-    imp.costs.forEach(function(c) {
-      if (r(c.value) > 0) services.push({name: c.name || 'Доп. затраты (Ударная часть)', price: Math.round(r(c.value))});
-    });
-  }
+  if (r(imp.wrapMat) + r(imp.wrapMot) > 0) services.push({name: 'Оклейка (Ударная часть)'});
+  if (r(imp.prepMat) + r(imp.prepMot) > 0) services.push({name: 'Подготовка (Ударная часть)'});
+  if (r(imp.armMat)  + r(imp.armMot)  > 0) services.push({name: 'Арматурные работы (Ударная часть)'});
+  (imp.costs || []).forEach(function(c) { if (r(c.value) > 0) services.push({name: c.name || 'Доп. затраты (Ударная часть)'}); });
 
-  // Индивидуальные услуги из services_detail
   var sd = cd.services_detail || {};
-
-  // arm, det, gl, ms — структура: {name, mat, mot}
   ['arm','det','gl','ms'].forEach(function(key) {
-    var mkpKey = key === 'ms' ? 'misc' : key;
     (sd[key] || []).forEach(function(svc) {
-      if (r(svc.mat) + r(svc.mot) > 0) {
-        services.push({name: svc.name || 'Работа', price: calcPrice(svc.mat, svc.mot, markup[mkpKey])});
-      }
+      if (r(svc.mat) + r(svc.mot) > 0) services.push({name: svc.name || 'Работа'});
     });
   });
-
-  // wrap — структура: {name, m, pr, mat, mot}
   (sd.wrap || []).forEach(function(svc) {
-    if (r(svc.mat) + r(svc.mot) > 0) {
-      services.push({name: svc.name || 'Оклейка', price: calcPrice(svc.mat, svc.mot, markup.wrap)});
-    }
+    if (r(svc.mat) + r(svc.mot) > 0) services.push({name: svc.name || 'Оклейка'});
   });
-
   return services;
 }
 
-// ── Карта исполнителей по услугам ──────────────────
+// ── Карта исполнителей ──────────────────────────────────
 function buildExecMap(assignments) {
-  // Маппинг service_name → Set исполнителей
   var map = {};
   assignments.forEach(function(a) {
     if (a.is_admin_sale) return;
@@ -403,91 +414,73 @@ function buildExecMap(assignments) {
   return map;
 }
 
-// Находим исполнителей для услуги по нечёткому совпадению имени
 function findExecs(execMap, serviceName) {
-  // Прямое совпадение
   if (execMap[serviceName]) return execMap[serviceName];
-
-  // Ищем по вхождению ключевых слов
   var result = new Set();
+  var sn = serviceName.toLowerCase();
   Object.keys(execMap).forEach(function(key) {
-    // "Оклейка (Полная защита вкруг)" → ищем "Оклейка (Полная защита)" и похожие
-    var sn = serviceName.toLowerCase();
-    var k  = key.toLowerCase();
+    var k = key.toLowerCase();
     if (sn.includes(k) || k.includes(sn) ||
-        (sn.includes('оклейка') && k.includes('оклейка')) ||
+        (sn.includes('оклейка')    && k.includes('оклейка'))   ||
         (sn.includes('подготовка') && k.includes('подготовка')) ||
-        (sn.includes('арматур') && k.includes('арматур'))) {
+        (sn.includes('арматур')    && k.includes('арматур'))) {
       execMap[key].forEach(function(n) { result.add(n); });
     }
   });
   return result;
 }
 
-// ── Рендер таблицы услуг ───────────────────────────
+// ── Рендер обеих таблиц ─────────────────────────────────
 function renderServices(calc, assignments) {
-  var cd     = calc.calculation_data || {};
-  var tbody  = document.getElementById('servicesTbody');
-  var total  = calc.final_price || calc.total_price || 0;
+  var cd    = calc.calculation_data || {};
+  var total = calc.final_price || calc.total_price || 0;
 
-  // Итог и оплата
-  var PAY = {cash:'💵 Наличные', card:'💳 Карта / ИП', ooo:'🏢 ООО', transfer:'🏦 Перевод'};
-  document.getElementById('paymentMethod').textContent = PAY[cd.paymentMode || ''] || '—';
-  document.getElementById('totalAmount').textContent   = fmt(total) + ' ₽';
+  // Итог
+  document.getElementById('totalAmount').textContent = fmt(total) + ' ₽';
   var isPaid = calc.status === 'delivered';
   var payEl  = document.getElementById('paymentStatus');
   payEl.textContent = isPaid ? '✅ Оплачено' : '⏳ Ожидает оплаты';
   payEl.style.color = isPaid ? 'var(--success)' : 'var(--muted)';
 
-  // Клиент в подписи
   if (cd.client_name || cd.clientName) {
     document.getElementById('signClient').textContent = 'ФИО: ' + (cd.client_name || cd.clientName);
   }
 
   var services = buildServiceList(cd);
   var execMap  = buildExecMap(assignments);
+  var noSvc    = '<tr><td colspan="4" style="color:var(--muted);font-style:italic;padding:14px 12px">Услуги не заполнены</td></tr>';
 
   if (!services.length) {
-    tbody.innerHTML = '<tr><td colspan="4" style="color:var(--muted);font-style:italic;padding:14px 12px">Услуги не заполнены</td></tr>';
+    document.getElementById('servicesTbodyClient').innerHTML   = noSvc;
+    document.getElementById('servicesTbodyWorkshop').innerHTML = noSvc;
     return;
   }
 
-  function execHtml(names) {
-    var arr = Array.from(names);
-    if (!arr.length) return '<span style="color:var(--muted);font-style:italic;font-size:0.78rem">Не назначен</span>';
-    return arr.map(function(n) { return '<span class="exec-pill">👤 ' + esc(n) + '</span>'; }).join('');
-  }
-
-  var html = services.map(function(svc, i) {
-    var execs = findExecs(execMap, svc.name);
+  // Для клиента: только №, название
+  document.getElementById('servicesTbodyClient').innerHTML = services.map(function(svc, i) {
     return '<tr>' +
-      '<td style="color:var(--muted);font-size:0.76rem">' + (i + 1) + '</td>' +
+      '<td style="color:var(--muted);font-size:0.76rem">' + (i+1) + '</td>' +
       '<td style="font-weight:600">' + esc(svc.name) + '</td>' +
-      '<td class="workshop-only col-exec"><div class="execs">' + execHtml(execs) + '</div></td>' +
-      '<td class="right col-price client-only">' + (svc.price > 0 ? '<strong>' + fmt(svc.price) + ' ₽</strong>' : '<span style="color:var(--muted)">—</span>') + '</td>' +
       '</tr>';
   }).join('');
 
-  // Итоговая строка (только для клиента)
-  html += '<tr class="total-row client-only">' +
-    '<td></td><td colspan="2">ИТОГО</td>' +
-    '<td class="right">' + fmt(total) + ' ₽</td>' +
-    '</tr>';
-
-  // Продажник (если есть)
-  assignments.forEach(function(a) {
-    if (!a.is_admin_sale) return;
-    html += '<tr>' +
-      '<td></td>' +
-      '<td style="font-weight:600;color:#7c3aed" colspan="2">💼 Продажа (' + (a.admin_percent || 0) + '% от чека) — ' + esc(a.executor_name || '') + '</td>' +
-      '<td class="right col-price client-only" style="color:#7c3aed">—</td>' +
+  // Для цеха: №, название, исполнители, подпись — БЕЗ денег
+  document.getElementById('servicesTbodyWorkshop').innerHTML = services.map(function(svc, i) {
+    var execs   = findExecs(execMap, svc.name);
+    var execArr = Array.from(execs);
+    var execCell = execArr.length
+      ? execArr.map(function(n) { return '<span class="exec-pill">👤 ' + esc(n) + '</span>'; }).join('')
+      : '<span style="color:var(--muted);font-style:italic;font-size:0.78rem">Не назначен</span>';
+    return '<tr>' +
+      '<td style="color:var(--muted);font-size:0.76rem">' + (i+1) + '</td>' +
+      '<td style="font-weight:600">' + esc(svc.name) + '</td>' +
+      '<td><div class="execs">' + execCell + '</div></td>' +
+      '<td><div class="ws-sign-line"></div></td>' +
       '</tr>';
-  });
-
-  tbody.innerHTML = html;
+  }).join('');
 }
 
-// ── Init ───────────────────────────────────────────
+// ── Init ────────────────────────────────────────────────
 (async function init() {
   if (!await checkAuth()) return;
 
@@ -518,8 +511,8 @@ function renderServices(calc, assignments) {
 
   var calc    = calcRes.data;
   var shortId = calcId.slice(-8).toUpperCase();
-  document.getElementById('ph-num').textContent     = '№ ' + shortId;
-  document.getElementById('headerSub').textContent  = (calc.car_name || 'Автомобиль') + ' · ' + shortId;
+  document.getElementById('ph-num').textContent    = '№ ' + shortId;
+  document.getElementById('headerSub').textContent = (calc.car_name || 'Автомобиль') + ' · ' + shortId;
   document.title = 'Заказ-наряд ' + shortId;
 
   renderCarInfo(calc);
