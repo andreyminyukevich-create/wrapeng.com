@@ -110,16 +110,37 @@ const CSS = `
 .bp-svc-price {
   font-size:0.75rem; color:#2563eb; font-weight:700; flex-shrink:0;
 }
-.bp-svc-exec-select {
-  padding:5px 10px; border-radius:7px;
-  border:1.5px solid rgba(15,23,42,0.10); background:#fff;
-  font-size:0.78rem; font-family:inherit; color:#0f172a;
-  outline:none; cursor:pointer; min-width:130px; max-width:160px;
-  transition:border-color 0.15s;
+.bp-svc-row { flex-wrap:wrap; gap:8px; align-items:flex-start; }
+.bp-svc-header { display:flex; align-items:center; gap:10px; width:100%; }
+.bp-svc-exec-cards {
+  display:flex; flex-wrap:wrap; gap:6px; width:100%; padding-top:2px;
 }
-.bp-svc-exec-select:focus { border-color:#2563eb; }
-.bp-svc-exec-select.assigned { border-color:#059669; background:rgba(5,150,105,0.05); color:#065f46; }
-.bp-svc-exec-select.busy-assigned { border-color:#d97706; background:rgba(217,119,6,0.07); color:#92400e; }
+.bp-exec-card {
+  display:flex; align-items:center; gap:7px;
+  padding:6px 10px 6px 7px; border-radius:9px;
+  border:1.5px solid rgba(15,23,42,0.08); background:#f8fafc;
+  cursor:pointer; transition:all 0.15s; font-family:inherit;
+  text-align:left;
+}
+.bp-exec-card:hover { border-color:#2563eb; background:rgba(37,99,235,0.04); }
+.bp-exec-card.selected { border-color:#059669; background:rgba(5,150,105,0.07); }
+.bp-exec-card.selected-busy { border-color:#d97706; background:rgba(217,119,6,0.07); }
+.bp-exec-card-avatar {
+  width:26px; height:26px; border-radius:50%; flex-shrink:0;
+  background:rgba(37,99,235,0.1); color:#2563eb;
+  font-size:0.68rem; font-weight:800;
+  display:flex; align-items:center; justify-content:center;
+}
+.bp-exec-card.selected .bp-exec-card-avatar { background:rgba(5,150,105,0.15); color:#059669; }
+.bp-exec-card.selected-busy .bp-exec-card-avatar { background:rgba(217,119,6,0.15); color:#d97706; }
+.bp-exec-card-name { font-size:0.78rem; font-weight:700; color:#0f172a; white-space:nowrap; }
+.bp-exec-card-status {
+  font-size:0.68rem; font-weight:600; white-space:nowrap;
+  padding:1px 6px; border-radius:8px; margin-left:2px;
+}
+.bp-exec-card-status.free { color:#059669; background:rgba(5,150,105,0.1); }
+.bp-exec-card-status.busy { color:#d97706; background:rgba(217,119,6,0.1); }
+.bp-svc-role-hint { font-size:0.68rem; color:#94a3b8; font-weight:600; margin-left:auto; }
 .bp-svc-no-calc {
   padding:12px 14px; background:#f8fafc; border-radius:10px;
   font-size:0.82rem; color:#94a3b8; text-align:center;
@@ -231,10 +252,6 @@ const CSS = `
   background:rgba(5,150,105,0.06); border-color:rgba(5,150,105,0.2); color:#065f46;
 }
 .bp-exec-warn-icon { flex-shrink:0; font-size:0.85rem; }
-/* Точки занятости исполнителей на календаре */
-.bp-day-dots { display:flex; gap:2px; justify-content:center; }
-.bp-day-exec-dot { width:4px; height:4px; border-radius:50%; background:#f59e0b; }
-.bp-day-exec-dot.busy-exec { background:#ef4444; }
 
 @media(max-width:640px){
   #bpHead,.bp-section{padding-left:18px;padding-right:18px;}
@@ -256,6 +273,35 @@ const CSS = `
 const POST_TYPE_RU = { box:'Бокс', lift:'Подъёмник', outdoor:'Открытая зона', other:'Другое' };
 const MONTHS = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
 const ROLE_RU = { owner:'Владелец', admin:'Администратор', manager:'Менеджер', executor:'Исполнитель', viewer:'Просмотр', wrapper:'Оклейщик', preparer:'Подготовщик', armature:'Арматурщик', detailer:'Детейлер', universal:'Универсал', outsource:'Аутсорсинг' };
+
+// Какие роли нужны для каждого типа услуги
+const SVC_ROLES = {
+  pkg_wrap:    ['wrapper','universal'],
+  pkg_prep:    ['preparer','universal'],
+  pkg_arm:     ['armature','universal'],
+  impact_wrap: ['wrapper','universal'],
+  impact_prep: ['preparer','universal'],
+  impact_arm:  ['armature','universal'],
+  arm:         ['armature','universal'],
+  wrap:        ['wrapper','universal'],
+  det:         ['detailer','preparer','universal'],
+  gl:          ['wrapper','detailer','universal'],
+  ms:          ['universal','detailer','wrapper','preparer','armature'],
+};
+function rolesForSvc(key) {
+  // Ищем по префиксу если точного совпадения нет
+  const direct = SVC_ROLES[key];
+  if (direct) return direct;
+  const prefix = Object.keys(SVC_ROLES).find(k => key.startsWith(k + '_') || key.startsWith(k));
+  return SVC_ROLES[prefix] || null; // null = все исполнители
+}
+function execsForSvc(key) {
+  const roles = rolesForSvc(key);
+  if (!roles) return _executors;
+  const filtered = _executors.filter(e => roles.includes(e.role));
+  // Если никого нет с нужной ролью — показываем всех (универсальный фолбэк)
+  return filtered.length ? filtered : _executors;
+}
 
 function roleRu(r) { return ROLE_RU[r] || r || 'Сотрудник'; }
 function toISO(d) {
@@ -508,38 +554,47 @@ function renderServices() {
     return;
   }
 
-  // Строим опции с пометкой занятости
-  const execOptions = '<option value="">— не назначен —</option>' +
-    _executors.map(e => {
+  el.innerHTML = _calcServices.map(svc => {
+    const assigned  = _serviceExecs[svc.key] || null;
+    const execs     = execsForSvc(svc.key);
+    const roles     = rolesForSvc(svc.key);
+    const roleHint  = roles ? roles.map(r => ROLE_RU[r]||r).filter((v,i,a)=>a.indexOf(v)===i).join(', ') : '';
+
+    const cards = execs.map(e => {
+      const ini  = (e.full_name||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
       const busy = execBusyInRange(e.id);
-      let label = `${e.full_name} (${roleRu(e.role)})`;
-      if (busy) {
-        label += ` — занят до ${formatRu(busy.date_to)}`;
+      const isSelected = assigned === e.id;
+      const isBusy = !!busy;
+
+      let cardCls = 'bp-exec-card';
+      if (isSelected) cardCls += isBusy ? ' selected-busy' : ' selected';
+
+      let statusHtml = '';
+      if (isBusy) {
+        const freeDate = execNextFree(e.id);
+        statusHtml = `<span class="bp-exec-card-status busy">до ${formatRu(busy.date_to)}</span>`;
+      } else {
+        statusHtml = `<span class="bp-exec-card-status free">свободен</span>`;
       }
-      return `<option value="${e.id}" ${busy ? 'data-busy="1"' : ''}>${label}</option>`;
+
+      return `<button class="${cardCls}" onclick="BookingPopup._assignExec('${svc.key}','${e.id}',this)">
+        <div class="bp-exec-card-avatar">${ini}</div>
+        <div>
+          <div class="bp-exec-card-name">${e.full_name.split(' ')[0]} ${(e.full_name.split(' ')[1]||'')[0]||''}.</div>
+          ${statusHtml}
+        </div>
+      </button>`;
     }).join('');
 
-  el.innerHTML = _calcServices.map(svc => {
-    const assigned = _serviceExecs[svc.key] || '';
-    const busy = assigned ? execBusyInRange(assigned) : null;
-    const cls = assigned ? (busy ? ' busy-assigned' : ' assigned') : '';
     return `<div class="bp-svc-row">
-      <div class="bp-svc-name" title="${svc.name}">${svc.name}</div>
-      ${svc.price ? `<div class="bp-svc-price">${fmt(svc.price)} &#x20BD;</div>` : ''}
-      <select class="bp-svc-exec-select${cls}" data-svc="${svc.key}"
-        onchange="BookingPopup._assignExec('${svc.key}', this.value, this)">
-        ${execOptions}
-      </select>
+      <div class="bp-svc-header">
+        <div class="bp-svc-name">${svc.name}</div>
+        ${svc.price ? `<div class="bp-svc-price">${fmt(svc.price)} &#x20BD;</div>` : ''}
+        ${roleHint ? `<div class="bp-svc-role-hint">${roleHint}</div>` : ''}
+      </div>
+      <div class="bp-svc-exec-cards">${cards}</div>
     </div>`;
   }).join('');
-
-  // Восстанавливаем выбранных исполнителей
-  _calcServices.forEach(svc => {
-    const sel = el.querySelector(`select[data-svc="${svc.key}"]`);
-    if (sel && _serviceExecs[svc.key]) {
-      sel.value = _serviceExecs[svc.key];
-    }
-  });
 }
 
 // ── Предупреждения о занятости исполнителей ───────────
@@ -685,11 +740,7 @@ function renderCalendar() {
     const isFrom    = ds === _dateFrom;
     const isTo      = ds === _dateTo;
     const isBetween = _dateFrom && _dateTo && ds > _dateFrom && ds < _dateTo;
-    const hasDot    = !isOther && busyDates.has(ds);
-    // Занятые исполнители в этот день
-    const busyExecCount = !isOther ? _executors.filter(e => {
-      return bookingsForExec(e.id).some(b => ds >= b.date_from && ds <= b.date_to);
-    }).length : 0;
+    const hasDot = !isOther && busyDates.has(ds);
 
     let cls = 'bp-day';
     if (isOther)     cls += ' other';
@@ -703,12 +754,7 @@ function renderCalendar() {
     }
 
     const click = (!isOther && !isPast) ? `onclick="BookingPopup._pickDate('${ds}')"` : '';
-    let dotsHtml = '';
-    if (hasDot) dotsHtml += '<div class="bp-day-dot"></div>';
-    if (busyExecCount > 0 && !isOther && !isPast) {
-      dotsHtml = `<div class="bp-day-dots">${hasDot?'<div class="bp-day-dot"></div>':''}${'<div class="bp-day-exec-dot busy-exec"></div>'.repeat(Math.min(busyExecCount,3))}</div>`;
-    }
-    html += `<div class="${cls}" ${click}><div class="bp-day-num">${d.getDate()}</div>${dotsHtml}</div>`;
+    html += `<div class="${cls}" ${click}><div class="bp-day-num">${d.getDate()}</div>${hasDot?'<div class="bp-day-dot"></div>':''}</div>`;
   });
 
   el.innerHTML = html;
@@ -817,9 +863,15 @@ window.BookingPopup = {
     renderCalendar();
   },
 
-  _assignExec: function(svcKey, execId, selectEl) {
-    _serviceExecs[svcKey] = execId || null;
-    if (selectEl) selectEl.classList.toggle('assigned', !!execId);
+  _assignExec: function(svcKey, execId, btnEl) {
+    // Если кликнули на уже выбранного — снимаем выбор
+    if (_serviceExecs[svcKey] === execId) {
+      _serviceExecs[svcKey] = null;
+    } else {
+      _serviceExecs[svcKey] = execId || null;
+    }
+    renderServices();
+    renderExecWarnings();
   },
 
   _prevMonth: function() {
