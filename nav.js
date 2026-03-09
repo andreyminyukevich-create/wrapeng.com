@@ -27,7 +27,7 @@
     { href: 'analytics.html',  icon: '&#x1F4CA;', label: 'Аналитика' },
     { href: 'calendar.html',   icon: '&#x1F5D3;', label: 'Календарь' },
     { href: 'inventory.html',  icon: '&#x1F4E6;', label: 'Склад' },
-    { href: 'settings.html',   icon: '&#x2699;',  label: 'Настройки' },
+    { href: 'settings.html',   icon: '&#x1F527;', label: 'Настройки' },
   ];
 
   function currentPage() {
@@ -70,7 +70,7 @@
         var adminLink = document.createElement('a');
         adminLink.href = 'admin.html';
         adminLink.className = 'nav-link' + (page === 'admin.html' ? ' active' : '');
-        adminLink.textContent = 'Админ';
+        adminLink.innerHTML = '&#x1F511; Админ';
         adminLink.style.color = '#7c3aed';
         var navLinks = document.querySelector('#navTopBar .nav-links');
         if (navLinks && !navLinks.querySelector('a[href="admin.html"]')) {
