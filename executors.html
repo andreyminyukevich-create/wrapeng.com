@@ -4,392 +4,107 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Сотрудники — Keep1R CRM</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <link rel="stylesheet" href="nav.css">
 <script src="nav.js"></script>
 <style>
-body { visibility: hidden; }
 :root {
-  --font:       -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
-  --bg:         #eef2f9;
-  --surface:    #ffffff;
-  --border:     rgba(15,23,42,0.08);
-  --text:       #0f172a;
-  --text-muted: #64748b;
-  --text-dim:   #94a3b8;
-  --primary:    #2563eb;
-  --primary-dk: #1d4ed8;
-  --success:    #059669;
-  --danger:     #dc2626;
-  --warning:    #d97706;
-  --radius:     14px;
-  --radius-sm:  9px;
-  --shadow:     0 1px 3px rgba(0,0,0,0.04), 0 4px 14px rgba(0,0,0,0.06);
+  --font:       -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
+  --bg:         #eef2f9; --surface: #ffffff;
+  --border:     rgba(15,23,42,0.08); --text: #0f172a;
+  --text-muted: #64748b; --text-dim: #94a3b8;
+  --primary:    #2563eb; --primary-dk: #1d4ed8;
+  --success:    #059669; --danger: #dc2626;
+  --radius: 14px; --radius-sm: 9px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 14px rgba(0,0,0,0.06);
   --shadow-modal: 0 8px 40px rgba(0,0,0,0.14);
 }
-
 * { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font); -webkit-font-smoothing: antialiased; background: var(--bg); color: var(--text); min-height: 100svh; }
 
-body {
-  font-family: var(--font);
-  -webkit-font-smoothing: antialiased;
-  background: var(--bg);
-  color: var(--text);
-  min-height: 100svh;
-}
+.container { max-width: 1280px; margin: 0 auto; padding: 24px 20px 48px; }
 
-.container {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 24px 20px 48px;
-}
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+.card-header { display: flex; align-items: center; justify-content: space-between; padding: 18px 22px; border-bottom: 1px solid var(--border); gap: 14px; flex-wrap: wrap; }
+.card-title  { font-size: 0.95rem; font-weight: 700; letter-spacing: -0.1px; }
+.card-actions-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 
-/* ── Кнопка добавить (скрытая — навешивается JS-ом) ── */
-#btnAddExecutor { display: none; }
-
-/* ── Карточка-контейнер ─────────────────────────── */
-.card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  overflow: hidden;
-}
-
-.card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 18px 22px;
-  border-bottom: 1px solid var(--border);
-  gap: 14px;
-  flex-wrap: wrap;
-}
-
-.card-title {
-  font-size: 0.95rem;
-  font-weight: 700;
-  letter-spacing: -0.1px;
-}
-
-.card-actions-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-/* ── Чекбокс фильтр ─────────────────────────────── */
-.checkbox-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  cursor: pointer;
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  user-select: none;
-}
-.checkbox-label input[type="checkbox"] {
-  width: 16px; height: 16px;
-  cursor: pointer;
-  accent-color: var(--primary);
-}
+.checkbox-label { display: inline-flex; align-items: center; gap: 7px; cursor: pointer; font-size: 0.82rem; font-weight: 600; color: var(--text-muted); user-select: none; }
+.checkbox-label input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; accent-color: var(--primary); }
 .checkbox-label:hover { color: var(--text); }
 
-/* ── Таблица сотрудников ────────────────────────── */
-.executors-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.executors-table thead {
-  background: var(--bg);
-  border-bottom: 1px solid var(--border);
-}
-
-.executors-table th {
-  padding: 11px 16px;
-  text-align: left;
-  font-size: 0.67rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  color: var(--text-muted);
-  white-space: nowrap;
-}
-
-.executors-table tbody tr {
-  border-bottom: 1px solid var(--border);
-  transition: background 0.12s;
-}
+.executors-table { width: 100%; border-collapse: collapse; }
+.executors-table thead { background: var(--bg); border-bottom: 1px solid var(--border); }
+.executors-table th { padding: 11px 16px; text-align: left; font-size: 0.67rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); white-space: nowrap; }
+.executors-table tbody tr { border-bottom: 1px solid var(--border); transition: background 0.12s; }
 .executors-table tbody tr:last-child { border-bottom: none; }
 .executors-table tbody tr:hover { background: #f8fafc; }
+.executors-table td { padding: 14px 16px; font-size: 0.85rem; vertical-align: middle; }
+.executor-name  { font-weight: 700; font-size: 0.9rem; color: var(--text); }
+.executor-role  { display: inline-block; padding: 3px 10px; border-radius: 6px; font-size: 0.73rem; font-weight: 700; background: var(--bg); border: 1px solid var(--border); color: var(--text-muted); }
+.executor-phone { color: var(--text-muted); font-size: 0.82rem; }
+.row-actions    { display: flex; gap: 6px; align-items: center; }
 
-.executors-table td {
-  padding: 14px 16px;
-  font-size: 0.85rem;
-  vertical-align: middle;
-}
-
-.executor-name {
-  font-weight: 700;
-  font-size: 0.9rem;
-  color: var(--text);
-}
-
-.executor-role {
-  display: inline-block;
-  padding: 3px 10px;
-  border-radius: 6px;
-  font-size: 0.73rem;
-  font-weight: 700;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  color: var(--text-muted);
-}
-
-.executor-phone {
-  color: var(--text-muted);
-  font-size: 0.82rem;
-}
-
-/* Бейджи */
-.badge {
-  display: inline-block;
-  padding: 3px 9px;
-  border-radius: 20px;
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-}
+.badge { display: inline-block; padding: 3px 9px; border-radius: 20px; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.04em; }
 .badge-success  { background: rgba(5,150,105,0.10); color: var(--success); border: 1px solid rgba(5,150,105,0.2); }
 .badge-inactive { background: var(--bg); color: var(--text-dim); border: 1px solid var(--border); }
 
-.row-actions {
-  display: flex;
-  gap: 6px;
-  align-items: center;
-}
-
-/* ── Кнопки ─────────────────────────────────────── */
-.btn {
-  display: inline-flex; align-items: center; gap: 5px;
-  padding: 8px 16px;
-  border-radius: var(--radius-sm);
-  font-size: 0.81rem; font-weight: 700;
-  font-family: var(--font); cursor: pointer;
-  border: none; transition: all 0.15s; text-decoration: none;
-  white-space: nowrap;
-}
+.btn { display: inline-flex; align-items: center; gap: 5px; padding: 8px 16px; border-radius: var(--radius-sm); font-size: 0.81rem; font-weight: 700; font-family: var(--font); cursor: pointer; border: none; transition: all 0.15s; text-decoration: none; white-space: nowrap; }
 .btn-primary   { background: var(--primary); color: #fff; }
-.btn-primary:hover   { background: var(--primary-dk); }
+.btn-primary:hover { background: var(--primary-dk); }
 .btn-success   { background: var(--success); color: #fff; }
-.btn-success:hover   { background: #047857; }
-.btn-secondary {
-  background: transparent; color: var(--text-muted);
-  border: 1px solid var(--border);
-}
+.btn-success:hover { background: #047857; }
+.btn-secondary { background: transparent; color: var(--text-muted); border: 1px solid var(--border); }
 .btn-secondary:hover { background: var(--bg); color: var(--text); }
-.btn-danger {
-  background: rgba(220,38,38,0.07);
-  color: var(--danger);
-  border: 1px solid rgba(220,38,38,0.15);
-}
+.btn-danger    { background: rgba(220,38,38,0.07); color: var(--danger); border: 1px solid rgba(220,38,38,0.15); }
 .btn-danger:hover { background: var(--danger); color: #fff; border-color: var(--danger); }
 .btn-icon { padding: 7px 10px; font-size: 0.85rem; }
+.btn[disabled] { opacity: 0.5; cursor: not-allowed; }
 
-/* ── Добавить кнопка в шапке карточки ──────────── */
-.btn-add {
-  background: var(--primary);
-  color: #fff;
-  border: none;
-  padding: 8px 16px;
-  border-radius: var(--radius-sm);
-  font-size: 0.81rem;
-  font-weight: 700;
-  font-family: var(--font);
-  cursor: pointer;
-  transition: all 0.15s;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-}
+.btn-add { background: var(--primary); color: #fff; border: none; padding: 8px 16px; border-radius: var(--radius-sm); font-size: 0.81rem; font-weight: 700; font-family: var(--font); cursor: pointer; transition: all 0.15s; display: inline-flex; align-items: center; gap: 5px; }
 .btn-add:hover { background: var(--primary-dk); }
 
-/* ── Состояния ──────────────────────────────────── */
-.loading {
-  text-align: center;
-  padding: 52px 20px;
-  color: var(--text-muted);
-  font-size: 0.88rem;
-}
-.empty-state {
-  text-align: center;
-  padding: 56px 20px;
-  color: var(--text-muted);
-}
+.loading     { text-align: center; padding: 52px 20px; color: var(--text-muted); font-size: 0.88rem; }
+.empty-state { text-align: center; padding: 56px 20px; color: var(--text-muted); }
 .empty-state-icon { font-size: 2.5rem; margin-bottom: 10px; opacity: 0.3; }
 .empty-state h3   { font-size: 0.95rem; font-weight: 700; color: var(--text); }
 .empty-state p    { font-size: 0.82rem; margin-top: 4px; }
 
-/* ── Модал ──────────────────────────────────────── */
-.modal {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(15,23,42,0.5);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  z-index: 1000;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-}
+.modal { display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.5); backdrop-filter: blur(6px); z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
 .modal.active { display: flex; animation: fadeIn 0.15s ease; }
-
 @keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
 @keyframes slideUp { from { transform: translateY(12px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-.modal-content {
-  background: var(--surface);
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
-  padding: 26px 28px 24px;
-  max-width: 460px;
-  width: 100%;
-  max-height: 90svh;
-  overflow-y: auto;
-  box-shadow: var(--shadow-modal);
-  animation: slideUp 0.18s ease;
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.modal-header h3 {
-  font-size: 1.05rem;
-  font-weight: 700;
-  letter-spacing: -0.2px;
-}
-
-.modal-close {
-  background: none;
-  border: none;
-  font-size: 1.4rem;
-  cursor: pointer;
-  color: var(--text-dim);
-  width: 32px; height: 32px;
-  display: flex; align-items: center; justify-content: center;
-  border-radius: 7px;
-  transition: all 0.15s;
-  line-height: 1;
-}
+.modal-content { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); padding: 26px 28px 24px; max-width: 460px; width: 100%; max-height: 90svh; overflow-y: auto; box-shadow: var(--shadow-modal); animation: slideUp 0.18s ease; }
+.modal-header  { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.modal-header h3 { font-size: 1.05rem; font-weight: 700; letter-spacing: -0.2px; }
+.modal-close { background: none; border: none; font-size: 1.4rem; cursor: pointer; color: var(--text-dim); width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 7px; transition: all 0.15s; line-height: 1; }
 .modal-close:hover { background: var(--bg); color: var(--text); }
 
 .form-group { margin-bottom: 14px; }
+.form-group label { display: block; font-size: 0.69rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); margin-bottom: 5px; }
+.form-group input, .form-group select { width: 100%; padding: 10px 13px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-size: 16px; font-family: var(--font); transition: border-color 0.15s, box-shadow 0.15s; outline: none; -webkit-appearance: none; }
+.form-group input:focus, .form-group select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.10); background: var(--surface); }
+.form-group small { display: block; margin-top: 4px; color: var(--text-dim); font-size: 0.72rem; }
 
-.form-group label {
-  display: block;
-  font-size: 0.69rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  color: var(--text-muted);
-  margin-bottom: 5px;
-}
+.checkbox-group { display: flex; align-items: center; gap: 10px; padding: 12px 14px; background: var(--bg); border-radius: var(--radius-sm); border: 1px solid var(--border); cursor: pointer; }
+.checkbox-group input[type="checkbox"] { width: 17px; height: 17px; cursor: pointer; accent-color: var(--success); flex-shrink: 0; }
+.checkbox-group label { font-size: 0.83rem; font-weight: 600; cursor: pointer; color: var(--text); text-transform: none; letter-spacing: 0; margin: 0; }
 
-.form-group input,
-.form-group select {
-  width: 100%;
-  padding: 10px 13px;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  color: var(--text);
-  font-size: 16px;
-  font-family: var(--font);
-  transition: border-color 0.15s, box-shadow 0.15s;
-  outline: none;
-  -webkit-appearance: none;
-}
-.form-group input:focus,
-.form-group select:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(37,99,235,0.10);
-  background: var(--surface);
-}
+.modal-footer { display: flex; gap: 8px; margin-top: 20px; justify-content: flex-end; }
 
-.form-group small {
-  display: block;
-  margin-top: 4px;
-  color: var(--text-dim);
-  font-size: 0.72rem;
-}
-
-.checkbox-group {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 14px;
-  background: var(--bg);
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border);
-  cursor: pointer;
-}
-.checkbox-group input[type="checkbox"] {
-  width: 17px; height: 17px;
-  cursor: pointer;
-  accent-color: var(--success);
-  flex-shrink: 0;
-}
-.checkbox-group label {
-  font-size: 0.83rem;
-  font-weight: 600;
-  cursor: pointer;
-  color: var(--text);
-  text-transform: none;
-  letter-spacing: 0;
-  margin: 0;
-}
-
-.modal-footer {
-  display: flex;
-  gap: 8px;
-  margin-top: 20px;
-  justify-content: flex-end;
-}
-
-/* ── Адаптив ────────────────────────────────────── */
 @media (max-width: 768px) {
   .container { padding: 16px 14px 40px; }
-
-  /* Мобильные карточки вместо таблицы */
   .executors-table thead { display: none; }
   .executors-table, .executors-table tbody { display: block; }
-  .executors-table tr {
-    display: block;
-    margin: 0;
-    border-bottom: 1px solid var(--border);
-    padding: 14px 16px;
-  }
+  .executors-table tr { display: block; margin: 0; border-bottom: 1px solid var(--border); padding: 14px 16px; }
   .executors-table tr:last-child { border-bottom: none; }
-  .executors-table td {
-    display: inline-block;
-    padding: 0;
-    border: none;
-    font-size: 0.82rem;
-  }
+  .executors-table td { display: inline-block; padding: 0; border: none; font-size: 0.82rem; }
   .executors-table td[data-label="ФИО"]      { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
   .executors-table td[data-label="Роль"]     { margin-right: 8px; }
   .executors-table td[data-label="Телефон"]  { display: block; color: var(--text-muted); font-size: 0.78rem; margin-bottom: 6px; }
   .executors-table td[data-label="Статус"]   { display: inline-block; margin-bottom: 10px; }
   .executors-table td[data-label="Действия"] { display: flex; gap: 6px; }
-
   .modal-content { padding: 22px 18px 20px; }
   .modal-footer  { flex-direction: column-reverse; gap: 7px; }
   .modal-footer .btn { width: 100%; justify-content: center; }
@@ -399,9 +114,6 @@ body {
 <body>
 
 <div class="container">
-  <!-- Скрытая кнопка — js навешивает через btnAddExecutor -->
-  <button class="btn btn-primary" id="btnAddExecutor" style="display:none">➕ Добавить</button>
-
   <div class="card">
     <div class="card-header">
       <span class="card-title">👥 Список сотрудников</span>
@@ -410,76 +122,64 @@ body {
           <input type="checkbox" id="showInactive">
           <span>Показать неактивных</span>
         </label>
-        <button class="btn-add" onclick="document.getElementById('btnAddExecutor').click()">➕ Добавить</button>
+        <button class="btn-add" id="btnAddExecutor">➕ Добавить</button>
       </div>
     </div>
-
     <div id="executorsContainer">
       <div class="loading">⏳ Загрузка...</div>
     </div>
   </div>
 </div>
 
-<!-- Модал: добавить / редактировать -->
+<!-- Модал -->
 <div class="modal" id="executorModal">
   <div class="modal-content">
     <div class="modal-header">
       <h3 id="modalTitle">Добавить сотрудника</h3>
       <button class="modal-close" id="modalClose">×</button>
     </div>
-
-    <form id="executorForm">
-      <input type="hidden" id="executorId">
-
-      <div class="form-group">
-        <label for="executorName">ФИО *</label>
-        <input type="text" id="executorName" required placeholder="Иванов Иван Иванович" autocomplete="name">
-      </div>
-
-      <div class="form-group">
-        <label for="executorRole">Роль *</label>
-        <select id="executorRole" required>
-          <option value="">Выберите роль</option>
-          <option value="wrapper">Оклейщик</option>
-          <option value="preparer">Подготовщик</option>
-          <option value="armature">Арматурщик</option>
-          <option value="detailer">Детейлер</option>
-          <option value="universal">Универсал</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label for="executorPhone">Телефон</label>
-        <input type="tel" id="executorPhone" placeholder="+7 (999) 123-45-67" autocomplete="tel">
-        <small>Необязательно</small>
-      </div>
-
-      <div class="checkbox-group">
-        <input type="checkbox" id="executorIsAdmin">
-        <label for="executorIsAdmin">✅ Может продавать (получает % от чека)</label>
-      </div>
-
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" id="btnCancel">Отмена</button>
-        <button type="submit" class="btn btn-success" id="btnSave">💾 Сохранить</button>
-      </div>
-    </form>
+    <input type="hidden" id="executorId">
+    <div class="form-group">
+      <label for="executorName">ФИО *</label>
+      <input type="text" id="executorName" placeholder="Иванов Иван Иванович" autocomplete="name">
+    </div>
+    <div class="form-group">
+      <label for="executorRole">Роль *</label>
+      <select id="executorRole">
+        <option value="">Выберите роль</option>
+        <option value="wrapper">Оклейщик</option>
+        <option value="preparer">Подготовщик</option>
+        <option value="armature">Арматурщик</option>
+        <option value="detailer">Детейлер</option>
+        <option value="universal">Универсал</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="executorPhone">Телефон</label>
+      <input type="tel" id="executorPhone" placeholder="+7 (999) 123-45-67" autocomplete="tel">
+      <small>Необязательно</small>
+    </div>
+    <div class="checkbox-group">
+      <input type="checkbox" id="executorIsAdmin">
+      <label for="executorIsAdmin">✅ Может продавать (получает % от чека)</label>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" id="btnCancel">Отмена</button>
+      <button type="button" class="btn btn-success"   id="btnSave">💾 Сохранить</button>
+    </div>
   </div>
 </div>
 
 <script src="footer.js"></script>
-<script>
-(function() {
-'use strict';
+<script type="module">
+import { sb }             from './supabase.js';
+import { requireAuth }     from './auth.js';
+import { getStudioContext } from './studio-context.js';
+import { confirmAction }   from './ui.js';
 
-const SUPABASE_URL = 'https://hdghijgrrnzmntistdvw.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkZ2hpamdycm56bW50aXN0ZHZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMzMyNzksImV4cCI6MjA3NTYwOTI3OX0.D9EDTmVrFRVp0B8_5tCJM29gbFdtadsom0Ihsf4uQ8Q';
-
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-window._crmSb = sb;
-
-let currentUser = null;
-let currentStudio = null;
+// ── Состояние ─────────────────────────────────────────────────────────
+let studioId          = null;
+let currentUser       = null;
 let editingExecutorId = null;
 
 const roleNames = {
@@ -487,123 +187,138 @@ const roleNames = {
   preparer:  'Подготовщик',
   armature:  'Арматурщик',
   detailer:  'Детейлер',
-  universal: 'Универсал'
+  universal: 'Универсал',
 };
 
-async function checkAuth() {
-  const { data: { session } } = await sb.auth.getSession();
-  if (!session) { window.location.href = 'welcome.html'; return false; }
-  currentUser = session.user;
-  return true;
-}
-
-async function getStudio() {
-  const { data, error } = await sb
-    .from('studio_members')
-    .select('studio_id, role')
-    .eq('user_id', currentUser.id)
-    .eq('is_active', true)
-    .single();
-  if (error || !data) { alert('❌ Студия не найдена'); return null; }
-  currentStudio = data;
-  return data;
-}
-
+// ── Загрузка ──────────────────────────────────────────────────────────
 async function loadExecutors() {
-  const container = document.getElementById('executorsContainer');
+  const container    = document.getElementById('executorsContainer');
   const showInactive = document.getElementById('showInactive').checked;
 
   container.innerHTML = '<div class="loading">⏳ Загрузка...</div>';
 
-  try {
-    let query = sb
-      .from('executors')
-      .select('*')
-      .eq('studio_id', currentStudio.studio_id)
-      .order('full_name', { ascending: true });
+  let query = sb.from('executors').select('*')
+    .eq('studio_id', studioId)
+    .order('full_name', { ascending: true });
+  if (!showInactive) query = query.eq('is_active', true);
 
-    if (!showInactive) query = query.eq('is_active', true);
+  const { data, error } = await query;
 
-    const { data, error } = await query;
-
-    if (error) {
-      console.error('Error loading executors:', error);
-      container.innerHTML = '<div class="empty-state">❌ Ошибка загрузки<br><small style="color:var(--text-muted)">Проверьте консоль</small></div>';
-      return;
-    }
-
-    if (!data || data.length === 0) {
-      container.innerHTML = `
-        <div class="empty-state">
-          <div class="empty-state-icon">👥</div>
-          <h3>Нет сотрудников</h3>
-          <p>Добавьте первого исполнителя</p>
-        </div>
-      `;
-      return;
-    }
-
-    renderExecutorsTable(data);
-
-  } catch (e) {
-    console.error('Error:', e);
-    container.innerHTML = '<div class="empty-state">❌ Ошибка загрузки</div>';
+  if (error) {
+    console.error('[executors] loadExecutors:', error);
+    container.innerHTML = '';
+    const msg = document.createElement('div');
+    msg.className = 'empty-state';
+    msg.textContent = '❌ Ошибка загрузки. Проверьте консоль.';
+    container.appendChild(msg);
+    return;
   }
+
+  if (!data || data.length === 0) {
+    container.innerHTML = '';
+    const es = document.createElement('div');
+    es.className = 'empty-state';
+    es.innerHTML = '<div class="empty-state-icon">👥</div>';
+    const h = document.createElement('h3');
+    h.textContent = 'Нет сотрудников';
+    const p = document.createElement('p');
+    p.textContent = 'Добавьте первого исполнителя';
+    es.append(h, p);
+    container.appendChild(es);
+    return;
+  }
+
+  renderTable(data);
 }
 
-function renderExecutorsTable(executors) {
+// ── Рендер таблицы ────────────────────────────────────────────────────
+function renderTable(executors) {
   const container = document.getElementById('executorsContainer');
+  container.innerHTML = '';
 
-  let html = `
-    <table class="executors-table">
-      <thead>
-        <tr>
-          <th>ФИО</th>
-          <th>Роль</th>
-          <th>Телефон</th>
-          <th>Статус</th>
-          <th style="width:200px"></th>
-        </tr>
-      </thead>
-      <tbody>
-  `;
+  const tbl  = document.createElement('table');
+  tbl.className = 'executors-table';
+
+  // thead
+  tbl.innerHTML = `<thead><tr>
+    <th>ФИО</th><th>Роль</th><th>Телефон</th><th>Статус</th><th style="width:200px"></th>
+  </tr></thead>`;
+
+  const tbody = document.createElement('tbody');
 
   executors.forEach(exec => {
-    const roleName    = roleNames[exec.role] || exec.role;
-    const isAdmin     = exec.is_admin ? '&nbsp;<span class="badge badge-success">% продажа</span>' : '';
-    const statusBadge = exec.is_active
-      ? '<span class="badge badge-success">Активен</span>'
-      : '<span class="badge badge-inactive">Неактивен</span>';
+    const tr = document.createElement('tr');
 
-    html += `
-      <tr>
-        <td data-label="ФИО">
-          <div class="executor-name">${exec.full_name}${isAdmin}</div>
-        </td>
-        <td data-label="Роль">
-          <span class="executor-role">${roleName}</span>
-        </td>
-        <td data-label="Телефон">
-          <span class="executor-phone">${exec.phone || '—'}</span>
-        </td>
-        <td data-label="Статус">${statusBadge}</td>
-        <td data-label="Действия">
-          <div class="row-actions">
-            <button class="btn btn-secondary btn-icon" onclick="editExecutor('${exec.id}')">✏️ Изменить</button>
-            ${exec.is_active
-              ? `<button class="btn btn-danger btn-icon" onclick="deactivateExecutor('${exec.id}','${exec.full_name.replace(/'/g,"\\'")}')">Деактивировать</button>`
-              : `<button class="btn btn-success btn-icon" onclick="activateExecutor('${exec.id}','${exec.full_name.replace(/'/g,"\\'")}')">Активировать</button>`
-            }
-          </div>
-        </td>
-      </tr>
-    `;
+    // ФИО
+    const tdName = document.createElement('td');
+    tdName.dataset.label = 'ФИО';
+    const nameDiv = document.createElement('div');
+    nameDiv.className = 'executor-name';
+    nameDiv.textContent = exec.full_name; // textContent — безопасно
+    if (exec.is_admin) {
+      const badge = document.createElement('span');
+      badge.className = 'badge badge-success';
+      badge.style.marginLeft = '6px';
+      badge.textContent = '% продажа';
+      nameDiv.appendChild(badge);
+    }
+    tdName.appendChild(nameDiv);
+
+    // Роль
+    const tdRole = document.createElement('td');
+    tdRole.dataset.label = 'Роль';
+    const roleSpan = document.createElement('span');
+    roleSpan.className = 'executor-role';
+    roleSpan.textContent = roleNames[exec.role] || exec.role;
+    tdRole.appendChild(roleSpan);
+
+    // Телефон
+    const tdPhone = document.createElement('td');
+    tdPhone.dataset.label = 'Телефон';
+    const phoneSpan = document.createElement('span');
+    phoneSpan.className = 'executor-phone';
+    phoneSpan.textContent = exec.phone || '—';
+    tdPhone.appendChild(phoneSpan);
+
+    // Статус
+    const tdStatus = document.createElement('td');
+    tdStatus.dataset.label = 'Статус';
+    const statusBadge = document.createElement('span');
+    statusBadge.className = exec.is_active ? 'badge badge-success' : 'badge badge-inactive';
+    statusBadge.textContent = exec.is_active ? 'Активен' : 'Неактивен';
+    tdStatus.appendChild(statusBadge);
+
+    // Действия
+    const tdActions = document.createElement('td');
+    tdActions.dataset.label = 'Действия';
+    const actionsDiv = document.createElement('div');
+    actionsDiv.className = 'row-actions';
+
+    const editBtn = document.createElement('button');
+    editBtn.className = 'btn btn-secondary btn-icon';
+    editBtn.textContent = '✏️ Изменить';
+    editBtn.dataset.action   = 'edit';
+    editBtn.dataset.execId   = exec.id;
+
+    const toggleBtn = document.createElement('button');
+    toggleBtn.className  = exec.is_active ? 'btn btn-danger btn-icon' : 'btn btn-success btn-icon';
+    toggleBtn.textContent = exec.is_active ? 'Деактивировать' : 'Активировать';
+    toggleBtn.dataset.action   = exec.is_active ? 'deactivate' : 'activate';
+    toggleBtn.dataset.execId   = exec.id;
+    toggleBtn.dataset.execName = exec.full_name;
+
+    actionsDiv.append(editBtn, toggleBtn);
+    tdActions.appendChild(actionsDiv);
+
+    tr.append(tdName, tdRole, tdPhone, tdStatus, tdActions);
+    tbody.appendChild(tr);
   });
 
-  html += '</tbody></table>';
-  container.innerHTML = html;
+  tbl.appendChild(tbody);
+  container.appendChild(tbl);
 }
 
+// ── Модал ─────────────────────────────────────────────────────────────
 function openModal(title = 'Добавить сотрудника') {
   document.getElementById('modalTitle').textContent = title;
   document.getElementById('executorModal').classList.add('active');
@@ -613,101 +328,113 @@ function openModal(title = 'Добавить сотрудника') {
 function closeModal() {
   document.getElementById('executorModal').classList.remove('active');
   document.body.style.overflow = '';
-  document.getElementById('executorForm').reset();
-  document.getElementById('executorId').value = '';
+  // сброс формы
+  document.getElementById('executorId').value     = '';
+  document.getElementById('executorName').value   = '';
+  document.getElementById('executorRole').value   = '';
+  document.getElementById('executorPhone').value  = '';
+  document.getElementById('executorIsAdmin').checked = false;
   editingExecutorId = null;
 }
 
-window.editExecutor = async function(executorId) {
-  try {
-    const { data, error } = await sb.from('executors').select('*').eq('id', executorId).single();
-    if (error || !data) { alert('❌ Ошибка загрузки данных'); return; }
+async function editExecutor(executorId) {
+  const { data, error } = await sb.from('executors').select('*').eq('id', executorId).single();
+  if (error || !data) { console.error(error); return; }
 
-    editingExecutorId = executorId;
-    document.getElementById('executorId').value         = executorId;
-    document.getElementById('executorName').value       = data.full_name;
-    document.getElementById('executorRole').value       = data.role;
-    document.getElementById('executorPhone').value      = data.phone || '';
-    document.getElementById('executorIsAdmin').checked  = data.is_admin || false;
-
-    openModal('Редактировать исполнителя');
-  } catch (e) {
-    console.error('Error:', e);
-    alert('❌ Ошибка загрузки данных');
-  }
-};
-
-window.deactivateExecutor = async function(executorId, name) {
-  if (!confirm(`Деактивировать сотрудника «${name}»?\nОн не будет отображаться в активных, но история работ сохранится.`)) return;
-  try {
-    const { error } = await sb.from('executors').update({ is_active: false }).eq('id', executorId);
-    if (error) { console.error('Error:', error); alert('❌ Ошибка деактивации'); return; }
-    loadExecutors();
-  } catch (e) { console.error('Error:', e); alert('❌ Ошибка деактивации'); }
-};
-
-window.activateExecutor = async function(executorId, name) {
-  if (!confirm(`Активировать исполнителя «${name}»?`)) return;
-  try {
-    const { error } = await sb.from('executors').update({ is_active: true }).eq('id', executorId);
-    if (error) { console.error('Error:', error); alert('❌ Ошибка активации'); return; }
-    loadExecutors();
-  } catch (e) { console.error('Error:', e); alert('❌ Ошибка активации'); }
-};
-
-async function saveExecutor(e) {
-  e.preventDefault();
-
-  const executorData = {
-    studio_id: currentStudio.studio_id,
-    full_name:  document.getElementById('executorName').value.trim(),
-    role:       document.getElementById('executorRole').value,
-    phone:      document.getElementById('executorPhone').value.trim() || null,
-    is_admin:   document.getElementById('executorIsAdmin').checked,
-    is_active:  true
-  };
-
-  if (!executorData.full_name || !executorData.role) { alert('❌ Заполните обязательные поля'); return; }
-
-  try {
-    let error;
-    if (editingExecutorId) {
-      ({ error } = await sb.from('executors').update(executorData).eq('id', editingExecutorId));
-    } else {
-      ({ error } = await sb.from('executors').insert(executorData));
-    }
-    if (error) { console.error('Error:', error); alert('❌ Ошибка сохранения'); return; }
-    closeModal();
-    loadExecutors();
-  } catch (e) {
-    console.error('Error:', e);
-    alert('❌ Ошибка сохранения');
-  }
+  editingExecutorId = executorId;
+  document.getElementById('executorId').value         = executorId;
+  document.getElementById('executorName').value       = data.full_name;
+  document.getElementById('executorRole').value       = data.role;
+  document.getElementById('executorPhone').value      = data.phone || '';
+  document.getElementById('executorIsAdmin').checked  = data.is_admin || false;
+  openModal('Редактировать исполнителя');
 }
 
-document.addEventListener('DOMContentLoaded', async () => {
-  initNav({ actionLabel: '➕ Добавить сотрудника', actionHref: '#', hideAction: false });
-  document.body.style.visibility = 'visible';
-  if (!await checkAuth()) return;
-  if (!await getStudio()) return;
+async function toggleActive(executorId, name, activate) {
+  const verb = activate ? `Активировать исполнителя «${name}»?` : `Деактивировать сотрудника «${name}»?\nОн не будет отображаться в активных, но история работ сохранится.`;
+  const ok = await confirmAction({ message: verb });
+  if (!ok) return;
+  const { error } = await sb.from('executors').update({ is_active: activate }).eq('id', executorId);
+  if (error) { console.error(error); return; }
   await loadExecutors();
+}
 
-  const navAction = document.querySelector('#navTopBar .btn-nav-action');
-  if (navAction) navAction.addEventListener('click', (e) => { e.preventDefault(); openModal(); });
+async function saveExecutor() {
+  const btn  = document.getElementById('btnSave');
+  const name = document.getElementById('executorName').value.trim();
+  const role = document.getElementById('executorRole').value;
+  if (!name || !role) {
+    document.getElementById(name ? 'executorRole' : 'executorName').focus();
+    return;
+  }
 
+  const payload = {
+    studio_id: studioId,
+    full_name: name,
+    role,
+    phone:     document.getElementById('executorPhone').value.trim() || null,
+    is_admin:  document.getElementById('executorIsAdmin').checked,
+    is_active: true,
+  };
+
+  btn.disabled = true;
+  const { error } = editingExecutorId
+    ? await sb.from('executors').update(payload).eq('id', editingExecutorId)
+    : await sb.from('executors').insert(payload);
+  btn.disabled = false;
+
+  if (error) { console.error(error); return; }
+  closeModal();
+  await loadExecutors();
+}
+
+// ── Events ────────────────────────────────────────────────────────────
+function bindEvents() {
   document.getElementById('btnAddExecutor').addEventListener('click', () => openModal());
   document.getElementById('modalClose').addEventListener('click', closeModal);
   document.getElementById('btnCancel').addEventListener('click', closeModal);
-  document.getElementById('executorForm').addEventListener('submit', saveExecutor);
+  document.getElementById('btnSave').addEventListener('click', saveExecutor);
   document.getElementById('showInactive').addEventListener('change', loadExecutors);
-
-  document.getElementById('executorModal').addEventListener('click', (e) => {
+  document.getElementById('executorModal').addEventListener('click', e => {
     if (e.target.id === 'executorModal') closeModal();
   });
-});
 
-})();
+  // Delegation на таблице
+  document.getElementById('executorsContainer').addEventListener('click', async e => {
+    const btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    const { action, execId, execName } = btn.dataset;
+    if (action === 'edit')       await editExecutor(execId);
+    if (action === 'deactivate') await toggleActive(execId, execName, false);
+    if (action === 'activate')   await toggleActive(execId, execName, true);
+  });
+}
+
+// ── Init ──────────────────────────────────────────────────────────────
+async function initPage() {
+  initNav({ actionLabel: '➕ Добавить сотрудника', actionHref: '#', hideAction: false });
+
+  // Кнопка «Добавить» в top-bar nav
+  const navAction = document.querySelector('#navTopBar .btn-nav-action');
+  if (navAction) navAction.addEventListener('click', e => { e.preventDefault(); openModal(); });
+
+  bindEvents();
+
+  const user = await requireAuth({ redirectTo: 'welcome.html' });
+  if (!user) return;
+  currentUser = user;
+
+  const ctx = await getStudioContext();
+  if (!ctx?.studioId) {
+    document.getElementById('executorsContainer').innerHTML = '<div class="empty-state">⚠️ Студия не найдена</div>';
+    return;
+  }
+  studioId = ctx.studioId;
+
+  await loadExecutors();
+}
+
+document.addEventListener('DOMContentLoaded', initPage);
 </script>
-
 </body>
 </html>
