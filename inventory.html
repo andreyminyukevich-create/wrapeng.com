@@ -4,42 +4,28 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Склад — Keep1R CRM</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <link rel="stylesheet" href="nav.css">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="nav.js"></script>
 <style>
-body { visibility: hidden; }
 :root {
-  --bg: #f0f4fb;
-  --surface: #fff;
-  --border: rgba(15,23,42,0.09);
-  --text: #0f172a;
-  --muted: #64748b;
-  --primary: #2563eb;
-  --primary-light: rgba(37,99,235,0.08);
-  --success: #059669;
-  --success-bg: rgba(5,150,105,0.09);
-  --warning: #d97706;
-  --warning-bg: rgba(217,119,6,0.10);
-  --danger: #dc2626;
-  --danger-bg: rgba(220,38,38,0.08);
-  --radius: 12px;
-  --shadow: 0 1px 4px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.06);
+  --bg: #f0f4fb; --surface: #fff;
+  --border: rgba(15,23,42,0.09); --text: #0f172a; --muted: #64748b;
+  --primary: #2563eb; --primary-light: rgba(37,99,235,0.08);
+  --success: #059669; --success-bg: rgba(5,150,105,0.09);
+  --warning: #d97706; --warning-bg: rgba(217,119,6,0.10);
+  --danger: #dc2626;  --danger-bg: rgba(220,38,38,0.08);
+  --radius: 12px; --shadow: 0 1px 4px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.06);
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: var(--bg); color: var(--text); min-height: 100dvh; }
+body { background: var(--bg); color: var(--text); min-height: 100dvh; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif; -webkit-font-smoothing: antialiased; }
 
 .page-wrap { max-width: 1280px; margin: 0 auto; padding: 24px 24px 48px; }
-
-/* ── Header ── */
-.page-header {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 24px; gap: 12px; flex-wrap: wrap;
-}
+.page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; gap: 12px; flex-wrap: wrap; }
 .page-title { font-size: 1.35rem; font-weight: 800; letter-spacing: -0.4px; }
 .page-title span { color: var(--primary); }
 .header-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 
-/* ── Tabs ── */
 .tabs { display: flex; gap: 4px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 4px; width: fit-content; margin-bottom: 20px; }
 .tab-btn { padding: 7px 18px; border-radius: 7px; border: none; background: transparent; font-size: 0.83rem; font-weight: 600; color: var(--muted); cursor: pointer; transition: all 0.15s; font-family: inherit; white-space: nowrap; }
 .tab-btn.active { background: var(--primary); color: #fff; box-shadow: 0 2px 8px rgba(37,99,235,0.22); }
@@ -47,28 +33,15 @@ body { background: var(--bg); color: var(--text); min-height: 100dvh; }
 .tab-panel { display: none; }
 .tab-panel.active { display: block; }
 
-/* ── Stats row ── */
 .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
 .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; height: 84px; display: flex; flex-direction: column; justify-content: space-between; }
 .stat-label { font-size: 0.68rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
 .stat-value { font-size: 1.5rem; font-weight: 800; color: var(--text); line-height: 1; }
-.stat-sub { font-size: 0.72rem; color: var(--muted); margin-top: 3px; }
 
-/* ── Cards / Items ── */
 .items-grid { display: flex; flex-direction: column; gap: 14px; }
-
-.item-card {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--radius); overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-  transition: box-shadow 0.15s;
-}
+.item-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.04); transition: box-shadow 0.15s; }
 .item-card:hover { box-shadow: var(--shadow); }
-
-.item-header {
-  display: flex; align-items: center; gap: 14px;
-  padding: 18px 20px; cursor: pointer; user-select: none;
-}
+.item-header { display: flex; align-items: center; gap: 14px; padding: 18px 20px; cursor: pointer; user-select: none; }
 .item-icon { font-size: 1.6rem; flex-shrink: 0; }
 .item-meta { flex: 1; min-width: 0; }
 .item-name { font-size: 1rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -78,14 +51,12 @@ body { background: var(--bg); color: var(--text); min-height: 100dvh; }
 .item-stat-val  { font-size: 1.1rem; font-weight: 800; color: var(--primary); line-height: 1.1; }
 .item-stat-unit { font-size: 0.7rem; color: var(--muted); margin-top: 1px; }
 .item-qty { text-align: right; flex-shrink: 0; }
-.item-qty-val { font-size: 1.1rem; font-weight: 800; color: var(--primary); }
+.item-qty-val  { font-size: 1.1rem; font-weight: 800; color: var(--primary); }
 .item-qty-unit { font-size: 0.72rem; color: var(--muted); }
 .item-actions { display: flex; gap: 6px; flex-shrink: 0; }
-
 .item-body { border-top: 1px solid var(--border); padding: 16px 20px; display: none; }
 .item-body.open { display: block; }
 
-/* ── Rolls table ── */
 .rolls-table { width: 100%; border-collapse: collapse; font-size: 0.84rem; margin-bottom: 14px; }
 .rolls-table th { text-align: left; padding: 8px 12px; font-size: 0.69rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--border); background: var(--bg); }
 .rolls-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
@@ -93,55 +64,41 @@ body { background: var(--bg); color: var(--text); min-height: 100dvh; }
 .rolls-table tr:hover td { background: var(--bg); }
 .roll-bar-wrap { width: 100px; background: rgba(0,0,0,0.06); border-radius: 4px; height: 7px; display: inline-block; vertical-align: middle; }
 .roll-bar { height: 7px; border-radius: 4px; background: var(--primary); transition: width 0.3s; }
-.roll-bar.low { background: var(--warning); }
-.roll-bar.empty { background: var(--danger); }
-.roll-bar.low { background: var(--warning); }
+.roll-bar.low   { background: var(--warning); }
 .roll-bar.empty { background: var(--danger); }
 
-/* ── Badge ── */
 .badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; white-space: nowrap; }
-.badge-active  { background: var(--success-bg); color: var(--success); }
-.badge-low     { background: var(--warning-bg); color: var(--warning); }
-.badge-empty   { background: var(--danger-bg);  color: var(--danger);  }
-.badge-repair  { background: var(--warning-bg); color: var(--warning); }
-.badge-written_off { background: var(--bg); color: var(--muted); }
-.badge-roll    { background: var(--primary-light); color: var(--primary); }
-.badge-cut     { background: rgba(124,58,237,0.08); color: #7c3aed; }
+.badge-active     { background: var(--success-bg);  color: var(--success); }
+.badge-low        { background: var(--warning-bg);  color: var(--warning); }
+.badge-empty      { background: var(--danger-bg);   color: var(--danger);  }
+.badge-repair     { background: var(--warning-bg);  color: var(--warning); }
+.badge-written_off { background: var(--bg);         color: var(--muted); }
+.badge-roll       { background: var(--primary-light); color: var(--primary); }
+.badge-cut        { background: rgba(124,58,237,0.08); color: #7c3aed; }
 
-/* ── Buttons ── */
 .btn { display: inline-flex; align-items: center; gap: 5px; padding: 7px 14px; border-radius: 8px; border: 1px solid transparent; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.15s; font-family: inherit; white-space: nowrap; text-decoration: none; }
 .btn-primary   { background: var(--primary); color: #fff; border-color: var(--primary); }
 .btn-primary:hover { background: #1d4ed8; }
 .btn-secondary { background: var(--surface); color: var(--text); border-color: var(--border); }
 .btn-secondary:hover { background: var(--bg); }
-.btn-ghost { background: var(--primary-light); color: var(--primary); border-color: transparent; }
+.btn-ghost  { background: var(--primary-light); color: var(--primary); }
 .btn-ghost:hover { background: rgba(37,99,235,0.14); }
-.btn-danger { background: var(--danger-bg); color: var(--danger); border-color: transparent; }
+.btn-danger { background: var(--danger-bg); color: var(--danger); }
 .btn-danger:hover { background: var(--danger); color: #fff; }
-.btn-sm { padding: 4px 10px; font-size: 0.75rem; }
+.btn-sm   { padding: 4px 10px; font-size: 0.75rem; }
 .btn-icon { padding: 5px 8px; }
 .btn[disabled] { opacity: 0.5; cursor: not-allowed; }
 
-/* ── Empty ── */
 .empty-state { text-align: center; padding: 48px 24px; color: var(--muted); }
-.empty-icon { font-size: 2.5rem; margin-bottom: 10px; }
+.empty-icon  { font-size: 2.5rem; margin-bottom: 10px; }
 .empty-title { font-size: 0.95rem; font-weight: 700; color: var(--text); margin-bottom: 6px; }
-.empty-desc { font-size: 0.82rem; line-height: 1.5; }
+.empty-desc  { font-size: 0.82rem; line-height: 1.5; }
 
-/* ── Equipment grid ── */
-.equip-name { font-size: 0.92rem; font-weight: 700; }
-.equip-sku { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
 .equip-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; padding: 4px 0; border-bottom: 1px solid var(--border); }
 .equip-row:last-child { border-bottom: none; }
 .equip-row-label { color: var(--muted); }
 
-/* ── Modal / Popup ── */
-.modal-overlay {
-  position: fixed; inset: 0; background: rgba(15,23,42,0.45);
-  backdrop-filter: blur(4px); z-index: 1000;
-  display: flex; align-items: flex-start; justify-content: center;
-  padding: 24px 16px; overflow-y: auto;
-}
+.modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.45); backdrop-filter: blur(4px); z-index: 1000; display: flex; align-items: flex-start; justify-content: center; padding: 24px 16px; overflow-y: auto; }
 .modal { background: var(--surface); border-radius: 16px; width: 100%; max-width: 560px; box-shadow: 0 16px 48px rgba(0,0,0,0.18); margin: auto; }
 .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px 0; }
 .modal-title { font-size: 1rem; font-weight: 800; }
@@ -149,7 +106,6 @@ body { background: var(--bg); color: var(--text); min-height: 100dvh; }
 .modal-close:hover { background: var(--bg); color: var(--text); }
 .modal-body { padding: 16px 20px 20px; }
 
-/* ── Form ── */
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
 .form-row.single { grid-template-columns: 1fr; }
 .form-row.triple { grid-template-columns: 1fr 1fr 1fr; }
@@ -161,32 +117,15 @@ textarea { resize: vertical; min-height: 64px; }
 .form-divider { height: 1px; background: var(--border); margin: 14px 0; }
 .form-section-title { font-size: 0.72rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; }
 
-/* ── Purchase lines ── */
 .purchase-lines { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
 .purchase-line { background: var(--bg); border-radius: 8px; padding: 10px 12px; position: relative; }
 .purchase-line-del { position: absolute; top: 8px; right: 8px; background: none; border: none; cursor: pointer; color: var(--muted); font-size: 0.9rem; padding: 2px 5px; border-radius: 4px; }
 .purchase-line-del:hover { color: var(--danger); background: var(--danger-bg); }
 
-/* ── Consumable batch ── */
-.batch-question { background: rgba(37,99,235,0.06); border: 1px solid rgba(37,99,235,0.15); border-radius: 10px; padding: 12px 14px; margin-bottom: 10px; font-size: 0.83rem; }
-.batch-question strong { display: block; margin-bottom: 8px; color: var(--text); }
-.batch-btns { display: flex; gap: 8px; }
-
-/* ── Assignment issued indicator ── */
 .assigned-to { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; background: rgba(124,58,237,0.08); color: #7c3aed; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
 
-/* ── Toast ── */
-#toast {
-  position: fixed; bottom: 24px; right: 24px; z-index: 9999;
-  background: #0f172a; color: #fff; padding: 10px 18px;
-  border-radius: 10px; font-size: 0.85rem; font-weight: 600;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
-  transform: translateY(80px); opacity: 0;
-  transition: all 0.25s; pointer-events: none;
-}
+#toast { position: fixed; bottom: 24px; right: 24px; z-index: 9999; background: #0f172a; color: #fff; padding: 10px 18px; border-radius: 10px; font-size: 0.85rem; font-weight: 600; box-shadow: 0 4px 16px rgba(0,0,0,0.2); transform: translateY(80px); opacity: 0; transition: all 0.25s; pointer-events: none; }
 #toast.show { transform: translateY(0); opacity: 1; }
-
-/* ── Loader ── */
 .loader { text-align: center; padding: 40px; color: var(--muted); font-size: 0.9rem; }
 
 @media (max-width: 640px) {
@@ -198,67 +137,57 @@ textarea { resize: vertical; min-height: 64px; }
 </style>
 </head>
 <body>
-<script src="nav.js"></script>
-<script src="nav.css" onerror=""></script>
 
 <div class="page-wrap">
   <div class="page-header">
     <div class="page-title">📦 <span>Склад</span></div>
     <div class="header-actions">
-      <button class="btn btn-secondary" onclick="openItemModal(null)">➕ Новая позиция</button>
-      <button class="btn btn-primary" onclick="openPurchaseModal()">🛒 Новая закупка</button>
+      <button class="btn btn-secondary" id="btnNewItem">➕ Новая позиция</button>
+      <button class="btn btn-primary"   id="btnNewPurchase">🛒 Новая закупка</button>
     </div>
   </div>
 
-  <!-- Tabs -->
-  <div class="tabs">
-    <button class="tab-btn active" data-tab="film"        onclick="switchTab('film')">🎞 Плёнка</button>
-    <button class="tab-btn"        data-tab="consumable"  onclick="switchTab('consumable')">🧴 Расходники</button>
-    <button class="tab-btn"        data-tab="equipment"   onclick="switchTab('equipment')">🔧 Оборудование</button>
+  <div class="tabs" id="tabsBar">
+    <button class="tab-btn active" data-tab="film">🎞 Плёнка</button>
+    <button class="tab-btn"        data-tab="consumable">🧴 Расходники</button>
+    <button class="tab-btn"        data-tab="equipment">🔧 Оборудование</button>
   </div>
 
-  <!-- Stats -->
-  <div class="stats-row" id="statsRow">
+  <div class="stats-row">
     <div class="stat-card"><div class="stat-label">Позиций на складе</div><div class="stat-value" id="statTotal">—</div></div>
     <div class="stat-card"><div class="stat-label">Заканчивается</div><div class="stat-value" id="statLow" style="color:var(--warning)">—</div></div>
     <div class="stat-card"><div class="stat-label">Закупок в этом месяце</div><div class="stat-value" id="statPurchases">—</div></div>
     <div class="stat-card"><div class="stat-label">Сумма закупок (мес)</div><div class="stat-value" id="statAmount">—</div></div>
   </div>
 
-  <!-- Film tab -->
   <div class="tab-panel active" id="tab-film">
     <div id="filmList" class="items-grid"><div class="loader">⏳ Загрузка...</div></div>
   </div>
-
-  <!-- Consumables tab -->
   <div class="tab-panel" id="tab-consumable">
     <div id="consumableList" class="items-grid"><div class="loader">⏳ Загрузка...</div></div>
   </div>
-
-  <!-- Equipment tab -->
   <div class="tab-panel" id="tab-equipment">
     <div id="equipList" class="items-grid"><div class="loader">⏳ Загрузка...</div></div>
   </div>
 </div>
 
-<!-- Toast -->
 <div id="toast"></div>
 
-<!-- ═══════════════ MODALS ═══════════════ -->
+<!-- ═══ МОДАЛЬНЫЕ ОКНА ═══ -->
 
-<!-- New/Edit Item Modal -->
-<div class="modal-overlay" id="itemModal" style="display:none" onclick="closeOnOverlay(event,'itemModal')">
+<!-- Позиция -->
+<div class="modal-overlay" id="itemModal" style="display:none">
   <div class="modal">
     <div class="modal-header">
       <div class="modal-title" id="itemModalTitle">Новая позиция</div>
-      <button class="modal-close" onclick="closeModal('itemModal')">✕</button>
+      <button class="modal-close" data-close="itemModal">✕</button>
     </div>
     <div class="modal-body">
       <input type="hidden" id="itemId">
       <div class="form-row">
         <div class="form-group">
           <label>Тип *</label>
-          <select id="itemType" onchange="onItemTypeChange()">
+          <select id="itemType">
             <option value="film">Плёнка</option>
             <option value="consumable">Расходник</option>
             <option value="equipment">Оборудование</option>
@@ -288,7 +217,6 @@ textarea { resize: vertical; min-height: 64px; }
           </select>
         </div>
       </div>
-      <!-- Только для плёнки -->
       <div id="filmFields" style="display:none">
         <div class="form-row">
           <div class="form-group">
@@ -306,19 +234,19 @@ textarea { resize: vertical; min-height: 64px; }
         <textarea id="itemNotes" placeholder="Дополнительная информация..."></textarea>
       </div>
       <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
-        <button class="btn btn-secondary" onclick="closeModal('itemModal')">Отмена</button>
-        <button class="btn btn-primary" onclick="saveItem()">💾 Сохранить</button>
+        <button class="btn btn-secondary" data-close="itemModal">Отмена</button>
+        <button class="btn btn-primary" id="btnSaveItem">💾 Сохранить</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Purchase Modal -->
-<div class="modal-overlay" id="purchaseModal" style="display:none" onclick="closeOnOverlay(event,'purchaseModal')">
+<!-- Закупка -->
+<div class="modal-overlay" id="purchaseModal" style="display:none">
   <div class="modal" style="max-width:620px">
     <div class="modal-header">
       <div class="modal-title">🛒 Новая закупка</div>
-      <button class="modal-close" onclick="closeModal('purchaseModal')">✕</button>
+      <button class="modal-close" data-close="purchaseModal">✕</button>
     </div>
     <div class="modal-body">
       <div class="form-row">
@@ -338,7 +266,7 @@ textarea { resize: vertical; min-height: 64px; }
         </div>
         <div class="form-group">
           <label>Форма оплаты</label>
-          <select id="pPayment" onchange="onPaymentChange()">
+          <select id="pPayment">
             <option value="cash">Наличные</option>
             <option value="no_vat">Без НДС</option>
             <option value="vat">С НДС</option>
@@ -347,23 +275,21 @@ textarea { resize: vertical; min-height: 64px; }
       </div>
       <div id="vatRow" style="display:none" class="form-group">
         <label>Ставка НДС (%)</label>
-        <input type="number" id="pVat" placeholder="20" min="0" max="100" step="1" oninput="calcPurchaseTotal()">
+        <input type="number" id="pVat" placeholder="20" min="0" max="100" step="1">
       </div>
-
       <div class="form-divider"></div>
       <div class="form-section-title">Позиции закупки</div>
       <div id="purchaseLines" class="purchase-lines"></div>
-      <button class="btn btn-ghost btn-sm" onclick="addPurchaseLine()">➕ Добавить позицию</button>
-
+      <button class="btn btn-ghost btn-sm" id="btnAddPurchaseLine">➕ Добавить позицию</button>
       <div class="form-divider"></div>
       <div class="form-row">
         <div class="form-group">
           <label>Доставка (руб)</label>
-          <input type="number" id="pDelivery" placeholder="0" min="0" oninput="calcPurchaseTotal()">
+          <input type="number" id="pDelivery" placeholder="0" min="0">
         </div>
         <div class="form-group">
           <label>Доп. расходы (руб)</label>
-          <input type="number" id="pOther" placeholder="0" min="0" oninput="calcPurchaseTotal()">
+          <input type="number" id="pOther" placeholder="0" min="0">
         </div>
       </div>
       <div class="form-group">
@@ -375,23 +301,22 @@ textarea { resize: vertical; min-height: 64px; }
         <textarea id="pNotes" placeholder=""></textarea>
       </div>
       <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
-        <button class="btn btn-secondary" onclick="closeModal('purchaseModal')">Отмена</button>
-        <button class="btn btn-primary" onclick="savePurchase()">💾 Провести закупку</button>
+        <button class="btn btn-secondary" data-close="purchaseModal">Отмена</button>
+        <button class="btn btn-primary" id="btnSavePurchase">💾 Провести закупку</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Write-off Modal (списание на заказ) -->
-<div class="modal-overlay" id="writeoffModal" style="display:none" onclick="closeOnOverlay(event,'writeoffModal')">
+<!-- Списание -->
+<div class="modal-overlay" id="writeoffModal" style="display:none">
   <div class="modal">
     <div class="modal-header">
       <div class="modal-title">📤 Списание материала</div>
-      <button class="modal-close" onclick="closeModal('writeoffModal')">✕</button>
+      <button class="modal-close" data-close="writeoffModal">✕</button>
     </div>
     <div class="modal-body">
       <div id="writeoffItemName" style="font-weight:700;margin-bottom:12px;font-size:0.95rem"></div>
-      <!-- Плёнка: выбор рулона -->
       <div id="writeoffRollSection" style="display:none">
         <div class="form-group">
           <label>Выбрать рулон / отрез</label>
@@ -413,51 +338,33 @@ textarea { resize: vertical; min-height: 64px; }
         <input type="text" id="writeoffNotes" placeholder="Расход на авто, порча...">
       </div>
       <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
-        <button class="btn btn-secondary" onclick="closeModal('writeoffModal')">Отмена</button>
-        <button class="btn btn-danger" onclick="saveWriteoff()">📤 Списать</button>
+        <button class="btn btn-secondary" data-close="writeoffModal">Отмена</button>
+        <button class="btn btn-danger"    id="btnSaveWriteoff">📤 Списать</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Equipment modal -->
-<div class="modal-overlay" id="equipModal" style="display:none" onclick="closeOnOverlay(event,'equipModal')">
+<!-- Оборудование -->
+<div class="modal-overlay" id="equipModal" style="display:none">
   <div class="modal" style="max-width:600px">
     <div class="modal-header">
       <div class="modal-title" id="equipModalTitle">Новое оборудование</div>
-      <button class="modal-close" onclick="closeModal('equipModal')">✕</button>
+      <button class="modal-close" data-close="equipModal">✕</button>
     </div>
     <div class="modal-body">
       <input type="hidden" id="equipId">
       <div class="form-row">
-        <div class="form-group">
-          <label>Инвентарный номер</label>
-          <input type="text" id="equipSku" placeholder="EQ-001">
-        </div>
-        <div class="form-group">
-          <label>Категория</label>
-          <input type="text" id="equipCategory" placeholder="Инструмент, Техника...">
-        </div>
+        <div class="form-group"><label>Инвентарный номер</label><input type="text" id="equipSku" placeholder="EQ-001"></div>
+        <div class="form-group"><label>Категория</label><input type="text" id="equipCategory" placeholder="Инструмент, Техника..."></div>
       </div>
-      <div class="form-group">
-        <label>Название *</label>
-        <input type="text" id="equipName" placeholder="Плоттер Graphtec CE7000">
+      <div class="form-group"><label>Название *</label><input type="text" id="equipName" placeholder="Плоттер Graphtec CE7000"></div>
+      <div class="form-row">
+        <div class="form-group"><label>Бренд</label><input type="text" id="equipBrand"></div>
+        <div class="form-group"><label>Модель</label><input type="text" id="equipModel"></div>
       </div>
       <div class="form-row">
-        <div class="form-group">
-          <label>Бренд</label>
-          <input type="text" id="equipBrand" placeholder="">
-        </div>
-        <div class="form-group">
-          <label>Модель</label>
-          <input type="text" id="equipModel" placeholder="">
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Серийный номер</label>
-          <input type="text" id="equipSerial" placeholder="">
-        </div>
+        <div class="form-group"><label>Серийный номер</label><input type="text" id="equipSerial"></div>
         <div class="form-group">
           <label>Состояние</label>
           <select id="equipCondition">
@@ -471,128 +378,79 @@ textarea { resize: vertical; min-height: 64px; }
       <div class="form-divider"></div>
       <div class="form-section-title">Финансы и амортизация</div>
       <div class="form-row triple">
-        <div class="form-group">
-          <label>Дата покупки</label>
-          <input type="date" id="equipPurchaseDate">
-        </div>
-        <div class="form-group">
-          <label>Стоимость (руб)</label>
-          <input type="number" id="equipPrice" placeholder="0">
-        </div>
-        <div class="form-group">
-          <label>Срок службы (мес)</label>
-          <input type="number" id="equipLife" placeholder="60">
-        </div>
+        <div class="form-group"><label>Дата покупки</label><input type="date" id="equipPurchaseDate"></div>
+        <div class="form-group"><label>Стоимость (руб)</label><input type="number" id="equipPrice" placeholder="0"></div>
+        <div class="form-group"><label>Срок службы (мес)</label><input type="number" id="equipLife" placeholder="60"></div>
       </div>
       <div class="form-row">
-        <div class="form-group">
-          <label>Поставщик</label>
-          <input type="text" id="equipSupplier" placeholder="">
-        </div>
-        <div class="form-group">
-          <label>Место хранения</label>
-          <input type="text" id="equipLocation" placeholder="Стеллаж А">
-        </div>
+        <div class="form-group"><label>Поставщик</label><input type="text" id="equipSupplier"></div>
+        <div class="form-group"><label>Место хранения</label><input type="text" id="equipLocation" placeholder="Стеллаж А"></div>
       </div>
-      <div class="form-group">
-        <label>Заметки</label>
-        <textarea id="equipNotes" placeholder=""></textarea>
-      </div>
+      <div class="form-group"><label>Заметки</label><textarea id="equipNotes"></textarea></div>
       <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
-        <button class="btn btn-secondary" onclick="closeModal('equipModal')">Отмена</button>
-        <button class="btn btn-primary" onclick="saveEquipment()">💾 Сохранить</button>
+        <button class="btn btn-secondary" data-close="equipModal">Отмена</button>
+        <button class="btn btn-primary" id="btnSaveEquip">💾 Сохранить</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Equipment assignment modal -->
-<div class="modal-overlay" id="assignModal" style="display:none" onclick="closeOnOverlay(event,'assignModal')">
+<!-- Выдача оборудования -->
+<div class="modal-overlay" id="assignModal" style="display:none">
   <div class="modal">
     <div class="modal-header">
       <div class="modal-title">👤 Выдача оборудования</div>
-      <button class="modal-close" onclick="closeModal('assignModal')">✕</button>
+      <button class="modal-close" data-close="assignModal">✕</button>
     </div>
     <div class="modal-body">
       <input type="hidden" id="assignEquipId">
       <div id="assignEquipName" style="font-weight:700;margin-bottom:12px;font-size:0.95rem"></div>
-      <div class="form-group">
-        <label>Кому выдаётся *</label>
-        <input type="text" id="assignName" placeholder="Имя сотрудника">
-      </div>
+      <div class="form-group"><label>Кому выдаётся *</label><input type="text" id="assignName" placeholder="Имя сотрудника"></div>
       <div class="form-row">
-        <div class="form-group">
-          <label>Дата выдачи</label>
-          <input type="date" id="assignIssued">
-        </div>
-        <div class="form-group">
-          <label>Плановый возврат</label>
-          <input type="date" id="assignReturn">
-        </div>
+        <div class="form-group"><label>Дата выдачи</label><input type="date" id="assignIssued"></div>
+        <div class="form-group"><label>Плановый возврат</label><input type="date" id="assignReturn"></div>
       </div>
-      <div class="form-group">
-        <label>Цель / назначение</label>
-        <input type="text" id="assignPurpose" placeholder="Для заказа, постоянное использование...">
-      </div>
-      <div class="form-group">
-        <label>Состояние при выдаче</label>
-        <input type="text" id="assignCondition" placeholder="Отличное, рабочее...">
-      </div>
+      <div class="form-group"><label>Цель / назначение</label><input type="text" id="assignPurpose" placeholder="Для заказа, постоянное использование..."></div>
+      <div class="form-group"><label>Состояние при выдаче</label><input type="text" id="assignCondition" placeholder="Отличное, рабочее..."></div>
       <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
-        <button class="btn btn-secondary" onclick="closeModal('assignModal')">Отмена</button>
-        <button class="btn btn-primary" onclick="saveAssignment()">✅ Выдать</button>
+        <button class="btn btn-secondary" data-close="assignModal">Отмена</button>
+        <button class="btn btn-primary" id="btnSaveAssign">✅ Выдать</button>
       </div>
     </div>
   </div>
 </div>
 
 <script src="footer.js"></script>
+<script type="module">
+import { sb }              from './supabase.js';
+import { requireAuth }      from './auth.js';
+import { getStudioContext }  from './studio-context.js';
+import { showToast }         from './ui.js';
 
-<script>
-const SUPABASE_URL = 'https://hdghijgrrnzmntistdvw.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkZ2hpamdycm56bW50aXN0ZHZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMzMyNzksImV4cCI6MjA3NTYwOTI3OX0.D9EDTmVrFRVp0B8_5tCJM29gbFdtadsom0Ihsf4uQ8Q';
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-window._crmSb = sb;
-
-let currentUser  = null;
-let studioId     = null;
-let allItems     = [];
-let allRolls     = [];
-let allEquipment = [];
+// ── Состояние ─────────────────────────────────────────────────────────
+let studioId       = null;
+let currentUser    = null;
+let allItems       = [];
+let allRolls       = [];
+let allEquipment   = [];
 let writeoffItemId = null;
 let purchaseLineCount = 0;
+
 const fmt = n => Number(n || 0).toLocaleString('ru-RU', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+const conditionLabel = { excellent: 'Отличное', good: 'Хорошее', fair: 'Требует обслуживания', poor: 'Плохое' };
 
-// ── Auth ──────────────────────────────────────────────────────
-async function init() {
-  initNav({ actionHref: 'calculator.html', actionLabel: '➕ Новый расчёт' });
-  document.body.style.visibility = 'visible';
-
-  const { data: { session } } = await sb.auth.getSession();
-  if (!session) { location.href = 'welcome.html'; return; }
-  currentUser = session.user;
-
-  const { data: member } = await sb
-    .from('studio_members')
-    .select('studio_id')
-    .eq('user_id', currentUser.id)
-    .eq('is_active', true)
-    .single();
-  if (!member) { alert('Студия не найдена'); return; }
-  studioId = member.studio_id;
-  window._studioId = studioId;
-
-  await Promise.all([loadItems(), loadRolls(), loadEquipment(), loadStats()]);
+// ── Toast (локальный, совместим со страницей) ─────────────────────────
+function toast(msg, type = 'success') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2800);
 }
 
-// ── Load data ─────────────────────────────────────────────────
+// ── Загрузка данных ───────────────────────────────────────────────────
 async function loadItems() {
-  const { data, error } = await sb
-    .from('inventory_items')
-    .select('*')
-    .eq('studio_id', studioId)
-    .eq('is_active', true)
-    .order('name');
+  const { data, error } = await sb.from('inventory_items').select('*')
+    .eq('studio_id', studioId).eq('is_active', true).order('name');
   if (error) { console.error(error); return; }
   allItems = data || [];
   renderFilm();
@@ -600,22 +458,16 @@ async function loadItems() {
 }
 
 async function loadRolls() {
-  const { data, error } = await sb
-    .from('film_rolls')
-    .select('*')
-    .eq('studio_id', studioId)
-    .eq('status', 'active')
-    .order('created_at');
+  const { data, error } = await sb.from('film_rolls').select('*')
+    .eq('studio_id', studioId).eq('status', 'active').order('created_at');
   if (error) { console.error(error); return; }
   allRolls = data || [];
 }
 
 async function loadEquipment() {
-  const { data, error } = await sb
-    .from('equipment')
+  const { data, error } = await sb.from('equipment')
     .select('*, equipment_assignments(id, executor_name, issued_at, returned_at)')
-    .eq('studio_id', studioId)
-    .order('name');
+    .eq('studio_id', studioId).order('name');
   if (error) { console.error(error); return; }
   allEquipment = data || [];
   renderEquipment();
@@ -624,281 +476,408 @@ async function loadEquipment() {
 async function loadStats() {
   const now = new Date();
   const monthStart = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-01`;
-
-  const [{ data: purchases }] = await Promise.all([
-    sb.from('purchases').select('total_amount').eq('studio_id', studioId).gte('purchase_date', monthStart)
-  ]);
-
-  const filmItems = allItems.filter(i => i.type === 'film');
-  const lowItems  = allItems.filter(i => i.qty_min_alert && i.qty_current <= i.qty_min_alert);
+  const { data: purchases } = await sb.from('purchases').select('total_amount')
+    .eq('studio_id', studioId).gte('purchase_date', monthStart);
+  const lowItems   = allItems.filter(i => i.qty_min_alert && i.qty_current <= i.qty_min_alert);
   const monthTotal = (purchases || []).reduce((s, p) => s + Number(p.total_amount || 0), 0);
-
-  document.getElementById('statTotal').textContent      = allItems.length;
-  document.getElementById('statLow').textContent        = lowItems.length;
-  document.getElementById('statPurchases').textContent  = (purchases || []).length;
-  document.getElementById('statAmount').textContent     = fmt(monthTotal) + ' ₽';
+  document.getElementById('statTotal').textContent     = String(allItems.length);
+  document.getElementById('statLow').textContent       = String(lowItems.length);
+  document.getElementById('statPurchases').textContent = String((purchases || []).length);
+  document.getElementById('statAmount').textContent    = fmt(monthTotal) + ' ₽';
 }
 
-// ── Render: Film ──────────────────────────────────────────────
+// ── Рендер: Плёнка ────────────────────────────────────────────────────
 function renderFilm() {
   const items = allItems.filter(i => i.type === 'film');
-  const el = document.getElementById('filmList');
-  if (!items.length) {
-    el.innerHTML = `<div class="empty-state"><div class="empty-icon">🎞</div><div class="empty-title">Плёнок пока нет</div><div class="empty-desc">Добавьте позицию и проведите первую закупку</div></div>`;
-    return;
-  }
-  el.innerHTML = items.map(item => {
-    const rolls = allRolls.filter(r => r.item_id === item.id);
-    const totalM = rolls.reduce((s, r) => s + Number(r.qty_remaining), 0);
-    const isLow  = item.qty_min_alert && item.qty_current <= item.qty_min_alert;
-    const badge  = isLow
-      ? `<span class="badge badge-low">⚠ Заканчивается</span>`
-      : `<span class="badge badge-active">✓ В наличии</span>`;
-    const rollsHtml = rolls.length ? `
-      <table class="rolls-table">
-        <thead><tr><th>Метка</th><th>Тип</th><th>Остаток</th><th>Прогресс</th><th>Ширина</th><th>Цена / м</th><th>Сумма</th><th>Дата</th><th></th></tr></thead>
-        <tbody>
-          ${rolls.map(r => {
-            const pct = r.qty_initial > 0 ? Math.round(r.qty_remaining / r.qty_initial * 100) : 0;
-            const barClass = pct < 20 ? 'empty' : pct < 40 ? 'low' : '';
-            const dateStr = r.created_at ? new Date(r.created_at).toLocaleDateString('ru-RU', {day:'2-digit',month:'2-digit',year:'numeric'}) : '—';
-            const sumVal  = r.cost_per_unit ? fmt(r.qty_remaining * r.cost_per_unit) + ' ₽' : '—';
-            return `<tr>
-              <td><strong>${r.roll_number || '—'}</strong></td>
-              <td><span class="badge badge-${r.roll_type}">${r.roll_type === 'roll' ? 'Рулон' : 'Отрез'}</span></td>
-              <td><strong>${fmt(r.qty_remaining)} м</strong> <span style="color:var(--muted);font-size:0.75rem">/ ${fmt(r.qty_initial)}</span></td>
-              <td><span class="roll-bar-wrap"><span class="roll-bar ${barClass}" style="width:${pct}%"></span></span> <span style="font-size:0.72rem;color:var(--muted)">${pct}%</span></td>
-              <td>${r.width_cm ? r.width_cm + ' см' : '—'}</td>
-              <td>${r.cost_per_unit ? fmt(r.cost_per_unit) + ' ₽' : '—'}</td>
-              <td>${sumVal}</td>
-              <td style="color:var(--muted);font-size:0.78rem">${dateStr}</td>
-              <td><button class="btn btn-sm btn-secondary" onclick="openWriteoff('${item.id}','${r.id}',event)">📤</button></td>
-            </tr>`;
-          }).join('')}
-        </tbody>
-      </table>` : `<div style="color:var(--muted);font-size:0.84rem;padding:10px 0">Рулонов нет. Проведите закупку.</div>`;
-
-    return `
-    <div class="item-card">
-      <div class="item-header" onclick="toggleItemBody('item-body-${item.id}')">
-        <div class="item-icon">🎞</div>
-        <div class="item-meta">
-          <div class="item-name">${item.name}</div>
-          <div class="item-sku">
-            ${item.sku ? `<span>#${item.sku}</span>` : ''}
-            ${item.brand ? `<span>${item.brand}</span>` : ''}
-            ${item.film_width_cm ? `<span>ширина ${item.film_width_cm} см</span>` : ''}
-            ${badge}
-          </div>
-        </div>
-        <div class="item-stats">
-          <div class="item-stat">
-            <div class="item-stat-val">${fmt(item.qty_current)}</div>
-            <div class="item-stat-unit">${item.unit} в наличии</div>
-          </div>
-          <div class="item-stat">
-            <div class="item-stat-val" style="color:var(--muted);font-size:0.95rem">${fmt(item.avg_cost)} ₽</div>
-            <div class="item-stat-unit">за ${item.unit}</div>
-          </div>
-          <div class="item-stat" style="color:var(--success)">
-            <div class="item-stat-val" style="color:var(--success)">${fmt(item.qty_current * item.avg_cost)} ₽</div>
-            <div class="item-stat-unit">сумма</div>
-          </div>
-        </div>
-        <div class="item-actions" onclick="event.stopPropagation()">
-          <button class="btn btn-sm btn-ghost" onclick="openWriteoff('${item.id}',null,event)">📤 Списать</button>
-          <button class="btn btn-sm btn-secondary btn-icon" onclick="openItemModal('${item.id}',event)">✏️</button>
-        </div>
-      </div>
-      <div class="item-body" id="item-body-${item.id}">
-        ${rollsHtml}
-        <button class="btn btn-sm btn-ghost" onclick="openPurchaseModal('${item.id}')">🛒 Закупить</button>
-      </div>
-    </div>`;
-  }).join('');
+  const el    = document.getElementById('filmList');
+  el.innerHTML = '';
+  if (!items.length) { el.appendChild(emptyState('🎞', 'Плёнок пока нет', 'Добавьте позицию и проведите первую закупку')); return; }
+  items.forEach(item => el.appendChild(buildFilmCard(item)));
 }
 
-// ── Render: Consumables ───────────────────────────────────────
+function buildFilmCard(item) {
+  const rolls = allRolls.filter(r => r.item_id === item.id);
+  const isLow = item.qty_min_alert && item.qty_current <= item.qty_min_alert;
+
+  const card = document.createElement('div');
+  card.className = 'item-card';
+
+  // Header
+  const header = document.createElement('div');
+  header.className = 'item-header';
+  header.dataset.action = 'toggle';
+  header.dataset.bodyId = `item-body-${item.id}`;
+
+  const icon = el('div', 'item-icon', '🎞');
+  const meta = document.createElement('div');
+  meta.className = 'item-meta';
+  const nameEl = el('div', 'item-name');
+  nameEl.textContent = item.name;
+  const skuEl = document.createElement('div');
+  skuEl.className = 'item-sku';
+  if (item.sku)           skuEl.appendChild(el('span', '', `#${item.sku}`));
+  if (item.brand)         skuEl.appendChild(el('span', '', item.brand));
+  if (item.film_width_cm) skuEl.appendChild(el('span', '', `ширина ${item.film_width_cm} см`));
+  skuEl.appendChild(badgeEl(isLow ? 'low' : 'active', isLow ? '⚠ Заканчивается' : '✓ В наличии'));
+  meta.append(nameEl, skuEl);
+
+  const stats = document.createElement('div');
+  stats.className = 'item-stats';
+  stats.append(
+    statEl(fmt(item.qty_current), `${item.unit} в наличии`),
+    statEl(fmt(item.avg_cost) + ' ₽', `за ${item.unit}`, 'var(--muted)', '0.95rem'),
+    statEl(fmt(item.qty_current * item.avg_cost) + ' ₽', 'сумма', 'var(--success)'),
+  );
+
+  const actions = document.createElement('div');
+  actions.className = 'item-actions';
+  actions.addEventListener('click', e => e.stopPropagation());
+  actions.append(
+    actionBtn('btn btn-sm btn-ghost', '📤 Списать', 'writeoff', item.id),
+    actionBtn('btn btn-sm btn-secondary btn-icon', '✏️', 'edit-item', item.id),
+  );
+
+  header.append(icon, meta, stats, actions);
+
+  // Body
+  const body = document.createElement('div');
+  body.className = 'item-body';
+  body.id = `item-body-${item.id}`;
+
+  if (rolls.length) {
+    const tbl = buildRollsTable(rolls, item.id);
+    body.appendChild(tbl);
+  } else {
+    body.appendChild(el('div', '', 'Рулонов нет. Проведите закупку.', 'color:var(--muted);font-size:0.84rem;padding:10px 0'));
+  }
+  body.appendChild(actionBtn('btn btn-sm btn-ghost', '🛒 Закупить', 'purchase', item.id));
+
+  card.append(header, body);
+  return card;
+}
+
+function buildRollsTable(rolls, itemId) {
+  const tbl = document.createElement('table');
+  tbl.className = 'rolls-table';
+  tbl.innerHTML = '<thead><tr><th>Метка</th><th>Тип</th><th>Остаток</th><th>Прогресс</th><th>Ширина</th><th>Цена / м</th><th>Сумма</th><th>Дата</th><th></th></tr></thead>';
+  const tbody = document.createElement('tbody');
+  rolls.forEach(r => {
+    const pct = r.qty_initial > 0 ? Math.round(r.qty_remaining / r.qty_initial * 100) : 0;
+    const barClass = pct < 20 ? 'empty' : pct < 40 ? 'low' : '';
+    const dateStr  = r.created_at ? new Date(r.created_at).toLocaleDateString('ru-RU', {day:'2-digit',month:'2-digit',year:'numeric'}) : '—';
+    const sumVal   = r.cost_per_unit ? fmt(r.qty_remaining * r.cost_per_unit) + ' ₽' : '—';
+    const tr = document.createElement('tr');
+    // roll_number может быть пользовательским
+    const tdNum  = document.createElement('td');
+    const strong = document.createElement('strong');
+    strong.textContent = r.roll_number || '—';
+    tdNum.appendChild(strong);
+
+    const tdType = document.createElement('td');
+    tdType.appendChild(badgeEl(r.roll_type, r.roll_type === 'roll' ? 'Рулон' : 'Отрез'));
+
+    const tdQty = document.createElement('td');
+    tdQty.innerHTML = `<strong>${fmt(r.qty_remaining)} м</strong> <span style="color:var(--muted);font-size:0.75rem">/ ${fmt(r.qty_initial)}</span>`;
+
+    const tdBar = document.createElement('td');
+    tdBar.innerHTML = `<span class="roll-bar-wrap"><span class="roll-bar ${barClass}" style="width:${pct}%"></span></span> <span style="font-size:0.72rem;color:var(--muted)">${pct}%</span>`;
+
+    const tdW   = el('td', '', r.width_cm ? r.width_cm + ' см' : '—');
+    const tdP   = el('td', '', r.cost_per_unit ? fmt(r.cost_per_unit) + ' ₽' : '—');
+    const tdSum = el('td', '', sumVal);
+    const tdDt  = el('td', '', dateStr, 'color:var(--muted);font-size:0.78rem');
+    const tdBtn = document.createElement('td');
+    tdBtn.appendChild(actionBtn('btn btn-sm btn-secondary', '📤', 'writeoff-roll', itemId, r.id));
+
+    tr.append(tdNum, tdType, tdQty, tdBar, tdW, tdP, tdSum, tdDt, tdBtn);
+    tbody.appendChild(tr);
+  });
+  tbl.appendChild(tbody);
+  return tbl;
+}
+
+// ── Рендер: Расходники ────────────────────────────────────────────────
 function renderConsumables() {
   const items = allItems.filter(i => i.type === 'consumable');
-  const el = document.getElementById('consumableList');
-  if (!items.length) {
-    el.innerHTML = `<div class="empty-state"><div class="empty-icon">🧴</div><div class="empty-title">Расходников пока нет</div><div class="empty-desc">Добавьте позицию — химия, праймер, расходные материалы</div></div>`;
-    return;
-  }
-  el.innerHTML = items.map(item => {
-    const isLow = item.qty_min_alert && item.qty_current <= item.qty_min_alert;
-    const badge = isLow
-      ? `<span class="badge badge-low">⚠ Заканчивается</span>`
-      : item.qty_current > 0
-        ? `<span class="badge badge-active">✓ В наличии</span>`
-        : `<span class="badge badge-empty">✗ Нет</span>`;
-    return `
-    <div class="item-card">
-      <div class="item-header" onclick="toggleItemBody('item-body-${item.id}')">
-        <div class="item-icon">🧴</div>
-        <div class="item-meta">
-          <div class="item-name">${item.name}</div>
-          <div class="item-sku">
-            ${item.sku ? `<span>#${item.sku}</span>` : ''}
-            ${item.brand ? `<span>${item.brand}</span>` : ''}
-            ${badge}
-          </div>
-        </div>
-        <div class="item-stats">
-          <div class="item-stat">
-            <div class="item-stat-val">${fmt(item.qty_current)}</div>
-            <div class="item-stat-unit">${item.unit} в наличии</div>
-          </div>
-          <div class="item-stat">
-            <div class="item-stat-val" style="color:var(--muted);font-size:0.95rem">${fmt(item.avg_cost)} ₽</div>
-            <div class="item-stat-unit">за ${item.unit}</div>
-          </div>
-          <div class="item-stat">
-            <div class="item-stat-val" style="color:var(--success)">${fmt(item.qty_current * item.avg_cost)} ₽</div>
-            <div class="item-stat-unit">сумма</div>
-          </div>
-        </div>
-        <div class="item-actions" onclick="event.stopPropagation()">
-          <button class="btn btn-sm btn-ghost" onclick="openWriteoff('${item.id}',null,event)">📤</button>
-          <button class="btn btn-sm btn-secondary btn-icon" onclick="openItemModal('${item.id}',event)">✏️</button>
-        </div>
-      </div>
-      <div class="item-body" id="item-body-${item.id}">
-        <div style="font-size:0.84rem;color:var(--muted);margin-bottom:12px">${item.notes || ''}</div>
-        <button class="btn btn-sm btn-ghost" onclick="openPurchaseModal('${item.id}')">🛒 Закупить</button>
-      </div>
-    </div>`;
-  }).join('');
+  const el    = document.getElementById('consumableList');
+  el.innerHTML = '';
+  if (!items.length) { el.appendChild(emptyState('🧴', 'Расходников пока нет', 'Добавьте позицию — химия, праймер, расходные материалы')); return; }
+  items.forEach(item => el.appendChild(buildConsumableCard(item)));
 }
 
-// ── Render: Equipment ─────────────────────────────────────────
+function buildConsumableCard(item) {
+  const isLow = item.qty_min_alert && item.qty_current <= item.qty_min_alert;
+  const badge = isLow ? badgeEl('low', '⚠ Заканчивается')
+    : item.qty_current > 0 ? badgeEl('active', '✓ В наличии')
+    : badgeEl('empty', '✗ Нет');
+
+  const card = document.createElement('div');
+  card.className = 'item-card';
+
+  const header = document.createElement('div');
+  header.className = 'item-header';
+  header.dataset.action = 'toggle';
+  header.dataset.bodyId = `item-body-${item.id}`;
+
+  const icon = el('div', 'item-icon', '🧴');
+  const meta = document.createElement('div');
+  meta.className = 'item-meta';
+  const nameEl = el('div', 'item-name');
+  nameEl.textContent = item.name;
+  const skuEl = document.createElement('div');
+  skuEl.className = 'item-sku';
+  if (item.sku)   skuEl.appendChild(el('span', '', `#${item.sku}`));
+  if (item.brand) skuEl.appendChild(el('span', '', item.brand));
+  skuEl.appendChild(badge);
+  meta.append(nameEl, skuEl);
+
+  const stats = document.createElement('div');
+  stats.className = 'item-stats';
+  stats.append(
+    statEl(fmt(item.qty_current), `${item.unit} в наличии`),
+    statEl(fmt(item.avg_cost) + ' ₽', `за ${item.unit}`, 'var(--muted)', '0.95rem'),
+    statEl(fmt(item.qty_current * item.avg_cost) + ' ₽', 'сумма', 'var(--success)'),
+  );
+
+  const actions = document.createElement('div');
+  actions.className = 'item-actions';
+  actions.addEventListener('click', e => e.stopPropagation());
+  actions.append(
+    actionBtn('btn btn-sm btn-ghost', '📤', 'writeoff', item.id),
+    actionBtn('btn btn-sm btn-secondary btn-icon', '✏️', 'edit-item', item.id),
+  );
+
+  header.append(icon, meta, stats, actions);
+
+  const body = document.createElement('div');
+  body.className = 'item-body';
+  body.id = `item-body-${item.id}`;
+  if (item.notes) {
+    const notes = document.createElement('div');
+    notes.style.cssText = 'font-size:0.84rem;color:var(--muted);margin-bottom:12px';
+    notes.textContent = item.notes;
+    body.appendChild(notes);
+  }
+  body.appendChild(actionBtn('btn btn-sm btn-ghost', '🛒 Закупить', 'purchase', item.id));
+
+  card.append(header, body);
+  return card;
+}
+
+// ── Рендер: Оборудование ──────────────────────────────────────────────
 function renderEquipment() {
-  const el = document.getElementById('equipList');
-  if (!allEquipment.length) {
-    el.innerHTML = `<div class="empty-state"><div class="empty-icon">🔧</div><div class="empty-title">Оборудования пока нет</div><div class="empty-desc">Добавьте инструменты, технику, инвентарь</div></div>`;
-    return;
-  }
-  const conditionLabel = { excellent: 'Отличное', good: 'Хорошее', fair: 'Требует обслуживания', poor: 'Плохое' };
-  const statusBadge    = { active: 'badge-active', repair: 'badge-repair', written_off: 'badge-written_off' };
-
-  el.innerHTML = allEquipment.map(eq => {
-    const activeAssignment = (eq.equipment_assignments || []).find(a => !a.returned_at);
-    const monthlyDepr = (eq.purchase_price && eq.useful_life_months)
-      ? Math.round((eq.purchase_price - (eq.residual_value || 0)) / eq.useful_life_months)
-      : null;
-    const statusLabel = eq.status === 'active' ? '✓ Активно' : eq.status === 'repair' ? '🔧 Ремонт' : '✗ Списано';
-    return `
-    <div class="item-card">
-      <div class="item-header" onclick="toggleItemBody('item-body-eq-${eq.id}')">
-        <div class="item-icon">🔧</div>
-        <div class="item-meta">
-          <div class="item-name">${eq.name}</div>
-          <div class="item-sku">
-            ${eq.sku ? '# ' + eq.sku + ' · ' : ''}${eq.brand || ''}${eq.model ? ' ' + eq.model : ''}
-            <span class="badge ${statusBadge[eq.status] || 'badge-active'}" style="margin-left:4px">${statusLabel}</span>
-            ${activeAssignment ? `<span class="assigned-to" style="margin-left:4px">👤 ${activeAssignment.executor_name}</span>` : ''}
-          </div>
-        </div>
-        <div class="item-qty">
-          ${monthlyDepr ? `<div class="item-qty-val">${fmt(monthlyDepr)} ₽</div><div class="item-qty-unit">аморт./мес</div>` : '<div class="item-qty-val" style="color:var(--muted)">—</div>'}
-        </div>
-        <div class="item-actions" onclick="event.stopPropagation()">
-          ${!activeAssignment
-            ? `<button class="btn btn-sm btn-ghost" onclick="openAssignModal('${eq.id}')">👤 Выдать</button>`
-            : `<button class="btn btn-sm btn-secondary" onclick="returnEquipment('${activeAssignment.id}','${eq.id}')">↩ Вернуть</button>`}
-          <button class="btn btn-sm btn-secondary btn-icon" onclick="openEquipModal('${eq.id}')">✏️</button>
-        </div>
-      </div>
-      <div class="item-body" id="item-body-eq-${eq.id}">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 24px">
-          ${eq.purchase_price ? `<div class="equip-row"><span class="equip-row-label">Стоимость покупки</span><span>${fmt(eq.purchase_price)} ₽</span></div>` : ''}
-          ${eq.purchase_date  ? `<div class="equip-row"><span class="equip-row-label">Дата покупки</span><span>${eq.purchase_date}</span></div>` : ''}
-          ${monthlyDepr       ? `<div class="equip-row"><span class="equip-row-label">Амортизация в мес</span><span>${fmt(monthlyDepr)} ₽</span></div>` : ''}
-          ${eq.useful_life_months ? `<div class="equip-row"><span class="equip-row-label">Срок службы</span><span>${eq.useful_life_months} мес</span></div>` : ''}
-          ${eq.condition      ? `<div class="equip-row"><span class="equip-row-label">Состояние</span><span>${conditionLabel[eq.condition] || eq.condition}</span></div>` : ''}
-          ${eq.serial_number  ? `<div class="equip-row"><span class="equip-row-label">Серийный номер</span><span>${eq.serial_number}</span></div>` : ''}
-          ${eq.location       ? `<div class="equip-row"><span class="equip-row-label">Местонахождение</span><span>${eq.location}</span></div>` : ''}
-          ${eq.supplier_name  ? `<div class="equip-row"><span class="equip-row-label">Поставщик</span><span>${eq.supplier_name}</span></div>` : ''}
-        </div>
-        ${eq.notes ? `<div style="margin-top:8px;font-size:0.82rem;color:var(--muted)">${eq.notes}</div>` : ''}
-      </div>
-    </div>`;
-  }).join('');
+  const container = document.getElementById('equipList');
+  container.innerHTML = '';
+  if (!allEquipment.length) { container.appendChild(emptyState('🔧', 'Оборудования пока нет', 'Добавьте инструменты, технику, инвентарь')); return; }
+  allEquipment.forEach(eq => container.appendChild(buildEquipCard(eq)));
 }
 
-// ── Tabs ──────────────────────────────────────────────────────
+function buildEquipCard(eq) {
+  const activeAssign = (eq.equipment_assignments || []).find(a => !a.returned_at);
+  const monthlyDepr  = (eq.purchase_price && eq.useful_life_months)
+    ? Math.round((eq.purchase_price - (eq.residual_value || 0)) / eq.useful_life_months) : null;
+  const statusMap = { active: ['badge-active', '✓ Активно'], repair: ['badge-repair', '🔧 Ремонт'], written_off: ['badge-written_off', '✗ Списано'] };
+  const [badgeCls, statusLabel] = statusMap[eq.status] || statusMap.active;
+
+  const card = document.createElement('div');
+  card.className = 'item-card';
+
+  const header = document.createElement('div');
+  header.className = 'item-header';
+  header.dataset.action = 'toggle';
+  header.dataset.bodyId = `item-body-eq-${eq.id}`;
+
+  const icon = el('div', 'item-icon', '🔧');
+  const meta = document.createElement('div');
+  meta.className = 'item-meta';
+  const nameEl = el('div', 'item-name');
+  nameEl.textContent = eq.name;
+  const skuEl = document.createElement('div');
+  skuEl.className = 'item-sku';
+  const skuText = [eq.sku ? `# ${eq.sku}` : '', eq.brand || '', eq.model ? eq.model : ''].filter(Boolean).join(' · ');
+  if (skuText) skuEl.appendChild(el('span', '', skuText));
+  skuEl.appendChild(badgeEl(badgeCls.replace('badge-',''), statusLabel));
+  if (activeAssign) {
+    const at = el('span', 'assigned-to');
+    at.textContent = '👤 ' + activeAssign.executor_name;
+    skuEl.appendChild(at);
+  }
+  meta.append(nameEl, skuEl);
+
+  const qtyEl = document.createElement('div');
+  qtyEl.className = 'item-qty';
+  if (monthlyDepr) {
+    qtyEl.appendChild(el('div', 'item-qty-val', fmt(monthlyDepr) + ' ₽'));
+    qtyEl.appendChild(el('div', 'item-qty-unit', 'аморт./мес'));
+  } else {
+    qtyEl.appendChild(el('div', 'item-qty-val', '—', 'color:var(--muted)'));
+  }
+
+  const actions = document.createElement('div');
+  actions.className = 'item-actions';
+  actions.addEventListener('click', e => e.stopPropagation());
+  if (!activeAssign) {
+    actions.appendChild(actionBtn('btn btn-sm btn-ghost', '👤 Выдать', 'assign', eq.id));
+  } else {
+    const retBtn = actionBtn('btn btn-sm btn-secondary', '↩ Вернуть', 'return', eq.id);
+    retBtn.dataset.assignId = activeAssign.id;
+    actions.appendChild(retBtn);
+  }
+  actions.appendChild(actionBtn('btn btn-sm btn-secondary btn-icon', '✏️', 'edit-equip', eq.id));
+
+  header.append(icon, meta, qtyEl, actions);
+
+  // Body
+  const body = document.createElement('div');
+  body.className = 'item-body';
+  body.id = `item-body-eq-${eq.id}`;
+
+  const grid = document.createElement('div');
+  grid.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:0 24px';
+
+  const rows = [
+    eq.purchase_price    ? ['Стоимость покупки',    fmt(eq.purchase_price) + ' ₽'] : null,
+    eq.purchase_date     ? ['Дата покупки',          eq.purchase_date]              : null,
+    monthlyDepr          ? ['Амортизация в мес',     fmt(monthlyDepr) + ' ₽']      : null,
+    eq.useful_life_months? ['Срок службы',           eq.useful_life_months + ' мес']: null,
+    eq.condition         ? ['Состояние',             conditionLabel[eq.condition] || eq.condition] : null,
+    eq.serial_number     ? ['Серийный номер',        eq.serial_number]              : null,
+    eq.location          ? ['Местонахождение',       eq.location]                   : null,
+    eq.supplier_name     ? ['Поставщик',             eq.supplier_name]              : null,
+  ].filter(Boolean);
+
+  rows.forEach(([label, value]) => {
+    const row = document.createElement('div');
+    row.className = 'equip-row';
+    const lbl = el('span', 'equip-row-label', label);
+    const val = document.createElement('span');
+    val.textContent = value; // textContent — безопасно
+    row.append(lbl, val);
+    grid.appendChild(row);
+  });
+
+  body.appendChild(grid);
+
+  if (eq.notes) {
+    const notes = document.createElement('div');
+    notes.style.cssText = 'margin-top:8px;font-size:0.82rem;color:var(--muted)';
+    notes.textContent = eq.notes;
+    body.appendChild(notes);
+  }
+
+  card.append(header, body);
+  return card;
+}
+
+// ── DOM-хелперы ───────────────────────────────────────────────────────
+function el(tag, cls, text, style) {
+  const e = document.createElement(tag);
+  if (cls)   e.className = cls;
+  if (text !== undefined) e.textContent = text;
+  if (style) e.style.cssText = style;
+  return e;
+}
+function badgeEl(type, text) {
+  const b = document.createElement('span');
+  b.className = `badge badge-${type}`;
+  b.textContent = text;
+  return b;
+}
+function statEl(val, unit, color, fontSize) {
+  const s = document.createElement('div');
+  s.className = 'item-stat';
+  const v = el('div', 'item-stat-val', val);
+  if (color)    v.style.color    = color;
+  if (fontSize) v.style.fontSize = fontSize;
+  s.append(v, el('div', 'item-stat-unit', unit));
+  return s;
+}
+function actionBtn(cls, text, action, id, rollId) {
+  const b = document.createElement('button');
+  b.className = cls;
+  b.textContent = text;
+  b.dataset.action = action;
+  b.dataset.id = id;
+  if (rollId) b.dataset.rollId = rollId;
+  return b;
+}
+function emptyState(icon, title, desc) {
+  const d = document.createElement('div');
+  d.className = 'empty-state';
+  d.append(el('div', 'empty-icon', icon), el('div', 'empty-title', title), el('div', 'empty-desc', desc));
+  return d;
+}
+
+// ── Табы ──────────────────────────────────────────────────────────────
 function switchTab(tab) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'tab-' + tab));
 }
 
-function toggleItemBody(id) {
-  const el = document.getElementById(id);
-  if (el) el.classList.toggle('open');
-}
+// ── Модальные окна ────────────────────────────────────────────────────
+function openModal(id)  { document.getElementById(id).style.display = 'flex'; }
+function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-// ── Item Modal ────────────────────────────────────────────────
-function openItemModal(id, e) {
-  if (e) e.stopPropagation();
-  document.getElementById('itemModalTitle').textContent = id ? 'Редактировать позицию' : 'Новая позиция';
-  if (id) {
-    const item = allItems.find(i => i.id === id);
-    if (!item) return;
-    document.getElementById('itemId').value      = item.id;
-    document.getElementById('itemType').value    = item.type;
-    document.getElementById('itemSku').value     = item.sku || '';
-    document.getElementById('itemName').value    = item.name;
-    document.getElementById('itemBrand').value   = item.brand || '';
-    document.getElementById('itemUnit').value    = item.unit;
-    document.getElementById('itemFilmWidth').value = item.film_width_cm || '';
-    document.getElementById('itemMinAlert').value  = item.qty_min_alert || '';
-    document.getElementById('itemNotes').value   = item.notes || '';
-    onItemTypeChange();
-  } else {
-    document.getElementById('itemId').value = '';
-    document.getElementById('itemType').value = 'film';
-    ['itemSku','itemName','itemBrand','itemFilmWidth','itemMinAlert','itemNotes'].forEach(id => document.getElementById(id).value = '');
-    document.getElementById('itemUnit').value = 'м';
-    onItemTypeChange();
-  }
-  document.getElementById('itemModal').style.display = 'flex';
-}
-
+// ── Позиция: открыть/сохранить ────────────────────────────────────────
 function onItemTypeChange() {
   const type = document.getElementById('itemType').value;
   document.getElementById('filmFields').style.display = type === 'film' ? 'block' : 'none';
   document.getElementById('itemUnit').value = type === 'film' ? 'м' : type === 'consumable' ? 'л' : 'шт';
 }
 
+function openItemModal(id, e) {
+  if (e) e.stopPropagation();
+  document.getElementById('itemModalTitle').textContent = id ? 'Редактировать позицию' : 'Новая позиция';
+  if (id) {
+    const item = allItems.find(i => i.id === id);
+    if (!item) return;
+    document.getElementById('itemId').value         = item.id;
+    document.getElementById('itemType').value       = item.type;
+    document.getElementById('itemSku').value        = item.sku || '';
+    document.getElementById('itemName').value       = item.name;
+    document.getElementById('itemBrand').value      = item.brand || '';
+    document.getElementById('itemUnit').value       = item.unit;
+    document.getElementById('itemFilmWidth').value  = item.film_width_cm || '';
+    document.getElementById('itemMinAlert').value   = item.qty_min_alert || '';
+    document.getElementById('itemNotes').value      = item.notes || '';
+  } else {
+    document.getElementById('itemId').value = '';
+    document.getElementById('itemType').value = 'film';
+    ['itemSku','itemName','itemBrand','itemFilmWidth','itemMinAlert','itemNotes'].forEach(f => { document.getElementById(f).value = ''; });
+    document.getElementById('itemUnit').value = 'м';
+  }
+  onItemTypeChange();
+  openModal('itemModal');
+}
+
 async function saveItem() {
   const id   = document.getElementById('itemId').value;
   const name = document.getElementById('itemName').value.trim();
-  if (!name) { alert('Введите название'); return; }
+  if (!name) { toast('⚠ Введите название'); return; }
   const payload = {
-    studio_id:      studioId,
-    type:           document.getElementById('itemType').value,
-    sku:            document.getElementById('itemSku').value.trim() || null,
+    studio_id:     studioId,
+    type:          document.getElementById('itemType').value,
+    sku:           document.getElementById('itemSku').value.trim() || null,
     name,
-    brand:          document.getElementById('itemBrand').value.trim() || null,
-    unit:           document.getElementById('itemUnit').value,
-    film_width_cm:  parseFloat(document.getElementById('itemFilmWidth').value) || null,
-    qty_min_alert:  parseFloat(document.getElementById('itemMinAlert').value) || null,
-    notes:          document.getElementById('itemNotes').value.trim() || null,
+    brand:         document.getElementById('itemBrand').value.trim() || null,
+    unit:          document.getElementById('itemUnit').value,
+    film_width_cm: parseFloat(document.getElementById('itemFilmWidth').value) || null,
+    qty_min_alert: parseFloat(document.getElementById('itemMinAlert').value) || null,
+    notes:         document.getElementById('itemNotes').value.trim() || null,
   };
-  let error;
-  if (id) {
-    ({ error } = await sb.from('inventory_items').update(payload).eq('id', id));
-  } else {
-    ({ error } = await sb.from('inventory_items').insert(payload));
-  }
-  if (error) { alert('Ошибка: ' + error.message); return; }
+  const btn = document.getElementById('btnSaveItem');
+  btn.disabled = true;
+  const { error } = id
+    ? await sb.from('inventory_items').update(payload).eq('id', id)
+    : await sb.from('inventory_items').insert(payload);
+  btn.disabled = false;
+  if (error) { toast('❌ Ошибка: ' + error.message); return; }
   closeModal('itemModal');
   toast('✅ Позиция сохранена');
   await loadItems();
 }
 
-// ── Purchase Modal ────────────────────────────────────────────
+// ── Закупка ───────────────────────────────────────────────────────────
 function openPurchaseModal(presetItemId) {
   purchaseLineCount = 0;
   document.getElementById('purchaseLines').innerHTML = '';
@@ -913,13 +892,7 @@ function openPurchaseModal(presetItemId) {
   document.getElementById('pNotes').value     = '';
   document.getElementById('pTotal').value     = '';
   addPurchaseLine();
-  document.getElementById('purchaseModal').style.display = 'flex';
-}
-
-function onPaymentChange() {
-  const val = document.getElementById('pPayment').value;
-  document.getElementById('vatRow').style.display = val === 'vat' ? 'block' : 'none';
-  calcPurchaseTotal();
+  openModal('purchaseModal');
 }
 
 function addPurchaseLine() {
@@ -928,62 +901,77 @@ function addPurchaseLine() {
   const line = document.createElement('div');
   line.className = 'purchase-line';
   line.id = `pline-${idx}`;
-  // datalist из существующих позиций номенклатуры
+
   const datalistId = `pNameList-${idx}`;
-  const options = allItems.map(i => `<option value="${i.name}">`).join('');
-  line.innerHTML = `
-    <button class="purchase-line-del" onclick="this.closest('.purchase-line').remove();calcPurchaseTotal()">✕</button>
-    <div class="form-group" style="margin-bottom:6px">
-      <label>Наименование</label>
-      <input type="text" id="pName-${idx}" list="${datalistId}" placeholder="" autocomplete="off">
-      <datalist id="${datalistId}">${options}</datalist>
-    </div>
-    <div class="form-row" style="margin-bottom:0">
-      <div class="form-group" style="margin-bottom:0">
-        <label>Кол-во</label>
-        <input type="number" id="pQty-${idx}" placeholder="0" min="0" step="0.01"
-          oninput="onLineQtyPrice(${idx})">
-      </div>
-      <div class="form-group" style="margin-bottom:0">
-        <label>Цена за ед.</label>
-        <input type="number" id="pPrice-${idx}" placeholder="0" min="0" step="0.01"
-          oninput="onLinePrice(${idx})">
-      </div>
-      <div class="form-group" style="margin-bottom:0">
-        <label>Сумма</label>
-        <input type="number" id="pSum-${idx}" placeholder="0" min="0" step="0.01"
-          oninput="onLineSum(${idx})">
-      </div>
-    </div>`;
+
+  // Кнопка удаления
+  const del = document.createElement('button');
+  del.className = 'purchase-line-del';
+  del.textContent = '✕';
+  del.addEventListener('click', () => { line.remove(); calcPurchaseTotal(); });
+
+  // Поле названия
+  const nameGroup = document.createElement('div');
+  nameGroup.className = 'form-group';
+  nameGroup.style.marginBottom = '6px';
+  const nameLbl = document.createElement('label');
+  nameLbl.textContent = 'Наименование';
+  const nameInput = document.createElement('input');
+  nameInput.type = 'text';
+  nameInput.id   = `pName-${idx}`;
+  nameInput.setAttribute('list', datalistId);
+  nameInput.autocomplete = 'off';
+  const datalist = document.createElement('datalist');
+  datalist.id = datalistId;
+  allItems.forEach(i => {
+    const opt = document.createElement('option');
+    opt.value = i.name; // это имена позиций из БД, не из формы
+    datalist.appendChild(opt);
+  });
+  nameGroup.append(nameLbl, nameInput, datalist);
+
+  // Строка кол-во / цена / сумма
+  const row = document.createElement('div');
+  row.className = 'form-row';
+  row.style.marginBottom = '0';
+
+  [['pQty', 'Кол-во', '0'], ['pPrice', 'Цена за ед.', '0'], ['pSum', 'Сумма', '0']].forEach(([prefix, label, ph]) => {
+    const g = document.createElement('div');
+    g.className = 'form-group';
+    g.style.marginBottom = '0';
+    const lbl = document.createElement('label');
+    lbl.textContent = label;
+    const inp = document.createElement('input');
+    inp.type = 'number';
+    inp.id   = `${prefix}-${idx}`;
+    inp.placeholder = ph;
+    inp.min  = '0';
+    inp.step = '0.01';
+    inp.addEventListener('input', () => {
+      if (prefix === 'pQty' || prefix === 'pPrice') {
+        const qty   = parseFloat(document.getElementById(`pQty-${idx}`)?.value) || 0;
+        const price = parseFloat(document.getElementById(`pPrice-${idx}`)?.value) || 0;
+        if (qty && price) document.getElementById(`pSum-${idx}`).value = (qty * price).toFixed(2);
+      } else { // pSum
+        const qty = parseFloat(document.getElementById(`pQty-${idx}`)?.value) || 0;
+        const sum = parseFloat(document.getElementById(`pSum-${idx}`)?.value) || 0;
+        if (qty && sum) document.getElementById(`pPrice-${idx}`).value = (sum / qty).toFixed(2);
+      }
+      calcPurchaseTotal();
+    });
+    g.append(lbl, inp);
+    row.appendChild(g);
+  });
+
+  line.append(del, nameGroup, row);
   document.getElementById('purchaseLines').appendChild(line);
-}
-
-// Изменили кол-во или цену → считаем сумму
-function onLineQtyPrice(idx) {
-  const qty   = parseFloat(document.getElementById(`pQty-${idx}`)?.value) || 0;
-  const price = parseFloat(document.getElementById(`pPrice-${idx}`)?.value) || 0;
-  if (qty && price) document.getElementById(`pSum-${idx}`).value = (qty * price).toFixed(2);
-  calcPurchaseTotal();
-}
-
-// Изменили цену → если есть кол-во, пересчитываем сумму
-function onLinePrice(idx) {
-  onLineQtyPrice(idx);
-}
-
-// Изменили сумму → если есть кол-во, обратно считаем цену
-function onLineSum(idx) {
-  const qty = parseFloat(document.getElementById(`pQty-${idx}`)?.value) || 0;
-  const sum = parseFloat(document.getElementById(`pSum-${idx}`)?.value) || 0;
-  if (qty && sum) document.getElementById(`pPrice-${idx}`).value = (sum / qty).toFixed(2);
-  calcPurchaseTotal();
 }
 
 function calcPurchaseTotal() {
   let total = 0;
   document.querySelectorAll('.purchase-line').forEach(line => {
-    const idx = line.id.replace('pline-','');
-    const sum = parseFloat(document.getElementById(`pSum-${idx}`)?.value) || 0;
+    const idx   = line.id.replace('pline-','');
+    const sum   = parseFloat(document.getElementById(`pSum-${idx}`)?.value) || 0;
     const qty   = parseFloat(document.getElementById(`pQty-${idx}`)?.value) || 0;
     const price = parseFloat(document.getElementById(`pPrice-${idx}`)?.value) || 0;
     total += sum || (qty * price);
@@ -993,22 +981,21 @@ function calcPurchaseTotal() {
   const vatPct = parseFloat(document.getElementById('pVat').value) || 0;
   const vatAmt = vatPct > 0 ? Math.round(total * vatPct / 100 * 100) / 100 : 0;
   total += vatAmt;
-  document.getElementById('pTotal').value = fmt(total) + ' ₽' + (vatAmt ? ' (в т.ч. НДС ' + fmt(vatAmt) + ' ₽)' : '');
+  document.getElementById('pTotal').value = fmt(total) + ' ₽' + (vatAmt ? ` (в т.ч. НДС ${fmt(vatAmt)} ₽)` : '');
 }
 
 async function savePurchase() {
   const lines = [];
-  const lineEls = document.querySelectorAll('.purchase-line');
-  for (const line of lineEls) {
+  document.querySelectorAll('.purchase-line').forEach(line => {
     const idx   = line.id.replace('pline-', '');
     const name  = document.getElementById(`pName-${idx}`)?.value.trim();
     const qty   = parseFloat(document.getElementById(`pQty-${idx}`)?.value) || 0;
     const price = parseFloat(document.getElementById(`pPrice-${idx}`)?.value) || 0;
     const sum   = parseFloat(document.getElementById(`pSum-${idx}`)?.value) || (qty * price);
-    if (!name && !sum) continue;
+    if (!name && !sum) return;
     lines.push({ name: name || '—', qty, price: price || (qty ? sum / qty : 0), sum });
-  }
-  if (!lines.length) { alert('Добавьте хотя бы одну позицию'); return; }
+  });
+  if (!lines.length) { toast('⚠ Добавьте хотя бы одну позицию'); return; }
 
   const delivery = parseFloat(document.getElementById('pDelivery').value) || 0;
   const other    = parseFloat(document.getElementById('pOther').value) || 0;
@@ -1016,109 +1003,100 @@ async function savePurchase() {
   const goods    = lines.reduce((s, l) => s + l.sum, 0);
   const vatAmt   = vatPct > 0 ? Math.round((goods + delivery + other) * vatPct / 100 * 100) / 100 : 0;
 
+  const btn = document.getElementById('btnSavePurchase');
+  btn.disabled = true;
+
   const { data: purchase, error: pErr } = await sb.from('purchases').insert({
     studio_id:      studioId,
     supplier_name:  document.getElementById('pSupplier').value.trim() || null,
     invoice_number: document.getElementById('pInvoice').value.trim() || null,
     payment_method: document.getElementById('pPayment').value,
     purchase_date:  document.getElementById('pDate').value,
-    total_goods:    goods,
-    total_delivery: delivery,
+    total_goods:    goods, total_delivery: delivery,
     total_other:    other + vatAmt,
     total_amount:   goods + delivery + other + vatAmt,
     notes:          document.getElementById('pNotes').value.trim() || null,
     created_by:     currentUser.id,
   }).select().single();
-  if (pErr) { alert('Ошибка создания закупки: ' + pErr.message); return; }
+
+  if (pErr) { btn.disabled = false; toast('❌ Ошибка: ' + pErr.message); return; }
 
   for (const line of lines) {
-    // Ищем существующую позицию номенклатуры по имени
     let item = allItems.find(i => i.name.toLowerCase() === line.name.toLowerCase());
-    // Если не нашли — создаём автоматически
     if (!item && line.name !== '—') {
-      const { data: newItem } = await sb.from('inventory_items').insert({
-        studio_id: studioId,
-        name:      line.name,
-        type:      'consumable',
-        unit:      'шт',
-      }).select().single();
+      const { data: newItem } = await sb.from('inventory_items').insert({ studio_id: studioId, name: line.name, type: 'consumable', unit: 'шт' }).select().single();
       if (newItem) { item = newItem; allItems.push(newItem); }
     }
-    await sb.from('purchase_items').insert({
-      purchase_id: purchase.id,
-      item_id:     item?.id || null,
-      qty:         line.qty || 1,
-      unit_price:  line.price,
-      notes:       line.name,
-    });
-    // Транзакция прихода — только если привязали к номенклатуре
+    await sb.from('purchase_items').insert({ purchase_id: purchase.id, item_id: item?.id || null, qty: line.qty || 1, unit_price: line.price, notes: line.name });
     if (item) {
-      await sb.from('inventory_transactions').insert({
-        studio_id:   studioId,
-        item_id:     item.id,
-        purchase_id: purchase.id,
-        type:        'purchase',
-        qty:         line.qty || 1,
-        unit_cost:   line.price,
-        created_by:  currentUser.id,
-      });
+      await sb.from('inventory_transactions').insert({ studio_id: studioId, item_id: item.id, purchase_id: purchase.id, type: 'purchase', qty: line.qty || 1, unit_cost: line.price, created_by: currentUser.id });
     }
   }
 
+  btn.disabled = false;
   closeModal('purchaseModal');
   toast('✅ Закупка проведена');
   await Promise.all([loadItems(), loadRolls(), loadStats()]);
 }
 
-// ── Write-off Modal ───────────────────────────────────────────
-async function openWriteoff(itemId, rollId, e) {
-  if (e) e.stopPropagation();
+// ── Списание ──────────────────────────────────────────────────────────
+function openWriteoff(itemId, rollId) {
   writeoffItemId = itemId;
   const item = allItems.find(i => i.id === itemId);
-  document.getElementById('writeoffItemName').textContent = item?.name || '';
-  document.getElementById('writeoffQty').value   = '';
+  document.getElementById('writeoffItemName').textContent = item?.name || ''; // textContent — безопасно
+  document.getElementById('writeoffQty').value    = '';
   document.getElementById('writeoffCalcId').value = '';
   document.getElementById('writeoffNotes').value  = '';
 
   const rollSection = document.getElementById('writeoffRollSection');
+  const rollSelect  = document.getElementById('writeoffRoll');
+  rollSelect.innerHTML = '';
+
   if (item?.type === 'film') {
     rollSection.style.display = 'block';
     const rolls = allRolls.filter(r => r.item_id === itemId);
-    document.getElementById('writeoffRoll').innerHTML = rolls.map(r =>
-      `<option value="${r.id}" ${r.id === rollId ? 'selected' : ''}>${r.roll_number} — ${fmt(r.qty_remaining)} м</option>`
-    ).join('') || '<option value="">Рулонов нет</option>';
+    if (rolls.length) {
+      rolls.forEach(r => {
+        const opt = document.createElement('option');
+        opt.value = r.id;
+        opt.textContent = `${r.roll_number} — ${fmt(r.qty_remaining)} м`;
+        if (r.id === rollId) opt.selected = true;
+        rollSelect.appendChild(opt);
+      });
+    } else {
+      const opt = document.createElement('option');
+      opt.value = '';
+      opt.textContent = 'Рулонов нет';
+      rollSelect.appendChild(opt);
+    }
   } else {
     rollSection.style.display = 'none';
   }
-  document.getElementById('writeoffModal').style.display = 'flex';
+  openModal('writeoffModal');
 }
 
 async function saveWriteoff() {
   const qty = parseFloat(document.getElementById('writeoffQty').value);
-  if (!qty || qty <= 0) { alert('Укажите количество'); return; }
-  const rollId   = document.getElementById('writeoffRoll').value || null;
-  const calcId   = document.getElementById('writeoffCalcId').value.trim() || null;
-  const notes    = document.getElementById('writeoffNotes').value.trim() || null;
-  const item     = allItems.find(i => i.id === writeoffItemId);
+  if (!qty || qty <= 0) { toast('⚠ Укажите количество'); return; }
+  const rollId = document.getElementById('writeoffRoll').value || null;
+  const calcId = document.getElementById('writeoffCalcId').value.trim() || null;
+  const notes  = document.getElementById('writeoffNotes').value.trim() || null;
+  const item   = allItems.find(i => i.id === writeoffItemId);
 
+  const btn = document.getElementById('btnSaveWriteoff');
+  btn.disabled = true;
   const { error } = await sb.from('inventory_transactions').insert({
-    studio_id:      studioId,
-    item_id:        writeoffItemId,
-    roll_id:        rollId,
-    calculation_id: calcId,
-    type:           'writeoff',
-    qty:            -qty,
-    unit_cost:      item?.avg_cost || 0,
-    notes,
-    created_by:     currentUser.id,
+    studio_id: studioId, item_id: writeoffItemId, roll_id: rollId, calculation_id: calcId,
+    type: 'writeoff', qty: -qty, unit_cost: item?.avg_cost || 0, notes, created_by: currentUser.id,
   });
-  if (error) { alert('Ошибка: ' + error.message); return; }
+  btn.disabled = false;
+  if (error) { toast('❌ Ошибка: ' + error.message); return; }
   closeModal('writeoffModal');
   toast('✅ Списано');
   await Promise.all([loadItems(), loadRolls()]);
 }
 
-// ── Equipment Modal ───────────────────────────────────────────
+// ── Оборудование ──────────────────────────────────────────────────────
 function openEquipModal(id) {
   document.getElementById('equipModalTitle').textContent = id ? 'Редактировать оборудование' : 'Новое оборудование';
   if (id) {
@@ -1140,21 +1118,20 @@ function openEquipModal(id) {
     document.getElementById('equipNotes').value        = eq.notes || '';
   } else {
     document.getElementById('equipId').value = '';
-    ['equipSku','equipCategory','equipName','equipBrand','equipModel','equipSerial','equipPurchaseDate','equipPrice','equipLife','equipSupplier','equipLocation','equipNotes'].forEach(f => document.getElementById(f).value = '');
+    ['equipSku','equipCategory','equipName','equipBrand','equipModel','equipSerial','equipPurchaseDate','equipPrice','equipLife','equipSupplier','equipLocation','equipNotes'].forEach(f => { document.getElementById(f).value = ''; });
     document.getElementById('equipCondition').value = 'good';
   }
-  document.getElementById('equipModal').style.display = 'flex';
+  openModal('equipModal');
 }
 
 async function saveEquipment() {
   const id   = document.getElementById('equipId').value;
   const name = document.getElementById('equipName').value.trim();
-  if (!name) { alert('Введите название'); return; }
+  if (!name) { toast('⚠ Введите название'); return; }
   const payload = {
-    studio_id:          studioId,
+    studio_id: studioId, name,
     sku:                document.getElementById('equipSku').value.trim() || null,
     category:           document.getElementById('equipCategory').value.trim() || null,
-    name,
     brand:              document.getElementById('equipBrand').value.trim() || null,
     model:              document.getElementById('equipModel').value.trim() || null,
     serial_number:      document.getElementById('equipSerial').value.trim() || null,
@@ -1166,80 +1143,166 @@ async function saveEquipment() {
     location:           document.getElementById('equipLocation').value.trim() || null,
     notes:              document.getElementById('equipNotes').value.trim() || null,
   };
-  let error;
-  if (id) {
-    ({ error } = await sb.from('equipment').update({ ...payload, updated_at: new Date().toISOString() }).eq('id', id));
-  } else {
-    ({ error } = await sb.from('equipment').insert(payload));
-  }
-  if (error) { alert('Ошибка: ' + error.message); return; }
+  const btn = document.getElementById('btnSaveEquip');
+  btn.disabled = true;
+  const { error } = id
+    ? await sb.from('equipment').update({ ...payload, updated_at: new Date().toISOString() }).eq('id', id)
+    : await sb.from('equipment').insert(payload);
+  btn.disabled = false;
+  if (error) { toast('❌ Ошибка: ' + error.message); return; }
   closeModal('equipModal');
   toast('✅ Оборудование сохранено');
   await loadEquipment();
 }
 
-// ── Equipment Assignment ──────────────────────────────────────
+// ── Выдача / возврат оборудования ─────────────────────────────────────
 function openAssignModal(equipId) {
   document.getElementById('assignEquipId').value = equipId;
   const eq = allEquipment.find(e => e.id === equipId);
-  document.getElementById('assignEquipName').textContent = eq?.name || '';
+  document.getElementById('assignEquipName').textContent = eq?.name || ''; // textContent
   document.getElementById('assignName').value    = '';
   document.getElementById('assignIssued').value  = new Date().toISOString().split('T')[0];
   document.getElementById('assignReturn').value  = '';
   document.getElementById('assignPurpose').value = '';
-  document.getElementById('assignCondition').value = eq?.condition ? { excellent:'Отличное', good:'Хорошее', fair:'Требует обслуживания', poor:'Плохое' }[eq.condition] : '';
-  document.getElementById('assignModal').style.display = 'flex';
+  document.getElementById('assignCondition').value = eq?.condition ? conditionLabel[eq.condition] || '' : '';
+  openModal('assignModal');
 }
 
 async function saveAssignment() {
   const equipId = document.getElementById('assignEquipId').value;
   const name    = document.getElementById('assignName').value.trim();
-  if (!name) { alert('Укажите сотрудника'); return; }
+  if (!name) { toast('⚠ Укажите сотрудника'); return; }
+  const btn = document.getElementById('btnSaveAssign');
+  btn.disabled = true;
   const { error } = await sb.from('equipment_assignments').insert({
-    studio_id:        studioId,
-    equipment_id:     equipId,
-    executor_name:    name,
+    studio_id:        studioId, equipment_id: equipId, executor_name: name,
     issued_at:        document.getElementById('assignIssued').value || new Date().toISOString(),
     expected_return:  document.getElementById('assignReturn').value || null,
     purpose:          document.getElementById('assignPurpose').value.trim() || null,
     condition_issued: document.getElementById('assignCondition').value.trim() || null,
     created_by:       currentUser.id,
   });
-  if (error) { alert('Ошибка: ' + error.message); return; }
+  btn.disabled = false;
+  if (error) { toast('❌ Ошибка: ' + error.message); return; }
   closeModal('assignModal');
   toast('✅ Оборудование выдано');
   await loadEquipment();
 }
 
-async function returnEquipment(assignmentId, equipId) {
-  const condition = prompt('Состояние при возврате (опционально):') ?? '';
+async function returnEquipment(assignmentId) {
   const { error } = await sb.from('equipment_assignments').update({
-    returned_at:        new Date().toISOString(),
-    condition_returned: condition || null,
+    returned_at: new Date().toISOString(),
   }).eq('id', assignmentId);
-  if (error) { alert('Ошибка: ' + error.message); return; }
+  if (error) { toast('❌ Ошибка: ' + error.message); return; }
   toast('✅ Оборудование возвращено');
   await loadEquipment();
 }
 
-// ── Modal helpers ─────────────────────────────────────────────
-function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-function closeOnOverlay(e, id) { if (e.target === document.getElementById(id)) closeModal(id); }
+// ── Делегирование событий ─────────────────────────────────────────────
+function bindEvents() {
+  // Табы
+  document.getElementById('tabsBar').addEventListener('click', e => {
+    const btn = e.target.closest('.tab-btn');
+    if (btn?.dataset.tab) switchTab(btn.dataset.tab);
+  });
 
-// ── Toast ─────────────────────────────────────────────────────
-function toast(msg) {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.classList.add('show');
-  setTimeout(() => el.classList.remove('show'), 2800);
+  // Шапка
+  document.getElementById('btnNewItem').addEventListener('click', () => openItemModal(null));
+  document.getElementById('btnNewPurchase').addEventListener('click', () => openPurchaseModal());
+
+  // Закрытие модалок по data-close и по клику на оверлей
+  document.addEventListener('click', e => {
+    const closeTarget = e.target.closest('[data-close]');
+    if (closeTarget) { closeModal(closeTarget.dataset.close); return; }
+    // клик на overlay
+    if (e.target.classList.contains('modal-overlay')) {
+      e.target.style.display = 'none';
+    }
+  });
+
+  // Списки — делегирование
+  ['filmList', 'consumableList', 'equipList'].forEach(listId => {
+    document.getElementById(listId).addEventListener('click', e => {
+      const btn = e.target.closest('[data-action]');
+      if (!btn) return;
+      const { action, id, rollId, assignId } = btn.dataset;
+      if (action === 'toggle') {
+        const bodyEl = document.getElementById(btn.dataset.bodyId || id);
+        if (bodyEl) bodyEl.classList.toggle('open');
+        return;
+      }
+      const header = e.target.closest('.item-header');
+      if (header?.dataset.action === 'toggle') {
+        const bodyEl = document.getElementById(header.dataset.bodyId);
+        if (bodyEl) bodyEl.classList.toggle('open');
+        return;
+      }
+      if (action === 'writeoff')      openWriteoff(id, null);
+      if (action === 'writeoff-roll') openWriteoff(id, rollId);
+      if (action === 'edit-item')     openItemModal(id, e);
+      if (action === 'purchase')      openPurchaseModal(id);
+      if (action === 'assign')        openAssignModal(id);
+      if (action === 'return')        returnEquipment(btn.dataset.assignId);
+      if (action === 'edit-equip')    openEquipModal(id);
+    });
+
+    // toggle по клику на header (без data-action на самом header-е)
+    document.getElementById(listId).addEventListener('click', e => {
+      const header = e.target.closest('.item-header');
+      if (!header) return;
+      const bodyId = header.dataset.bodyId;
+      if (bodyId) { const b = document.getElementById(bodyId); if (b) b.classList.toggle('open'); }
+    });
+  });
+
+  // Модал позиции
+  document.getElementById('itemType').addEventListener('change', onItemTypeChange);
+  document.getElementById('btnSaveItem').addEventListener('click', saveItem);
+
+  // Закупка
+  document.getElementById('btnAddPurchaseLine').addEventListener('click', addPurchaseLine);
+  document.getElementById('btnSavePurchase').addEventListener('click', savePurchase);
+  document.getElementById('pPayment').addEventListener('change', () => {
+    const val = document.getElementById('pPayment').value;
+    document.getElementById('vatRow').style.display = val === 'vat' ? 'block' : 'none';
+    calcPurchaseTotal();
+  });
+  document.getElementById('pVat').addEventListener('input', calcPurchaseTotal);
+  document.getElementById('pDelivery').addEventListener('input', calcPurchaseTotal);
+  document.getElementById('pOther').addEventListener('input', calcPurchaseTotal);
+
+  // Списание / оборудование / выдача
+  document.getElementById('btnSaveWriteoff').addEventListener('click', saveWriteoff);
+  document.getElementById('btnSaveEquip').addEventListener('click', saveEquipment);
+  document.getElementById('btnSaveAssign').addEventListener('click', saveAssignment);
 }
 
-// Input listeners for purchase total
-document.addEventListener('input', e => {
-  if (e.target.id === 'pDelivery' || e.target.id === 'pOther') calcPurchaseTotal();
-});
+// ── Init ──────────────────────────────────────────────────────────────
+async function initPage() {
+  initNav({ actionHref: 'calculator.html', actionLabel: '➕ Новый расчёт' });
+  bindEvents();
 
-init();
+  const user = await requireAuth({ redirectTo: 'welcome.html' });
+  if (!user) return;
+  currentUser = user;
+
+  let ctx;
+  try {
+    ctx = await getStudioContext();
+  } catch (err) {
+    console.error('[inventory] getStudioContext:', err);
+    toast('❌ Ошибка загрузки студии');
+    return;
+  }
+  if (!ctx?.studioId) { toast('⚠ Студия не найдена'); return; }
+  studioId = ctx.studioId;
+  window._studioId = studioId;
+
+  await Promise.all([loadItems(), loadRolls(), loadEquipment()]);
+  await loadStats();
+}
+
+document.addEventListener('DOMContentLoaded', initPage);
 </script>
 </body>
 </html>
