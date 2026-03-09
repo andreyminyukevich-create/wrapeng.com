@@ -9,6 +9,7 @@
 <link rel="stylesheet" href="nav.css">
 <script src="nav.js"></script>
 <style>
+body { visibility: hidden; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
@@ -681,6 +682,7 @@ function render() {
 // ── Init ──────────────────────────────────────────────
 async function init() {
   initNav();
+  document.body.style.visibility = 'visible';
   loadWidgetSettings();
 
   var sessionData = await sb.auth.getSession();
