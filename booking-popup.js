@@ -111,32 +111,26 @@ const CSS = `
   font-size:0.75rem; color:#2563eb; font-weight:700; flex-shrink:0;
 }
 .bp-svc-row { flex-wrap:wrap; gap:8px; align-items:flex-start; }
-.bp-svc-header { display:flex; align-items:center; gap:10px; width:100%; }
+.bp-svc-header { display:flex; align-items:center; gap:10px; width:100%; flex-wrap:wrap; }
 .bp-svc-exec-cards {
-  display:flex; flex-wrap:wrap; gap:6px; width:100%; padding-top:2px;
+  display:flex; flex-wrap:wrap; gap:7px; width:100%; padding-top:2px;
 }
 .bp-exec-card {
-  display:flex; align-items:center; gap:7px;
-  padding:6px 10px 6px 7px; border-radius:9px;
+  display:flex; flex-direction:column; gap:2px;
+  padding:8px 14px; border-radius:10px;
   border:1.5px solid rgba(15,23,42,0.08); background:#f8fafc;
   cursor:pointer; transition:all 0.15s; font-family:inherit;
-  text-align:left;
+  text-align:left; min-width:130px;
 }
 .bp-exec-card:hover { border-color:#2563eb; background:rgba(37,99,235,0.04); }
-.bp-exec-card.selected { border-color:#059669; background:rgba(5,150,105,0.07); }
-.bp-exec-card.selected-busy { border-color:#d97706; background:rgba(217,119,6,0.07); }
-.bp-exec-card-avatar {
-  width:26px; height:26px; border-radius:50%; flex-shrink:0;
-  background:rgba(37,99,235,0.1); color:#2563eb;
-  font-size:0.68rem; font-weight:800;
-  display:flex; align-items:center; justify-content:center;
-}
-.bp-exec-card.selected .bp-exec-card-avatar { background:rgba(5,150,105,0.15); color:#059669; }
-.bp-exec-card.selected-busy .bp-exec-card-avatar { background:rgba(217,119,6,0.15); color:#d97706; }
-.bp-exec-card-name { font-size:0.78rem; font-weight:700; color:#0f172a; white-space:nowrap; }
+.bp-exec-card.selected { border-color:#059669; background:rgba(5,150,105,0.06); box-shadow:0 0 0 3px rgba(5,150,105,0.1); }
+.bp-exec-card.selected-busy { border-color:#d97706; background:rgba(217,119,6,0.06); box-shadow:0 0 0 3px rgba(217,119,6,0.1); }
+.bp-exec-card-name { font-size:0.85rem; font-weight:700; color:#0f172a; }
+.bp-exec-card-role { font-size:0.72rem; color:#64748b; font-weight:600; }
 .bp-exec-card-status {
-  font-size:0.68rem; font-weight:600; white-space:nowrap;
-  padding:1px 6px; border-radius:8px; margin-left:2px;
+  font-size:0.72rem; font-weight:700;
+  padding:2px 7px; border-radius:8px;
+  display:inline-block; margin-top:3px; align-self:flex-start;
 }
 .bp-exec-card-status.free { color:#059669; background:rgba(5,150,105,0.1); }
 .bp-exec-card-status.busy { color:#d97706; background:rgba(217,119,6,0.1); }
@@ -193,19 +187,28 @@ const CSS = `
 .bp-day-dot { width:4px; height:4px; border-radius:50%; background:#f59e0b; }
 
 .bp-pick-hint {
-  font-size:0.72rem; color:#64748b; margin:7px 0 8px;
-  text-align:center; font-weight:600; min-height:18px;
+  font-size:0.72rem; color:#64748b; margin:5px 0 0;
+  text-align:center; font-weight:600; min-height:16px;
 }
 .bp-pick-hint span { color:#2563eb; font-weight:800; }
-.bp-dates-display { display:flex; gap:8px; margin-top:0; }
-.bp-date-pill {
-  flex:1; background:#f8fafc; border:1.5px solid rgba(15,23,42,0.08);
-  border-radius:9px; padding:8px 12px; text-align:center; transition:all 0.15s;
+.bp-date-mode-row {
+  display:flex; align-items:center; gap:6px; margin-bottom:10px;
 }
-.bp-date-pill.active { border-color:#2563eb; background:rgba(37,99,235,0.04); }
-.bp-date-pill-lbl { font-size:0.6rem; font-weight:700; text-transform:uppercase; letter-spacing:0.07em; color:#94a3b8; margin-bottom:2px; }
-.bp-date-pill-val { font-size:0.88rem; font-weight:800; color:#0f172a; }
-.bp-date-pill-val.empty { color:#d1d5db; }
+.bp-date-mode-arrow { color:#cbd5e1; font-size:1rem; flex-shrink:0; }
+.bp-date-mode-btn {
+  flex:1; padding:9px 12px; border-radius:10px; text-align:left;
+  border:1.5px solid rgba(15,23,42,0.08); background:#f8fafc;
+  cursor:pointer; font-family:inherit; transition:all 0.15s;
+}
+.bp-date-mode-btn:hover { border-color:#2563eb; background:rgba(37,99,235,0.04); }
+.bp-date-mode-btn.active {
+  border-color:#2563eb; background:rgba(37,99,235,0.06);
+  box-shadow:0 0 0 3px rgba(37,99,235,0.1);
+}
+.bp-date-mode-btn.filled { border-color:rgba(15,23,42,0.12); background:#fff; }
+.bp-date-mode-lbl { font-size:0.62rem; font-weight:700; text-transform:uppercase; letter-spacing:0.07em; color:#94a3b8; margin-bottom:3px; }
+.bp-date-mode-val { font-size:0.88rem; font-weight:800; color:#0f172a; }
+.bp-date-mode-val.empty { color:#c0ccda; font-weight:600; font-size:0.78rem; }
 
 .bp-note-col {}
 .bp-note-wrap { display:flex; flex-direction:column; gap:0; }
@@ -404,17 +407,18 @@ function buildDOM() {
             <button onclick="BookingPopup._nextMonth()">&#x203A;</button>
           </div>
           <div class="bp-cal-grid" id="bpCalGrid"></div>
-          <div class="bp-pick-hint" id="bpPickHint">Кликните на <span>дату заезда</span></div>
-          <div class="bp-dates-display">
-            <div class="bp-date-pill" id="bpPillFrom">
-              <div class="bp-date-pill-lbl">Заезд</div>
-              <div class="bp-date-pill-val empty" id="bpFromLbl">—</div>
-            </div>
-            <div class="bp-date-pill" id="bpPillTo">
-              <div class="bp-date-pill-lbl">Выезд</div>
-              <div class="bp-date-pill-val empty" id="bpToLbl">—</div>
-            </div>
+          <div class="bp-date-mode-row">
+            <button class="bp-date-mode-btn active" id="bpModeFrom" onclick="BookingPopup._setMode('from')">
+              <div class="bp-date-mode-lbl">&#x1F4CD; Заезд</div>
+              <div class="bp-date-mode-val" id="bpFromLbl">выберите дату</div>
+            </button>
+            <div class="bp-date-mode-arrow">&#x2192;</div>
+            <button class="bp-date-mode-btn" id="bpModeTo" onclick="BookingPopup._setMode('to')">
+              <div class="bp-date-mode-lbl">&#x1F3C1; Выезд</div>
+              <div class="bp-date-mode-val" id="bpToLbl">выберите дату</div>
+            </button>
           </div>
+          <div class="bp-pick-hint" id="bpPickHint"></div>
           <div class="bp-conflict" id="bpConflict">&#x26A0;&#xFE0F; На посту в эти даты уже есть запись. Убедитесь что пост вмещает несколько машин.</div>
         </div>
         <div class="bp-note-col">
@@ -578,11 +582,9 @@ function renderServices() {
       }
 
       return `<button class="${cardCls}" onclick="BookingPopup._assignExec('${svc.key}','${e.id}',this)">
-        <div class="bp-exec-card-avatar">${ini}</div>
-        <div>
-          <div class="bp-exec-card-name">${e.full_name.split(' ')[0]} ${(e.full_name.split(' ')[1]||'')[0]||''}.</div>
-          ${statusHtml}
-        </div>
+        <div class="bp-exec-card-name">${e.full_name}</div>
+        <div class="bp-exec-card-role">${roleRu(e.role)}</div>
+        ${statusHtml}
       </button>`;
     }).join('');
 
@@ -759,23 +761,38 @@ function renderCalendar() {
 
   el.innerHTML = html;
 
-  const fromEl = document.getElementById('bpFromLbl');
-  const toEl   = document.getElementById('bpToLbl');
-  const hint   = document.getElementById('bpPickHint');
-  if (fromEl) { fromEl.textContent = _dateFrom ? formatRu(_dateFrom) : '—'; fromEl.classList.toggle('empty', !_dateFrom); }
-  if (toEl)   { toEl.textContent   = _dateTo   ? formatRu(_dateTo)   : '—'; toEl.classList.toggle('empty', !_dateTo); }
+  const fromEl   = document.getElementById('bpFromLbl');
+  const toEl     = document.getElementById('bpToLbl');
+  const modeFrom = document.getElementById('bpModeFrom');
+  const modeTo   = document.getElementById('bpModeTo');
+  const hint     = document.getElementById('bpPickHint');
 
-  const pf = document.getElementById('bpPillFrom');
-  const pt = document.getElementById('bpPillTo');
-  if (pf) pf.classList.toggle('active', _picking === 'from' && !_dateTo);
-  if (pt) pt.classList.toggle('active', _picking === 'to');
+  if (fromEl) {
+    fromEl.textContent = _dateFrom ? formatRu(_dateFrom) : 'выберите дату';
+    fromEl.className = 'bp-date-mode-val' + (_dateFrom ? '' : ' empty');
+  }
+  if (toEl) {
+    toEl.textContent = _dateTo ? formatRu(_dateTo) : 'выберите дату';
+    toEl.className = 'bp-date-mode-val' + (_dateTo ? '' : ' empty');
+  }
+
+  if (modeFrom) {
+    modeFrom.className = 'bp-date-mode-btn';
+    if (_picking === 'from') modeFrom.classList.add('active');
+    else if (_dateFrom) modeFrom.classList.add('filled');
+  }
+  if (modeTo) {
+    modeTo.className = 'bp-date-mode-btn';
+    if (_picking === 'to') modeTo.classList.add('active');
+    else if (_dateTo) modeTo.classList.add('filled');
+  }
 
   if (hint) {
-    if (!_dateFrom && !_dateTo) hint.innerHTML = 'Кликните на <span>дату заезда</span>';
-    else if (_dateFrom && !_dateTo) hint.innerHTML = 'Теперь выберите <span>дату выезда</span>';
-    else {
+    if (_dateFrom && _dateTo) {
       const days = Math.round((parseDate(_dateTo) - parseDate(_dateFrom)) / 86400000) + 1;
-      hint.innerHTML = `<span>${formatRu(_dateFrom)}</span> — <span>${formatRu(_dateTo)}</span> · ${days} дн.`;
+      hint.innerHTML = `<span>${days} ${days===1?'день':days<5?'дня':'дней'}</span>`;
+    } else {
+      hint.innerHTML = '';
     }
   }
   checkConflict();
@@ -874,6 +891,11 @@ window.BookingPopup = {
     renderExecWarnings();
   },
 
+  _setMode: function(mode) {
+    _picking = mode;
+    renderCalendar();
+  },
+
   _prevMonth: function() {
     _viewMonth--; if (_viewMonth < 0) { _viewMonth = 11; _viewYear--; }
     renderCalendar();
@@ -884,19 +906,22 @@ window.BookingPopup = {
   },
 
   _pickDate: function(ds) {
-    if (!_dateFrom && !_dateTo) {
-      _dateFrom = ds; _picking = 'to';
-    } else if (_dateFrom && !_dateTo) {
-      if (ds === _dateFrom)  { _dateFrom = null; _picking = 'from'; }
-      else if (ds < _dateFrom) { _dateFrom = ds; }
-      else { _dateTo = ds; _picking = 'from'; }
+    if (_picking === 'from') {
+      _dateFrom = ds;
+      // Если выезд раньше нового заезда — сбрасываем выезд
+      if (_dateTo && ds > _dateTo) _dateTo = null;
+      // Автопереключаемся на выезд
+      _picking = 'to';
     } else {
-      const diffFrom = Math.abs(parseDate(ds) - parseDate(_dateFrom));
-      const diffTo   = Math.abs(parseDate(ds) - parseDate(_dateTo));
-      if (diffFrom <= diffTo) {
-        if (ds > _dateTo) { _dateFrom = _dateTo; _dateTo = ds; } else _dateFrom = ds;
+      // picking === 'to'
+      if (ds < _dateFrom) {
+        // Кликнули раньше заезда — сдвигаем заезд, выезд сбрасываем
+        _dateFrom = ds; _dateTo = null;
+      } else if (ds === _dateFrom) {
+        // Одна дата = заезд = выезд
+        _dateTo = ds; _picking = 'from';
       } else {
-        if (ds < _dateFrom) { _dateTo = _dateFrom; _dateFrom = ds; } else _dateTo = ds;
+        _dateTo = ds; _picking = 'from';
       }
     }
     renderCalendar();
