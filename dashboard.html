@@ -402,69 +402,23 @@ body {
   .stat-value { font-size: 1.4rem; }
   .mini-kanban { grid-template-columns: repeat(6, minmax(120px, 1fr)); }
 }
-@media (max-width: 480px) {
-  .container { padding: 12px 12px 100px; }
+@media (max-width: 640px) {
+  .container { padding: 14px 12px 24px; }
+  .page-header-actions { display: none !important; }
   .page-header { margin-bottom: 14px; }
   .studio-name { font-size: 1.05rem; }
-  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 14px; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 12px; }
   .stat-card { padding: 14px 14px 12px; border-radius: 14px; }
   .stat-icon { font-size: 1.1rem; margin-bottom: 8px; }
-  .stat-value { font-size: 1.3rem; }
+  .stat-value { font-size: 1.35rem; }
   .stat-label { font-size: 0.62rem; }
   .search-input { max-width: 100%; font-size: 0.9rem; }
-  .card { padding: 14px 14px; border-radius: 14px; }
-  .card-title { font-size: 0.88rem; }
-
-  /* Канбан на мобильном — горизонтальный скролл с snap */
-  .mini-kanban {
-    grid-template-columns: repeat(6, minmax(150px, 1fr));
-    gap: 8px;
-    scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
-    padding-bottom: 8px;
-  }
-  .mini-col {
-    scroll-snap-align: start;
-    min-width: 150px;
-  }
-  .mini-card-car { font-size: 0.8rem; }
-  .mini-card-price { font-size: 0.75rem; }
+  .card-kanban { display: none; }
 }
-
-/* ── Мобильные быстрые действия ──────────────────── */
-.mobile-quick-actions {
-  display: none;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-bottom: 14px;
+@media (max-width: 480px) {
+  .search-input { max-width: 100%; }
+  .stats-grid { gap: 8px; }
 }
-@media (max-width: 640px) {
-  .mobile-quick-actions { display: grid; }
-}
-.mqa-btn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  padding: 14px 10px;
-  background: #fff;
-  border: 1px solid rgba(15,23,42,0.08);
-  border-radius: 14px;
-  font-family: inherit;
-  cursor: pointer;
-  text-decoration: none;
-  color: #0f172a;
-  transition: all 0.15s;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-}
-.mqa-btn:active { transform: scale(0.97); }
-.mqa-icon { font-size: 1.5rem; }
-.mqa-label { font-size: 0.72rem; font-weight: 700; color: #64748b; text-align: center; line-height: 1.2; }
-.mqa-btn.primary { background: #2563eb; border-color: #2563eb; box-shadow: 0 3px 12px rgba(37,99,235,0.25); }
-.mqa-btn.primary .mqa-label { color: rgba(255,255,255,0.85); }
-.mqa-btn.amber { background: #fff7ed; border-color: rgba(245,158,11,0.3); }
-
 </style>
 </head>
 <body>
@@ -477,30 +431,10 @@ body {
       <div class="studio-name" id="studioNameHeader">Загрузка...</div>
       <div class="studio-sub" id="studioSubheader">Keep1R CRM</div>
     </div>
-    <div style="display:flex;gap:8px;align-items:center">
+    <div style="display:flex;gap:8px;align-items:center" class="page-header-actions">
       <a href="settings.html" class="btn-logout" style="display:inline-flex;align-items:center;gap:5px;text-decoration:none;color:#64748b">⚙️ Настройки</a>
       <button class="btn-logout" onclick="logout()">Выйти →</button>
     </div>
-  </div>
-
-  <!-- Быстрые действия (только мобильный) -->
-  <div class="mobile-quick-actions">
-    <a href="calculator.html" class="mqa-btn primary">
-      <span class="mqa-icon">➕</span>
-      <span class="mqa-label">Новый расчёт</span>
-    </a>
-    <button class="mqa-btn amber" onclick="window._openNavBooking()">
-      <span class="mqa-icon">📅</span>
-      <span class="mqa-label">Записать авто</span>
-    </button>
-    <a href="board.html" class="mqa-btn">
-      <span class="mqa-icon">📋</span>
-      <span class="mqa-label">Доска заказов</span>
-    </a>
-    <a href="analytics.html" class="mqa-btn">
-      <span class="mqa-icon">📊</span>
-      <span class="mqa-label">Аналитика</span>
-    </a>
   </div>
 
   <!-- Стат-карточки -->
@@ -552,7 +486,7 @@ body {
   </div>
 
   <!-- Мини-канбан -->
-  <div class="card">
+  <div class="card card-kanban">
     <div class="card-header">
       <span class="card-title">📋 В работе</span>
       <a href="board.html" class="card-link">Открыть всё →</a>
