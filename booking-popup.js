@@ -381,24 +381,9 @@ function buildDOM() {
     </div>
     <div class="bp-section-divider" style="margin:16px 26px 0"></div>
 
-    <!-- 2. Пост -->
-    <div class="bp-section">
-      <div class="bp-section-title">&#x1F3D7; Рабочий пост</div>
-      <div id="bpPosts"><div class="bp-empty">&#x23F3; Загрузка...</div></div>
-    </div>
-    <div class="bp-section-divider" style="margin:16px 26px 0"></div>
-
-    <!-- 3. Услуги + исполнители -->
-    <div class="bp-section">
-      <div class="bp-section-title">&#x1F527; Услуги и исполнители</div>
-      <div id="bpServices"><div class="bp-svc-no-calc">Выберите расчёт — увидите список услуг</div></div>
-      <div id="bpExecWarnings" class="bp-exec-warnings"></div>
-    </div>
-    <div class="bp-section-divider" style="margin:16px 26px 0"></div>
-
-    <!-- 4. Даты + комментарий -->
+    <!-- 2. Даты -->
     <div class="bp-section" style="padding-bottom:4px">
-      <div class="bp-section-title">&#x1F4C6; Даты и комментарий</div>
+      <div class="bp-section-title">&#x1F4C6; Даты</div>
       <div class="bp-dates-row">
         <div class="bp-cal-col">
           <div class="bp-month-nav">
@@ -428,6 +413,21 @@ function buildDOM() {
           </div>
         </div>
       </div>
+    </div>
+    <div class="bp-section-divider" style="margin:16px 26px 0"></div>
+
+    <!-- 3. Пост -->
+    <div class="bp-section">
+      <div class="bp-section-title">&#x1F3D7; Рабочий пост</div>
+      <div id="bpPosts"><div class="bp-empty">&#x23F3; Загрузка...</div></div>
+    </div>
+    <div class="bp-section-divider" style="margin:16px 26px 0"></div>
+
+    <!-- 4. Услуги + исполнители -->
+    <div class="bp-section">
+      <div class="bp-section-title">&#x1F527; Услуги и исполнители</div>
+      <div id="bpServices"><div class="bp-svc-no-calc">Выберите расчёт — увидите список услуг</div></div>
+      <div id="bpExecWarnings" class="bp-exec-warnings"></div>
     </div>
 
     <!-- Футер -->
@@ -574,11 +574,13 @@ function renderServices() {
       if (isSelected) cardCls += isBusy ? ' selected-busy' : ' selected';
 
       let statusHtml = '';
-      if (isBusy) {
-        const freeDate = execNextFree(e.id);
-        statusHtml = `<span class="bp-exec-card-status busy">до ${formatRu(busy.date_to)}</span>`;
-      } else {
-        statusHtml = `<span class="bp-exec-card-status free">свободен</span>`;
+      if (_dateFrom && _dateTo) {
+        // Показываем статус только когда даты выбраны
+        if (isBusy) {
+          statusHtml = `<span class="bp-exec-card-status busy">занят до ${formatRu(busy.date_to)}</span>`;
+        } else {
+          statusHtml = `<span class="bp-exec-card-status free">свободен</span>`;
+        }
       }
 
       return `<button class="${cardCls}" onclick="BookingPopup._assignExec('${svc.key}','${e.id}',this)">
@@ -926,6 +928,8 @@ window.BookingPopup = {
     }
     renderCalendar();
     renderPosts();
+    renderServices();
+    renderExecWarnings();
   },
 
   _save: async function() {
