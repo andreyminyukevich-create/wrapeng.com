@@ -371,8 +371,10 @@ async function loadData() {
   renderCalcSelect();
   renderPosts();
 
-  // Если calcId уже передан при открытии — подгружаем услуги
+  // Если calcId уже передан при открытии — выбираем и подгружаем услуги
   if (_calcId) {
+    const sel = document.getElementById('bpCalcSel');
+    if (sel) sel.value = _calcId;
     _onCalcSelectInternal(_calcId);
   }
 }
@@ -615,8 +617,8 @@ function _onCalcSelectInternal(id) {
 
   const titleEl = document.getElementById('bpCarTitle');
   const priceEl = document.getElementById('bpCarPrice');
-  if (titleEl) titleEl.textContent = calc ? `&#x1F4C5; ${calc.car_name}` : '&#x1F4C5; Записать авто';
-  if (priceEl) priceEl.innerHTML   = calc ? `&#x20BD; ${fmt(calc.final_price || calc.total_price || 0)}` : '';
+  if (titleEl) titleEl.innerHTML = calc ? `&#x1F4C5; ${calc.car_name}` : '&#x1F4C5; Записать авто';
+  if (priceEl) priceEl.innerHTML = calc ? `&#x20BD; ${fmt(calc.final_price || calc.total_price || 0)}` : '';
 
   _serviceExecs  = {};
   _calcServices  = calc ? extractServices(calc) : [];
@@ -640,8 +642,8 @@ window.BookingPopup = {
 
     const titleEl = document.getElementById('bpCarTitle');
     const priceEl = document.getElementById('bpCarPrice');
-    if (titleEl) titleEl.textContent = calcName ? `&#x1F4C5; ${calcName}` : '&#x1F4C5; Записать авто';
-    if (priceEl) priceEl.innerHTML   = calcPrice ? `&#x20BD; ${fmt(calcPrice)}` : '';
+    if (titleEl) titleEl.innerHTML = calcName ? `&#x1F4C5; ${calcName}` : '&#x1F4C5; Записать авто';
+    if (priceEl) priceEl.innerHTML = calcPrice ? `&#x20BD; ${fmt(calcPrice)}` : '';
     document.getElementById('bpNote').value = '';
 
     BookingPopup._switchTab('calc');
