@@ -9,6 +9,7 @@
 <link rel="stylesheet" href="nav.css">
 <script src="nav.js"></script>
 <style>
+body { visibility: hidden; }
 :root {
   --font:         -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
   --bg:           #eef2f9;
@@ -1053,6 +1054,7 @@ document.querySelectorAll('.modal').forEach(m => {
 
 async function init() {
   initNav();
+  document.body.style.visibility = 'visible';
   if (!await checkAuth()) return;
   if (!await getStudio()) return;
   await loadBoard();
