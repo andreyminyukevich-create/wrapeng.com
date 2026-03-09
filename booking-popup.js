@@ -12,8 +12,9 @@ const CSS = `
 #bpOverlay {
   display:none; position:fixed; inset:0; z-index:4000;
   background:rgba(15,23,42,0.55); backdrop-filter:blur(6px);
-  align-items:center; justify-content:center;
-  padding:16px;
+  align-items:flex-start; justify-content:center;
+  padding:24px 16px 40px;
+  overflow-y:auto;
   font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica Neue',Arial,sans-serif;
 }
 #bpOverlay.active { display:flex; animation:bpFadeIn 0.15s ease; }
@@ -23,8 +24,8 @@ const CSS = `
 #bpBox {
   background:#fff; border-radius:18px;
   border:1px solid rgba(15,23,42,0.08);
-  width:100%; max-width:780px; max-height:92svh;
-  overflow-y:auto; display:flex; flex-direction:column;
+  width:100%; max-width:780px;
+  display:flex; flex-direction:column;
   box-shadow:0 24px 80px rgba(0,0,0,0.2);
   animation:bpSlideUp 0.18s ease;
 }
@@ -118,6 +119,7 @@ const CSS = `
 }
 .bp-svc-exec-select:focus { border-color:#2563eb; }
 .bp-svc-exec-select.assigned { border-color:#059669; background:rgba(5,150,105,0.05); color:#065f46; }
+.bp-svc-exec-select.busy-assigned { border-color:#d97706; background:rgba(217,119,6,0.07); color:#92400e; }
 .bp-svc-no-calc {
   padding:12px 14px; background:#f8fafc; border-radius:10px;
   font-size:0.82rem; color:#94a3b8; text-align:center;
@@ -216,6 +218,24 @@ const CSS = `
 .bp-btn-save:disabled { opacity:0.5; cursor:not-allowed; }
 .bp-empty { color:#94a3b8; font-size:0.82rem; padding:8px 0; }
 
+/* Блок предупреждений о занятости */
+.bp-exec-warnings {
+  margin-top:10px; display:flex; flex-direction:column; gap:5px;
+}
+.bp-exec-warn-row {
+  display:flex; align-items:flex-start; gap:8px; padding:7px 11px;
+  background:rgba(217,119,6,0.07); border:1px solid rgba(217,119,6,0.25);
+  border-radius:8px; font-size:0.78rem; color:#92400e; font-weight:600;
+}
+.bp-exec-warn-row.free {
+  background:rgba(5,150,105,0.06); border-color:rgba(5,150,105,0.2); color:#065f46;
+}
+.bp-exec-warn-icon { flex-shrink:0; font-size:0.85rem; }
+/* Точки занятости исполнителей на календаре */
+.bp-day-dots { display:flex; gap:2px; justify-content:center; }
+.bp-day-exec-dot { width:4px; height:4px; border-radius:50%; background:#f59e0b; }
+.bp-day-exec-dot.busy-exec { background:#ef4444; }
+
 @media(max-width:640px){
   #bpHead,.bp-section{padding-left:18px;padding-right:18px;}
   .bp-dates-row{grid-template-columns:1fr;}
@@ -244,6 +264,30 @@ function formatRu(s) { return parseDate(s).toLocaleDateString('ru-RU',{day:'nume
 function fmt(n)      { return new Intl.NumberFormat('ru-RU').format(n||0); }
 function datesOverlap(f1,t1,f2,t2){ return f1<=t2 && t1>=f2; }
 function bookingsForPost(pid){ return _bookings.filter(b=>b.post_id===pid); }
+
+// Возвращает бронирования где занят конкретный исполнитель
+function bookingsForExec(eid){
+  return _bookings.filter(b => b.executor_ids && b.executor_ids.includes(eid));
+}
+
+// Проверяет занят ли исполнитель в выбранном диапазоне дат
+function execBusyInRange(eid){
+  if(!_dateFrom || !_dateTo) return null; // нет дат — не проверяем
+  return bookingsForExec(eid).find(b => datesOverlap(_dateFrom, _dateTo, b.date_from, b.date_to)) || null;
+}
+
+// Следующая свободная дата исполнителя после его занятости
+function execNextFree(eid){
+  const busyPeriods = bookingsForExec(eid)
+    .map(b => ({ from: b.date_from, to: b.date_to }))
+    .sort((a,b) => a.to > b.to ? 1 : -1);
+  if(!busyPeriods.length) return null;
+  // Берём самый поздний конец занятости
+  const lastTo = busyPeriods[busyPeriods.length-1].to;
+  const d = parseDate(lastTo);
+  d.setDate(d.getDate()+1);
+  return toISO(d);
+}
 
 // ── DOM ────────────────────────────────────────────────
 function buildDOM() {
@@ -294,6 +338,7 @@ function buildDOM() {
     <div class="bp-section">
       <div class="bp-section-title">&#x1F527; Услуги и исполнители</div>
       <div id="bpServices"><div class="bp-svc-no-calc">Выберите расчёт — увидите список услуг</div></div>
+      <div id="bpExecWarnings" class="bp-exec-warnings"></div>
     </div>
     <div class="bp-section-divider" style="margin:16px 26px 0"></div>
 
@@ -458,14 +503,21 @@ function renderServices() {
     return;
   }
 
+  // Строим опции с пометкой занятости
   const execOptions = '<option value="">— не назначен —</option>' +
-    _executors.map(e =>
-      `<option value="${e.id}">${e.full_name} (${roleRu(e.role)})</option>`
-    ).join('');
+    _executors.map(e => {
+      const busy = execBusyInRange(e.id);
+      let label = `${e.full_name} (${roleRu(e.role)})`;
+      if (busy) {
+        label += ` — занят до ${formatRu(busy.date_to)}`;
+      }
+      return `<option value="${e.id}" ${busy ? 'data-busy="1"' : ''}>${label}</option>`;
+    }).join('');
 
   el.innerHTML = _calcServices.map(svc => {
     const assigned = _serviceExecs[svc.key] || '';
-    const cls = assigned ? ' assigned' : '';
+    const busy = assigned ? execBusyInRange(assigned) : null;
+    const cls = assigned ? (busy ? ' busy-assigned' : ' assigned') : '';
     return `<div class="bp-svc-row">
       <div class="bp-svc-name" title="${svc.name}">${svc.name}</div>
       ${svc.price ? `<div class="bp-svc-price">${fmt(svc.price)} &#x20BD;</div>` : ''}
@@ -481,9 +533,30 @@ function renderServices() {
     const sel = el.querySelector(`select[data-svc="${svc.key}"]`);
     if (sel && _serviceExecs[svc.key]) {
       sel.value = _serviceExecs[svc.key];
-      sel.classList.add('assigned');
     }
   });
+}
+
+// ── Предупреждения о занятости исполнителей ───────────
+function renderExecWarnings() {
+  const el = document.getElementById('bpExecWarnings');
+  if (!el) return;
+  if (!_dateFrom || !_dateTo || !_executors.length) { el.innerHTML=''; return; }
+
+  // Все исполнители: занятые в выбранном диапазоне
+  const warnings = [];
+  _executors.forEach(e => {
+    const busy = execBusyInRange(e.id);
+    if (busy) {
+      const freeFrom = execNextFree(e.id);
+      warnings.push(`<div class="bp-exec-warn-row">
+        <span class="bp-exec-warn-icon">&#x26A0;&#xFE0F;</span>
+        <span><b>${e.full_name}</b> занят до <b>${formatRu(busy.date_to)}</b>${freeFrom ? ` · свободен с ${formatRu(freeFrom)}` : ''}</span>
+      </div>`);
+    }
+  });
+
+  el.innerHTML = warnings.join('');
 }
 
 // ── Извлечь услуги из calculation_data ────────────────
@@ -586,6 +659,10 @@ function renderCalendar() {
     const isTo      = ds === _dateTo;
     const isBetween = _dateFrom && _dateTo && ds > _dateFrom && ds < _dateTo;
     const hasDot    = !isOther && busyDates.has(ds);
+    // Занятые исполнители в этот день
+    const busyExecCount = !isOther ? _executors.filter(e => {
+      return bookingsForExec(e.id).some(b => ds >= b.date_from && ds <= b.date_to);
+    }).length : 0;
 
     let cls = 'bp-day';
     if (isOther)     cls += ' other';
@@ -599,7 +676,12 @@ function renderCalendar() {
     }
 
     const click = (!isOther && !isPast) ? `onclick="BookingPopup._pickDate('${ds}')"` : '';
-    html += `<div class="${cls}" ${click}><div class="bp-day-num">${d.getDate()}</div>${hasDot?'<div class="bp-day-dot"></div>':''}</div>`;
+    let dotsHtml = '';
+    if (hasDot) dotsHtml += '<div class="bp-day-dot"></div>';
+    if (busyExecCount > 0 && !isOther && !isPast) {
+      dotsHtml = `<div class="bp-day-dots">${hasDot?'<div class="bp-day-dot"></div>':''}${'<div class="bp-day-exec-dot busy-exec"></div>'.repeat(Math.min(busyExecCount,3))}</div>`;
+    }
+    html += `<div class="${cls}" ${click}><div class="bp-day-num">${d.getDate()}</div>${dotsHtml}</div>`;
   });
 
   el.innerHTML = html;
@@ -624,6 +706,8 @@ function renderCalendar() {
     }
   }
   checkConflict();
+  renderExecWarnings();
+  renderServices(); // обновляем статус занятости в дропдаунах
 }
 
 function checkConflict() {
@@ -761,7 +845,7 @@ window.BookingPopup = {
     }
 
     const btn = document.getElementById('bpSaveBtn');
-    if (btn) { btn.disabled = true; btn.textContent = '&#x23F3; Сохранение...'; }
+    if (btn) { btn.disabled = true; btn.innerHTML = '&#x23F3; Сохранение...'; }
 
     const sb   = window._crmSb;
     const note = document.getElementById('bpNote')?.value.trim() || null;
@@ -803,9 +887,9 @@ window.BookingPopup = {
       }).eq('id', finalCalcId);
     }
 
-    if (btn) { btn.disabled = false; btn.textContent = '&#x2705; Записать'; }
+    if (btn) { btn.disabled = false; btn.innerHTML = '&#x2705; Записать'; }
     if (ok) { BookingPopup.close(); if (typeof _onSaved === 'function') _onSaved(); }
-    else alert('&#x274C; Ошибка сохранения. Проверьте консоль.');
+    else alert('Ошибка сохранения. Проверьте консоль.');
   },
 };
 
