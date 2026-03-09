@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Keep1R CRM — Главная</title>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <link rel="stylesheet" href="nav.css">
 <script src="nav.js"></script>
 <style>
@@ -37,10 +37,7 @@ body {
   gap: 12px;
 }
 
-.page-greeting {
-  display: flex;
-  flex-direction: column;
-}
+.page-greeting { display: flex; flex-direction: column; }
 
 .studio-name {
   font-size: 1.25rem;
@@ -70,11 +67,7 @@ body {
   transition: all 0.15s;
   white-space: nowrap;
 }
-.btn-logout:hover {
-  background: #fee2e2;
-  color: #dc2626;
-  border-color: rgba(220,38,38,0.2);
-}
+.btn-logout:hover { background: #fee2e2; color: #dc2626; border-color: rgba(220,38,38,0.2); }
 
 /* ── Стат-карточки ──────────────────────────────── */
 .stats-grid {
@@ -97,7 +90,6 @@ body {
   color: inherit;
   box-shadow: 0 1px 3px rgba(0,0,0,0.04);
 }
-
 .stat-card::after {
   content: '';
   position: absolute;
@@ -106,44 +98,13 @@ body {
   background: var(--accent, #2563eb);
   opacity: 0.7;
 }
+.stat-card:hover { box-shadow: 0 6px 24px rgba(37,99,235,0.10); transform: translateY(-2px); }
 
-.stat-card:hover {
-  box-shadow: 0 6px 24px rgba(37,99,235,0.10);
-  transform: translateY(-2px);
-}
+.stat-icon    { font-size: 1.5rem; line-height: 1; margin-bottom: 14px; display: block; }
+.stat-label   { font-size: 0.7rem; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+.stat-value   { font-size: 1.75rem; font-weight: 800; color: #0f172a; line-height: 1; margin-bottom: 6px; letter-spacing: -0.5px; }
+.stat-change  { font-size: 0.75rem; color: #64748b; font-weight: 500; }
 
-.stat-icon {
-  font-size: 1.5rem;
-  line-height: 1;
-  margin-bottom: 14px;
-  display: block;
-}
-
-.stat-label {
-  font-size: 0.7rem;
-  color: #64748b;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  margin-bottom: 6px;
-}
-
-.stat-value {
-  font-size: 1.75rem;
-  font-weight: 800;
-  color: #0f172a;
-  line-height: 1;
-  margin-bottom: 6px;
-  letter-spacing: -0.5px;
-}
-
-.stat-change {
-  font-size: 0.75rem;
-  color: #64748b;
-  font-weight: 500;
-}
-
-/* Цветовые акценты карточек */
 .stat-card:nth-child(1) { --accent: #2563eb; }
 .stat-card:nth-child(2) { --accent: #059669; }
 .stat-card:nth-child(3) { --accent: #7c3aed; }
@@ -158,61 +119,35 @@ body {
   margin-bottom: 16px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.04);
 }
-
 .card-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 16px;
 }
-
-.card-title {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: #0f172a;
-  letter-spacing: -0.1px;
-}
-
+.card-title   { font-size: 0.95rem; font-weight: 700; color: #0f172a; letter-spacing: -0.1px; }
 .card-link {
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: #2563eb;
-  text-decoration: none;
-  padding: 5px 12px;
-  border-radius: 8px;
-  border: 1px solid rgba(37,99,235,0.25);
-  background: rgba(37,99,235,0.04);
-  transition: all 0.15s;
-  white-space: nowrap;
+  font-size: 0.78rem; font-weight: 700; color: #2563eb;
+  text-decoration: none; padding: 5px 12px; border-radius: 8px;
+  border: 1px solid rgba(37,99,235,0.25); background: rgba(37,99,235,0.04);
+  transition: all 0.15s; white-space: nowrap;
 }
-.card-link:hover {
-  background: #2563eb;
-  color: #fff;
-  border-color: #2563eb;
-}
+.card-link:hover { background: #2563eb; color: #fff; border-color: #2563eb; }
 
 /* ── Поиск ──────────────────────────────────────── */
 .search-wrap { margin-bottom: 16px; }
-
 .search-input {
-  width: 100%;
-  max-width: 400px;
+  width: 100%; max-width: 400px;
   padding: 10px 16px;
   border: 1px solid rgba(15,23,42,0.10);
   border-radius: 10px;
-  font-size: 0.88rem;
-  font-family: inherit;
-  color: #0f172a;
-  background: #fff;
-  outline: none;
+  font-size: 0.88rem; font-family: inherit; color: #0f172a;
+  background: #fff; outline: none;
   transition: border-color 0.15s, box-shadow 0.15s;
   box-shadow: 0 1px 2px rgba(0,0,0,0.03);
 }
 .search-input::placeholder { color: #94a3b8; }
-.search-input:focus {
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37,99,235,0.08);
-}
+.search-input:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.08); }
 
 /* ── Мини-канбан ────────────────────────────────── */
 .mini-kanban {
@@ -222,85 +157,38 @@ body {
   overflow-x: auto;
   padding-bottom: 4px;
 }
-
 .mini-col { min-width: 130px; }
-
 .mini-col-header {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 8px;
-  font-size: 0.7rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: #64748b;
-  padding-bottom: 8px;
-  border-bottom: 2px solid rgba(15,23,42,0.06);
+  display: flex; align-items: center; gap: 6px;
+  margin-bottom: 8px; font-size: 0.7rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.06em; color: #64748b;
+  padding-bottom: 8px; border-bottom: 2px solid rgba(15,23,42,0.06);
 }
-
-.mini-dot {
-  width: 7px; height: 7px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
+.mini-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
 .mini-cards { display: flex; flex-direction: column; gap: 5px; }
-
 .mini-card {
-  background: #f8fafc;
-  border: 1px solid rgba(15,23,42,0.07);
-  border-radius: 10px;
-  padding: 10px 11px;
-  cursor: pointer;
-  transition: all 0.15s;
+  background: #f8fafc; border: 1px solid rgba(15,23,42,0.07);
+  border-radius: 10px; padding: 10px 11px;
+  cursor: pointer; transition: all 0.15s;
 }
 .mini-card:hover {
-  border-color: #2563eb;
-  background: #fff;
+  border-color: #2563eb; background: #fff;
   box-shadow: 0 2px 10px rgba(37,99,235,0.08);
   transform: translateY(-1px);
 }
-
 .mini-card-car {
-  font-size: 0.82rem;
-  font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  color: #0f172a;
-  margin-bottom: 3px;
+  font-size: 0.82rem; font-weight: 600;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  color: #0f172a; margin-bottom: 3px;
 }
-
-.mini-card-price {
-  font-size: 0.78rem;
-  color: #059669;
-  font-weight: 700;
-}
-
+.mini-card-price { font-size: 0.78rem; color: #059669; font-weight: 700; }
 .mini-col-more {
-  font-size: 0.68rem;
-  color: #94a3b8;
-  text-align: center;
-  padding: 5px;
-  cursor: pointer;
-  border-radius: 7px;
-  border: 1px dashed rgba(15,23,42,0.1);
-  margin-top: 2px;
-  transition: all 0.15s;
+  font-size: 0.68rem; color: #94a3b8; text-align: center;
+  padding: 5px; cursor: pointer; border-radius: 7px;
+  border: 1px dashed rgba(15,23,42,0.1); margin-top: 2px; transition: all 0.15s;
 }
-.mini-col-more:hover {
-  color: #2563eb;
-  border-color: rgba(37,99,235,0.3);
-  background: rgba(37,99,235,0.03);
-}
-
-.mini-col-empty {
-  font-size: 0.7rem;
-  color: #94a3b8;
-  text-align: center;
-  padding: 16px 4px;
-}
+.mini-col-more:hover { color: #2563eb; border-color: rgba(37,99,235,0.3); background: rgba(37,99,235,0.03); }
+.mini-col-empty { font-size: 0.7rem; color: #94a3b8; text-align: center; padding: 16px 4px; }
 
 .mini-col-new         .mini-dot { background: #94a3b8; }
 .mini-col-new         .mini-col-header { color: #64748b; border-bottom-color: #94a3b8; }
@@ -316,40 +204,15 @@ body {
 .mini-col-cancelled   .mini-col-header { color: #991b1b; border-bottom-color: #dc2626; }
 
 /* ── Результаты поиска ──────────────────────────── */
-.calc-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 12px;
-}
-
+.calc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
 .calc-card {
-  background: #f8fafc;
-  border: 1px solid rgba(15,23,42,0.07);
-  border-radius: 12px;
-  padding: 15px;
-  cursor: pointer;
-  transition: all 0.15s;
+  background: #f8fafc; border: 1px solid rgba(15,23,42,0.07);
+  border-radius: 12px; padding: 15px; cursor: pointer; transition: all 0.15s;
 }
-.calc-card:hover {
-  border-color: #2563eb;
-  box-shadow: 0 4px 16px rgba(37,99,235,0.08);
-  transform: translateY(-1px);
-}
-.calc-card h3 {
-  font-size: 0.9rem;
-  font-weight: 700;
-  margin-bottom: 4px;
-  color: #0f172a;
-}
-.calc-price {
-  font-size: 1.1rem;
-  font-weight: 800;
-  color: #059669;
-  margin-bottom: 12px;
-  letter-spacing: -0.3px;
-}
-
-.calc-actions { display: flex; gap: 7px; }
+.calc-card:hover { border-color: #2563eb; box-shadow: 0 4px 16px rgba(37,99,235,0.08); transform: translateY(-1px); }
+.calc-card h3   { font-size: 0.9rem; font-weight: 700; margin-bottom: 4px; color: #0f172a; }
+.calc-price     { font-size: 1.1rem; font-weight: 800; color: #059669; margin-bottom: 12px; letter-spacing: -0.3px; }
+.calc-actions   { display: flex; gap: 7px; }
 
 /* ── Кнопки ─────────────────────────────────────── */
 .btn {
@@ -361,41 +224,17 @@ body {
 }
 .btn-primary { background: #2563eb; color: #fff; }
 .btn-primary:hover { background: #1d4ed8; }
-.btn-success {
-  background: rgba(5,150,105,0.08);
-  color: #059669;
-  border: 1px solid rgba(5,150,105,0.2);
-}
+.btn-success { background: rgba(5,150,105,0.08); color: #059669; border: 1px solid rgba(5,150,105,0.2); }
 .btn-success:hover { background: #059669; color: #fff; }
 
-/* ── Состояния ──────────────────────────────────── */
-.loading {
-  text-align: center;
-  padding: 40px;
-  color: #64748b;
-  font-size: 0.88rem;
-}
-
-.empty-state {
-  text-align: center;
-  padding: 48px 20px;
-  color: #64748b;
-}
-.empty-state-icon {
-  font-size: 2.2rem;
-  margin-bottom: 10px;
-  opacity: 0.35;
-}
-.empty-state h3 {
-  font-size: 0.95rem;
-  color: #0f172a;
-  font-weight: 700;
-}
+/* ── Состояния загрузки ─────────────────────────── */
+.loading { text-align: center; padding: 40px; color: #64748b; font-size: 0.88rem; }
+.empty-state { text-align: center; padding: 48px 20px; color: #64748b; }
+.empty-state-icon { font-size: 2.2rem; margin-bottom: 10px; opacity: 0.35; }
+.empty-state h3 { font-size: 0.95rem; color: #0f172a; font-weight: 700; }
 
 /* ── Адаптив ────────────────────────────────────── */
-@media (max-width: 1100px) {
-  .stats-grid { grid-template-columns: repeat(2, 1fr); }
-}
+@media (max-width: 1100px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 768px) {
   .container { padding: 16px 14px 40px; }
   .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
@@ -408,8 +247,8 @@ body {
   .page-header { margin-bottom: 14px; }
   .studio-name { font-size: 1.05rem; }
   .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 12px; }
-  .stat-card { padding: 14px 14px 12px; border-radius: 14px; }
-  .stat-icon { font-size: 1.1rem; margin-bottom: 8px; }
+  .stat-card  { padding: 14px 14px 12px; border-radius: 14px; }
+  .stat-icon  { font-size: 1.1rem; margin-bottom: 8px; }
   .stat-value { font-size: 1.35rem; }
   .stat-label { font-size: 0.62rem; }
   .search-input { max-width: 100%; font-size: 0.9rem; }
@@ -417,7 +256,7 @@ body {
 }
 @media (max-width: 480px) {
   .search-input { max-width: 100%; }
-  .stats-grid { gap: 8px; }
+  .stats-grid   { gap: 8px; }
 }
 </style>
 </head>
@@ -429,11 +268,11 @@ body {
   <div class="page-header">
     <div class="page-greeting">
       <div class="studio-name" id="studioNameHeader">Загрузка...</div>
-      <div class="studio-sub" id="studioSubheader">Keep1R CRM</div>
+      <div class="studio-sub"  id="studioSubheader">Keep1R CRM</div>
     </div>
     <div style="display:flex;gap:8px;align-items:center" class="page-header-actions">
       <a href="settings.html" class="btn-logout" style="display:inline-flex;align-items:center;gap:5px;text-decoration:none;color:#64748b">⚙️ Настройки</a>
-      <button class="btn-logout" onclick="logout()">Выйти →</button>
+      <button class="btn-logout" id="btnLogout">Выйти →</button>
     </div>
   </div>
 
@@ -472,7 +311,6 @@ body {
       class="search-input"
       id="searchInput"
       placeholder="🔍 Поиск по машине..."
-      oninput="handleSearch()"
       autocomplete="off"
     >
   </div>
@@ -499,253 +337,311 @@ body {
 </div>
 
 <script src="footer.js"></script>
-<script>
-(function() {
-'use strict';
+<script type="module">
+import { sb }               from './supabase.js';
+import { requireAuth }      from './auth.js';
+import { getStudioContext }  from './studio-context.js';
+import { escapeHtml, fmtMoney } from './formatters.js';
+import { showLoading, showError, showEmpty, showToast } from './ui.js';
 
-const SUPABASE_URL      = 'https://hdghijgrrnzmntistdvw.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkZ2hpamdycm56bW50aXN0ZHZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMzMyNzksImV4cCI6MjA3NTYwOTI3OX0.D9EDTmVrFRVp0B8_5tCJM29gbFdtadsom0Ihsf4uQ8Q';
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-window._crmSb = sb;
-
-let currentUser       = null;
+// ── Состояние страницы ────────────────────────────────────────────
 let allCalcsForSearch = [];
+let searchTimeout     = null;
 
-async function checkAuth() {
-  const { data: { session } } = await sb.auth.getSession();
-  if (!session) { window.location.href = 'welcome.html'; return false; }
-  currentUser = session.user;
-  return true;
-}
-
-window.logout = async function() {
-  await sb.auth.signOut();
-  window.location.href = 'welcome.html';
-};
-
+// ── Форматирование ────────────────────────────────────────────────
 function fmt(n) {
-  return new Intl.NumberFormat('ru-RU', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(n || 0);
+  return new Intl.NumberFormat('ru-RU', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(n || 0);
 }
 
 function normalizeStatus(status) {
-  if (!status || status === '' || status === 'draft' || status === 'pending') return 'new';
-  return status; // cancelled, delivered etc pass through as-is
+  if (!status || status === 'draft' || status === 'pending') return 'new';
+  return status;
 }
 
-function updateStats(calculations) {
+// ── Статистика ────────────────────────────────────────────────────
+function renderStats(calculations) {
   const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
   const month      = calculations.filter(c => new Date(c.created_at) >= monthStart);
   const total      = month.length;
   const sum        = month.reduce((a, c) => a + (c.total_price || 0), 0);
-  const done       = month.filter(c => ['done','delivered'].includes(normalizeStatus(c.status)));
+  const done       = month.filter(c => ['done', 'delivered'].includes(normalizeStatus(c.status)));
   const doneSum    = done.reduce((a, c) => a + (c.final_price || c.total_price || 0), 0);
-  const avg        = total > 0 ? sum / total : 0;
+  const avg        = total > 0 ? Math.round(sum / total) : 0;
 
-  document.getElementById('statMonthTotal').textContent     = total;
-  document.getElementById('statMonthSum').textContent       = fmt(sum);
-  document.getElementById('statMonthDone').textContent      = fmt(doneSum);
-  document.getElementById('statMonthAvg').textContent       = fmt(avg);
-  document.getElementById('statMonthDoneCount').textContent = done.length + ' машин';
+  document.getElementById('statMonthTotal').textContent      = total;
+  document.getElementById('statMonthSum').textContent        = fmt(sum);
+  document.getElementById('statMonthDone').textContent       = fmt(doneSum);
+  document.getElementById('statMonthAvg').textContent        = fmt(avg);
+  document.getElementById('statMonthDoneCount').textContent  = done.length + ' машин';
   document.getElementById('statMonthTotalChange').textContent = 'Текущий месяц';
 }
 
-// Берём из nav.js — единый источник правды
-// Cancelled не показываем в мини-канбане — там только активные
-const MINI_COLS = Object.entries(window.STATUSES || {
-  new:         { short: 'Расчёт',    icon: '📋' },
-  scheduled:   { short: 'Дата',      icon: '📅' },
-  in_progress: { short: 'В работе',  icon: '🔧' },
-  done:        { short: 'Завершено', icon: '✅' },
-  delivered:   { short: 'Выдано',    icon: '🚗' },
-  cancelled:   { short: 'Отказ',     icon: '❌' },
-}).map(([key, s]) => ({ key, label: s.short, icon: s.icon }));
+function resetStats() {
+  ['statMonthTotal', 'statMonthSum', 'statMonthDone', 'statMonthAvg'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = '—';
+  });
+}
 
-async function loadMiniKanban(studioId) {
+// ── Мини-канбан ───────────────────────────────────────────────────
+const MINI_COLS = [
+  { key: 'new',         label: 'Расчёт',    icon: '📋' },
+  { key: 'scheduled',   label: 'Дата',      icon: '📅' },
+  { key: 'in_progress', label: 'В работе',  icon: '🔧' },
+  { key: 'done',        label: 'Готово',    icon: '✅' },
+  { key: 'delivered',   label: 'Выдано',    icon: '🚗' },
+  { key: 'cancelled',   label: 'Отказ',     icon: '❌' },
+];
+
+function renderKanban(data) {
   const container = document.getElementById('miniKanban');
-
-  const { data, error } = await sb
-    .from('calculations')
-    .select('id, car_name, total_price, final_price, status')
-    .eq('studio_id', studioId)
-    .order('created_at', { ascending: false });
-
-  if (error) {
-    container.innerHTML = `<div class="loading" style="color:#dc2626">❌ Ошибка: ${error.message}</div>`;
-    return;
-  }
   if (!data || data.length === 0) {
-    container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📭</div><h3>Заказов пока нет</h3></div>`;
+    showEmpty(container, 'Заказов пока нет', 'Создайте первый расчёт');
     return;
   }
 
-  let html = '';
+  // Строим через DOM — безопасно, без innerHTML с данными
+  const frag = document.createDocumentFragment();
+
   MINI_COLS.forEach(col => {
     const cards   = data.filter(c => normalizeStatus(c.status) === col.key);
     const visible = cards.slice(0, 5);
     const rest    = cards.length - 5;
 
-    html += `<div class="mini-col mini-col-${col.key}">`;
-    html += `<div class="mini-col-header"><div class="mini-dot"></div>${col.icon} ${col.label}</div>`;
-    html += `<div class="mini-cards">`;
+    const colEl = document.createElement('div');
+    colEl.className = `mini-col mini-col-${col.key}`;
+
+    // Заголовок колонки
+    const header = document.createElement('div');
+    header.className = 'mini-col-header';
+    const dot = document.createElement('div');
+    dot.className = 'mini-dot';
+    header.appendChild(dot);
+    header.append(` ${col.icon} ${col.label}`);
+    colEl.appendChild(header);
+
+    const cardsEl = document.createElement('div');
+    cardsEl.className = 'mini-cards';
 
     if (cards.length === 0) {
-      html += `<div class="mini-col-empty">Нет</div>`;
+      const empty = document.createElement('div');
+      empty.className = 'mini-col-empty';
+      empty.textContent = 'Нет';
+      cardsEl.appendChild(empty);
     } else {
       visible.forEach(c => {
-        html += `<div class="mini-card" onclick="location.href='board.html'">
-          <div class="mini-card-car">${c.car_name || 'Без названия'}</div>
-          <div class="mini-card-price">${fmt(c.final_price || c.total_price || 0)}</div>
-        </div>`;
+        const card = document.createElement('div');
+        card.className = 'mini-card';
+        card.dataset.calcId = c.id;
+
+        const carName = document.createElement('div');
+        carName.className = 'mini-card-car';
+        carName.textContent = c.car_name || 'Без названия'; // textContent — безопасно
+
+        const price = document.createElement('div');
+        price.className = 'mini-card-price';
+        price.textContent = fmt(c.final_price || c.total_price || 0);
+
+        card.append(carName, price);
+        cardsEl.appendChild(card);
       });
+
       if (rest > 0) {
-        html += `<div class="mini-col-more" onclick="location.href='board.html'">+ ещё ${rest}</div>`;
+        const more = document.createElement('div');
+        more.className = 'mini-col-more';
+        more.textContent = `+ ещё ${rest}`;
+        more.dataset.href = 'board.html';
+        cardsEl.appendChild(more);
       }
     }
-    html += `</div></div>`;
+
+    colEl.appendChild(cardsEl);
+    frag.appendChild(colEl);
   });
-  container.innerHTML = html;
+
+  container.innerHTML = '';
+  container.appendChild(frag);
 }
 
-let searchTimeout;
-
-window.handleSearch = function() {
-  clearTimeout(searchTimeout);
-  const term = document.getElementById('searchInput').value.trim().toLowerCase();
+// ── Поиск ─────────────────────────────────────────────────────────
+function renderSearchResults(term) {
   const card = document.getElementById('searchResultsCard');
   const box  = document.getElementById('searchResults');
-  if (!term) { card.style.display = 'none'; return; }
 
-  searchTimeout = setTimeout(() => {
-    const found = allCalcsForSearch.filter(c => (c.car_name || '').toLowerCase().includes(term));
-    card.style.display = 'block';
-
-    if (found.length === 0) {
-      box.innerHTML = `<div class="empty-state" style="padding:30px">
-        <div class="empty-state-icon">🔍</div><h3>Ничего не найдено</h3></div>`;
-      return;
-    }
-
-    const STATUS = Object.fromEntries(
-      Object.entries(window.STATUSES || {}).map(([k,s]) => [k, s.icon + ' ' + s.short])
-    );
-    box.innerHTML = `<div class="calc-grid">` + found.map(c => `
-      <div class="calc-card" onclick="location.href='calculator.html?load=${c.id}'">
-        <h3>${c.car_name || 'Без названия'}</h3>
-        <div class="calc-price">${fmt(c.final_price || c.total_price || 0)}</div>
-        <div class="calc-actions">
-          <a class="btn btn-primary" href="calculator.html?load=${c.id}" onclick="event.stopPropagation()">📂 Открыть</a>
-          <a class="btn btn-success" href="assign-work.html?calc_id=${c.id}" onclick="event.stopPropagation()">👥 Работы</a>
-        </div>
-      </div>`).join('') + `</div>`;
-  }, 300);
-};
-
-function showLockedDashboard() {
-  const fakeStats = [
-    { icon: '🚗', label: 'Расчётов за месяц', value: '██', change: '+██%' },
-    { icon: '💰', label: 'Сумма расчётов',     value: '███ ███', change: '+██%' },
-    { icon: '✅', label: 'Завершённые работы', value: '██', change: '' },
-    { icon: '📊', label: 'Средний чек',        value: '██ ██', change: '+██%' },
-  ];
-
-  const grid = document.getElementById('statsGrid');
-  if (grid) {
-    grid.innerHTML = fakeStats.map(s => `
-      <div class="stat-card" style="cursor:default">
-        <span class="stat-icon">${s.icon}</span>
-        <div class="stat-label">${s.label}</div>
-        <div class="stat-value" style="filter:blur(5px);user-select:none">${s.value}</div>
-        ${s.change ? `<div class="stat-change" style="filter:blur(4px);user-select:none">${s.change}</div>` : ''}
-      </div>`).join('');
+  if (!term) {
+    card.style.display = 'none';
+    return;
   }
 
-  const kanban = document.getElementById('miniKanban');
-  if (kanban) {
-    kanban.innerHTML = `
-      <div style="grid-column:1/-1;text-align:center;padding:32px 16px;color:#94a3b8">
-        <div style="font-size:2rem;margin-bottom:10px">📋</div>
-        <div style="font-size:0.88rem;font-weight:600;color:#64748b;margin-bottom:4px">Здесь будут ваши заказы</div>
-        <div style="font-size:0.8rem">Оформите подписку, чтобы увидеть доску</div>
-      </div>`;
+  const found = allCalcsForSearch.filter(c =>
+    (c.car_name || '').toLowerCase().includes(term)
+  );
+
+  card.style.display = 'block';
+
+  if (found.length === 0) {
+    showEmpty(box, 'Ничего не найдено', `Нет расчётов по запросу «${term}»`);
+    return;
   }
 
-  const search = document.getElementById('searchInput');
-  if (search) { search.disabled = true; search.placeholder = '🔒 Доступно после оплаты'; }
+  // Сетка через DOM — escapeHtml для всех данных из БД
+  const grid = document.createElement('div');
+  grid.className = 'calc-grid';
+
+  found.forEach(c => {
+    const calcCard = document.createElement('div');
+    calcCard.className = 'calc-card';
+    calcCard.dataset.calcId = c.id;
+
+    const title = document.createElement('h3');
+    title.textContent = c.car_name || 'Без названия';
+
+    const priceEl = document.createElement('div');
+    priceEl.className = 'calc-price';
+    priceEl.textContent = fmt(c.final_price || c.total_price || 0);
+
+    const actions = document.createElement('div');
+    actions.className = 'calc-actions';
+
+    const openLink = document.createElement('a');
+    openLink.className = 'btn btn-primary';
+    openLink.href = `calculator.html?load=${encodeURIComponent(c.id)}`;
+    openLink.textContent = '📂 Открыть';
+    openLink.addEventListener('click', e => e.stopPropagation());
+
+    const workLink = document.createElement('a');
+    workLink.className = 'btn btn-success';
+    workLink.href = `assign-work.html?calc_id=${encodeURIComponent(c.id)}`;
+    workLink.textContent = '👥 Работы';
+    workLink.addEventListener('click', e => e.stopPropagation());
+
+    actions.append(openLink, workLink);
+    calcCard.append(title, priceEl, actions);
+    grid.appendChild(calcCard);
+  });
+
+  box.innerHTML = '';
+  box.appendChild(grid);
 }
 
-async function init() {
-  initNav();
-  document.body.style.visibility = 'visible';
-  if (!await checkAuth()) return;
+// ── Экран без подписки ────────────────────────────────────────────
+function showLockedState() {
+  // Статы — сбрасываем в нейтральное состояние без фейковых данных
+  resetStats();
+  ['statMonthTotal', 'statMonthSum', 'statMonthDone', 'statMonthAvg'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = '—';
+  });
 
+  // Канбан — нейтральный empty state
   const kanban = document.getElementById('miniKanban');
+  showEmpty(kanban, 'Нет доступа', 'Оформите подписку, чтобы увидеть доску заказов');
 
-  // Шаг 1: studio_members
-  kanban.innerHTML = '<div class="loading">⏳ Загрузка студии...</div>';
-  const { data: member, error: memberErr } = await sb
-    .from('studio_members')
-    .select('studio_id')
-    .eq('user_id', currentUser.id)
-    .eq('is_active', true)
-    .single();
-
-  if (memberErr) {
-    kanban.innerHTML = `<div class="loading" style="color:#dc2626">❌ Ошибка studio_members: ${memberErr.message}<br><small style="color:#94a3b8">(код: ${memberErr.code})</small></div>`;
-    return;
+  // Поиск — отключить
+  const searchEl = document.getElementById('searchInput');
+  if (searchEl) {
+    searchEl.disabled = true;
+    searchEl.placeholder = '🔒 Доступно после оформления подписки';
   }
-  if (!member) {
-    kanban.innerHTML = `<div class="loading" style="color:#dc2626">⚠️ Студия не найдена для вашего аккаунта. Обратитесь к администратору.</div>`;
-    return;
-  }
+}
 
-  const studioId = member.studio_id;
+// ── Загрузка данных ───────────────────────────────────────────────
+async function loadData(studioId) {
+  const kanban = document.getElementById('miniKanban');
+  showLoading(kanban, 'Загрузка данных...');
 
-  // Шаг 2: название студии
-  const { data: studioInfo, error: studioErr } = await sb
-    .from('studios')
-    .select('name')
-    .eq('id', studioId)
-    .single();
-
-  if (studioErr) {
-    kanban.innerHTML = `<div class="loading" style="color:#dc2626">❌ Ошибка загрузки студии: ${studioErr.message}</div>`;
-    return;
-  }
-  if (studioInfo) {
-    document.getElementById('studioNameHeader').textContent = studioInfo.name;
-    document.getElementById('studioSubheader').textContent  = 'Keep1R CRM';
-  }
-
-  // Шаг 3: подписка
-  kanban.innerHTML = '<div class="loading">⏳ Проверка доступа...</div>';
-  const subStatus = await checkSubscription(studioId);
-  if (subStatus === 'expired' || subStatus === 'none') {
-    showPaywall(subStatus === 'expired');
-    showLockedDashboard();
-    return;
-  }
-
-  // Шаг 4: расчёты
-  kanban.innerHTML = '<div class="loading">⏳ Загрузка данных...</div>';
-  const { data: calcs, error: calcsErr } = await sb
+  const { data, error } = await sb
     .from('calculations')
-    .select('id, car_name, total_price, final_price, status, work_assigned, created_at')
+    .select('id, car_name, total_price, final_price, status, created_at')
     .eq('studio_id', studioId)
     .order('created_at', { ascending: false });
 
-  if (calcsErr) {
-    kanban.innerHTML = `<div class="loading" style="color:#dc2626">❌ Ошибка загрузки расчётов: ${calcsErr.message}</div>`;
+  if (error) {
+    showError(kanban, 'Не удалось загрузить расчёты', () => loadData(studioId));
+    console.error('[dashboard] loadData:', error);
     return;
   }
 
-  allCalcsForSearch = calcs || [];
-  updateStats(allCalcsForSearch);
-  await loadMiniKanban(studioId);
+  allCalcsForSearch = data || [];
+  renderStats(allCalcsForSearch);
+  renderKanban(allCalcsForSearch);
 }
 
-document.addEventListener('DOMContentLoaded', init);
+// ── Привязка событий ──────────────────────────────────────────────
+function bindEvents() {
+  // Выход
+  document.getElementById('btnLogout')?.addEventListener('click', window._navLogout);
 
-})();
+  // Поиск
+  document.getElementById('searchInput')?.addEventListener('input', e => {
+    clearTimeout(searchTimeout);
+    const term = e.target.value.trim().toLowerCase();
+    searchTimeout = setTimeout(() => renderSearchResults(term), 300);
+  });
+
+  // Event delegation для канбана — клик по карточке → board.html
+  document.getElementById('miniKanban')?.addEventListener('click', e => {
+    const card = e.target.closest('.mini-card');
+    const more = e.target.closest('.mini-col-more');
+    if (card || more) {
+      window.location.href = 'board.html';
+    }
+  });
+}
+
+// ── Точка входа ───────────────────────────────────────────────────
+async function initPage() {
+  initNav();
+  document.body.style.visibility = 'visible';
+
+  // 1. Проверяем авторизацию
+  const user = await requireAuth({ redirectTo: 'welcome.html' });
+  if (!user) return;
+
+  // 2. Получаем контекст студии
+  let ctx;
+  try {
+    ctx = await getStudioContext();
+  } catch (err) {
+    console.error('[dashboard] getStudioContext:', err);
+    const kanban = document.getElementById('miniKanban');
+    showError(kanban, 'Ошибка загрузки данных студии', () => location.reload());
+    return;
+  }
+
+  if (!ctx) {
+    window.location.href = 'welcome.html';
+    return;
+  }
+
+  if (!ctx.studioId) {
+    const kanban = document.getElementById('miniKanban');
+    showError(kanban, 'Студия не найдена. Обратитесь к администратору.');
+    return;
+  }
+
+  // 3. Показываем название студии
+  const nameEl = document.getElementById('studioNameHeader');
+  const subEl  = document.getElementById('studioSubheader');
+  if (nameEl) nameEl.textContent = ctx.studio?.name || 'Студия';
+  if (subEl)  subEl.textContent  = 'Keep1R CRM';
+
+  // 4. Проверяем подписку
+  if (!ctx.hasAccess) {
+    showLockedState();
+    window.showPaywall?.(ctx.subscriptionStatus === 'expired');
+    return;
+  }
+
+  // 5. Привязываем события и грузим данные
+  bindEvents();
+  await loadData(ctx.studioId);
+}
+
+document.addEventListener('DOMContentLoaded', initPage);
 </script>
 
 </body>
