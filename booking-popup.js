@@ -1,9 +1,10 @@
 /**
  * booking-popup.js — попап «Записать авто»
+ * Поток: Машина → Пост → Услуги + исполнители → Даты
  * BookingPopup.open({ calcId, calcName, calcPrice, studioId, onSaved })
  * BookingPopup.close()
  */
-(function() {
+(function () {
 'use strict';
 
 // ── CSS ────────────────────────────────────────────────
@@ -22,7 +23,7 @@ const CSS = `
 #bpBox {
   background:#fff; border-radius:18px;
   border:1px solid rgba(15,23,42,0.08);
-  width:100%; max-width:880px; max-height:92svh;
+  width:100%; max-width:780px; max-height:92svh;
   overflow-y:auto; display:flex; flex-direction:column;
   box-shadow:0 24px 80px rgba(0,0,0,0.2);
   animation:bpSlideUp 0.18s ease;
@@ -41,7 +42,19 @@ const CSS = `
 }
 #bpCloseBtn:hover { background:rgba(220,38,38,0.1); color:#dc2626; }
 
-#bpCarSelect { margin:14px 26px 0; flex-shrink:0; }
+/* ── Секции ── */
+.bp-section {
+  padding:18px 26px 0;
+}
+.bp-section-title {
+  font-size:0.68rem; font-weight:800; text-transform:uppercase;
+  letter-spacing:0.07em; color:#94a3b8; margin-bottom:10px;
+}
+.bp-section-divider {
+  height:1px; background:rgba(15,23,42,0.06); margin:6px 0 0;
+}
+
+/* ── Машина ── */
 .bp-car-tabs { display:flex; gap:6px; margin-bottom:10px; }
 .bp-car-tab {
   padding:5px 14px; border-radius:20px; font-size:0.75rem; font-weight:700;
@@ -66,53 +79,53 @@ const CSS = `
 .bp-manual-input:focus { border-color:#2563eb; background:#fff; box-shadow:0 0 0 3px rgba(37,99,235,0.08); }
 .bp-manual-input::placeholder { color:#94a3b8; }
 
-#bpBody { display:grid; grid-template-columns:1fr 1fr; gap:20px; padding:16px 26px 24px; }
-@media(max-width:640px){
-  #bpBody{grid-template-columns:1fr;}
-  #bpHead,#bpCarSelect{padding-left:18px;padding-right:18px;}
-  #bpBody{padding:14px 18px 20px;}
-  #bpFoot{padding:0 18px 18px;}
-}
-
-.bp-section-title {
-  font-size:0.68rem; font-weight:800; text-transform:uppercase;
-  letter-spacing:0.07em; color:#94a3b8; margin-bottom:10px;
-}
-
-#bpPosts { display:flex; flex-direction:column; gap:6px; margin-bottom:18px; }
+/* ── Посты ── */
+#bpPosts { display:flex; flex-wrap:wrap; gap:6px; }
 .bp-post-btn {
-  display:flex; align-items:center; gap:10px; padding:10px 14px;
+  display:flex; align-items:center; gap:8px; padding:9px 14px;
   border-radius:10px; border:1.5px solid rgba(15,23,42,0.08);
   background:#f8fafc; cursor:pointer; transition:all 0.15s;
-  text-align:left; width:100%; font-family:inherit;
+  text-align:left; font-family:inherit;
 }
-.bp-post-btn:hover   { border-color:#2563eb; background:rgba(37,99,235,0.04); }
-.bp-post-btn.selected{ border-color:#2563eb; background:rgba(37,99,235,0.08); box-shadow:0 0 0 3px rgba(37,99,235,0.1); }
-.bp-post-dot  { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
-.bp-post-name { font-size:0.85rem; font-weight:700; color:#0f172a; }
-.bp-post-type { font-size:0.7rem; color:#94a3b8; font-weight:600; }
-.bp-post-cap  { font-size:0.68rem; color:#2563eb; font-weight:700; background:rgba(37,99,235,0.08); padding:1px 7px; border-radius:10px; margin-left:auto; }
-.bp-post-busy { font-size:0.68rem; color:#d97706; font-weight:700; background:rgba(217,119,6,0.08); padding:1px 7px; border-radius:10px; margin-left:auto; }
+.bp-post-btn:hover    { border-color:#2563eb; background:rgba(37,99,235,0.04); }
+.bp-post-btn.selected { border-color:#2563eb; background:rgba(37,99,235,0.08); box-shadow:0 0 0 3px rgba(37,99,235,0.1); }
+.bp-post-dot  { width:9px; height:9px; border-radius:50%; flex-shrink:0; }
+.bp-post-name { font-size:0.83rem; font-weight:700; color:#0f172a; }
+.bp-post-type { font-size:0.68rem; color:#94a3b8; font-weight:600; }
+.bp-post-cap  { font-size:0.68rem; color:#2563eb; font-weight:700; background:rgba(37,99,235,0.08); padding:1px 7px; border-radius:10px; }
+.bp-post-busy { font-size:0.68rem; color:#d97706; font-weight:700; background:rgba(217,119,6,0.08); padding:1px 7px; border-radius:10px; }
 
-#bpExecutors { display:flex; flex-direction:column; gap:6px; }
-.bp-exec-btn {
-  display:flex; align-items:center; gap:10px; padding:9px 14px;
-  border-radius:10px; border:1.5px solid rgba(15,23,42,0.08);
-  background:#f8fafc; cursor:pointer; transition:all 0.15s;
-  text-align:left; width:100%; font-family:inherit;
+/* ── Услуги + исполнители ── */
+#bpServices { display:flex; flex-direction:column; gap:6px; }
+.bp-svc-row {
+  display:flex; align-items:center; gap:10px;
+  padding:9px 14px; background:#f8fafc;
+  border:1.5px solid rgba(15,23,42,0.07); border-radius:10px;
 }
-.bp-exec-btn:hover   { border-color:#059669; background:rgba(5,150,105,0.04); }
-.bp-exec-btn.selected{ border-color:#059669; background:rgba(5,150,105,0.08); box-shadow:0 0 0 3px rgba(5,150,105,0.1); }
-.bp-exec-avatar {
-  width:28px; height:28px; border-radius:50%;
-  background:rgba(37,99,235,0.1); color:#2563eb;
-  font-size:0.72rem; font-weight:800;
-  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+.bp-svc-name {
+  font-size:0.83rem; font-weight:700; color:#0f172a; flex:1; min-width:0;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
-.bp-exec-name { font-size:0.85rem; font-weight:700; color:#0f172a; }
-.bp-exec-role { font-size:0.7rem; color:#94a3b8; font-weight:600; }
-.bp-exec-warn { font-size:0.68rem; color:#d97706; font-weight:700; background:rgba(217,119,6,0.08); padding:1px 7px; border-radius:10px; margin-left:auto; }
+.bp-svc-price {
+  font-size:0.75rem; color:#2563eb; font-weight:700; flex-shrink:0;
+}
+.bp-svc-exec-select {
+  padding:5px 10px; border-radius:7px;
+  border:1.5px solid rgba(15,23,42,0.10); background:#fff;
+  font-size:0.78rem; font-family:inherit; color:#0f172a;
+  outline:none; cursor:pointer; min-width:130px; max-width:160px;
+  transition:border-color 0.15s;
+}
+.bp-svc-exec-select:focus { border-color:#2563eb; }
+.bp-svc-exec-select.assigned { border-color:#059669; background:rgba(5,150,105,0.05); color:#065f46; }
+.bp-svc-no-calc {
+  padding:12px 14px; background:#f8fafc; border-radius:10px;
+  font-size:0.82rem; color:#94a3b8; text-align:center;
+}
 
+/* ── Даты ── */
+.bp-dates-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.bp-cal-col {}
 .bp-month-nav { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
 .bp-month-nav button {
   width:28px; height:28px; border-radius:7px;
@@ -129,7 +142,6 @@ const CSS = `
   text-transform:uppercase; letter-spacing:0.05em; color:#94a3b8; padding:3px 0 6px;
 }
 .bp-day-hdr.we { color:#ef4444; }
-
 .bp-day {
   aspect-ratio:1; border-radius:7px;
   display:flex; flex-direction:column; align-items:center; justify-content:center;
@@ -162,7 +174,6 @@ const CSS = `
   text-align:center; font-weight:600; min-height:18px;
 }
 .bp-pick-hint span { color:#2563eb; font-weight:800; }
-
 .bp-dates-display { display:flex; gap:8px; margin-top:0; }
 .bp-date-pill {
   flex:1; background:#f8fafc; border:1.5px solid rgba(15,23,42,0.08);
@@ -173,12 +184,13 @@ const CSS = `
 .bp-date-pill-val { font-size:0.88rem; font-weight:800; color:#0f172a; }
 .bp-date-pill-val.empty { color:#d1d5db; }
 
-.bp-note-wrap { margin-top:10px; }
+.bp-note-col {}
+.bp-note-wrap { display:flex; flex-direction:column; gap:0; }
 .bp-note-wrap textarea {
   width:100%; padding:9px 12px; background:#f8fafc;
   border:1.5px solid rgba(15,23,42,0.08); border-radius:9px;
   font-size:0.82rem; font-family:inherit; color:#0f172a;
-  outline:none; resize:none; transition:border-color 0.15s; min-height:52px;
+  outline:none; resize:none; transition:border-color 0.15s; min-height:90px;
 }
 .bp-note-wrap textarea:focus { border-color:#2563eb; background:#fff; box-shadow:0 0 0 3px rgba(37,99,235,0.08); }
 
@@ -189,7 +201,7 @@ const CSS = `
 }
 .bp-conflict.show { display:block; }
 
-#bpFoot { padding:0 26px 22px; display:flex; gap:10px; flex-shrink:0; }
+#bpFoot { padding:16px 26px 22px; display:flex; gap:10px; flex-shrink:0; }
 .bp-btn-cancel {
   background:rgba(15,23,42,0.05); color:#64748b;
   border:1px solid rgba(15,23,42,0.10); padding:10px 18px;
@@ -203,85 +215,63 @@ const CSS = `
 .bp-btn-save:hover    { background:#1d4ed8; }
 .bp-btn-save:disabled { opacity:0.5; cursor:not-allowed; }
 .bp-empty { color:#94a3b8; font-size:0.82rem; padding:8px 0; }
+
+@media(max-width:640px){
+  #bpHead,.bp-section{padding-left:18px;padding-right:18px;}
+  .bp-dates-row{grid-template-columns:1fr;}
+  .bp-manual-grid{grid-template-columns:1fr;}
+  #bpFoot{padding:14px 18px 18px;}
+}
 `;
 
-(function injectCSS(){
+(function injectCSS() {
   if (document.getElementById('bpStyles')) return;
   const s = document.createElement('style');
-  s.id = 'bpStyles'; s.textContent = CSS;
+  s.id = 'bpStyles';
+  s.textContent = CSS;
   document.head.appendChild(s);
 })();
 
-// ── Переводы ──────────────────────────────────────────
-const POST_TYPE_RU = {
-  wrap:'Оклейка/PPF', detailing:'Детейлинг',
-  wash:'Мойка', chem:'Химчистка', universal:'Универсальный'
-};
-const ROLE_RU = {
-  owner:'Владелец', manager:'Менеджер', admin:'Администратор',
-  wrapper:'Оклейщик', detailer:'Детейлер', preparer:'Подготовщик',
-  armature:'Арматурщик', washer:'Мойщик', staff:'Сотрудник',
-  universal:'Универсал', detailer:'Детейлер',
-};
-function roleRu(r){ return ROLE_RU[r] || r || 'Сотрудник'; }
+// ── Справочники ────────────────────────────────────────
+const POST_TYPE_RU = { box:'Бокс', lift:'Подъёмник', outdoor:'Открытая зона', other:'Другое' };
+const MONTHS = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+const ROLE_RU = { owner:'Владелец', admin:'Администратор', manager:'Менеджер', executor:'Исполнитель', viewer:'Просмотр' };
 
-const MONTHS = ['Январь','Февраль','Март','Апрель','Май','Июнь',
-                'Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
-const STATUS_LABEL = {
-  new:'Расчёт', draft:'Первичный', scheduled:'Запись', in_progress:'В работе',
-  done:'Готово', delivered:'Выдано'
-};
-
-// ── Хелперы — ЛОКАЛЬНОЕ время, не UTC! ────────────────
-function toISO(d){
-  const y = d.getFullYear();
-  const m = String(d.getMonth()+1).padStart(2,'0');
-  const day = String(d.getDate()).padStart(2,'0');
-  return `${y}-${m}-${day}`;
-}
-function parseDate(s){
-  if(!s) return null;
-  const [y,m,d] = s.split('-').map(Number);
-  return new Date(y, m-1, d);
-}
-function formatRu(s){
-  if(!s) return '—';
-  return parseDate(s).toLocaleDateString('ru-RU',{day:'numeric',month:'short'});
-}
-function fmt(n){ return new Intl.NumberFormat('ru-RU').format(n||0); }
+function roleRu(r) { return ROLE_RU[r] || r || 'Сотрудник'; }
+function toISO(d)   { return d.toISOString().slice(0,10); }
+function parseDate(s){ const [y,m,d]=s.split('-'); return new Date(y,m-1,d); }
+function formatRu(s) { return parseDate(s).toLocaleDateString('ru-RU',{day:'numeric',month:'short'}); }
+function fmt(n)      { return new Intl.NumberFormat('ru-RU').format(n||0); }
 function datesOverlap(f1,t1,f2,t2){ return f1<=t2 && t1>=f2; }
 function bookingsForPost(pid){ return _bookings.filter(b=>b.post_id===pid); }
-function execBusyInRange(eid){
-  if(!_dateFrom||!_dateTo) return false;
-  return _bookings.some(b=>{
-    if(!b.executor_ids) return false;
-    if(!datesOverlap(_dateFrom,_dateTo,b.date_from,b.date_to)) return false;
-    return b.executor_ids.includes(eid);
-  });
-}
 
 // ── DOM ────────────────────────────────────────────────
-function buildDOM(){
-  if(document.getElementById('bpOverlay')) return;
+function buildDOM() {
+  if (document.getElementById('bpOverlay')) return;
   const div = document.createElement('div');
   div.innerHTML = `
 <div id="bpOverlay">
   <div id="bpBox">
+
+    <!-- Шапка -->
     <div id="bpHead">
       <div>
-        <div id="bpCarTitle">📅 Записать авто</div>
+        <div id="bpCarTitle">&#x1F4C5; Записать авто</div>
         <div id="bpCarPrice"></div>
       </div>
-      <button id="bpCloseBtn" onclick="BookingPopup.close()">✕</button>
+      <button id="bpCloseBtn" onclick="BookingPopup.close()">&#x2715;</button>
     </div>
-    <div id="bpCarSelect">
+
+    <!-- 1. Машина -->
+    <div class="bp-section" style="padding-top:18px">
+      <div class="bp-section-title">&#x1F697; Автомобиль</div>
       <div class="bp-car-tabs">
-        <button class="bp-car-tab active" id="bpTabCalc"   onclick="BookingPopup._switchTab('calc')">📋 Из расчётов</button>
-        <button class="bp-car-tab"        id="bpTabManual" onclick="BookingPopup._switchTab('manual')">✏️ Ввести вручную</button>
+        <button class="bp-car-tab active" id="bpTabCalc"   onclick="BookingPopup._switchTab('calc')">&#x1F4CB; Из расчётов</button>
+        <button class="bp-car-tab"        id="bpTabManual" onclick="BookingPopup._switchTab('manual')">&#x270F;&#xFE0F; Ввести вручную</button>
       </div>
       <div id="bpTabCalcBody">
         <select class="bp-calc-select" id="bpCalcSel" onchange="BookingPopup._onCalcSelect(this.value)">
-          <option value="">⏳ Загрузка...</option>
+          <option value="">&#x23F3; Загрузка...</option>
         </select>
       </div>
       <div id="bpTabManualBody" style="display:none">
@@ -291,354 +281,504 @@ function buildDOM(){
         </div>
       </div>
     </div>
-    <div id="bpBody">
-      <div>
-        <div class="bp-section-title">Рабочий пост</div>
-        <div id="bpPosts"><div class="bp-empty">⏳ Загрузка...</div></div>
-        <div class="bp-section-title" style="margin-top:16px">Исполнители</div>
-        <div id="bpExecutors"><div class="bp-empty">⏳ Загрузка...</div></div>
-      </div>
-      <div>
-        <div class="bp-section-title">Даты</div>
-        <div class="bp-month-nav">
-          <button onclick="BookingPopup._prevMonth()">‹</button>
-          <span class="bp-month-lbl" id="bpMonthLbl"></span>
-          <button onclick="BookingPopup._nextMonth()">›</button>
-        </div>
-        <div class="bp-cal-grid" id="bpCalGrid"></div>
-        <div class="bp-pick-hint" id="bpPickHint">Кликните на <span>дату заезда</span></div>
-        <div class="bp-dates-display">
-          <div class="bp-date-pill" id="bpPillFrom">
-            <div class="bp-date-pill-lbl">Заезд</div>
-            <div class="bp-date-pill-val empty" id="bpFromLbl">—</div>
+    <div class="bp-section-divider" style="margin:16px 26px 0"></div>
+
+    <!-- 2. Пост -->
+    <div class="bp-section">
+      <div class="bp-section-title">&#x1F3D7; Рабочий пост</div>
+      <div id="bpPosts"><div class="bp-empty">&#x23F3; Загрузка...</div></div>
+    </div>
+    <div class="bp-section-divider" style="margin:16px 26px 0"></div>
+
+    <!-- 3. Услуги + исполнители -->
+    <div class="bp-section">
+      <div class="bp-section-title">&#x1F527; Услуги и исполнители</div>
+      <div id="bpServices"><div class="bp-svc-no-calc">Выберите расчёт — увидите список услуг</div></div>
+    </div>
+    <div class="bp-section-divider" style="margin:16px 26px 0"></div>
+
+    <!-- 4. Даты + комментарий -->
+    <div class="bp-section" style="padding-bottom:4px">
+      <div class="bp-section-title">&#x1F4C6; Даты и комментарий</div>
+      <div class="bp-dates-row">
+        <div class="bp-cal-col">
+          <div class="bp-month-nav">
+            <button onclick="BookingPopup._prevMonth()">&#x2039;</button>
+            <span class="bp-month-lbl" id="bpMonthLbl"></span>
+            <button onclick="BookingPopup._nextMonth()">&#x203A;</button>
           </div>
-          <div class="bp-date-pill" id="bpPillTo">
-            <div class="bp-date-pill-lbl">Выезд</div>
-            <div class="bp-date-pill-val empty" id="bpToLbl">—</div>
+          <div class="bp-cal-grid" id="bpCalGrid"></div>
+          <div class="bp-pick-hint" id="bpPickHint">Кликните на <span>дату заезда</span></div>
+          <div class="bp-dates-display">
+            <div class="bp-date-pill" id="bpPillFrom">
+              <div class="bp-date-pill-lbl">Заезд</div>
+              <div class="bp-date-pill-val empty" id="bpFromLbl">—</div>
+            </div>
+            <div class="bp-date-pill" id="bpPillTo">
+              <div class="bp-date-pill-lbl">Выезд</div>
+              <div class="bp-date-pill-val empty" id="bpToLbl">—</div>
+            </div>
+          </div>
+          <div class="bp-conflict" id="bpConflict">&#x26A0;&#xFE0F; На посту в эти даты уже есть запись. Убедитесь что пост вмещает несколько машин.</div>
+        </div>
+        <div class="bp-note-col">
+          <div class="bp-section-title" style="margin-bottom:8px">Комментарий</div>
+          <div class="bp-note-wrap">
+            <textarea id="bpNote" placeholder="Пожелания, особенности авто, доп. инструкции..."></textarea>
           </div>
         </div>
-        <div class="bp-note-wrap">
-          <textarea id="bpNote" placeholder="Комментарий: пожелания, особенности..."></textarea>
-        </div>
-        <div class="bp-conflict" id="bpConflict">⚠️ На посту в эти даты уже есть запись. Убедитесь что пост вмещает несколько машин.</div>
       </div>
     </div>
+
+    <!-- Футер -->
     <div id="bpFoot">
       <button class="bp-btn-cancel" onclick="BookingPopup.close()">Отмена</button>
-      <button class="bp-btn-save" id="bpSaveBtn" onclick="BookingPopup._save()">✅ Записать</button>
+      <button class="bp-btn-save"   id="bpSaveBtn" onclick="BookingPopup._save()">&#x2705; Записать</button>
     </div>
+
   </div>
 </div>`;
   document.body.appendChild(div.firstElementChild);
 }
 
 // ── State ──────────────────────────────────────────────
-let _studioId=null, _calcId=null, _manualName='', _onSaved=null;
+let _studioId=null, _calcId=null, _onSaved=null, _tab='calc';
 let _posts=[], _executors=[], _bookings=[], _calcs=[];
-let _selectedPost=null, _selectedExecs=new Set();
+let _selectedPost=null;
+let _serviceExecs = {}; // { serviceKey: executorId }
+let _calcServices = []; // [{ key, name, price }]
 let _dateFrom=null, _dateTo=null, _picking='from';
 let _viewYear=new Date().getFullYear(), _viewMonth=new Date().getMonth();
-let _tab='calc';
 
-// ── Load ───────────────────────────────────────────────
-async function loadData(){
+// ── Загрузка данных ────────────────────────────────────
+async function loadData() {
   const sb = window._crmSb;
-  if(!sb||!_studioId){ console.error('BookingPopup: нет studioId'); return; }
+  if (!sb || !_studioId) return;
 
-  const [pr,er,br,cr] = await Promise.all([
+  const [pr, er, br, cr] = await Promise.all([
     sb.from('posts').select('*').eq('studio_id',_studioId).eq('is_active',true).order('created_at'),
     sb.from('executors').select('id,full_name,role').eq('studio_id',_studioId).eq('is_active',true).order('full_name'),
-    sb.from('calendar_bookings').select('*').eq('studio_id',_studioId),
-    sb.from('calculations').select('id,car_name,status,final_price,total_price')
-      .eq('studio_id',_studioId)
-      .in('status',['new','draft'])
-      .order('created_at',{ascending:false}),
+    sb.from('calendar_bookings').select('post_id,date_from,date_to,executor_ids').eq('studio_id',_studioId),
+    sb.from('calculations').select('id,car_name,status,final_price,total_price,calculation_data')
+      .eq('studio_id',_studioId).in('status',['new','scheduled','in_progress']).order('created_at',{ascending:false}).limit(100),
   ]);
 
-  _posts=pr.data||[]; _executors=er.data||[]; _bookings=br.data||[]; _calcs=cr.data||[];
-  renderCalcSelect(); renderPosts(); renderExecutors();
+  _posts     = pr.data || [];
+  _executors = er.data || [];
+  _bookings  = br.data || [];
+  _calcs     = cr.data || [];
+
+  renderCalcSelect();
+  renderPosts();
+
+  // Если calcId уже передан при открытии — подгружаем услуги
+  if (_calcId) {
+    _onCalcSelectInternal(_calcId);
+  }
 }
 
-function renderCalcSelect(){
-  const sel = document.getElementById('bpCalcSel');
-  if(!sel) return;
-  if(!_calcs.length){ sel.innerHTML='<option value="">Нет расчётов</option>'; return; }
-  sel.innerHTML = '<option value="">— Выберите расчёт —</option>' +
-    _calcs.map(c=>{
-      const st = STATUS_LABEL[c.status]||c.status;
-      const pr = fmt(c.final_price||c.total_price||0);
-      return `<option value="${c.id}" ${c.id===_calcId?'selected':''}>${c.car_name||'Без названия'} · ${st} · ${pr}</option>`;
+// ── Рендер: расчёты ───────────────────────────────────
+function renderCalcSelect() {
+  const el = document.getElementById('bpCalcSel');
+  if (!el) return;
+  const STATUS = { new:'Расчёт', scheduled:'Дата', in_progress:'В работе' };
+  el.innerHTML = '<option value="">— Выберите расчёт —</option>' +
+    _calcs.map(c => {
+      const st  = STATUS[c.status] || c.status;
+      const pr  = fmt(c.final_price || c.total_price || 0);
+      const sel = c.id === _calcId ? ' selected' : '';
+      return `<option value="${c.id}"${sel}>${c.car_name||'Без названия'} · ${st} · ${pr} &#x20BD;</option>`;
     }).join('');
 }
 
-function renderPosts(){
+// ── Рендер: посты ─────────────────────────────────────
+function renderPosts() {
   const el = document.getElementById('bpPosts');
-  if(!el) return;
-  if(!_posts.length){ el.innerHTML='<div class="bp-empty">Нет постов. <a href="settings.html" style="color:#2563eb">Добавить</a></div>'; return; }
-  el.innerHTML = _posts.map(p=>{
-    const busy = _dateFrom&&_dateTo ? bookingsForPost(p.id).filter(b=>datesOverlap(_dateFrom,_dateTo,b.date_from,b.date_to)).length : 0;
-    const cap=p.capacity||1, full=busy>=cap, sel=_selectedPost===p.id?' selected':'';
-    const badge = busy>0
-      ? `<span class="${full?'bp-post-busy':'bp-post-cap'}">${busy}/${cap} авто</span>`
-      : cap>1 ? `<span class="bp-post-cap">до ${cap}</span>` : '';
+  if (!el) return;
+  if (!_posts.length) {
+    el.innerHTML = '<div class="bp-empty">Нет постов. <a href="settings.html" style="color:#2563eb">Добавить в настройках</a></div>';
+    return;
+  }
+  el.innerHTML = _posts.map(p => {
+    const sel  = _selectedPost === p.id ? ' selected' : '';
+    const cap  = p.capacity || 1;
+    const busy = bookingsForPost(p.id).filter(b =>
+      _dateFrom && _dateTo ? datesOverlap(_dateFrom, _dateTo, b.date_from, b.date_to) : false
+    ).length;
+    const full = busy >= cap;
+    const badge = cap > 0
+      ? `<span class="${full?'bp-post-busy':'bp-post-cap'}">${busy}/${cap}</span>`
+      : '';
     return `<button class="bp-post-btn${sel}" onclick="BookingPopup._selectPost('${p.id}')">
       <div class="bp-post-dot" style="background:${p.color||'#2563eb'}"></div>
-      <div style="flex:1;min-width:0">
+      <div>
         <div class="bp-post-name">${p.name}</div>
-        <div class="bp-post-type">${POST_TYPE_RU[p.type]||p.type}</div>
-      </div>${badge}
+        <div class="bp-post-type">${POST_TYPE_RU[p.type]||p.type||''}</div>
+      </div>
+      ${badge}
     </button>`;
   }).join('');
 }
 
-function renderExecutors(){
-  const el = document.getElementById('bpExecutors');
-  if(!el) return;
-  if(!_executors.length){ el.innerHTML='<div class="bp-empty">Нет сотрудников. <a href="executors.html" style="color:#2563eb">Добавить</a></div>'; return; }
-  el.innerHTML = _executors.map(e=>{
-    const busy=execBusyInRange(e.id), sel=_selectedExecs.has(e.id)?' selected':'';
-    const ini=(e.full_name||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-    return `<button class="bp-exec-btn${sel}" onclick="BookingPopup._toggleExec('${e.id}')">
-      <div class="bp-exec-avatar">${ini}</div>
-      <div style="flex:1;min-width:0">
-        <div class="bp-exec-name">${e.full_name}</div>
-        <div class="bp-exec-role">${roleRu(e.role)}</div>
-      </div>${busy?'<span class="bp-exec-warn">⚠️ Занят</span>':''}
-    </button>`;
+// ── Рендер: услуги + исполнители ──────────────────────
+function renderServices() {
+  const el = document.getElementById('bpServices');
+  if (!el) return;
+
+  if (!_calcServices.length) {
+    el.innerHTML = '<div class="bp-svc-no-calc">Выберите расчёт — увидите список услуг</div>';
+    return;
+  }
+
+  const execOptions = '<option value="">— не назначен —</option>' +
+    _executors.map(e => {
+      const ini = (e.full_name||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+      return `<option value="${e.id}">${e.full_name} (${roleRu(e.role)})</option>`;
+    }).join('');
+
+  el.innerHTML = _calcServices.map(svc => {
+    const assigned = _serviceExecs[svc.key] || '';
+    const cls = assigned ? ' assigned' : '';
+    return `<div class="bp-svc-row">
+      <div class="bp-svc-name" title="${svc.name}">${svc.name}</div>
+      ${svc.price ? `<div class="bp-svc-price">${fmt(svc.price)} &#x20BD;</div>` : ''}
+      <select class="bp-svc-exec-select${cls}" data-svc="${svc.key}"
+        onchange="BookingPopup._assignExec('${svc.key}', this.value, this)">
+        ${execOptions}
+      </select>
+    </div>`;
   }).join('');
+
+  // Восстанавливаем выбранных исполнителей
+  _calcServices.forEach(svc => {
+    const sel = el.querySelector(`select[data-svc="${svc.key}"]`);
+    if (sel && _serviceExecs[svc.key]) {
+      sel.value = _serviceExecs[svc.key];
+      sel.classList.add('assigned');
+    }
+  });
 }
 
-function renderCalendar(){
-  const el=document.getElementById('bpCalGrid'), lbl=document.getElementById('bpMonthLbl');
-  if(!el||!lbl) return;
-  lbl.textContent=`${MONTHS[_viewMonth]} ${_viewYear}`;
+// ── Извлечь услуги из calculation_data ────────────────
+function extractServices(calc) {
+  const services = [];
+  if (!calc) return services;
 
-  const today=toISO(new Date());
-  const DAY_HDR=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+  const data = calc.calculation_data;
+  if (!data) return services;
 
-  // Первый день месяца, конвертим воскресенье(0) → 6, остальные -1
-  const firstDay=new Date(_viewYear,_viewMonth,1);
-  let startPad=firstDay.getDay();
-  startPad = startPad===0 ? 6 : startPad-1;
-  const gridStart=new Date(_viewYear,_viewMonth,1-startPad);
+  // Пакет полной защиты
+  const pkgMat = parseFloat(data.package?.wrapMat || 0);
+  const pkgMot = parseFloat(data.package?.wrapMot || 0);
+  if (pkgMat + pkgMot > 0) services.push({ key:'pkg', name:'Полная защита (пакет)', price: pkgMat + pkgMot });
 
-  const lastDay=new Date(_viewYear,_viewMonth+1,0);
-  let endPad=lastDay.getDay();
-  endPad = endPad===0 ? 0 : 7-endPad;
-  const gridEnd=new Date(_viewYear,_viewMonth+1,endPad);
+  // Ударная часть
+  const impMat = parseFloat(data.impact?.wrapMat || 0);
+  const impMot = parseFloat(data.impact?.wrapMot || 0);
+  if (impMat + impMot > 0) services.push({ key:'impact', name:'Защита ударной части', price: impMat + impMot });
 
-  const dates=[];
-  const cur=new Date(gridStart);
-  while(cur<=gridEnd){ dates.push(toISO(new Date(cur))); cur.setDate(cur.getDate()+1); }
+  // Детализированные услуги из services_detail
+  const detail = data.services_detail || {};
 
-  // Занятые дни поста
-  const busyDates=new Set();
-  if(_selectedPost){
-    bookingsForPost(_selectedPost).forEach(b=>{
-      const c=parseDate(b.date_from), e=parseDate(b.date_to);
-      while(c<=e){ busyDates.add(toISO(new Date(c))); c.setDate(c.getDate()+1); }
+  const svcGroups = [
+    { key:'arm',  label:'Бронирование' },
+    { key:'wrap', label:'Оклейка' },
+    { key:'det',  label:'Детейлинг' },
+    { key:'gl',   label:'Стёкла' },
+    { key:'ms',   label:'Доп. услуги' },
+  ];
+
+  svcGroups.forEach(({ key, label }) => {
+    const items = detail[key] || [];
+    items.forEach((item, idx) => {
+      if (!item.name && !item.mat && !item.mot) return;
+      const price = (parseFloat(item.mat||0)) + (parseFloat(item.mot||0));
+      if (price > 0 || item.name) {
+        services.push({
+          key: `${key}_${idx}`,
+          name: item.name ? `${label}: ${item.name}` : label,
+          price: price || 0,
+        });
+      }
+    });
+    // Если нет детализации но есть суммы
+    if (!items.length) {
+      // check basic keys
+    }
+  });
+
+  // Fallback: если ничего не нашли — показываем общие строки
+  if (!services.length) {
+    services.push({ key:'general', name:'Работы по авто', price: calc.final_price || calc.total_price || 0 });
+  }
+
+  return services;
+}
+
+// ── Рендер: календарь ─────────────────────────────────
+function renderCalendar() {
+  const el  = document.getElementById('bpCalGrid');
+  const lbl = document.getElementById('bpMonthLbl');
+  if (!el || !lbl) return;
+  lbl.textContent = `${MONTHS[_viewMonth]} ${_viewYear}`;
+
+  const today = toISO(new Date());
+  const DAY_HDR = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+
+  const firstDay = new Date(_viewYear, _viewMonth, 1);
+  let startPad = firstDay.getDay();
+  startPad = startPad === 0 ? 6 : startPad - 1;
+  const gridStart = new Date(_viewYear, _viewMonth, 1 - startPad);
+
+  const lastDay = new Date(_viewYear, _viewMonth + 1, 0);
+  let endPad = lastDay.getDay();
+  endPad = endPad === 0 ? 0 : 7 - endPad;
+  const gridEnd = new Date(_viewYear, _viewMonth + 1, endPad);
+
+  const dates = [];
+  const cur = new Date(gridStart);
+  while (cur <= gridEnd) { dates.push(toISO(new Date(cur))); cur.setDate(cur.getDate() + 1); }
+
+  const busyDates = new Set();
+  if (_selectedPost) {
+    bookingsForPost(_selectedPost).forEach(b => {
+      const c = parseDate(b.date_from), e = parseDate(b.date_to);
+      while (c <= e) { busyDates.add(toISO(new Date(c))); c.setDate(c.getDate() + 1); }
     });
   }
 
-  let html=DAY_HDR.map((d,i)=>`<div class="bp-day-hdr${i>=5?' we':''}">${d}</div>`).join('');
+  let html = DAY_HDR.map((d,i) => `<div class="bp-day-hdr${i>=5?' we':''}">${d}</div>`).join('');
 
-  dates.forEach(ds=>{
-    const d=parseDate(ds);
-    const isOther   = d.getMonth()!==_viewMonth;
-    const isPast    = ds<today;
-    const isWe      = d.getDay()===0||d.getDay()===6;
-    const isToday   = ds===today;
-    const isFrom    = ds===_dateFrom;
-    const isTo      = ds===_dateTo;
-    const isBetween = _dateFrom&&_dateTo&&ds>_dateFrom&&ds<_dateTo;
-    const hasDot    = !isOther&&busyDates.has(ds);
+  dates.forEach(ds => {
+    const d = parseDate(ds);
+    const isOther   = d.getMonth() !== _viewMonth;
+    const isPast    = ds < today;
+    const isWe      = d.getDay() === 0 || d.getDay() === 6;
+    const isToday   = ds === today;
+    const isFrom    = ds === _dateFrom;
+    const isTo      = ds === _dateTo;
+    const isBetween = _dateFrom && _dateTo && ds > _dateFrom && ds < _dateTo;
+    const hasDot    = !isOther && busyDates.has(ds);
 
-    let cls='bp-day';
-    if(isOther)      cls+=' other';
-    else if(isPast)  cls+=' past';
-    else{
-      if(isWe)       cls+=' we-num';
-      if(isToday)    cls+=' today';
-      if(isFrom)     cls+=' from';
-      if(isTo)       cls+=' to';
-      if(isBetween)  cls+=' between';
+    let cls = 'bp-day';
+    if (isOther)     cls += ' other';
+    else if (isPast) cls += ' past';
+    else {
+      if (isWe)      cls += ' we-num';
+      if (isToday)   cls += ' today';
+      if (isFrom)    cls += ' from';
+      if (isTo)      cls += ' to';
+      if (isBetween) cls += ' between';
     }
 
-    const click=(!isOther&&!isPast)?`onclick="BookingPopup._pickDate('${ds}')"`: '';
-    html+=`<div class="${cls}" ${click}><div class="bp-day-num">${d.getDate()}</div>${hasDot?'<div class="bp-day-dot"></div>':''}</div>`;
+    const click = (!isOther && !isPast) ? `onclick="BookingPopup._pickDate('${ds}')"` : '';
+    html += `<div class="${cls}" ${click}><div class="bp-day-num">${d.getDate()}</div>${hasDot?'<div class="bp-day-dot"></div>':''}</div>`;
   });
 
-  el.innerHTML=html;
+  el.innerHTML = html;
 
-  // Подписи
-  const fromEl=document.getElementById('bpFromLbl'), toEl=document.getElementById('bpToLbl');
-  const hint=document.getElementById('bpPickHint');
-  if(fromEl){ fromEl.textContent=_dateFrom?formatRu(_dateFrom):'—'; fromEl.classList.toggle('empty',!_dateFrom); }
-  if(toEl)  { toEl.textContent=_dateTo?formatRu(_dateTo):'—';       toEl.classList.toggle('empty',!_dateTo); }
+  const fromEl = document.getElementById('bpFromLbl');
+  const toEl   = document.getElementById('bpToLbl');
+  const hint   = document.getElementById('bpPickHint');
+  if (fromEl) { fromEl.textContent = _dateFrom ? formatRu(_dateFrom) : '—'; fromEl.classList.toggle('empty', !_dateFrom); }
+  if (toEl)   { toEl.textContent   = _dateTo   ? formatRu(_dateTo)   : '—'; toEl.classList.toggle('empty', !_dateTo); }
 
-  const pf=document.getElementById('bpPillFrom'), pt=document.getElementById('bpPillTo');
-  if(pf) pf.classList.toggle('active', _picking==='from'&&!_dateTo);
-  if(pt) pt.classList.toggle('active', _picking==='to');
+  const pf = document.getElementById('bpPillFrom');
+  const pt = document.getElementById('bpPillTo');
+  if (pf) pf.classList.toggle('active', _picking === 'from' && !_dateTo);
+  if (pt) pt.classList.toggle('active', _picking === 'to');
 
-  if(hint){
-    if(!_dateFrom&&!_dateTo) hint.innerHTML='Кликните на <span>дату заезда</span>';
-    else if(_dateFrom&&!_dateTo) hint.innerHTML='Теперь выберите <span>дату выезда</span>';
+  if (hint) {
+    if (!_dateFrom && !_dateTo) hint.innerHTML = 'Кликните на <span>дату заезда</span>';
+    else if (_dateFrom && !_dateTo) hint.innerHTML = 'Теперь выберите <span>дату выезда</span>';
     else {
-      const days=Math.round((parseDate(_dateTo)-parseDate(_dateFrom))/86400000)+1;
-      hint.innerHTML=`<span>${formatRu(_dateFrom)}</span> — <span>${formatRu(_dateTo)}</span> · ${days} дн. · кликните чтобы скорректировать`;
+      const days = Math.round((parseDate(_dateTo) - parseDate(_dateFrom)) / 86400000) + 1;
+      hint.innerHTML = `<span>${formatRu(_dateFrom)}</span> — <span>${formatRu(_dateTo)}</span> · ${days} дн.`;
     }
   }
   checkConflict();
 }
 
-function checkConflict(){
-  const el=document.getElementById('bpConflict');
-  if(!el) return;
-  if(!_selectedPost||!_dateFrom||!_dateTo){ el.classList.remove('show'); return; }
-  const cap=_posts.find(p=>p.id===_selectedPost)?.capacity||1;
-  const busy=bookingsForPost(_selectedPost).filter(b=>datesOverlap(_dateFrom,_dateTo,b.date_from,b.date_to)).length;
-  el.classList.toggle('show',busy>=cap);
+function checkConflict() {
+  const el = document.getElementById('bpConflict');
+  if (!el) return;
+  if (!_selectedPost || !_dateFrom || !_dateTo) { el.classList.remove('show'); return; }
+  const cap  = _posts.find(p => p.id === _selectedPost)?.capacity || 1;
+  const busy = bookingsForPost(_selectedPost).filter(b => datesOverlap(_dateFrom, _dateTo, b.date_from, b.date_to)).length;
+  el.classList.toggle('show', busy >= cap);
+}
+
+// ── Вспомогательная: обработка выбора расчёта ─────────
+function _onCalcSelectInternal(id) {
+  _calcId = id || null;
+  const calc = _calcId ? _calcs.find(c => c.id === _calcId) : null;
+
+  const titleEl = document.getElementById('bpCarTitle');
+  const priceEl = document.getElementById('bpCarPrice');
+  if (titleEl) titleEl.textContent = calc ? `&#x1F4C5; ${calc.car_name}` : '&#x1F4C5; Записать авто';
+  if (priceEl) priceEl.innerHTML   = calc ? `&#x20BD; ${fmt(calc.final_price || calc.total_price || 0)}` : '';
+
+  _serviceExecs  = {};
+  _calcServices  = calc ? extractServices(calc) : [];
+  renderServices();
 }
 
 // ── Public API ─────────────────────────────────────────
 window.BookingPopup = {
 
-  open: function({calcId,calcName,calcPrice,studioId,onSaved}={}){
+  open: function({ calcId, calcName, calcPrice, studioId, onSaved } = {}) {
     buildDOM();
-    _studioId=studioId; _calcId=calcId||null; _onSaved=onSaved||null;
-    _selectedPost=null; _selectedExecs=new Set();
-    _dateFrom=null; _dateTo=null; _picking='from'; _tab='calc';
-    _viewYear=new Date().getFullYear(); _viewMonth=new Date().getMonth();
+    _studioId    = studioId;
+    _calcId      = calcId || null;
+    _onSaved     = onSaved || null;
+    _tab         = 'calc';
+    _selectedPost    = null;
+    _serviceExecs    = {};
+    _calcServices    = [];
+    _dateFrom = null; _dateTo = null; _picking = 'from';
+    _viewYear = new Date().getFullYear(); _viewMonth = new Date().getMonth();
 
-    const titleEl=document.getElementById('bpCarTitle');
-    const priceEl=document.getElementById('bpCarPrice');
-    if(titleEl) titleEl.textContent=calcName?`📅 ${calcName}`:'📅 Записать авто';
-    if(priceEl) priceEl.textContent=calcPrice?`КП: ${fmt(calcPrice)}`:'';
-    document.getElementById('bpNote').value='';
+    const titleEl = document.getElementById('bpCarTitle');
+    const priceEl = document.getElementById('bpCarPrice');
+    if (titleEl) titleEl.textContent = calcName ? `&#x1F4C5; ${calcName}` : '&#x1F4C5; Записать авто';
+    if (priceEl) priceEl.innerHTML   = calcPrice ? `&#x20BD; ${fmt(calcPrice)}` : '';
+    document.getElementById('bpNote').value = '';
 
     BookingPopup._switchTab('calc');
     document.getElementById('bpOverlay').classList.add('active');
-    document.body.style.overflow='hidden';
+    document.body.style.overflow = 'hidden';
     renderCalendar();
     loadData();
   },
 
-  close: function(){
-    const el=document.getElementById('bpOverlay');
-    if(el) el.classList.remove('active');
-    document.body.style.overflow='';
+  close: function() {
+    const el = document.getElementById('bpOverlay');
+    if (el) el.classList.remove('active');
+    document.body.style.overflow = '';
   },
 
-  _switchTab: function(tab){
-    _tab=tab;
-    document.getElementById('bpTabCalcBody').style.display   = tab==='calc'?'block':'none';
-    document.getElementById('bpTabManualBody').style.display = tab==='manual'?'block':'none';
-    document.getElementById('bpTabCalc').classList.toggle('active',   tab==='calc');
-    document.getElementById('bpTabManual').classList.toggle('active', tab==='manual');
+  _switchTab: function(tab) {
+    _tab = tab;
+    document.getElementById('bpTabCalcBody').style.display   = tab === 'calc'   ? 'block' : 'none';
+    document.getElementById('bpTabManualBody').style.display = tab === 'manual' ? 'block' : 'none';
+    document.getElementById('bpTabCalc').classList.toggle('active',   tab === 'calc');
+    document.getElementById('bpTabManual').classList.toggle('active', tab === 'manual');
+    if (tab === 'manual') {
+      _calcId = null; _calcServices = []; _serviceExecs = {};
+      renderServices();
+    }
   },
 
-  _onCalcSelect: function(id){
-    _calcId=id||null;
-    const c=_calcId?_calcs.find(x=>x.id===_calcId):null;
-    const el=document.getElementById('bpCarTitle');
-    const pr=document.getElementById('bpCarPrice');
-    if(el) el.textContent=c?`📅 ${c.car_name}`:'📅 Записать авто';
-    if(pr) pr.textContent=c?`КП: ${fmt(c.final_price||c.total_price||0)}`:'';
+  _onCalcSelect: function(id) {
+    _onCalcSelectInternal(id);
   },
 
-  _prevMonth: function(){
-    _viewMonth--; if(_viewMonth<0){_viewMonth=11;_viewYear--;} renderCalendar();
-  },
-  _nextMonth: function(){
-    _viewMonth++; if(_viewMonth>11){_viewMonth=0;_viewYear++;} renderCalendar();
+  _selectPost: function(pid) {
+    _selectedPost = _selectedPost === pid ? null : pid;
+    renderPosts();
+    renderCalendar();
   },
 
-  _pickDate: function(ds){
-    if(!_dateFrom && !_dateTo){
-      // Ничего нет — ставим заезд
-      _dateFrom=ds; _picking='to';
-    } else if(_dateFrom && !_dateTo){
-      // Есть заезд, нет выезда
-      if(ds===_dateFrom){ _dateFrom=null; _picking='from'; }
-      else if(ds<_dateFrom){ _dateFrom=ds; } // кликнули раньше — сдвигаем заезд
-      else { _dateTo=ds; _picking='from'; }
+  _assignExec: function(svcKey, execId, selectEl) {
+    _serviceExecs[svcKey] = execId || null;
+    if (selectEl) selectEl.classList.toggle('assigned', !!execId);
+  },
+
+  _prevMonth: function() {
+    _viewMonth--; if (_viewMonth < 0) { _viewMonth = 11; _viewYear--; }
+    renderCalendar();
+  },
+  _nextMonth: function() {
+    _viewMonth++; if (_viewMonth > 11) { _viewMonth = 0; _viewYear++; }
+    renderCalendar();
+  },
+
+  _pickDate: function(ds) {
+    if (!_dateFrom && !_dateTo) {
+      _dateFrom = ds; _picking = 'to';
+    } else if (_dateFrom && !_dateTo) {
+      if (ds === _dateFrom)  { _dateFrom = null; _picking = 'from'; }
+      else if (ds < _dateFrom) { _dateFrom = ds; }
+      else { _dateTo = ds; _picking = 'from'; }
     } else {
-      // Оба выбраны — меняем ближайший к клику
-      const diffFrom = Math.abs(parseDate(ds)-parseDate(_dateFrom));
-      const diffTo   = Math.abs(parseDate(ds)-parseDate(_dateTo));
-      if(diffFrom<=diffTo){
-        // Меняем заезд
-        if(ds>_dateTo){ _dateFrom=_dateTo; _dateTo=ds; } // swap
-        else _dateFrom=ds;
+      const diffFrom = Math.abs(parseDate(ds) - parseDate(_dateFrom));
+      const diffTo   = Math.abs(parseDate(ds) - parseDate(_dateTo));
+      if (diffFrom <= diffTo) {
+        if (ds > _dateTo) { _dateFrom = _dateTo; _dateTo = ds; } else _dateFrom = ds;
       } else {
-        // Меняем выезд
-        if(ds<_dateFrom){ _dateTo=_dateFrom; _dateFrom=ds; } // swap
-        else _dateTo=ds;
+        if (ds < _dateFrom) { _dateTo = _dateFrom; _dateFrom = ds; } else _dateTo = ds;
       }
     }
-    renderCalendar(); renderPosts(); renderExecutors();
+    renderCalendar();
+    renderPosts();
   },
 
-  _selectPost: function(pid){
-    _selectedPost=_selectedPost===pid?null:pid;
-    renderPosts(); renderCalendar();
-  },
+  _save: async function() {
+    if (!_dateFrom) { alert('Выберите дату заезда'); return; }
+    if (!_dateTo) _dateTo = _dateFrom;
 
-  _toggleExec: function(eid){
-    _selectedExecs.has(eid)?_selectedExecs.delete(eid):_selectedExecs.add(eid);
-    renderExecutors();
-  },
-
-  _save: async function(){
-    if(!_dateFrom){ alert('Выберите дату заезда'); return; }
-    if(!_dateTo) _dateTo=_dateFrom;
-
-    let carName='', finalCalcId=null;
-    if(_tab==='calc'){
-      if(!_calcId){ alert('Выберите расчёт из списка'); return; }
-      finalCalcId=_calcId;
-      carName=_calcs.find(c=>c.id===_calcId)?.car_name||'';
+    let carName = '', finalCalcId = null;
+    if (_tab === 'calc') {
+      if (!_calcId) { alert('Выберите расчёт из списка'); return; }
+      finalCalcId = _calcId;
+      carName = _calcs.find(c => c.id === _calcId)?.car_name || '';
     } else {
-      const brand=document.getElementById('bpManualBrand')?.value.trim()||'';
-      const plate=document.getElementById('bpManualPlate')?.value.trim()||'';
-      if(!brand){ alert('Введите марку/модель авто'); return; }
-      carName=brand+(plate?` (${plate})`:'');
+      const brand = document.getElementById('bpManualBrand')?.value.trim() || '';
+      const plate = document.getElementById('bpManualPlate')?.value.trim() || '';
+      if (!brand) { alert('Введите марку/модель авто'); return; }
+      carName = brand + (plate ? ` (${plate})` : '');
     }
 
-    if(!_selectedPost&&_posts.length){
-      if(!confirm('Пост не выбран. Продолжить?')) return;
+    if (!_selectedPost && _posts.length) {
+      if (!confirm('Пост не выбран. Продолжить?')) return;
     }
 
-    const btn=document.getElementById('bpSaveBtn');
-    if(btn){btn.disabled=true;btn.textContent='⏳ Сохранение...';}
+    const btn = document.getElementById('bpSaveBtn');
+    if (btn) { btn.disabled = true; btn.textContent = '&#x23F3; Сохранение...'; }
 
-    const sb=window._crmSb;
-    const note=document.getElementById('bpNote')?.value.trim()||null;
-    const execIds=Array.from(_selectedExecs);
-    let ok=true;
+    const sb   = window._crmSb;
+    const note = document.getElementById('bpNote')?.value.trim() || null;
 
-    const {error:bErr}=await sb.from('calendar_bookings').insert({
-      studio_id:_studioId, post_id:_selectedPost||null, calc_id:finalCalcId,
-      car_name:carName, date_from:_dateFrom, date_to:_dateTo,
-      note, executor_ids:execIds.length?execIds:null,
+    // Собираем уникальных исполнителей из назначений
+    const execIds = [...new Set(Object.values(_serviceExecs).filter(Boolean))];
+
+    // Сохраняем назначения услуг для передачи в booking
+    const serviceAssignments = _calcServices.length
+      ? _calcServices.map(svc => ({ key: svc.key, name: svc.name, executor_id: _serviceExecs[svc.key] || null }))
+      : null;
+
+    const { error: bErr } = await sb.from('calendar_bookings').insert({
+      studio_id:    _studioId,
+      post_id:      _selectedPost || null,
+      calc_id:      finalCalcId,
+      car_name:     carName,
+      date_from:    _dateFrom,
+      date_to:      _dateTo,
+      note,
+      executor_ids: execIds.length ? execIds : null,
+      service_assignments: serviceAssignments,
     });
-    if(bErr){console.error(bErr);ok=false;}
 
-    if(ok&&finalCalcId){
+    if (bErr) { console.error(bErr); }
+    let ok = !bErr;
+
+    if (ok && finalCalcId) {
       await sb.from('calculations').update({
-        status:'scheduled', scheduled_from:_dateFrom,
-        scheduled_to:_dateTo, post_id:_selectedPost||null,
-      }).eq('id',finalCalcId);
+        status:         'scheduled',
+        scheduled_from: _dateFrom,
+        scheduled_to:   _dateTo,
+        post_id:        _selectedPost || null,
+      }).eq('id', finalCalcId);
     }
 
-    if(btn){btn.disabled=false;btn.textContent='✅ Записать';}
-    if(ok){ BookingPopup.close(); if(typeof _onSaved==='function') _onSaved(); }
-    else alert('❌ Ошибка сохранения. Проверьте консоль.');
+    if (btn) { btn.disabled = false; btn.textContent = '&#x2705; Записать'; }
+    if (ok) { BookingPopup.close(); if (typeof _onSaved === 'function') _onSaved(); }
+    else alert('&#x274C; Ошибка сохранения. Проверьте консоль.');
   },
 };
 
-document.addEventListener('click',function(e){
-  if(e.target&&e.target.id==='bpOverlay') BookingPopup.close();
+document.addEventListener('click', function(e) {
+  if (e.target && e.target.id === 'bpOverlay') BookingPopup.close();
 });
 
 })();
