@@ -125,22 +125,22 @@ body { background: var(--bg); color: var(--text); min-height: 100dvh; font-famil
 .form-row.triple { grid-template-columns: 1fr 1fr 1fr; }
 .form-group { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
 label { font-size: 0.75rem; font-weight: 700; color: var(--muted); }
-input, select, textarea { padding: 8px 10px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 0.85rem; font-family: inherit; color: var(--text); background: var(--bg); transition: border-color 0.15s; outline: none; }
+input, select, textarea { padding: 8px 10px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 0.85rem; font-family: inherit; color: var(--text); background: var(--bg); transition: border-color 0.15s; outline: none; width: 100%; box-sizing: border-box; }
 input:focus, select:focus, textarea:focus { border-color: var(--primary); background: #fff; }
 textarea { resize: vertical; min-height: 64px; }
 .form-divider { height: 1px; background: var(--border); margin: 14px 0; }
 .form-section-title { font-size: 0.72rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; }
 
 .purchase-lines { width: 100%; margin-bottom: 10px; }
-.purchase-lines-table { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+.purchase-lines-table { width: 100%; border-collapse: collapse; font-size: 0.84rem; table-layout: fixed; }
 .purchase-lines-table th { text-align: left; padding: 6px 8px; font-size: 0.69rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1.5px solid var(--border); white-space: nowrap; }
-.purchase-lines-table td { padding: 5px 6px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.purchase-lines-table td { padding: 4px 6px; border-bottom: 1px solid var(--border); vertical-align: middle; overflow: hidden; }
 .purchase-lines-table tr:last-child td { border-bottom: none; }
-.purchase-lines-table input, .purchase-lines-table select { padding: 6px 8px; font-size: 0.83rem; }
-.purchase-lines-table .col-type { width: 130px; }
-.purchase-lines-table .col-name { min-width: 140px; }
-.purchase-lines-table .col-num  { width: 90px; }
-.purchase-lines-table .col-del  { width: 32px; text-align: center; }
+.purchase-lines-table input, .purchase-lines-table select { padding: 6px 8px; font-size: 0.83rem; width: 100%; box-sizing: border-box; min-width: 0; }
+.purchase-lines-table .col-type { width: 120px; }
+.purchase-lines-table .col-name { width: auto; }
+.purchase-lines-table .col-num  { width: 88px; }
+.purchase-lines-table .col-del  { width: 30px; text-align: center; }
 .pline-del { background: none; border: none; cursor: pointer; color: var(--muted); font-size: 1rem; padding: 2px 6px; border-radius: 4px; line-height: 1; }
 .pline-del:hover { color: var(--danger); background: var(--danger-bg); }
 .purchase-history-block { margin-top: 14px; }
@@ -325,7 +325,7 @@ textarea { resize: vertical; min-height: 64px; }
       </div>
       <div id="vatRow" style="display:none" class="form-group">
         <label>Ставка НДС (%)</label>
-        <input type="number" id="pVat" placeholder="20" min="0" max="100" step="1" style="max-width:120px">
+        <input type="number" id="pVat" placeholder="20" min="0" max="100" step="1" style="max-width:120px;width:120px">
       </div>
 
       <div class="form-divider"></div>
