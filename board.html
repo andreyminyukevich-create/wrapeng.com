@@ -61,6 +61,14 @@ html, body {
 .board-count-badge {
   font-size: 0.72rem; color: var(--text-dim); font-weight: 600; white-space: nowrap;
 }
+.filter-tabs { display: flex; gap: 4px; }
+.filter-btn {
+  padding: 5px 14px; border-radius: 20px; border: 1px solid var(--border);
+  background: transparent; font-size: 0.75rem; font-weight: 700;
+  color: var(--text-dim); cursor: pointer; transition: all .15s; font-family: var(--font);
+}
+.filter-btn:hover  { background: var(--bg); color: var(--text); }
+.filter-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
 
 /* ── Board layout ─────────────────────────── */
 .board-page  { display: flex; flex-direction: column; min-height: 100svh; }
@@ -379,6 +387,10 @@ html, body {
       <input type="text" id="searchInput" placeholder="Поиск по авто..." autocomplete="off">
     </div>
     <span class="board-count-badge" id="boardCountBadge"></span>
+    <div class="filter-tabs">
+      <button class="filter-btn active" id="filterActive" data-filter="active">Активные</button>
+      <button class="filter-btn" id="filterAll" data-filter="all">Все</button>
+    </div>
   </div>
 
   <div class="board-outer">
@@ -482,6 +494,16 @@ let _donePlanItems = [];
 let _dragCalcId    = null;
 let _dragStatus    = null;
 let searchTerm     = '';
+let currentFilter  = 'active'; // 'active' | 'all'
+
+// Активные = все кроме delivered, closed, cancelled
+const ACTIVE_KEYS = new Set(['new','scheduled','accepted','in_progress','waiting','done']);
+
+function visibleColumns() {
+  return currentFilter === 'active'
+    ? COLUMNS.filter(c => ACTIVE_KEYS.has(c.key))
+    : COLUMNS;
+}
 
 // ── Константы ──────────────────────────────────────────────────────
 const COLUMNS = [
@@ -583,7 +605,7 @@ function renderBoard() {
   const frag  = document.createDocumentFragment();
   let total   = 0;
 
-  COLUMNS.forEach(col => {
+  visibleColumns().forEach(col => {
     let cards = allCalcs.filter(c => normalizeStatus(c.status) === col.key);
     total += cards.length;
 
@@ -1311,6 +1333,20 @@ function bindEvents() {
   searchInput.addEventListener('input', () => {
     searchTerm = searchInput.value;
     applySearch();
+  });
+
+  // Фильтры активные / все
+  document.getElementById('filterActive')?.addEventListener('click', () => {
+    currentFilter = 'active';
+    document.getElementById('filterActive').classList.add('active');
+    document.getElementById('filterAll').classList.remove('active');
+    renderBoard();
+  });
+  document.getElementById('filterAll')?.addEventListener('click', () => {
+    currentFilter = 'all';
+    document.getElementById('filterAll').classList.add('active');
+    document.getElementById('filterActive').classList.remove('active');
+    renderBoard();
   });
 
   // ESC закрывает drawer и модалы
