@@ -5,18 +5,6 @@
  *             calculator-persistence.js, calculator-pdf.js
  */
 
-// ── Аккордеоны (event delegation) ────────────────────────────────
-document.addEventListener('click', function(e) {
-  const h2 = e.target.closest('h2.collapsible');
-  if (!h2) return;
-  const card    = h2.closest('.card');
-  if (!card) return;
-  const content = card.querySelector('.card-content');
-  if (!content) return;
-  h2.classList.toggle('collapsed');
-  content.classList.toggle('collapsed');
-});
-
 // ── Тема ──────────────────────────────────────────────────────────
 function initTheme() {
   document.body.setAttribute('data-theme', 'light');
