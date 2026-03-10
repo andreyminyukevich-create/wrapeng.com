@@ -1,68 +1,14 @@
 /**
- * calculator-render.js
- * Все функции рендеринга: списки услуг, таблицы КП/себестоимости, исполнители, итоги
+ * calculator-render.js — v1.1 (актуальная версия из calculator.html)
+ * Отрисовка: сервисные списки, wrap-секция, КП, смета, исполнители,
+ * блок-суммарии, бейджи, подсветка наценок, диаграмма.
  * Зависит от: calculator-data.js, calculator-engine.js
  */
 
-// ── Инициализация Chart.js ────────────────────────────────────────
-function initChart() {
-  const ctx = q('#pieChart')?.getContext('2d');
-  if (!ctx || !window.Chart) return;
-
-  const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text-primary').trim() || '#f1f5f9';
-
-  chart = new Chart(ctx, {
-    type: 'doughnut',
-    data: {
-      labels: ['Материалы', 'Мотивация', 'Наценка', 'Налог'],
-      datasets: [{
-        data: [0, 0, 0, 0],
-        backgroundColor: [
-          'rgba(59, 130, 246, 0.8)',
-          'rgba(16, 185, 129, 0.8)',
-          'rgba(245, 158, 11, 0.8)',
-          'rgba(239, 68, 68, 0.8)'
-        ],
-        borderWidth: 0
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          position: 'bottom',
-          labels: {
-            font: { size: 13, family: 'Inter', weight: '600' },
-            padding: 12,
-            color: textColor,
-            usePointStyle: true,
-            pointStyle: 'circle'
-          }
-        },
-        tooltip: {
-          backgroundColor: 'rgba(15, 23, 42, 0.95)',
-          titleFont: { size: 12, family: 'Inter', weight: '600' },
-          bodyFont: { size: 11, family: 'Inter' },
-          padding: 12,
-          cornerRadius: 8,
-          displayColors: true,
-          callbacks: {
-            label: function(context) {
-              return context.label + ': ' + fmt(context.parsed) + '';
-            }
-          }
-        }
-      }
-    }
-  });
-}
-
-// ── Рендер списка услуг ───────────────────────────────────────────
 function renderServiceList(containerId, services, classPrefix) {
   const container = q(containerId);
   let html = '';
-
+  
   services.forEach((name, idx) => {
     html += `<div class="service-item">
       <div class="service-header">
@@ -81,7 +27,7 @@ function renderServiceList(containerId, services, classPrefix) {
       </div>
     </div>`;
   });
-
+  
   html += `<div id="${classPrefix}Dyn"></div>
     <button type="button" class="btn btn-secondary" id="btnAdd${capitalize(classPrefix)}">+ Дополнительно</button>
     <div class="partial-wrapper">
@@ -96,16 +42,23 @@ function renderServiceList(containerId, services, classPrefix) {
       <label class="markup-label">⚠️ Наценка (%):</label>
       <input type="number" id="${classPrefix}Markup" placeholder="0" step="1">
       <div class="chips">
-        ${[10,20,30,40,50,60,70,80,90,100].map(v =>
-          `<span class="chip" data-markup-target="#${classPrefix}Markup">${v}</span>`
-        ).join('')}
+        <span class="chip" data-markup-target="#${classPrefix}Markup">10</span>
+        <span class="chip" data-markup-target="#${classPrefix}Markup">20</span>
+        <span class="chip" data-markup-target="#${classPrefix}Markup">30</span>
+        <span class="chip" data-markup-target="#${classPrefix}Markup">40</span>
+        <span class="chip" data-markup-target="#${classPrefix}Markup">50</span>
+        <span class="chip" data-markup-target="#${classPrefix}Markup">60</span>
+        <span class="chip" data-markup-target="#${classPrefix}Markup">70</span>
+        <span class="chip" data-markup-target="#${classPrefix}Markup">80</span>
+        <span class="chip" data-markup-target="#${classPrefix}Markup">90</span>
+        <span class="chip" data-markup-target="#${classPrefix}Markup">100</span>
       </div>
-    </div>`;
-
+    </div>
+`;
+  
   container.innerHTML = html;
 }
 
-// ── Рендер содержимого блока оклейки ─────────────────────────────
 function renderWrapContent() {
   const container = q('#wrapContent');
   let html = `<h3 style="margin-bottom:10px;font-size:1.05rem;font-weight:700">PPF</h3>
@@ -176,29 +129,30 @@ function renderWrapContent() {
       <label class="markup-label">⚠️ Наценка на оклейку (%):</label>
       <input type="number" id="wrapMarkup" placeholder="0" step="1">
       <div class="chips">
-        ${[10,20,30,40,50,60,70,80,90,100].map(v =>
-          `<span class="chip" data-markup-target="#wrapMarkup">${v}</span>`
-        ).join('')}
+        <span class="chip" data-markup-target="#wrapMarkup">10</span>
+        <span class="chip" data-markup-target="#wrapMarkup">20</span>
+        <span class="chip" data-markup-target="#wrapMarkup">30</span>
+        <span class="chip" data-markup-target="#wrapMarkup">40</span>
+        <span class="chip" data-markup-target="#wrapMarkup">50</span>
+        <span class="chip" data-markup-target="#wrapMarkup">60</span>
+        <span class="chip" data-markup-target="#wrapMarkup">70</span>
+        <span class="chip" data-markup-target="#wrapMarkup">80</span>
+        <span class="chip" data-markup-target="#wrapMarkup">90</span>
+        <span class="chip" data-markup-target="#wrapMarkup">100</span>
       </div>
-    </div>`;
-
+    </div>
+`;
+  // wrapSummary — статичный div в HTML
+  
   container.innerHTML = html;
 }
 
-// ── Рендер частичных списков PPF/PVC ─────────────────────────────
 function renderPartialLists() {
   const ppf = q('#ppfPartContent');
   const pvc = q('#pvcPartContent');
   let ppfHtml = '', pvcHtml = '';
-
+  
   partElements.forEach((name, idx) => {
-    const chips = [10,20,30,40,50,60,70,80,90,100].map(v =>
-      `<span class="chip" data-ppf-markup="${idx}">${v}</span>`
-    ).join('');
-    const chipsVpc = [10,20,30,40,50,60,70,80,90,100].map(v =>
-      `<span class="chip" data-pvc-markup="${idx}">${v}</span>`
-    ).join('');
-
     ppfHtml += `<div class="service-item">
       <div class="service-header"><input type="checkbox" class="ppf-part-chk" id="ppfp${idx}"><label for="ppfp${idx}">${name}</label></div>
       <div class="service-body">
@@ -208,10 +162,21 @@ function renderPartialLists() {
           <div class="form-group"><label>Мотивация ():</label><input type="number" class="ppf-part-mot" placeholder="0" step="0.01"></div>
           <div class="form-group"><label>Своя наценка (%):</label><input type="number" class="ppf-part-markup" placeholder="0"></div>
         </div>
-        <div class="chips" style="margin-top:10px">${chips}</div>
+<div class="chips" style="margin-top:10px">
+          <span class="chip" data-ppf-markup="${idx}">10</span>
+          <span class="chip" data-ppf-markup="${idx}">20</span>
+          <span class="chip" data-ppf-markup="${idx}">30</span>
+          <span class="chip" data-ppf-markup="${idx}">40</span>
+          <span class="chip" data-ppf-markup="${idx}">50</span>
+          <span class="chip" data-ppf-markup="${idx}">60</span>
+          <span class="chip" data-ppf-markup="${idx}">70</span>
+          <span class="chip" data-ppf-markup="${idx}">80</span>
+          <span class="chip" data-ppf-markup="${idx}">90</span>
+          <span class="chip" data-ppf-markup="${idx}">100</span>
+        </div>
       </div>
     </div>`;
-
+    
     pvcHtml += `<div class="service-item">
       <div class="service-header"><input type="checkbox" class="pvc-part-chk" id="pvcp${idx}"><label for="pvcp${idx}">${name}</label></div>
       <div class="service-body">
@@ -219,18 +184,28 @@ function renderPartialLists() {
           <div class="form-group"><label>Метры (м):</label><input type="number" class="pvc-part-m" placeholder="0" step="0.01"></div>
           <div class="form-group"><label>Цена за метр ():</label><input type="number" class="pvc-part-price" placeholder="0" step="0.01"></div>
           <div class="form-group"><label>Мотивация ():</label><input type="number" class="pvc-part-mot" placeholder="0" step="0.01"></div>
-          <div class="form-group"><label>Своя наценка (%):</label><input type="number" class="pvc-part-markup" placeholder="0"></div>
+<div class="form-group"><label>Своя наценка (%):</label><input type="number" class="pvc-part-markup" placeholder="0"></div>
         </div>
-        <div class="chips" style="margin-top:10px">${chipsVpc}</div>
+<div class="chips" style="margin-top:10px">
+          <span class="chip" data-pvc-markup="${idx}">10</span>
+          <span class="chip" data-pvc-markup="${idx}">20</span>
+          <span class="chip" data-pvc-markup="${idx}">30</span>
+          <span class="chip" data-pvc-markup="${idx}">40</span>
+          <span class="chip" data-pvc-markup="${idx}">50</span>
+          <span class="chip" data-pvc-markup="${idx}">60</span>
+          <span class="chip" data-pvc-markup="${idx}">70</span>
+          <span class="chip" data-pvc-markup="${idx}">80</span>
+          <span class="chip" data-pvc-markup="${idx}">90</span>
+          <span class="chip" data-pvc-markup="${idx}">100</span>
+        </div>
       </div>
     </div>`;
   });
-
+  
   ppf.innerHTML = ppfHtml;
   pvc.innerHTML = pvcHtml;
 }
 
-// ── Добавление строки доп. затраты ───────────────────────────────
 function addCostRow(prefix) {
   costCounter++;
   const container = q(`#${prefix}CostsContent`);
@@ -247,13 +222,14 @@ function addCostRow(prefix) {
   renderAll();
 }
 
-// ── Добавление динамической строки услуги ────────────────────────
+let dynCounter = 0;
 function addDynRow(id, cls) {
   const c = q(id);
   const d = document.createElement('div');
   d.className = 'service-item';
   dynCounter++;
-
+  
+  // Для wrap - особые поля (метры/цена/мотивация)
   if (cls === 'wrap') {
     d.innerHTML = `<div class="service-header">
       <input type="checkbox" checked id="dyn${cls}${dynCounter}">
@@ -271,6 +247,7 @@ function addDynRow(id, cls) {
       </div>
     </div>`;
   } else {
+    // Для остальных - обычные поля (материалы/мотивация)
     d.innerHTML = `<div class="service-header">
       <input type="checkbox" checked id="dyn${cls}${dynCounter}">
       <label for="dyn${cls}${dynCounter}"><input type="text" placeholder="Название услуги" style="border:none;background:transparent;padding:0;font-weight:600;font-size:.95rem;color:var(--text);width:100%"></label>
@@ -289,200 +266,392 @@ function addDynRow(id, cls) {
   c.appendChild(d);
 }
 
-// ── Тогглы раскрытия услуг ────────────────────────────────────────
 function initServiceToggles() {
   qa('.service-item').forEach(item => {
-    const chk    = item.querySelector('.service-header input[type="checkbox"]');
-    const body   = item.querySelector('.service-body');
+    const chk = item.querySelector('.service-header input[type="checkbox"]');
+    const body = item.querySelector('.service-body');
     const header = item.querySelector('.service-header');
+    
     if (!chk || !body) return;
-
+    
     header.onclick = function(e) {
       if (e.target === chk || e.target.tagName === 'INPUT' || e.target.tagName === 'LABEL') return;
       chk.click();
     };
+    
     chk.onchange = function() {
-      body.classList.toggle('open', chk.checked);
+      if (chk.checked) {
+        body.classList.add('open');
+      } else {
+        body.classList.remove('open');
+      }
     };
   });
-
-  ['ppfPartChk','pvcPartChk','pkgCostsChk','impactCostsChk','armCostsChk','wrapCostsChk','detCostsChk','glCostsChk','miscCostsChk'].forEach(id => {
+  
+  ['ppfPartChk', 'pvcPartChk', 'pkgCostsChk', 'impactCostsChk', 'armCostsChk', 'wrapCostsChk', 'detCostsChk', 'glCostsChk', 'miscCostsChk'].forEach(id => {
     const chk = q(`#${id}`);
     if (!chk) return;
     const content = q(`#${id.replace('Chk', 'Content')}`);
+    
+    // Исправляем регистр: первая буква заглавная
     let btnId = id.replace('Chk', '').replace('Costs', 'Cost');
     btnId = btnId.charAt(0).toUpperCase() + btnId.slice(1);
     const btn = q(`#btnAdd${btnId}`);
     if (!content) return;
-
+    
     chk.onchange = function() {
-      content.classList.toggle('open', chk.checked);
-      if (btn) btn.style.display = chk.checked ? 'block' : 'none';
+      if (chk.checked) {
+        content.classList.add('open');
+        if (btn) btn.style.display = 'block';
+      } else {
+        content.classList.remove('open');
+        if (btn) btn.style.display = 'none';
+      }
     };
   });
 }
 
-// ── Рендер КП ────────────────────────────────────────────────────
+function initChart() {
+  const ctx = q('#pieChart')?.getContext('2d');
+  if (!ctx || !window.Chart) return;
+  
+  // Получаем цвет текста из CSS переменной (адаптивно к теме)
+  const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text-primary').trim() || '#f1f5f9';
+  
+  chart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Материалы', 'Мотивация', 'Наценка', 'Налог'],
+      datasets: [{
+        data: [0, 0, 0, 0],
+        backgroundColor: [
+          'rgba(59, 130, 246, 0.8)',
+          'rgba(16, 185, 129, 0.8)',
+          'rgba(245, 158, 11, 0.8)',
+          'rgba(239, 68, 68, 0.8)'
+        ],
+        borderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: {
+            font: { size: 13, family: 'Inter', weight: '600' },
+            padding: 12,
+            color: textColor,
+            usePointStyle: true,
+            pointStyle: 'circle'
+          }
+        },
+        tooltip: {
+          backgroundColor: 'rgba(15, 23, 42, 0.95)',
+          titleFont: { size: 12, family: 'Inter', weight: '600' },
+          bodyFont: { size: 11, family: 'Inter' },
+          padding: 12,
+          cornerRadius: 8,
+          displayColors: true,
+          callbacks: {
+            label: function(context) {
+              return context.label + ': ' + fmt(context.parsed) + '';
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 function renderKP(s, mu) {
   const tb = q('#kpTable tbody');
   if (!tb) return;
   tb.innerHTML = '';
+  
   const taxK = taxCoef();
   let tot = 0;
-
-  const addRow = (name, base, markupPct) => {
-    if (base <= 0) return;
-    const markupAmount = r100(base * (markupPct || 0) / 100);
-    const mWithDisc    = r100(markupAmount * (1 - disc / 100));
-    let pr = r100((base + mWithDisc) * (1 + taxK));
+  
+  // Полная защита вкруг
+  const pkgBase = s.pkg.mat + s.pkg.mot;
+  if (pkgBase > 0) {
+    const markupAmount = r100(pkgBase * (mu.pkg || 0) / 100);
+    const markupWithDiscount = r100(markupAmount * (1 - disc / 100));
+    let pr = pkgBase + markupWithDiscount;
+    pr = r100(pr * (1 + taxK));
     tot += pr;
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td style="text-align:left">${name}</td><td style="text-align:left">${getServiceDescription(name)}</td><td>${fmt(pr)}</td>`;
+    tr.innerHTML = `<td style="text-align:left">Полная защита вкруг</td><td style="text-align:left">${getServiceDescription('Полная защита вкруг')}</td><td>${fmt(pr)}</td>`;
     tb.appendChild(tr);
-  };
-
-  addRow('Полная защита вкруг',   s.pkg.mat + s.pkg.mot,       mu.pkg);
-  addRow('Защита ударной части',  s.impact.mat + s.impact.mot, mu.impact);
-
-  if (s.arm.details?.length) {
-    const armBase = s.arm.mat + s.arm.mot;
-    s.arm.details.forEach(([name]) => {
-      const frac = armBase / s.arm.details.length;
-      const mAmt  = r100(frac * (mu.arm || 0) / 100);
-      const mDisc = r100(mAmt * (1 - disc / 100));
-      const pr    = r100((frac + mDisc) * (1 + taxK));
+  }
+  
+  // Защита ударной части
+  const impactBase = s.impact.mat + s.impact.mot;
+  if (impactBase > 0) {
+    const markupAmount = r100(impactBase * (mu.impact || 0) / 100);
+    const markupWithDiscount = r100(markupAmount * (1 - disc / 100));
+    let pr = impactBase + markupWithDiscount;
+    pr = r100(pr * (1 + taxK));
+    tot += pr;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td style="text-align:left">Защита ударной части</td><td style="text-align:left">${getServiceDescription('Защита ударной части')}</td><td>${fmt(pr)}</td>`;
+    tb.appendChild(tr);
+  }
+  
+  // Арматурные работы - каждая услуга отдельно
+  if (s.arm.details && s.arm.details.length > 0) {
+    s.arm.details.forEach(detail => {
+      const [name, mat, mot] = detail;
+      const armBase = s.arm.mat + s.arm.mot;
+      const serviceFraction = armBase / s.arm.details.length;
+      const markupAmount = r100(serviceFraction * (mu.arm || 0) / 100);
+      const markupWithDiscount = r100(markupAmount * (1 - disc / 100));
+      let pr = serviceFraction + markupWithDiscount;
+      pr = r100(pr * (1 + taxK));
       tot += pr;
       const tr = document.createElement('tr');
       tr.innerHTML = `<td style="text-align:left">${name}</td><td style="text-align:left">${getServiceDescription(name)}</td><td>${fmt(pr)}</td>`;
       tb.appendChild(tr);
     });
   }
-
-  if (s.wrap.details?.length) {
-    s.wrap.details.forEach(([name, , , mat, mot, itemMarkup]) => {
+  
+  // Оклейка - каждая услуга отдельно
+  if (s.wrap.details && s.wrap.details.length > 0) {
+    s.wrap.details.forEach(detail => {
+      const [name, meters, price, mat, mot, itemMarkup] = detail;
       const base = mat + mot;
       if (base <= 0) return;
-      const mkPct  = (itemMarkup && itemMarkup > 0) ? itemMarkup : mu.wrap;
-      const mAmt   = r100(base * (mkPct || 0) / 100);
-      const mDisc  = r100(mAmt * (1 - disc / 100));
-      const pr     = r100((base + mDisc) * (1 + taxK));
+      
+      const markupToUse = (itemMarkup && itemMarkup > 0) ? itemMarkup : mu.wrap;
+      const markupAmount = r100(base * (markupToUse || 0) / 100);
+      const markupWithDiscount = r100(markupAmount * (1 - disc / 100));
+      let pr = base + markupWithDiscount;
+      pr = r100(pr * (1 + taxK));
+      tot += pr;
+      
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td style="text-align:left">${name}</td><td style="text-align:left">${getServiceDescription(name)}</td><td>${fmt(pr)}</td>`;
+      tb.appendChild(tr);
+    });
+  }
+  
+  // Детейлинг - каждая услуга отдельно
+  if (s.det.details && s.det.details.length > 0) {
+    s.det.details.forEach(detail => {
+      const [name, mat, mot] = detail;
+      const detBase = s.det.mat + s.det.mot;
+      const serviceFraction = detBase / s.det.details.length;
+      const markupAmount = r100(serviceFraction * (mu.det || 0) / 100);
+      const markupWithDiscount = r100(markupAmount * (1 - disc / 100));
+      let pr = serviceFraction + markupWithDiscount;
+      pr = r100(pr * (1 + taxK));
       tot += pr;
       const tr = document.createElement('tr');
       tr.innerHTML = `<td style="text-align:left">${name}</td><td style="text-align:left">${getServiceDescription(name)}</td><td>${fmt(pr)}</td>`;
       tb.appendChild(tr);
     });
   }
-
-  ['det','gl','ms'].forEach(key => {
-    const base = s[key].mat + s[key].mot;
-    const muKey = key === 'ms' ? mu.ms : mu[key];
-    if (s[key].details?.length) {
-      s[key].details.forEach(([name]) => {
-        const frac = base / s[key].details.length;
-        const mAmt  = r100(frac * (muKey || 0) / 100);
-        const mDisc = r100(mAmt * (1 - disc / 100));
-        const pr    = r100((frac + mDisc) * (1 + taxK));
-        tot += pr;
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td style="text-align:left">${name}</td><td style="text-align:left">${getServiceDescription(name)}</td><td>${fmt(pr)}</td>`;
-        tb.appendChild(tr);
-      });
-    }
-  });
-
+  
+  // Стёкла - каждая услуга отдельно
+  if (s.gl.details && s.gl.details.length > 0) {
+    s.gl.details.forEach(detail => {
+      const [name, mat, mot] = detail;
+      const glBase = s.gl.mat + s.gl.mot;
+      const serviceFraction = glBase / s.gl.details.length;
+      const markupAmount = r100(serviceFraction * (mu.gl || 0) / 100);
+      const markupWithDiscount = r100(markupAmount * (1 - disc / 100));
+      let pr = serviceFraction + markupWithDiscount;
+      pr = r100(pr * (1 + taxK));
+      tot += pr;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td style="text-align:left">${name}</td><td style="text-align:left">${getServiceDescription(name)}</td><td>${fmt(pr)}</td>`;
+      tb.appendChild(tr);
+    });
+  }
+  
+  // Прочие работы - каждая услуга отдельно
+  if (s.ms.details && s.ms.details.length > 0) {
+    s.ms.details.forEach(detail => {
+      const [name, mat, mot] = detail;
+      const msBase = s.ms.mat + s.ms.mot;
+      const serviceFraction = msBase / s.ms.details.length;
+      const markupAmount = r100(serviceFraction * (mu.ms || 0) / 100);
+      const markupWithDiscount = r100(markupAmount * (1 - disc / 100));
+      let pr = serviceFraction + markupWithDiscount;
+      pr = r100(pr * (1 + taxK));
+      tot += pr;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td style="text-align:left">${name}</td><td style="text-align:left">${getServiceDescription(name)}</td><td>${fmt(pr)}</td>`;
+      tb.appendChild(tr);
+    });
+  }
+  
   q('#kpTotal').textContent = fmt(tot);
 }
 
-// ── Рендер себестоимости ─────────────────────────────────────────
 function renderCost(s) {
   const tb = q('#costTable tbody');
   if (!tb) return;
   tb.innerHTML = '';
-  let totM = 0, totO = 0;
-
-  [
-    { t: 'Полная защита вкруг',  sum: s.pkg },
+  
+  const rows = [
+    { t: 'Полная защита вкруг', sum: s.pkg },
     { t: 'Защита ударной части', sum: s.impact },
-    { t: 'Арматурные работы',    sum: s.arm },
-    { t: 'Детейлинг',            sum: s.det },
-    { t: 'Стёкла',               sum: s.gl },
-    { t: 'Прочие работы',        sum: s.ms }
-  ].forEach(r => {
-    if (r.sum.mat + r.sum.mot <= 0) return;
-    totM += r.sum.mat; totO += r.sum.mot;
+    { t: 'Арматурные работы', sum: s.arm },
+    { t: 'Детейлинг', sum: s.det },
+    { t: 'Стёкла', sum: s.gl },
+    { t: 'Прочие работы', sum: s.ms }
+  ];
+  
+  let totM = 0, totO = 0;
+  
+  rows.forEach(r => {
+    const base = r.sum.mat + r.sum.mot;
+    if (base <= 0) return;
+    
+    totM += r.sum.mat;
+    totO += r.sum.mot;
+    
     const tr = document.createElement('tr');
     tr.innerHTML = `<td style="text-align:left">${r.t}</td><td>${fmt(r.sum.mat)}</td><td>${fmt(r.sum.mot)}</td>`;
     tb.appendChild(tr);
   });
-
-  s.wrap.details?.forEach(([name, , , mat, mot]) => {
-    if (mat <= 0 && mot <= 0) return;
-    totM += mat; totO += mot;
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td style="text-align:left">${name}</td><td>${fmt(mat)}</td><td>${fmt(mot)}</td>`;
-    tb.appendChild(tr);
-  });
-
-  q('#cMat').textContent   = fmt(totM);
-  q('#cMot').textContent   = fmt(totO);
+  
+  if (s.wrap.details && s.wrap.details.length > 0) {
+    s.wrap.details.forEach(detail => {
+      const [name, meters, price, mat, mot, itemMarkup] = detail;
+      if (mat <= 0 && mot <= 0) return;
+      
+      totM += mat;
+      totO += mot;
+      
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td style="text-align:left">${name}</td><td>${fmt(mat)}</td><td>${fmt(mot)}</td>`;
+      tb.appendChild(tr);
+    });
+  }
+  
+  q('#cMat').textContent = fmt(totM);
+  q('#cMot').textContent = fmt(totO);
   q('#cTotal').textContent = fmt(totM + totO);
 }
-
-// ── Рендер исполнителей ──────────────────────────────────────────
 function renderExecutors(s) {
   const container = q('#executorsContent');
   if (!container) return;
-
+  
   let execIndex = 0;
   const allServices = [];
-
-  const pkgWrapMot   = parseFloat(q('#pkgWrapMot')?.value)    || 0;
-  const pkgPrepMot   = parseFloat(q('#pkgPrepMot')?.value)    || 0;
-  const pkgArmMot    = parseFloat(q('#pkgArmMot')?.value)     || 0;
+  
+  // Пакет "Полная защита вкруг" - разбиваем на услуги
+  const pkgWrapMot = parseFloat(q('#pkgWrapMot')?.value) || 0;
+  const pkgPrepMot = parseFloat(q('#pkgPrepMot')?.value) || 0;
+  const pkgArmMot = parseFloat(q('#pkgArmMot')?.value) || 0;
+  
   if (pkgWrapMot > 0 || pkgPrepMot > 0 || pkgArmMot > 0) {
-    if (pkgWrapMot > 0)  allServices.push({ name: 'Полная защита вкруг - Инсталляция пленки', mot: pkgWrapMot,  idx: execIndex++ });
-    if (pkgPrepMot > 0)  allServices.push({ name: 'Полная защита вкруг - Подготовка',          mot: pkgPrepMot,  idx: execIndex++ });
-    if (pkgArmMot > 0)   allServices.push({ name: 'Полная защита вкруг - Арматурные работы',   mot: pkgArmMot,   idx: execIndex++ });
+    if (pkgWrapMot > 0) {
+      allServices.push({ name: 'Полная защита вкруг - Инсталляция пленки', mot: pkgWrapMot, idx: execIndex++ });
+    }
+    if (pkgPrepMot > 0) {
+      allServices.push({ name: 'Полная защита вкруг - Подготовка', mot: pkgPrepMot, idx: execIndex++ });
+    }
+    if (pkgArmMot > 0) {
+      allServices.push({ name: 'Полная защита вкруг - Арматурные работы', mot: pkgArmMot, idx: execIndex++ });
+    }
   }
-
+  
+  // Пакет "Защита ударной части" - разбиваем на услуги
   const impactWrapMot = parseFloat(q('#impactWrapMot')?.value) || 0;
   const impactPrepMot = parseFloat(q('#impactPrepMot')?.value) || 0;
-  const impactArmMot  = parseFloat(q('#impactArmMot')?.value)  || 0;
+  const impactArmMot = parseFloat(q('#impactArmMot')?.value) || 0;
+  
   if (impactWrapMot > 0 || impactPrepMot > 0 || impactArmMot > 0) {
-    if (impactWrapMot > 0) allServices.push({ name: 'Защита ударной части - Инсталляция пленки', mot: impactWrapMot, idx: execIndex++ });
-    if (impactPrepMot > 0) allServices.push({ name: 'Защита ударной части - Подготовка',          mot: impactPrepMot, idx: execIndex++ });
-    if (impactArmMot > 0)  allServices.push({ name: 'Защита ударной части - Арматурные работы',   mot: impactArmMot,  idx: execIndex++ });
+    if (impactWrapMot > 0) {
+      allServices.push({ name: 'Защита ударной части - Инсталляция пленки', mot: impactWrapMot, idx: execIndex++ });
+    }
+    if (impactPrepMot > 0) {
+      allServices.push({ name: 'Защита ударной части - Подготовка', mot: impactPrepMot, idx: execIndex++ });
+    }
+    if (impactArmMot > 0) {
+      allServices.push({ name: 'Защита ударной части - Арматурные работы', mot: impactArmMot, idx: execIndex++ });
+    }
   }
-
-  s.arm.details?.forEach(d  => allServices.push({ name: d[0], mot: d[2], idx: execIndex++ }));
-  s.wrap.details?.forEach(d => allServices.push({ name: d[0], mot: d[4], idx: execIndex++ }));
-  s.det.details?.forEach(d  => allServices.push({ name: d[0], mot: d[2], idx: execIndex++ }));
-  s.gl.details?.forEach(d   => allServices.push({ name: d[0], mot: d[2], idx: execIndex++ }));
-  s.ms.details?.forEach(d   => allServices.push({ name: d[0], mot: d[2], idx: execIndex++ }));
-
-  // Не перерисовываем если количество не изменилось
+  
+  if (s.arm.details && s.arm.details.length > 0) {
+    s.arm.details.forEach(detail => {
+      allServices.push({ name: detail[0], mot: detail[2], idx: execIndex++ });
+    });
+  }
+  
+  if (s.wrap.details && s.wrap.details.length > 0) {
+    s.wrap.details.forEach(detail => {
+      allServices.push({ name: detail[0], mot: detail[4], idx: execIndex++ });
+    });
+  }
+  
+  if (s.det.details && s.det.details.length > 0) {
+    s.det.details.forEach(detail => {
+      allServices.push({ name: detail[0], mot: detail[2], idx: execIndex++ });
+    });
+  }
+  
+  if (s.gl.details && s.gl.details.length > 0) {
+    s.gl.details.forEach(detail => {
+      allServices.push({ name: detail[0], mot: detail[2], idx: execIndex++ });
+    });
+  }
+  
+  if (s.ms.details && s.ms.details.length > 0) {
+    s.ms.details.forEach(detail => {
+      allServices.push({ name: detail[0], mot: detail[2], idx: execIndex++ });
+    });
+  }
+  
+  // Проверяем, изменилось ли количество услуг
   const existingRows = container.querySelectorAll('[data-exec-id]');
   if (existingRows.length === allServices.length) {
+    // Только обновляем значения зарплаты если они не были изменены вручную
     allServices.forEach(srv => {
-      const salaryInput = q(`#exec${srv.idx}salary`);
+      const baseId = `exec${srv.idx}`;
+      const salaryInput = q(`#${baseId}salary`);
       if (salaryInput && salaryInput.dataset.manuallySet !== 'true') {
         salaryInput.value = srv.mot.toFixed(2);
       }
     });
-    return;
+    return; // НЕ перерисовываем
   }
-
+  
+  // Если количество изменилось — полная перерисовка
   let html = '';
+  
   allServices.forEach(srv => {
     const baseId = `exec${srv.idx}`;
+    
     html += `<div class="executor-row" data-exec-id="${baseId}">
       <div class="executor-row-header">${srv.name}</div>
       <div class="executor-fields-new">
-        <div class="executor-field"><label>Исполнитель:</label><input type="text" id="${baseId}name" placeholder="ФИО" value=""></div>
-        <div class="executor-field"><label>Зарплата ():</label><input type="number" id="${baseId}salary" placeholder="0" value="${srv.mot.toFixed(2)}" step="0.01" data-original-motivation="${srv.mot.toFixed(2)}"></div>
-        <div class="executor-field"><label>Дата приема:</label><input type="date" id="${baseId}receive" value=""></div>
-        <div class="executor-field"><label>Дата выдачи:</label><input type="date" id="${baseId}return" value=""></div>
-        <div class="executor-field executor-field-note"><label>Примечание:</label><input type="text" id="${baseId}note" placeholder="Заметки" value=""></div>
+        <div class="executor-field">
+          <label>Исполнитель:</label>
+          <input type="text" id="${baseId}name" placeholder="ФИО" value="">
+        </div>
+        <div class="executor-field">
+          <label>Зарплата ():</label>
+          <input type="number" id="${baseId}salary" placeholder="0" value="${srv.mot.toFixed(2)}" step="0.01" data-original-motivation="${srv.mot.toFixed(2)}">
+        </div>
+        <div class="executor-field">
+          <label>Дата приема:</label>
+          <input type="date" id="${baseId}receive" value="">
+        </div>
+        <div class="executor-field">
+          <label>Дата выдачи:</label>
+          <input type="date" id="${baseId}return" value="">
+        </div>
+        <div class="executor-field executor-field-note">
+          <label>Примечание:</label>
+          <input type="text" id="${baseId}note" placeholder="Заметки" value="">
+        </div>
       </div>
       <div style="margin-top:12px;text-align:center">
         <label style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:0.9rem;user-select:none">
@@ -493,77 +662,152 @@ function renderExecutors(s) {
       <div class="extra-executors" id="${baseId}-extra"></div>
     </div>`;
   });
-
+  
   container.innerHTML = html;
-
+  
+  // Навешиваем обработчики
   qa('.add-executor-chk').forEach(chk => {
     chk.addEventListener('change', function() {
-      if (!this.checked) return;
-      const baseId        = this.getAttribute('data-exec-base');
-      const extraContainer = q(`#${baseId}-extra`);
-      const extraCount    = extraContainer.querySelectorAll('.extra-executor-row').length;
-      const newId         = `${baseId}-ex${extraCount + 1}`;
-
-      const row = document.createElement('div');
-      row.className = 'extra-executor-row';
-      row.style.cssText = 'margin-top:12px;padding:12px;background:var(--bg-tertiary);border-radius:12px;border:1px solid var(--border)';
-      row.innerHTML = `
-        <div class="executor-row-header" style="font-size:0.8rem;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">
-          <span>Исполнитель ${extraCount + 2}</span>
-          <button type="button" class="btn-remove-executor" style="background:var(--danger);color:#fff;border:none;padding:6px 12px;border-radius:8px;font-size:0.8rem;cursor:pointer;font-weight:600">❌ Удалить</button>
-        </div>
-        <div class="executor-fields-new">
-          <div class="executor-field"><label>Исполнитель:</label><input type="text" id="${newId}name" placeholder="ФИО" value=""></div>
-          <div class="executor-field"><label>Зарплата ():</label><input type="number" id="${newId}salary" placeholder="0" value="" step="0.01"></div>
-          <div class="executor-field"><label>Дата приема:</label><input type="date" id="${newId}receive" value=""></div>
-          <div class="executor-field"><label>Дата выдачи:</label><input type="date" id="${newId}return" value=""></div>
-          <div class="executor-field executor-field-note"><label>Примечание:</label><input type="text" id="${newId}note" placeholder="Заметки" value=""></div>
-        </div>
-        <div style="margin-top:12px;text-align:center">
-          <label style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:0.9rem;user-select:none">
-            <input type="checkbox" class="add-executor-chk" data-exec-base="${baseId}" style="width:20px;height:20px;cursor:pointer;accent-color:var(--primary)">
-            <span>+ Добавить исполнителя</span>
-          </label>
-        </div>
-      `;
-
-      extraContainer.appendChild(row);
-      this.checked = false;
-
-      row.querySelector('.btn-remove-executor').addEventListener('click', function() {
-        if (confirm('Удалить этого исполнителя?')) row.remove();
-      });
+      if (this.checked) {
+        const baseId = this.getAttribute('data-exec-base');
+        const extraContainer = q(`#${baseId}-extra`);
+        const baseRow = this.closest('.executor-row');
+        const baseSalaryInput = baseRow.querySelector(`#${baseId}salary`);
+        
+        // Берем ОРИГИНАЛЬНУЮ мотивацию, а не текущее значение
+        const originalMotivation = parseFloat(baseSalaryInput?.getAttribute('data-original-motivation')) || 0;
+        
+        const extraCount = extraContainer.querySelectorAll('.extra-executor-row').length;
+        
+        // НЕ делим зарплату! У первого остается 100%, у нового пусто
+        const newId = `${baseId}-ex${extraCount + 1}`;
+        
+        const row = document.createElement('div');
+        row.className = 'extra-executor-row';
+        row.style.cssText = 'margin-top:12px;padding:12px;background:var(--bg-tertiary);border-radius:12px;border:1px solid var(--border)';
+        row.innerHTML = `
+          <div class="executor-row-header" style="font-size:0.8rem;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">
+            <span>Исполнитель ${extraCount + 2}</span>
+            <button type="button" class="btn-remove-executor" style="background:var(--danger);color:#fff;border:none;padding:6px 12px;border-radius:8px;font-size:0.8rem;cursor:pointer;font-weight:600;transition:all 0.3s">❌ Удалить</button>
+          </div>
+          <div class="executor-fields-new">
+            <div class="executor-field">
+              <label>Исполнитель:</label>
+              <input type="text" id="${newId}name" placeholder="ФИО" value="">
+            </div>
+            <div class="executor-field">
+              <label>Зарплата ():</label>
+              <input type="number" id="${newId}salary" placeholder="0" value="" step="0.01">
+            </div>
+            <div class="executor-field">
+              <label>Дата приема:</label>
+              <input type="date" id="${newId}receive" value="">
+            </div>
+            <div class="executor-field">
+              <label>Дата выдачи:</label>
+              <input type="date" id="${newId}return" value="">
+            </div>
+            <div class="executor-field executor-field-note">
+              <label>Примечание:</label>
+              <input type="text" id="${newId}note" placeholder="Заметки" value="">
+            </div>
+          </div>
+          <div style="margin-top:12px;text-align:center">
+            <label style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:0.9rem;user-select:none">
+              <input type="checkbox" class="add-executor-chk" data-exec-base="${baseId}" style="width:20px;height:20px;cursor:pointer;accent-color:var(--primary)">
+              <span>+ Добавить исполнителя</span>
+            </label>
+          </div>
+        `;
+        
+        extraContainer.appendChild(row);
+        this.checked = false;
+        
+        // Обработчик на кнопку удаления
+        row.querySelector('.btn-remove-executor').addEventListener('click', function() {
+          if (confirm('Удалить этого исполнителя?')) {
+            row.remove();
+          }
+        });
+      }
     });
   });
 }
 
-// ── Мини-итоги по блокам ─────────────────────────────────────────
-function updateBlockSummaries(s, mu) {
-  const pkgBase    = s.pkg.mat    + s.pkg.mot;
-  const impactBase = s.impact.mat + s.impact.mot;
-  const armBase    = s.arm.mat    + s.arm.mot;
-  const wrapBase   = s.wrap.mat   + s.wrap.mot;
-  const detBase    = s.det.mat    + s.det.mot;
-  const glBase     = s.gl.mat     + s.gl.mot;
-  const msBase     = s.ms.mat     + s.ms.mot;
 
+function updateBlockSummaries(s, mu) {
+  function setSummary(sid, base, markupAmt) {
+    const el = document.getElementById(sid);
+    if (!el) return;
+    if (base === 0 && markupAmt === 0) { el.style.display = 'none'; return; }
+    el.style.display = 'flex';
+    const total = base + markupAmt;
+    const baseEl = document.getElementById(sid + 'Base') || document.getElementById(sid.replace('Summary','') + 'SumBase');
+    const markEl = document.getElementById(sid + 'Markup') || document.getElementById(sid.replace('Summary','') + 'SumMarkup');
+    const totEl  = document.getElementById(sid + 'Total') || document.getElementById(sid.replace('Summary','') + 'SumTotal');
+    if (baseEl) baseEl.textContent = fmt(base) + '';
+    if (markEl) markEl.textContent = (markupAmt >= 0 ? '+' : '') + fmt(markupAmt) + '';
+    if (totEl)  totEl.textContent  = fmt(total) + '';
+  }
+
+  const pkgBase    = s.pkg.mat + s.pkg.mot;
+  const impactBase = s.impact.mat + s.impact.mot;
+  const armBase    = s.arm.mat + s.arm.mot;
+  const wrapBase   = s.wrap.mat + s.wrap.mot;
+  const detBase    = s.det.mat + s.det.mot;
+  const glBase     = s.gl.mat + s.gl.mot;
+  const msBase     = s.ms.mat + s.ms.mot;
+
+  // Наценки в рублях
   let wrapMarkupAmt = 0;
-  if (s.wrap.details?.length) {
+  if (s.wrap.details && s.wrap.details.length > 0) {
     s.wrap.details.forEach(d => {
       const base = d[3] + d[4];
-      const mk   = (d[5] && d[5] > 0) ? d[5] : (mu.wrap || 0);
+      const mk = (d[5] && d[5] > 0) ? d[5] : (mu.wrap || 0);
       wrapMarkupAmt += r100(base * mk / 100);
     });
   } else {
     wrapMarkupAmt = r100(wrapBase * (mu.wrap || 0) / 100);
   }
 
-  const showSummary = (sid, base, markupPct) => {
+  // pkg
+  const pkgEl = document.getElementById('pkgSummary');
+  if (pkgEl) {
+    if (pkgBase === 0) { pkgEl.style.display = 'none'; }
+    else {
+      pkgEl.style.display = 'flex';
+      const m = r100(pkgBase * (mu.pkg || 0) / 100);
+      document.getElementById('pkgSumBase').textContent   = fmt(pkgBase) + '';
+      document.getElementById('pkgSumMarkup').textContent = '+' + fmt(m) + '';
+      document.getElementById('pkgSumTotal').textContent  = fmt(pkgBase + m) + '';
+    }
+  }
+  // impact
+  const impEl = document.getElementById('impactSummary');
+  if (impEl) {
+    if (impactBase === 0) { impEl.style.display = 'none'; }
+    else {
+      impEl.style.display = 'flex';
+      const m = r100(impactBase * (mu.impact || 0) / 100);
+      document.getElementById('impactSumBase').textContent   = fmt(impactBase) + '';
+      document.getElementById('impactSumMarkup').textContent = '+' + fmt(m) + '';
+      document.getElementById('impactSumTotal').textContent  = fmt(impactBase + m) + '';
+    }
+  }
+
+  // Динамические блоки (arm/det/gl/ms через renderServiceList)
+  const dynBlocks = [
+    { sid: 'armSummary',  base: armBase,  mu: mu.arm  || 0 },
+    { sid: 'detSummary',  base: detBase,  mu: mu.det  || 0 },
+    { sid: 'glSummary',   base: glBase,   mu: mu.gl   || 0 },
+    { sid: 'miscSummary', base: msBase,   mu: mu.ms   || 0 },
+  ];
+  dynBlocks.forEach(({ sid, base, mu: muPct }) => {
     const el = document.getElementById(sid);
     if (!el) return;
-    const m = r100(base * markupPct / 100);
     if (base === 0) { el.style.display = 'none'; return; }
     el.style.display = 'flex';
+    const m = r100(base * muPct / 100);
     const prefix = sid.replace('Summary', '');
     const baseEl = document.getElementById(prefix + 'SumBase');
     const markEl = document.getElementById(prefix + 'SumMarkup');
@@ -571,15 +815,9 @@ function updateBlockSummaries(s, mu) {
     if (baseEl) baseEl.textContent = fmt(base) + '';
     if (markEl) markEl.textContent = '+' + fmt(m) + '';
     if (totEl)  totEl.textContent  = fmt(base + m) + '';
-  };
+  });
 
-  showSummary('pkgSummary',    pkgBase,    mu.pkg    || 0);
-  showSummary('impactSummary', impactBase, mu.impact || 0);
-  showSummary('armSummary',    armBase,    mu.arm    || 0);
-  showSummary('detSummary',    detBase,    mu.det    || 0);
-  showSummary('glSummary',     glBase,     mu.gl     || 0);
-  showSummary('miscSummary',   msBase,     mu.ms     || 0);
-
+  // wrap
   const wrapEl = document.getElementById('wrapSummary');
   if (wrapEl) {
     if (wrapBase === 0) { wrapEl.style.display = 'none'; }
@@ -592,82 +830,66 @@ function updateBlockSummaries(s, mu) {
   }
 }
 
-// ── Итоговые бейджи + диаграмма ──────────────────────────────────
 function renderBadges(s, mu) {
-  const pkgTotal    = s.pkg.mat    + s.pkg.mot;
+  // Итоги по направлениям удалены, считаем только общие итоги
+  
+  const pkgTotal = s.pkg.mat + s.pkg.mot;
   const impactTotal = s.impact.mat + s.impact.mot;
-  const armTotal    = s.arm.mat    + s.arm.mot;
-  const wrapTotal   = s.wrap.mat   + s.wrap.mot;
-  const detTotal    = s.det.mat    + s.det.mot;
-  const glTotal     = s.gl.mat     + s.gl.mot;
-  const msTotal     = s.ms.mat     + s.ms.mot;
-
+  const armTotal = s.arm.mat + s.arm.mot;
+  const wrapTotal = s.wrap.mat + s.wrap.mot;
+  const detTotal = s.det.mat + s.det.mot;
+  const glTotal = s.gl.mat + s.gl.mot;
+  const msTotal = s.ms.mat + s.ms.mot;
+  
   const baseAll = pkgTotal + impactTotal + armTotal + wrapTotal + detTotal + glTotal + msTotal;
-
+  
+  const pkgMarkup = r100(pkgTotal * (mu.pkg || 0) / 100);
+  const impactMarkup = r100(impactTotal * (mu.impact || 0) / 100);
+  const armMarkup = r100(armTotal * (mu.arm || 0) / 100);
+  const detMarkup = r100(detTotal * (mu.det || 0) / 100);
+  const glMarkup = r100(glTotal * (mu.gl || 0) / 100);
+  const msMarkup = r100(msTotal * (mu.ms || 0) / 100);
+  
   let wrapMarkup = 0;
-  if (s.wrap.details?.length) {
-    s.wrap.details.forEach(([, , , mat, mot, itemMarkup]) => {
-      const base    = mat + mot;
-      const mkToUse = (itemMarkup && itemMarkup > 0) ? itemMarkup : mu.wrap;
-      wrapMarkup += r100(base * (mkToUse || 0) / 100);
+  if (s.wrap.details && s.wrap.details.length > 0) {
+    s.wrap.details.forEach(detail => {
+      const [name, meters, price, mat, mot, itemMarkup] = detail;
+      const base = mat + mot;
+      const markupToUse = (itemMarkup && itemMarkup > 0) ? itemMarkup : mu.wrap;
+      wrapMarkup += r100(base * (markupToUse || 0) / 100);
     });
   } else {
     wrapMarkup = r100(wrapTotal * (mu.wrap || 0) / 100);
   }
-
-  const totalMarkup      = r100(pkgTotal * (mu.pkg || 0) / 100) +
-                           r100(impactTotal * (mu.impact || 0) / 100) +
-                           r100(armTotal * (mu.arm || 0) / 100) +
-                           wrapMarkup +
-                           r100(detTotal * (mu.det || 0) / 100) +
-                           r100(glTotal * (mu.gl || 0) / 100) +
-                           r100(msTotal * (mu.ms || 0) / 100);
-  const markupWithDisc   = r100(totalMarkup * (1 - disc / 100));
-  const afterMarkup      = baseAll + markupWithDisc;
-  const taxK             = taxCoef();
-  const tax              = r100(afterMarkup * taxK);
-  const fin              = afterMarkup + tax;
-
+  
+  const totalMarkup = pkgMarkup + impactMarkup + armMarkup + wrapMarkup + detMarkup + glMarkup + msMarkup;
+  const markupWithDiscount = r100(totalMarkup * (1 - disc / 100));
+  const afterMarkup = baseAll + markupWithDiscount;
+  const taxK = taxCoef();
+  const tax = r100(afterMarkup * taxK);
+  const fin = afterMarkup + tax;
+  
   updateBlockSummaries(s, mu);
-
-  q('#grandMat')?.textContent  !== undefined && (q('#grandMat').textContent  = fmt(s.pkg.mat + s.impact.mat + s.arm.mat + s.wrap.mat + s.det.mat + s.gl.mat + s.ms.mat));
-  q('#grandMot')?.textContent  !== undefined && (q('#grandMot').textContent  = fmt(s.pkg.mot + s.impact.mot + s.arm.mot + s.wrap.mot + s.det.mot + s.gl.mot + s.ms.mot));
-  q('#grandBase')?.textContent  !== undefined && (q('#grandBase').textContent  = fmt(baseAll));
-  q('#grandMarkup')?.textContent !== undefined && (q('#grandMarkup').textContent = fmt(markupWithDisc));
-  q('#grandTax')?.textContent   !== undefined && (q('#grandTax').textContent   = fmt(tax));
-  q('#finalTotal')?.textContent !== undefined && (q('#finalTotal').textContent = fmt(fin));
-
+  q('#grandMat').textContent = fmt(s.pkg.mat + s.impact.mat + s.arm.mat + s.wrap.mat + s.det.mat + s.gl.mat + s.ms.mat);
+  q('#grandMot').textContent = fmt(s.pkg.mot + s.impact.mot + s.arm.mot + s.wrap.mot + s.det.mot + s.gl.mot + s.ms.mot);
+  q('#grandBase').textContent = fmt(baseAll);
+  q('#grandMarkup').textContent = fmt(markupWithDiscount);
+  q('#grandTax').textContent = fmt(tax);
+  q('#finalTotal').textContent = fmt(fin);
+  
   if (chart) {
     chart.data.datasets[0].data = [
       s.pkg.mat + s.impact.mat + s.arm.mat + s.wrap.mat + s.det.mat + s.gl.mat + s.ms.mat,
       s.pkg.mot + s.impact.mot + s.arm.mot + s.wrap.mot + s.det.mot + s.gl.mot + s.ms.mot,
-      markupWithDisc,
+      markupWithDiscount,
       tax
     ];
     chart.update('none');
   }
 }
 
-// ── Подсветка полей наценки ───────────────────────────────────────
-function highlightMarkupFields(s, mu) {
-  [
-    { sum: s.pkg.mat    + s.pkg.mot,    markup: mu.pkg,    field: '#pkgMarkup' },
-    { sum: s.impact.mat + s.impact.mot, markup: mu.impact, field: '#impactMarkup' },
-    { sum: s.arm.mat    + s.arm.mot,    markup: mu.arm,    field: '#armMarkup' },
-    { sum: s.wrap.mat   + s.wrap.mot,   markup: mu.wrap,   field: '#wrapMarkup' },
-    { sum: s.det.mat    + s.det.mot,    markup: mu.det,    field: '#detMarkup' },
-    { sum: s.gl.mat     + s.gl.mot,     markup: mu.gl,     field: '#glMarkup' },
-    { sum: s.ms.mat     + s.ms.mot,     markup: mu.ms,     field: '#miscMarkup' }
-  ].forEach(({ sum, markup, field }) => {
-    const el = q(field);
-    if (!el) return;
-    el.classList.toggle('markup-warning', sum > 0 && (!markup || markup === 0));
-  });
-}
-
-// ── Главная функция рендеринга ────────────────────────────────────
 function renderAll() {
-  const s  = collectAll();
+  const s = collectAll();
   const mu = markups();
   renderBadges(s, mu);
   renderKP(s, mu);
@@ -675,3 +897,33 @@ function renderAll() {
   renderExecutors(s);
   highlightMarkupFields(s, mu);
 }
+
+function highlightMarkupFields(s, mu) {
+  const checks = [
+    { sum: s.pkg.mat + s.pkg.mot, markup: mu.pkg, field: '#pkgMarkup' },
+    { sum: s.impact.mat + s.impact.mot, markup: mu.impact, field: '#impactMarkup' },
+    { sum: s.arm.mat + s.arm.mot, markup: mu.arm, field: '#armMarkup' },
+    { sum: s.wrap.mat + s.wrap.mot, markup: mu.wrap, field: '#wrapMarkup' },
+    { sum: s.det.mat + s.det.mot, markup: mu.det, field: '#detMarkup' },
+    { sum: s.gl.mat + s.gl.mot, markup: mu.gl, field: '#glMarkup' },
+    { sum: s.ms.mat + s.ms.mot, markup: mu.ms, field: '#miscMarkup' }
+  ];
+  
+  checks.forEach(c => {
+    const field = q(c.field);
+    if (!field) return;
+    if (c.sum > 0 && (!c.markup || c.markup === 0)) {
+      field.classList.add('markup-warning');
+    } else {
+      field.classList.remove('markup-warning');
+    }
+  });
+}
+
+function initTheme() {
+  // Принудительно светлая тема
+  document.body.setAttribute('data-theme', 'light');
+
+  qa('.toggle-btn').forEach(b => {
+    b.addEventListener('click', () => {
+      const r = b.querySelector('input[type=radio]');
