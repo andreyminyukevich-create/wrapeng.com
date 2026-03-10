@@ -58,13 +58,6 @@ html, body {
   position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
   font-size: .82rem; pointer-events: none;
 }
-.filter-btn {
-  padding: 8px 14px; background: var(--surface); border: 1px solid var(--border);
-  border-radius: 10px; font-size: .78rem; font-weight: 700; cursor: pointer;
-  font-family: var(--font); color: var(--text-muted); transition: all .15s;
-  white-space: nowrap;
-}
-.filter-btn:hover, .filter-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
 .board-count-badge {
   font-size: 0.72rem; color: var(--text-dim); font-weight: 600; white-space: nowrap;
 }
@@ -261,7 +254,37 @@ html, body {
 }
 .drawer-note-text { font-size: 0.83rem; font-style: italic; color: var(--text-muted); line-height: 1.5; }
 
-.drawer-actions { padding: 16px 20px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 7px; }
+.drawer-service-list { display: flex; flex-direction: column; gap: 5px; }
+.drawer-service-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 10px; background: var(--bg); border-radius: 8px;
+  font-size: 0.8rem; font-weight: 600; color: var(--text);
+}
+.drawer-service-item::before { content: '•'; color: var(--primary); font-weight: 900; flex-shrink: 0; }
+.drawer-exec-pills { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+.drawer-exec-pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700;
+  background: rgba(37,99,235,0.08); color: var(--primary);
+  border: 1px solid rgba(37,99,235,0.15);
+}
+.drawer-exec-salary {
+  font-size: 0.72rem; color: var(--purple); font-weight: 700;
+  padding: 2px 8px; background: rgba(124,58,237,0.07); border-radius: 5px;
+  border: 1px solid rgba(124,58,237,0.15);
+}
+.drawer-mat-row {
+  display: grid; grid-template-columns: 1fr 70px 70px;
+  gap: 6px; align-items: center; padding: 6px 0;
+  border-bottom: 1px solid var(--border); font-size: 0.8rem;
+}
+.drawer-mat-row:last-child { border-bottom: none; }
+.drawer-mat-name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.drawer-mat-plan { text-align: right; color: var(--text-muted); font-weight: 600; }
+.drawer-mat-fact { text-align: right; font-weight: 700; color: var(--purple); }
+.drawer-loading-inline { color: var(--text-dim); font-size: .78rem; font-style: italic; padding: 8px 0; text-align: center; }
+.drawer-price-big { font-size: 1.6rem; font-weight: 900; color: var(--success); letter-spacing: -0.5px; margin: 4px 0 8px; }
+.drawer-actions { padding: 14px 20px 20px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 7px; }
 
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;
@@ -331,14 +354,12 @@ html, body {
 <body>
 
 <div class="board-page">
-  <!-- Поиск и фильтры -->
+  <!-- Поиск -->
   <div class="board-toolbar">
     <div class="search-wrap">
       <span class="search-icon">🔍</span>
       <input type="text" id="searchInput" placeholder="Поиск по авто..." autocomplete="off">
     </div>
-    <button class="filter-btn" id="filterActive" data-filter="active">Активные</button>
-    <button class="filter-btn" id="filterAll"    data-filter="all">Все</button>
     <span class="board-count-badge" id="boardCountBadge"></span>
   </div>
 
@@ -442,17 +463,16 @@ let studioCtx      = null;
 let _donePlanItems = [];
 let _dragCalcId    = null;
 let _dragStatus    = null;
-let currentFilter  = 'active'; // 'active' | 'all'
 let searchTerm     = '';
 
 // ── Константы ──────────────────────────────────────────────────────
 const COLUMNS = [
-  { key: 'new',         label: 'Расчёт произведён',      icon: '📋', active: true  },
-  { key: 'scheduled',   label: 'Назначена дата',          icon: '📅', active: true  },
-  { key: 'in_progress', label: 'В работе',                icon: '🔧', active: true  },
-  { key: 'done',        label: 'Завершено',               icon: '✅', active: true  },
-  { key: 'delivered',   label: 'Выдано',                  icon: '🚗', active: false },
-  { key: 'cancelled',   label: 'Отказ',                   icon: '❌', active: false },
+  { key: 'new',         label: 'Расчёт произведён',      icon: '📋' },
+  { key: 'scheduled',   label: 'Назначена дата и время', icon: '📅' },
+  { key: 'in_progress', label: 'Принято в работу',       icon: '🔧' },
+  { key: 'done',        label: 'Завершено',               icon: '✅' },
+  { key: 'delivered',   label: 'Выдано',                  icon: '🚗' },
+  { key: 'cancelled',   label: 'Отказ',                   icon: '❌' },
 ];
 
 const STATUS_COLORS = {
@@ -475,11 +495,6 @@ function fmtDate(d) {
 function normalizeStatus(status) {
   if (!status || status === 'draft' || status === 'pending') return 'new';
   return status;
-}
-function visibleColumns() {
-  return currentFilter === 'active'
-    ? COLUMNS.filter(c => c.active)
-    : COLUMNS;
 }
 
 // ── Обновление статуса в БД ────────────────────────────────────────
@@ -536,11 +551,10 @@ function renderBoard() {
   const board = document.getElementById('board');
   board.innerHTML = '';
 
-  const cols  = visibleColumns();
   const frag  = document.createDocumentFragment();
   let total   = 0;
 
-  cols.forEach(col => {
+  COLUMNS.forEach(col => {
     let cards = allCalcs.filter(c => normalizeStatus(c.status) === col.key);
     total += cards.length;
 
@@ -760,12 +774,39 @@ function buildExecutorsBlock(calc, status) {
 }
 
 // ── DRAWER ─────────────────────────────────────────────────────────
-function openDrawer(calc, status) {
+function extractServices(cd) {
+  const services = [];
+  const r = n => parseFloat(n) || 0;
+  function add(name) { if (name) services.push(name); }
+
+  const pkg = cd.package || {};
+  if (r(pkg.wrapMat) + r(pkg.wrapMot) > 0) add('Оклейка (Полная защита кузова)');
+  if (r(pkg.prepMat) + r(pkg.prepMot) > 0) add('Подготовка (Полная защита кузова)');
+  if (r(pkg.armMat)  + r(pkg.armMot)  > 0) add('Арматурные работы (Полная защита кузова)');
+
+  const imp = cd.impact || {};
+  if (r(imp.wrapMat) + r(imp.wrapMot) > 0) add('Оклейка (Ударная часть)');
+  if (r(imp.prepMat) + r(imp.prepMot) > 0) add('Подготовка (Ударная часть)');
+  if (r(imp.armMat)  + r(imp.armMot)  > 0) add('Арматурные работы (Ударная часть)');
+
+  const sd = cd.services_detail || {};
+  ['arm', 'det', 'gl', 'ms', 'wrap'].forEach(key => {
+    (sd[key] || []).forEach(svc => {
+      if (r(svc.mat) + r(svc.mot) > 0 && svc.name) add(svc.name);
+    });
+  });
+
+  (cd.additionalCosts || []).forEach(c => { if (r(c.value) > 0 && c.name) add('+ ' + c.name); });
+
+  return services;
+}
+
+async function openDrawer(calc, status) {
   activeCalcId = calc.id;
 
-  const col      = COLUMNS.find(c => c.key === status);
-  const sc       = STATUS_COLORS[status] || STATUS_COLORS.new;
-  const carName  = calc.car_name || 'Без названия';
+  const col     = COLUMNS.find(c => c.key === status);
+  const sc      = STATUS_COLORS[status] || STATUS_COLORS.new;
+  const carName = calc.car_name || 'Без названия';
 
   document.getElementById('drawerCarName').textContent = carName;
 
@@ -773,57 +814,162 @@ function openDrawer(calc, status) {
   badge.textContent = `${col?.icon || ''} ${col?.label || status}`;
   badge.style.cssText = `background:${sc.bg};color:${sc.color}`;
 
-  // Body — детали
   const body = document.getElementById('drawerBody');
-  body.innerHTML = '';
+  body.innerHTML = '<div style="color:var(--text-dim);font-size:.82rem;padding:20px 0;text-align:center">⏳ Загрузка...</div>';
 
-  const rows = [];
+  document.getElementById('drawerOverlay').classList.add('active');
+  document.getElementById('drawer').classList.add('active');
+  buildDrawerActions(calc, status);
+
+  // Грузим полные данные из БД
+  const { data: fullCalc } = await sb
+    .from('calculations')
+    .select('calculation_data, checkin_date, checkin_time, schedule_note, created_at, car_name, total_price, final_price, status')
+    .eq('id', calc.id)
+    .single();
+
+  const cd       = fullCalc?.calculation_data || {};
+  const car      = cd.car || {};
+  const asgns    = assignmentsMap[calc.id] || [];
+  const workers  = asgns.filter(a => !a.is_admin_sale);
+  const admins   = asgns.filter(a =>  a.is_admin_sale);
+  const services = extractServices(cd);
+
+  body.innerHTML = '';
+  const frag = document.createDocumentFragment();
+
+  // ── Блок: авто ───────────────────────────────────────
+  const secCar = mkSection('🚗 Автомобиль');
+  const carRows = [
+    ['Название',    calc.car_name || '—'],
+    ['Год',         car.year || '—'],
+    ['Гос. номер',  cd.plate || '—'],
+    ['VIN',         cd.vin   || '—'],
+    ['Клиент',      cd.client_name || cd.clientName || '—'],
+  ].filter(([, v]) => v && v !== '—');
 
   const price = calc.final_price || calc.total_price;
-  if (price) rows.push(['💰 Сумма', fmt(price) + ' ₽']);
+  if (price) carRows.push(['💰 Сумма', fmt(price) + ' ₽']);
 
-  if (calc.checkin_date) {
-    const timeStr = calc.checkin_time ? ', ' + calc.checkin_time.slice(0, 5) : '';
-    rows.push(['📅 Дата заезда', fmtDate(calc.checkin_date) + timeStr]);
+  if (fullCalc?.checkin_date) {
+    const t = fullCalc.checkin_time ? ', ' + fullCalc.checkin_time.slice(0, 5) : '';
+    carRows.push(['📅 Заезд', fmtDate(fullCalc.checkin_date) + t]);
   }
 
-  const asgns = assignmentsMap[calc.id] || [];
-  const uniqueNames = [...new Set(asgns.map(a => a.executor_name).filter(Boolean))];
-  if (uniqueNames.length) rows.push(['👥 Исполнители', uniqueNames.join(', ')]);
+  carRows.push(['📆 Создан', new Date(calc.created_at).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: 'numeric' })]);
 
-  rows.push(['📆 Создан', new Date(calc.created_at).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })]);
-
-  const section = document.createElement('div');
-  section.className = 'drawer-section';
-  rows.forEach(([label, value]) => {
-    const row = document.createElement('div');
-    row.className = 'drawer-row';
-    row.innerHTML = `<span class="drawer-row-label">${label}</span><span class="drawer-row-value">${value}</span>`;
-    section.appendChild(row);
+  carRows.forEach(([label, value]) => {
+    secCar.appendChild(mkRow(label, value, value.startsWith('💰') ? 'var(--success)' : null));
   });
-  body.appendChild(section);
+  frag.appendChild(secCar);
 
-  if (calc.schedule_note) {
-    const noteSection = document.createElement('div');
-    noteSection.className = 'drawer-section';
-    const noteTitle = document.createElement('div');
-    noteTitle.className = 'drawer-section-title';
-    noteTitle.textContent = 'Комментарий';
+  // ── Блок: услуги ─────────────────────────────────────
+  if (services.length) {
+    const secSvc = mkSection('🔧 Услуги');
+    const list   = document.createElement('div');
+    list.style.cssText = 'display:flex;flex-direction:column;gap:4px;margin-top:4px';
+    services.forEach((svc, i) => {
+      const item = document.createElement('div');
+      item.style.cssText = 'display:flex;align-items:baseline;gap:8px;font-size:.82rem';
+      const num  = document.createElement('span');
+      num.style.cssText = 'flex-shrink:0;font-size:.68rem;color:var(--text-dim);font-weight:700;width:16px';
+      num.textContent = String(i + 1);
+      const name = document.createElement('span');
+      name.style.cssText = 'color:var(--text);font-weight:600;line-height:1.4';
+      name.textContent = svc;
+      item.append(num, name);
+      list.appendChild(item);
+    });
+    secSvc.appendChild(list);
+    frag.appendChild(secSvc);
+  }
+
+  // ── Блок: исполнители ─────────────────────────────────
+  if (asgns.length) {
+    const secExec = mkSection('👥 Исполнители');
+    const workerMap = {};
+    workers.forEach(a => {
+      const n = a.executor_name || '—';
+      if (!workerMap[n]) workerMap[n] = { salary: 0, services: [] };
+      workerMap[n].salary += parseFloat(a.salary) || 0;
+      if (a.service_name) workerMap[n].services.push(a.service_name);
+    });
+
+    Object.entries(workerMap).forEach(([name, data]) => {
+      const row = document.createElement('div');
+      row.style.cssText = 'padding:8px 0;border-bottom:1px solid var(--border)';
+
+      const nameEl = document.createElement('div');
+      nameEl.style.cssText = 'font-size:.85rem;font-weight:700;color:var(--text);margin-bottom:2px';
+      nameEl.textContent = name;
+
+      const meta = document.createElement('div');
+      meta.style.cssText = 'display:flex;justify-content:space-between;align-items:center';
+
+      const svcEl = document.createElement('div');
+      svcEl.style.cssText = 'font-size:.72rem;color:var(--text-muted);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
+      svcEl.textContent = data.services.slice(0, 2).join(', ') + (data.services.length > 2 ? '…' : '');
+
+      const salEl = document.createElement('div');
+      salEl.style.cssText = 'font-size:.78rem;font-weight:700;color:var(--purple);flex-shrink:0;margin-left:8px';
+      salEl.textContent = data.salary > 0 ? fmt(data.salary) + ' ₽' : '';
+
+      meta.append(svcEl, salEl);
+      row.append(nameEl, meta);
+      secExec.appendChild(row);
+    });
+
+    if (admins.length) {
+      const adminEl = document.createElement('div');
+      adminEl.style.cssText = 'padding-top:8px;font-size:.75rem;color:var(--text-muted)';
+      const adminName = admins[0].executor_name;
+      const adminPct  = admins[0].admin_percent;
+      adminEl.textContent = `💼 ${adminName || 'Менеджер'} — продажа${adminPct ? ' (' + adminPct + '%)' : ''}`;
+      secExec.appendChild(adminEl);
+    }
+
+    frag.appendChild(secExec);
+  }
+
+  // ── Блок: комментарий ────────────────────────────────
+  const note = fullCalc?.schedule_note;
+  if (note) {
+    const secNote = mkSection('💬 Комментарий');
     const noteBox = document.createElement('div');
     noteBox.className = 'drawer-note-box';
     const noteText = document.createElement('div');
     noteText.className = 'drawer-note-text';
-    noteText.textContent = calc.schedule_note;
+    noteText.textContent = note;
     noteBox.appendChild(noteText);
-    noteSection.append(noteTitle, noteBox);
-    body.appendChild(noteSection);
+    secNote.appendChild(noteBox);
+    frag.appendChild(secNote);
   }
 
-  // Actions
-  buildDrawerActions(calc, status);
+  body.appendChild(frag);
+}
 
-  document.getElementById('drawerOverlay').classList.add('active');
-  document.getElementById('drawer').classList.add('active');
+function mkSection(title) {
+  const sec = document.createElement('div');
+  sec.className = 'drawer-section';
+  const t = document.createElement('div');
+  t.className = 'drawer-section-title';
+  t.textContent = title;
+  sec.appendChild(t);
+  return sec;
+}
+
+function mkRow(label, value, color = null) {
+  const row = document.createElement('div');
+  row.className = 'drawer-row';
+  const l = document.createElement('span');
+  l.className = 'drawer-row-label';
+  l.textContent = label;
+  const v = document.createElement('span');
+  v.className = 'drawer-row-value';
+  v.textContent = value;
+  if (color) v.style.color = color;
+  row.append(l, v);
+  return row;
 }
 
 function closeDrawer() {
@@ -937,8 +1083,7 @@ function applySearch() {
 
 function updateBadge(count) {
   const badge = document.getElementById('boardCountBadge');
-  const cols  = visibleColumns();
-  badge.textContent = count ? `${count} авто · ${cols.length} колонок` : '';
+  badge.textContent = count ? `${count} авто` : '';
 }
 
 // ── Модал: завершить работу ────────────────────────────────────────
@@ -1111,20 +1256,6 @@ function bindEvents() {
     applySearch();
   });
 
-  // Фильтры
-  document.getElementById('filterActive').addEventListener('click', () => {
-    currentFilter = 'active';
-    document.getElementById('filterActive').classList.add('active');
-    document.getElementById('filterAll').classList.remove('active');
-    renderBoard();
-  });
-  document.getElementById('filterAll').addEventListener('click', () => {
-    currentFilter = 'all';
-    document.getElementById('filterAll').classList.add('active');
-    document.getElementById('filterActive').classList.remove('active');
-    renderBoard();
-  });
-
   // ESC закрывает drawer и модалы
   document.addEventListener('keydown', e => {
     if (e.key !== 'Escape') return;
@@ -1159,9 +1290,6 @@ async function initPage() {
     window.showPaywall?.(studioCtx.subscriptionStatus === 'expired');
     return;
   }
-
-  // Активный фильтр по умолчанию
-  document.getElementById('filterActive').classList.add('active');
 
   bindEvents();
   await loadBoard();
