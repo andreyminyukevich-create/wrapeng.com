@@ -170,6 +170,42 @@ body { font-family: var(--font); -webkit-font-smoothing: antialiased; background
   </div>
 </div>
 
+<!-- Карточка сотрудника (drawer) -->
+<div id="execCardOverlay" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:900;backdrop-filter:blur(4px)" onclick="closeExecutorCard()"></div>
+<div id="execCardDrawer" style="
+  display:none;position:fixed;top:0;right:0;bottom:0;width:460px;max-width:100vw;
+  background:#fff;box-shadow:-8px 0 40px rgba(0,0,0,.15);z-index:901;
+  overflow-y:auto;flex-direction:column;
+  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica Neue',sans-serif;
+">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 22px 16px;border-bottom:1px solid #e2e8f0;position:sticky;top:0;background:#fff;z-index:1">
+    <div>
+      <div id="execCardName" style="font-size:1.1rem;font-weight:800;color:#0f172a"></div>
+      <div id="execCardRole" style="font-size:0.75rem;color:#64748b;margin-top:2px"></div>
+    </div>
+    <button onclick="closeExecutorCard()" style="background:rgba(100,116,139,.1);border:none;cursor:pointer;width:32px;height:32px;border-radius:50%;font-size:1.1rem;display:flex;align-items:center;justify-content:center;color:#64748b;transition:all .15s" onmouseover="this.style.background='rgba(220,38,38,.1)';this.style.color='#dc2626'" onmouseout="this.style.background='rgba(100,116,139,.1)';this.style.color='#64748b'">✕</button>
+  </div>
+  <div id="execCardBody" style="padding:20px 22px;flex:1"></div>
+</div>
+
+<style>
+#execCardDrawer.open { display:flex!important; animation:execSlide .2s ease; }
+@keyframes execSlide { from{transform:translateX(100%);opacity:0} to{transform:translateX(0);opacity:1} }
+.exec-section { margin-bottom:20px; }
+.exec-section-title { font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:#94a3b8;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid #f1f5f9 }
+.exec-kpi-grid { display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px }
+.exec-kpi { background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px 14px;text-align:center }
+.exec-kpi-val { font-size:1.1rem;font-weight:800;color:#0f172a;line-height:1 }
+.exec-kpi-lbl { font-size:.65rem;color:#94a3b8;font-weight:700;text-transform:uppercase;margin-top:4px }
+.exec-assign-row { display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f1f5f9;font-size:.82rem }
+.exec-assign-row:last-child { border-bottom:none }
+.exec-eq-row { display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f1f5f9;font-size:.82rem }
+.exec-eq-row:last-child { border-bottom:none }
+.exec-pill-paid { background:rgba(5,150,105,.1);color:#059669;font-size:.65rem;font-weight:700;padding:2px 7px;border-radius:20px }
+.exec-pill-pending { background:rgba(245,158,11,.1);color:#b45309;font-size:.65rem;font-weight:700;padding:2px 7px;border-radius:20px }
+.exec-empty { color:#94a3b8;font-size:.82rem;text-align:center;padding:20px 0 }
+</style>
+
 <script src="footer.js"></script>
 <script type="module">
 import { sb }             from './supabase.js';
@@ -300,6 +336,12 @@ function renderTable(executors) {
     editBtn.dataset.action   = 'edit';
     editBtn.dataset.execId   = exec.id;
 
+    const cardBtn = document.createElement('button');
+    cardBtn.className = 'btn btn-secondary btn-icon';
+    cardBtn.textContent = '👤 Карточка';
+    cardBtn.dataset.action   = 'card';
+    cardBtn.dataset.execId   = exec.id;
+
     const toggleBtn = document.createElement('button');
     toggleBtn.className  = exec.is_active ? 'btn btn-danger btn-icon' : 'btn btn-success btn-icon';
     toggleBtn.textContent = exec.is_active ? 'Деактивировать' : 'Активировать';
@@ -307,7 +349,7 @@ function renderTable(executors) {
     toggleBtn.dataset.execId   = exec.id;
     toggleBtn.dataset.execName = exec.full_name;
 
-    actionsDiv.append(editBtn, toggleBtn);
+    actionsDiv.append(editBtn, cardBtn, toggleBtn);
     tdActions.appendChild(actionsDiv);
 
     tr.append(tdName, tdRole, tdPhone, tdStatus, tdActions);
@@ -405,6 +447,7 @@ function bindEvents() {
     if (!btn) return;
     const { action, execId, execName } = btn.dataset;
     if (action === 'edit')       await editExecutor(execId);
+    if (action === 'card')       openExecutorCard(execId);
     if (action === 'deactivate') await toggleActive(execId, execName, false);
     if (action === 'activate')   await toggleActive(execId, execName, true);
   });
@@ -432,6 +475,173 @@ async function initPage() {
   studioId = ctx.studioId;
 
   await loadExecutors();
+}
+
+// ── Карточка сотрудника ───────────────────────────────────────────────
+function closeExecutorCard() {
+  document.getElementById('execCardOverlay').style.display = 'none';
+  document.getElementById('execCardDrawer').classList.remove('open');
+  document.getElementById('execCardDrawer').style.display = 'none';
+}
+
+async function openExecutorCard(execId) {
+  const exec = (await sb.from('executors').select('*').eq('id', execId).single()).data;
+  if (!exec) return;
+
+  const roleMap = { universal: 'Универсальный мастер', wrapper: 'Оклейщик', detailer: 'Детейлер', ppf: 'PPF-мастер', admin: 'Администратор' };
+
+  document.getElementById('execCardName').textContent = exec.full_name;
+  document.getElementById('execCardRole').textContent = roleMap[exec.role] || exec.role;
+  document.getElementById('execCardBody').innerHTML = '<div style="color:#94a3b8;padding:24px 0;text-align:center">⏳ Загрузка...</div>';
+
+  document.getElementById('execCardOverlay').style.display = 'block';
+  const drawer = document.getElementById('execCardDrawer');
+  drawer.style.display = 'flex';
+  drawer.classList.add('open');
+
+  // Параллельно грузим данные
+  const [assignRes, eqRes] = await Promise.all([
+    sb.from('work_assignments')
+      .select('id, service_name, salary, status, payment_month, created_at, calculation_id')
+      .eq('studio_id', studioId)
+      .eq('executor_id', execId)
+      .order('created_at', { ascending: false })
+      .limit(50),
+    sb.from('equipment_assignments')
+      .select('id, issued_at, returned_at, purpose, equipment:equipment_id(name, category)')
+      .eq('studio_id', studioId)
+      .eq('executor_name', exec.full_name)
+      .order('issued_at', { ascending: false })
+  ]);
+
+  const assignments = assignRes.data || [];
+  const equipment   = eqRes.data || [];
+
+  const paid    = assignments.filter(a => a.status === 'paid');
+  const pending = assignments.filter(a => a.status !== 'paid');
+  const totalPaid    = paid.reduce((s, a) => s + (a.salary || 0), 0);
+  const totalPending = pending.reduce((s, a) => s + (a.salary || 0), 0);
+  const totalEarned  = assignments.reduce((s, a) => s + (a.salary || 0), 0);
+
+  const fmt = n => Number(n || 0).toLocaleString('ru-RU', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  const fmtDate = s => s ? new Date(s).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }) : '—';
+
+  const body = document.getElementById('execCardBody');
+  body.innerHTML = '';
+
+  // KPI
+  const kpiSec = document.createElement('div');
+  kpiSec.className = 'exec-section';
+  kpiSec.innerHTML = `
+    <div class="exec-kpi-grid">
+      <div class="exec-kpi"><div class="exec-kpi-val">${assignments.length}</div><div class="exec-kpi-lbl">Работ</div></div>
+      <div class="exec-kpi"><div class="exec-kpi-val" style="color:#059669">${fmt(totalPaid)} ₽</div><div class="exec-kpi-lbl">Выплачено</div></div>
+      <div class="exec-kpi"><div class="exec-kpi-val" style="color:#b45309">${fmt(totalPending)} ₽</div><div class="exec-kpi-lbl">К выплате</div></div>
+    </div>`;
+  body.appendChild(kpiSec);
+
+  // Взаиморасчёты
+  const paySec = document.createElement('div');
+  paySec.className = 'exec-section';
+  const payTitle = document.createElement('div');
+  payTitle.className = 'exec-section-title';
+  payTitle.textContent = '💰 Взаиморасчёты';
+  paySec.appendChild(payTitle);
+
+  if (!assignments.length) {
+    paySec.innerHTML += '<div class="exec-empty">Работ пока нет</div>';
+  } else {
+    // Группируем по месяцу
+    const byMonth = {};
+    assignments.forEach(a => {
+      const m = a.payment_month || (a.created_at || '').slice(0, 7) || 'б/д';
+      if (!byMonth[m]) byMonth[m] = { paid: 0, pending: 0, jobs: 0 };
+      byMonth[m].jobs++;
+      if (a.status === 'paid') byMonth[m].paid += (a.salary || 0);
+      else byMonth[m].pending += (a.salary || 0);
+    });
+
+    Object.entries(byMonth).sort((a, b) => b[0].localeCompare(a[0])).forEach(([month, data]) => {
+      const row = document.createElement('div');
+      row.className = 'exec-assign-row';
+      const dateStr = month.length === 7
+        ? new Date(month + '-01').toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' })
+        : month;
+      row.innerHTML = `
+        <div>
+          <div style="font-weight:600;color:#0f172a">${dateStr}</div>
+          <div style="font-size:.72rem;color:#94a3b8">${data.jobs} работ</div>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center">
+          ${data.paid > 0 ? `<span class="exec-pill-paid">✓ ${fmt(data.paid)} ₽</span>` : ''}
+          ${data.pending > 0 ? `<span class="exec-pill-pending">⏳ ${fmt(data.pending)} ₽</span>` : ''}
+        </div>`;
+      paySec.appendChild(row);
+    });
+  }
+  body.appendChild(paySec);
+
+  // Оборудование
+  const eqSec = document.createElement('div');
+  eqSec.className = 'exec-section';
+  const eqTitle = document.createElement('div');
+  eqTitle.className = 'exec-section-title';
+  eqTitle.textContent = '🔧 Оборудование на руках';
+  eqSec.appendChild(eqTitle);
+
+  const activeEq = equipment.filter(a => !a.returned_at);
+  const histEq   = equipment.filter(a =>  a.returned_at);
+
+  if (!activeEq.length && !histEq.length) {
+    eqSec.innerHTML += '<div class="exec-empty">Оборудование не выдавалось</div>';
+  } else {
+    if (activeEq.length) {
+      activeEq.forEach(a => {
+        const row = document.createElement('div');
+        row.className = 'exec-eq-row';
+        row.innerHTML = `
+          <div>
+            <div style="font-weight:600;color:#0f172a">${a.equipment?.name || '—'}</div>
+            <div style="font-size:.72rem;color:#94a3b8">С ${fmtDate(a.issued_at)}${a.purpose ? ' · ' + a.purpose : ''}</div>
+          </div>
+          <span style="background:rgba(37,99,235,.1);color:#2563eb;font-size:.65rem;font-weight:700;padding:2px 7px;border-radius:20px">На руках</span>`;
+        eqSec.appendChild(row);
+      });
+    }
+    if (histEq.length) {
+      const histTitle = document.createElement('div');
+      histTitle.style.cssText = 'font-size:.7rem;color:#94a3b8;font-weight:700;margin-top:10px;margin-bottom:4px';
+      histTitle.textContent = 'Ранее выдавалось';
+      eqSec.appendChild(histTitle);
+      histEq.slice(0, 5).forEach(a => {
+        const row = document.createElement('div');
+        row.className = 'exec-eq-row';
+        row.style.opacity = '.6';
+        row.innerHTML = `
+          <div style="font-weight:600;color:#0f172a">${a.equipment?.name || '—'}</div>
+          <span style="font-size:.72rem;color:#94a3b8">${fmtDate(a.issued_at)} – ${fmtDate(a.returned_at)}</span>`;
+        eqSec.appendChild(row);
+      });
+    }
+  }
+  body.appendChild(eqSec);
+
+  // Контакт
+  if (exec.phone || exec.email || exec.notes) {
+    const infoSec = document.createElement('div');
+    infoSec.className = 'exec-section';
+    const infoTitle = document.createElement('div');
+    infoTitle.className = 'exec-section-title';
+    infoTitle.textContent = '📋 Информация';
+    infoSec.appendChild(infoTitle);
+    [['📞 Телефон', exec.phone], ['✉️ Email', exec.email], ['📝 Заметки', exec.notes]].filter(([, v]) => v).forEach(([l, v]) => {
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;gap:10px;font-size:.82rem;padding:5px 0;color:#0f172a';
+      row.innerHTML = `<span style="color:#94a3b8;width:90px;flex-shrink:0">${l}</span><span style="font-weight:600">${v}</span>`;
+      infoSec.appendChild(row);
+    });
+    body.appendChild(infoSec);
+  }
 }
 
 document.addEventListener('DOMContentLoaded', initPage);
