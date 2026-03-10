@@ -81,7 +81,6 @@ body {
 /* ── Work list ────────────────────────────────── */
 .work-list { display: flex; flex-direction: column; gap: 10px; }
 .work-item { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; transition: border-color 0.15s; }
-.mat-line { display: grid; grid-template-columns: 1fr 1fr auto auto; gap: 8px; align-items: end; margin-bottom: 8px; }
 .work-item:hover { border-color: rgba(37,99,235,0.2); }
 .work-item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 10px; flex-wrap: wrap; }
 .work-service-name { font-weight: 700; font-size: 0.88rem; color: var(--text); }
@@ -166,7 +165,77 @@ body {
 .btn-secondary:hover { background: var(--bg); color: var(--text); }
 .btn-sm { padding: 7px 14px; font-size: 0.78rem; }
 
-.loading { text-align: center; padding: 60px; color: var(--muted); font-size: 0.9rem; }
+/* ── Кнопка календаря у мастера ─────────────────── */
+.btn-open-cal {
+  background: none; border: 1px solid var(--border); border-radius: 7px;
+  padding: 0 10px; height: 38px; cursor: pointer; font-size: 0.75rem;
+  font-weight: 700; color: var(--muted); font-family: var(--font);
+  transition: all 0.15s; white-space: nowrap; flex-shrink: 0;
+  display: flex; align-items: center; gap: 5px;
+}
+.btn-open-cal:hover { border-color: var(--primary); color: var(--primary); background: rgba(37,99,235,0.05); }
+
+/* ── Модал календаря мастера ────────────────────── */
+#execCalModal {
+  display: none; position: fixed; inset: 0;
+  background: rgba(15,23,42,0.5); backdrop-filter: blur(3px);
+  z-index: 800; align-items: center; justify-content: center;
+}
+#execCalModal.open { display: flex; }
+#execCalBox {
+  background: var(--surface); border-radius: 16px;
+  box-shadow: 0 16px 56px rgba(0,0,0,0.2);
+  width: min(520px, 96vw); max-height: 90vh;
+  overflow-y: auto; padding: 24px;
+  animation: calPop .18s ease;
+}
+@keyframes calPop { from { opacity:0; transform:scale(0.96) translateY(8px); } to { opacity:1; transform:none; } }
+
+.excal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.excal-name { font-size: 1rem; font-weight: 800; color: var(--text); }
+.excal-close { background: none; border: none; cursor: pointer; color: var(--muted); font-size: 1.3rem; padding: 4px 8px; border-radius: 6px; transition: all .15s; }
+.excal-close:hover { background: var(--danger-bg); color: var(--danger); }
+
+.excal-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.excal-month-label { font-size: 0.95rem; font-weight: 700; color: var(--text); letter-spacing: -0.2px; }
+.excal-nav-btn { background: none; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; color: var(--muted); transition: all .15s; }
+.excal-nav-btn:hover { border-color: var(--primary); color: var(--primary); }
+
+.excal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+.excal-wd { text-align: center; font-size: 0.67rem; font-weight: 700; color: var(--dim); padding: 4px 0 8px; text-transform: uppercase; }
+.excal-day {
+  aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+  border-radius: 8px; font-size: 0.82rem; font-weight: 600; color: var(--text);
+  cursor: default; position: relative; transition: background .12s;
+}
+.excal-day.other-month { color: var(--dim); }
+.excal-day.today { background: rgba(37,99,235,0.1); color: var(--primary); font-weight: 800; }
+.excal-day.target { background: rgba(5,150,105,0.12); color: var(--success); font-weight: 800; outline: 2px solid var(--success); outline-offset: -2px; }
+.excal-day.busy { background: rgba(220,38,38,0.08); color: var(--danger); }
+.excal-day.busy.target { background: rgba(217,119,6,0.12); color: var(--warning); outline-color: var(--warning); }
+.excal-day.weekend { color: #e11d48; }
+.excal-day.weekend.other-month { color: rgba(225,29,72,0.35); }
+.excal-day.busy.weekend { color: var(--danger); }
+
+.excal-day-tooltip {
+  display: none; position: absolute; bottom: calc(100% + 6px); left: 50%;
+  transform: translateX(-50%); background: #0f172a; color: #fff;
+  font-size: 0.68rem; font-weight: 600; padding: 4px 8px; border-radius: 6px;
+  white-space: nowrap; z-index: 10; pointer-events: none;
+}
+.excal-day:hover .excal-day-tooltip { display: block; }
+
+.excal-bookings { margin-top: 20px; border-top: 1px solid var(--border); padding-top: 16px; }
+.excal-bookings-title { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-bottom: 10px; }
+.excal-booking-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; background: rgba(220,38,38,0.05); border: 1px solid rgba(220,38,38,0.12); border-radius: 8px; margin-bottom: 6px; font-size: 0.82rem; }
+.excal-booking-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--danger); flex-shrink: 0; }
+.excal-booking-name { font-weight: 600; color: var(--text); flex: 1; }
+.excal-booking-dates { color: var(--muted); font-size: 0.75rem; white-space: nowrap; }
+
+.excal-legend { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border); }
+.excal-legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.72rem; color: var(--muted); font-weight: 600; }
+.excal-legend-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+
 
 @media (max-width: 640px) {
   .container { padding: 16px 14px 40px; }
@@ -193,18 +262,66 @@ body {
 <div class="container">
   <div class="page-subheader">
     <div class="page-subheader-left">
-      <button class="btn-back" id="btnBack">← В работе</button>
-      <div class="page-subheader-title">👥 Распределение работ</div>
+      <button class="btn-back" id="btnBack">← На доску</button>
+      <div class="page-subheader-title">Назначить ответственных</div>
       <div class="car-subtitle" id="carSubtitle">Загрузка...</div>
     </div>
   </div>
 
   <div id="mainContent">
-    <div class="loading">⏳ Загрузка расчёта...</div>
+    <div class="loading">Загрузка...</div>
   </div>
 </div>
 
 <script src="footer.js"></script>
+
+<!-- Модальный календарь мастера -->
+<div id="execCalModal">
+  <div id="execCalBox">
+    <div class="excal-head">
+      <div class="excal-name" id="excalName">Календарь мастера</div>
+      <button class="excal-close" id="excalClose">✕</button>
+    </div>
+
+    <!-- Навигация по месяцам -->
+    <div class="excal-nav">
+      <button class="excal-nav-btn" id="excalPrev">‹</button>
+      <div class="excal-month-label" id="excalMonthLabel"></div>
+      <button class="excal-nav-btn" id="excalNext">›</button>
+    </div>
+
+    <!-- Сетка -->
+    <div class="excal-grid" id="excalGrid"></div>
+
+    <!-- Легенда -->
+    <div class="excal-legend">
+      <div class="excal-legend-item"><div class="excal-legend-dot" style="background:rgba(220,38,38,0.5)"></div>Занят</div>
+      <div class="excal-legend-item"><div class="excal-legend-dot" style="background:rgba(37,99,235,0.4)"></div>Сегодня</div>
+      <div class="excal-legend-item"><div class="excal-legend-dot" style="background:rgba(5,150,105,0.4);outline:2px solid var(--success);outline-offset:0"></div>Дата заезда авто</div>
+    </div>
+
+    <!-- Бронирование диапазона -->
+    <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
+      <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:10px">Занять даты для этого заказа</div>
+      <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
+        <div class="form-group" style="flex:1;min-width:130px">
+          <label>Начало работ</label>
+          <input type="date" id="excalFrom">
+        </div>
+        <div class="form-group" style="flex:1;min-width:130px">
+          <label>Конец работ</label>
+          <input type="date" id="excalTo">
+        </div>
+        <button class="btn btn-primary" id="excalSaveRange" style="margin-bottom:1px">Сохранить</button>
+      </div>
+      <div id="excalSaveStatus" style="margin-top:8px;font-size:0.8rem;display:none"></div>
+    </div>
+
+    <!-- Текущие брони мастера -->
+    <div class="excal-bookings" id="excalBookings"></div>
+  </div>
+</div>
+
 <script type="module">
 import { sb }               from './supabase.js';
 import { requireAuth }      from './auth.js';
@@ -212,14 +329,13 @@ import { getStudioContext }  from './studio-context.js';
 import { showToast, showError, showNotFound, showEmpty, lockButton } from './ui.js';
 
 // ── Состояние ───────────────────────────────────────────────────────
-let studioCtx      = null;
-let calculation    = null;
-let executors      = [];
-let calcId         = null;
-let inventoryItems = [];  // плёнки и расходники для выбора
-let inventoryRolls = [];  // рулоны для привязки
-let matLineCount   = 0;   // счётчик строк материалов
+let studioCtx   = null;
+let calculation = null;
+let executors   = [];
+let calcId      = null;
 let rowCounter  = 0;
+let allBookings = [];   // все calendar_bookings студии
+let checkinDate = null; // дата заезда авто
 
 const SERVICE_NAMES = {
   pkg_wrap:    'Оклейка (Полная защита)',
@@ -316,12 +432,12 @@ function buildExecutorRow(executorId = '', salary = 0, manualName = '') {
   btnFromList.className = `mode-btn${!isManual ? ' active' : ''}`;
   btnFromList.dataset.mode = 'select';
   btnFromList.dataset.rowId = id;
-  btnFromList.textContent = '📋 Из справочника';
+  btnFromList.textContent = 'Из справочника';
   const btnManual = document.createElement('button');
   btnManual.className = `mode-btn${isManual ? ' active' : ''}`;
   btnManual.dataset.mode = 'manual';
   btnManual.dataset.rowId = id;
-  btnManual.textContent = '✏️ Вручную';
+  btnManual.textContent = 'Вручную';
   switcher.append(btnFromList, btnManual);
 
   // Fields row
@@ -379,33 +495,67 @@ function buildExecutorRow(executorId = '', salary = 0, manualName = '') {
   saveLabel.append(saveChk, saveSpan);
   manualSave.appendChild(saveLabel);
 
+  // Кнопка открыть полный календарь
+  const calBtn = document.createElement('button');
+  calBtn.className = 'btn-open-cal';
+  calBtn.type = 'button';
+  calBtn.textContent = 'Календарь';
+  calBtn.style.display = isManual ? 'none' : 'inline-flex';
+  calBtn.dataset.part = 'cal-btn';
+
   group.append(switcher, fieldsRow, manualSave);
+  // Добавляем кнопку рядом (под полем)
+  const calRow = document.createElement('div');
+  calRow.style.cssText = 'display:flex;gap:8px;align-items:center;margin-top:4px';
+  calRow.dataset.part = 'cal-row';
+  calRow.style.display = isManual ? 'none' : 'flex';
+  calRow.appendChild(calBtn);
+  group.appendChild(calRow);
+
   row.appendChild(group);
 
-  // Listeners for summary update
+  // Listeners
   salaryInput.addEventListener('input', updateSummary);
-  selectWrap.querySelector('select').addEventListener('change', updateSummary);
+  const sel = selectWrap.querySelector('select');
+  sel.addEventListener('change', () => {
+    updateSummary();
+    // Обновить имя мастера на кнопке календаря
+    const execName = sel.options[sel.selectedIndex]?.textContent || '';
+    calBtn.dataset.execId   = sel.value;
+    calBtn.dataset.execName = execName.split(' (')[0];
+  });
   manualInput.addEventListener('input', updateSummary);
+
+  calBtn.addEventListener('click', () => {
+    const execId   = sel.value;
+    const execName = sel.options[sel.selectedIndex]?.textContent?.split(' (')[0] || 'Мастер';
+    if (!execId) return;
+    openExecCalendar(execId, execName);
+  });
 
   return row;
 }
 
+
 function setExecutorMode(rowEl, mode) {
-  const selectWrap = rowEl.querySelector('[data-part="select-wrap"]');
-  const manualWrap = rowEl.querySelector('[data-part="manual-wrap"]');
-  const manualSave = rowEl.querySelector('[data-part="manual-save"]');
+  const selectWrap = rowEl.querySelector('[data-part=\"select-wrap\"]');
+  const manualWrap = rowEl.querySelector('[data-part=\"manual-wrap\"]');
+  const manualSave = rowEl.querySelector('[data-part=\"manual-save\"]');
+  const calRow     = rowEl.querySelector('[data-part=\"cal-row\"]');
   const btns       = rowEl.querySelectorAll('.mode-btn');
 
   if (mode === 'manual') {
     selectWrap.style.display = 'none';
     manualWrap.style.display = 'block';
     manualSave.style.display = 'flex';
+    if (calRow) calRow.style.display = 'none';
     btns[0].classList.remove('active');
     btns[1].classList.add('active');
   } else {
     selectWrap.style.display = 'block';
     manualWrap.style.display = 'none';
     manualSave.style.display = 'none';
+    if (calRow) calRow.style.display = 'flex';
     btns[0].classList.add('active');
     btns[1].classList.remove('active');
   }
@@ -430,7 +580,9 @@ function buildWorkItem(service, existingAssignments = []) {
   nameEl.textContent = service.name;
   const salEl = document.createElement('span');
   salEl.className = 'work-base-salary';
-  salEl.textContent = `Мотивация: ${fmt(service.baseSalary)}`;
+  salEl.textContent = service.baseSalary > 0
+    ? `Мотивация: ${fmt(service.baseSalary)} ₽`
+    : 'Сумма не задана — введите вручную';
   header.append(nameEl, salEl);
 
   // Executor rows container
@@ -447,7 +599,7 @@ function buildWorkItem(service, existingAssignments = []) {
   addBtn.className = 'add-executor-btn';
   addBtn.dataset.action      = 'add-exec-row';
   addBtn.dataset.baseSalary  = String(service.baseSalary);
-  addBtn.textContent = '➕ Добавить исполнителя';
+  addBtn.textContent = 'Добавить исполнителя';
 
   item.append(header, rowsEl, addBtn);
   return item;
@@ -472,6 +624,184 @@ function updateSummary() {
   const totalEl = document.getElementById('summaryTotal');
   if (countEl) countEl.textContent = String(count);
   if (totalEl) totalEl.textContent = fmt(total);
+}
+
+
+// ── Мини-календарь мастера ───────────────────────────────────────────
+// ── Полноценный календарь мастера ──────────────────────────────────
+let _calExecId   = null;
+let _calExecName = '';
+let _calYear     = 0;
+let _calMonth    = 0;
+
+const MONTHS_RU = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+const WD_RU     = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+
+function openExecCalendar(execId, execName) {
+  _calExecId   = execId;
+  _calExecName = execName;
+  const now = new Date();
+  _calYear  = now.getFullYear();
+  _calMonth = now.getMonth();
+  document.getElementById('excalName').textContent = 'Мастер: ' + execName;
+  if (checkinDate) {
+    document.getElementById('excalFrom').value = checkinDate;
+    document.getElementById('excalTo').value   = checkinDate;
+  } else {
+    document.getElementById('excalFrom').value = '';
+    document.getElementById('excalTo').value   = '';
+  }
+  document.getElementById('excalSaveStatus').style.display = 'none';
+  renderCalModal();
+  document.getElementById('execCalModal').classList.add('open');
+}
+
+function renderCalModal() {
+  renderCalGrid();
+  renderCalBookings();
+}
+
+function renderCalGrid() {
+  const grid  = document.getElementById('excalGrid');
+  const label = document.getElementById('excalMonthLabel');
+  grid.innerHTML = '';
+  label.textContent = MONTHS_RU[_calMonth] + ' ' + _calYear;
+
+  WD_RU.forEach(d => {
+    const el = document.createElement('div');
+    el.className = 'excal-wd';
+    el.textContent = d;
+    grid.appendChild(el);
+  });
+
+  const today    = new Date(); today.setHours(0,0,0,0);
+  const target   = checkinDate ? new Date(checkinDate + 'T00:00:00') : null;
+  const execBkgs = allBookings.filter(b => (b.executor_ids || []).includes(_calExecId));
+
+  const firstDay = new Date(_calYear, _calMonth, 1);
+  let startOffset = firstDay.getDay() - 1;
+  if (startOffset < 0) startOffset = 6;
+
+  const daysInMonth   = new Date(_calYear, _calMonth + 1, 0).getDate();
+  const daysInPrevMon = new Date(_calYear, _calMonth, 0).getDate();
+  const totalCells    = Math.ceil((startOffset + daysInMonth) / 7) * 7;
+
+  for (let i = 0; i < totalCells; i++) {
+    let day, month, year, otherMonth = false;
+    if (i < startOffset) {
+      day = daysInPrevMon - startOffset + i + 1;
+      month = _calMonth - 1; year = _calYear;
+      if (month < 0) { month = 11; year--; }
+      otherMonth = true;
+    } else if (i >= startOffset + daysInMonth) {
+      day = i - startOffset - daysInMonth + 1;
+      month = _calMonth + 1; year = _calYear;
+      if (month > 11) { month = 0; year++; }
+      otherMonth = true;
+    } else {
+      day = i - startOffset + 1;
+      month = _calMonth; year = _calYear;
+    }
+
+    const d    = new Date(year, month, day);
+    const dStr = d.toISOString().slice(0, 10);
+    const wd   = d.getDay();
+
+    const isBusy = execBkgs.some(b => {
+      const f = b.date_from?.slice(0,10), t = (b.date_to || b.date_from)?.slice(0,10);
+      return f && dStr >= f && dStr <= t;
+    });
+    const isToday   = d.getTime() === today.getTime();
+    const isTarget  = target && d.getTime() === target.getTime();
+    const isWeekend = wd === 0 || wd === 6;
+
+    const cell = document.createElement('div');
+    cell.className = 'excal-day';
+    if (otherMonth) cell.classList.add('other-month');
+    if (isBusy)     cell.classList.add('busy');
+    if (isToday)    cell.classList.add('today');
+    if (isTarget)   cell.classList.add('target');
+    if (isWeekend)  cell.classList.add('weekend');
+
+    cell.textContent = day;
+
+    if (isBusy && !otherMonth) {
+      const bkgNames = execBkgs
+        .filter(b => { const f=b.date_from?.slice(0,10),t=(b.date_to||b.date_from)?.slice(0,10); return f&&dStr>=f&&dStr<=t; })
+        .map(b => b.car_name || 'Заказ').join(', ');
+      const tip = document.createElement('div');
+      tip.className = 'excal-day-tooltip';
+      tip.textContent = bkgNames;
+      cell.appendChild(tip);
+    }
+    grid.appendChild(cell);
+  }
+}
+
+function renderCalBookings() {
+  const el       = document.getElementById('excalBookings');
+  const execBkgs = allBookings.filter(b => (b.executor_ids || []).includes(_calExecId));
+  const fmtD = s => s ? new Date(s + 'T00:00:00').toLocaleDateString('ru-RU', { day:'numeric', month:'short', year:'numeric' }) : '?';
+
+  if (!execBkgs.length) {
+    el.innerHTML = '<div class="excal-bookings-title">Брони мастера</div><div style="font-size:0.82rem;color:var(--dim)">Нет бронирований</div>';
+    return;
+  }
+  el.innerHTML = '<div class="excal-bookings-title">Брони мастера (' + execBkgs.length + ')</div>';
+  [...execBkgs].sort((a,b)=>(a.date_from||'')<(b.date_from||'')?-1:1).forEach(b => {
+    const row = document.createElement('div');
+    row.className = 'excal-booking-item';
+    row.innerHTML = `<div class="excal-booking-dot"></div><div class="excal-booking-name">${b.car_name||'Заказ'}</div><div class="excal-booking-dates">${fmtD(b.date_from)} — ${fmtD(b.date_to||b.date_from)}</div>`;
+    el.appendChild(row);
+  });
+}
+
+function closeExecCalendar() {
+  document.getElementById('execCalModal').classList.remove('open');
+  _calExecId = null;
+}
+
+async function saveExecCalRange() {
+  const fromVal = document.getElementById('excalFrom').value;
+  const toVal   = document.getElementById('excalTo').value;
+  const status  = document.getElementById('excalSaveStatus');
+
+  if (!fromVal || !toVal) { status.style.display='block'; status.style.color='var(--danger)'; status.textContent='Укажите обе даты'; return; }
+  if (fromVal > toVal)    { status.style.display='block'; status.style.color='var(--danger)'; status.textContent='Дата начала позже даты конца'; return; }
+
+  const btn = document.getElementById('excalSaveRange');
+  const origTxt = btn.textContent; btn.disabled = true; btn.textContent = '...';
+
+  const { data: posts } = await sb.from('calendar_posts').select('id').eq('studio_id', studioCtx.studioId).limit(1);
+  const postId = posts?.[0]?.id || null;
+
+  const existing = allBookings.find(b => b.calc_id === calcId && (b.executor_ids||[]).includes(_calExecId));
+  let error;
+  if (existing) {
+    ({ error } = await sb.from('calendar_bookings').update({ date_from: fromVal, date_to: toVal }).eq('id', existing.id));
+    if (!error) { existing.date_from = fromVal; existing.date_to = toVal; }
+  } else {
+    const { data: ins, error: e } = await sb.from('calendar_bookings').insert({
+      studio_id: studioCtx.studioId, calc_id: calcId, car_name: calculation.car_name||'',
+      executor_ids: [_calExecId], date_from: fromVal, date_to: toVal, post_id: postId,
+    }).select().single();
+    error = e;
+    if (!error && ins) allBookings.push(ins);
+  }
+
+  btn.disabled = false; btn.textContent = origTxt;
+  status.style.display = 'block';
+  if (error) { status.style.color='var(--danger)'; status.textContent='Ошибка: '+error.message; }
+  else       { status.style.color='var(--success)'; status.textContent='Сохранено!'; renderCalModal(); }
+}
+
+function bindCalModal() {
+  document.getElementById('excalClose').addEventListener('click', closeExecCalendar);
+  document.getElementById('execCalModal').addEventListener('click', e => { if (e.target.id==='execCalModal') closeExecCalendar(); });
+  document.getElementById('excalPrev').addEventListener('click', () => { _calMonth--; if(_calMonth<0){_calMonth=11;_calYear--;} renderCalGrid(); });
+  document.getElementById('excalNext').addEventListener('click', () => { _calMonth++; if(_calMonth>11){_calMonth=0;_calYear++;} renderCalGrid(); });
+  document.getElementById('excalSaveRange').addEventListener('click', saveExecCalRange);
+  document.addEventListener('keydown', e => { if(e.key==='Escape') closeExecCalendar(); });
 }
 
 function calcAdminSalary() {
@@ -512,7 +842,7 @@ function renderContent(services, existingAssignments = []) {
   toggleChk.id  = 'isAdminSale';
   toggleChk.checked = adminChecked;
   const toggleSpan = document.createElement('span');
-  toggleSpan.textContent = '👔 Продажу сделал администратор';
+  toggleSpan.textContent = 'Продажу сделал администратор';
   toggleLabel.append(toggleChk, toggleSpan);
 
   const adminDetails = document.createElement('div');
@@ -530,12 +860,12 @@ function renderContent(services, existingAssignments = []) {
   adminBtnSelect.id = 'adminModeSelect';
   adminBtnSelect.className = 'mode-btn active';
   adminBtnSelect.dataset.adminMode = 'select';
-  adminBtnSelect.textContent = '📋 Из списка';
+  adminBtnSelect.textContent = 'Из списка';
   const adminBtnManual = document.createElement('button');
   adminBtnManual.id = 'adminModeManual';
   adminBtnManual.className = 'mode-btn';
   adminBtnManual.dataset.adminMode = 'manual';
-  adminBtnManual.textContent = '✏️ Вручную';
+  adminBtnManual.textContent = 'Вручную';
   modeSwitcher.append(adminBtnSelect, adminBtnManual);
   modeGroup.append(modeLabel, modeSwitcher);
 
@@ -606,7 +936,7 @@ function renderContent(services, existingAssignments = []) {
   servicesCard.className = 'card';
   const servTitle = document.createElement('div');
   servTitle.className = 'card-title';
-  servTitle.textContent = '🔧 Услуги из расчёта';
+  servTitle.textContent = 'Услуги из расчёта';
   servicesCard.appendChild(servTitle);
 
   if (services.length > 0) {
@@ -631,7 +961,7 @@ function renderContent(services, existingAssignments = []) {
   manualCard.className = 'card';
   const manTitle = document.createElement('div');
   manTitle.className = 'card-title';
-  manTitle.textContent = '➕ Добавить работу вручную';
+  manTitle.textContent = 'Добавить работу вручную';
 
   const manRow = document.createElement('div');
   manRow.className = 'add-work-row';
@@ -651,7 +981,7 @@ function renderContent(services, existingAssignments = []) {
   manAddBtn.className = 'btn btn-secondary btn-sm';
   manAddBtn.id = 'btnAddManual';
   manAddBtn.style.marginTop = '10px';
-  manAddBtn.textContent = '➕ Добавить';
+  manAddBtn.textContent = 'Добавить';
 
   manualCard.append(manTitle, manRow, manAddBtn);
   frag.appendChild(manualCard);
@@ -661,7 +991,7 @@ function renderContent(services, existingAssignments = []) {
   sumCard.className = 'card';
   const sumTitle = document.createElement('div');
   sumTitle.className = 'card-title';
-  sumTitle.textContent = '📊 Итого к выплате';
+  sumTitle.textContent = 'Итого к выплате';
 
   const sumBlock = document.createElement('div');
   sumBlock.className = 'summary-block';
@@ -681,7 +1011,7 @@ function renderContent(services, existingAssignments = []) {
   row2.className = 'summary-row';
   const lbl2 = document.createElement('span');
   lbl2.className = 'summary-label';
-  lbl2.textContent = '💰 Итого ЗП';
+  lbl2.textContent = 'Итого ЗП';
   const val2 = document.createElement('span');
   val2.className = 'summary-total-value';
   val2.id = 'summaryTotal';
@@ -699,7 +1029,7 @@ function renderContent(services, existingAssignments = []) {
   const saveBtn = document.createElement('button');
   saveBtn.className = 'btn btn-success';
   saveBtn.id = 'btnSave';
-  saveBtn.textContent = '💾 Сохранить распределение';
+  saveBtn.textContent = 'Сохранить';
   actRow.append(backBtn, saveBtn);
 
   // Saved banner (hidden)
@@ -709,7 +1039,7 @@ function renderContent(services, existingAssignments = []) {
 
   const bannerIcon = document.createElement('div');
   bannerIcon.style.fontSize = '1.2rem';
-  bannerIcon.textContent = '✅';
+  bannerIcon.textContent = '';
 
   const bannerText = document.createElement('div');
   bannerText.style.flex = '1';
@@ -728,7 +1058,7 @@ function renderContent(services, existingAssignments = []) {
   woLink.id = 'woLink';
   woLink.href = '#';
   woLink.style.cssText = 'display:inline-flex;align-items:center;gap:6px;padding:10px 18px;background:#0f172a;color:#fff;border-radius:9px;font-size:0.85rem;font-weight:700;text-decoration:none';
-  woLink.textContent = '🖨️ Скачать заказ-наряд';
+  woLink.textContent = 'Скачать заказ-наряд';
 
   const boardLink = document.createElement('a');
   boardLink.href = 'board.html';
@@ -736,21 +1066,6 @@ function renderContent(services, existingAssignments = []) {
   boardLink.textContent = '← На доску';
 
   banner.append(bannerIcon, bannerText, woLink, boardLink);
-
-  // ── Блок материалов ──────────────────────────────────────────────────
-  const matsCard = document.createElement('div');
-  matsCard.className = 'card';
-  matsCard.style.marginBottom = '16px';
-  matsCard.innerHTML = `
-    <div class="card-header" style="padding:14px 18px">
-      <div style="font-size:.82rem;font-weight:800;color:#0f172a">📦 Материалы / Расходники</div>
-      <div style="font-size:.75rem;color:#94a3b8">Что списываем со склада по этому заказу</div>
-    </div>
-    <div class="card-body" style="padding:14px 18px">
-      <div id="matLines"></div>
-      <button class="btn btn-ghost btn-sm" id="btnAddMat" style="margin-top:6px">➕ Добавить материал</button>
-    </div>`;
-  frag.appendChild(matsCard);
 
   sumCard.append(sumTitle, sumBlock, actRow, banner);
   frag.appendChild(sumCard);
@@ -872,7 +1187,7 @@ function addManualWork() {
 
 // ── Сохранение ──────────────────────────────────────────────────────
 async function saveAssignments(btnEl) {
-  const release = lockButton(btnEl, '⏳ Сохранение...');
+  const release = lockButton(btnEl, 'Сохранение...');
   const assignments = [];
 
   // Admin sale
@@ -977,10 +1292,6 @@ async function saveAssignments(btnEl) {
 
     await sb.from('calculations').update({ work_assigned: true, status: 'in_progress' }).eq('id', calcId);
 
-    // Списываем материалы со склада
-    const user = await requireAuth({ redirectTo: 'welcome.html' });
-    await saveMaterials(studioCtx.studioId, user?.id);
-
     release();
     showSavedBanner(assignments.length);
   } catch (err) {
@@ -1054,202 +1365,6 @@ function extractServices(calcData) {
   return services;
 }
 
-// ── Материалы / Склад ────────────────────────────────────────────────
-
-async function loadInventoryData() {
-  const [itemsRes, rollsRes] = await Promise.all([
-    sb.from('inventory_items')
-      .select('id, name, type, unit, avg_cost')
-      .eq('studio_id', studioCtx.studioId)
-      .in('type', ['film', 'consumable'])
-      .order('name'),
-    sb.from('inventory_rolls')
-      .select('id, item_id, roll_number, qty_remaining, cost_per_unit')
-      .eq('studio_id', studioCtx.studioId)
-      .gt('qty_remaining', 0)
-      .order('roll_number'),
-  ]);
-  inventoryItems = itemsRes.data || [];
-  inventoryRolls = rollsRes.data || [];
-}
-
-async function renderExistingMaterials() {
-  // Загружаем уже списанные материалы по этому заказу
-  const { data } = await sb
-    .from('inventory_transactions')
-    .select('id, qty, unit_cost, notes, item:item_id(name, unit), roll:roll_id(roll_number)')
-    .eq('studio_id', studioCtx.studioId)
-    .eq('calculation_id', calcId)
-    .eq('type', 'writeoff');
-
-  if (!data?.length) return;
-
-  const container = document.getElementById('matLines');
-  if (!container) return;
-
-  const existingHeader = document.createElement('div');
-  existingHeader.style.cssText = 'font-size:.72rem;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px';
-  existingHeader.textContent = 'Уже списано:';
-  container.appendChild(existingHeader);
-
-  data.forEach(tx => {
-    const row = document.createElement('div');
-    row.style.cssText = 'display:flex;align-items:center;gap:8px;padding:6px 10px;background:#f8fafc;border-radius:8px;margin-bottom:4px;font-size:.82rem';
-    const qty = Math.abs(tx.qty);
-    const rollStr = tx.roll?.roll_number ? ` (рулон ${tx.roll.roll_number})` : '';
-    row.innerHTML = `
-      <span style="color:#059669">✓</span>
-      <span style="font-weight:600;flex:1">${tx.item?.name || '—'}${rollStr}</span>
-      <span style="color:#64748b">${qty} ${tx.item?.unit || ''}</span>
-      <span style="color:#64748b;font-size:.75rem">${tx.notes || ''}</span>`;
-    container.appendChild(row);
-  });
-
-  const divider = document.createElement('div');
-  divider.style.cssText = 'border-top:1px solid #e2e8f0;margin:12px 0 8px';
-  container.appendChild(divider);
-
-  const newHeader = document.createElement('div');
-  newHeader.style.cssText = 'font-size:.72rem;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px';
-  newHeader.textContent = 'Добавить:';
-  container.appendChild(newHeader);
-}
-
-function addMatLine() {
-  matLineCount++;
-  const idx = matLineCount;
-  const container = document.getElementById('matLines');
-  if (!container) return;
-
-  const line = document.createElement('div');
-  line.className = 'mat-line';
-  line.id = `mat-${idx}`;
-  line.style.cssText = 'display:grid;grid-template-columns:1fr 1fr auto auto;gap:8px;align-items:end;margin-bottom:8px';
-
-  // Позиция склада
-  const itemGroup = document.createElement('div');
-  const itemLabel = document.createElement('label');
-  itemLabel.style.cssText = 'display:block;font-size:.72rem;color:#64748b;margin-bottom:3px;font-weight:600';
-  itemLabel.textContent = 'Позиция';
-  const itemSel = document.createElement('select');
-  itemSel.id = `matItem-${idx}`;
-  itemSel.style.cssText = 'width:100%;padding:7px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:.82rem;background:#fff';
-  const emptyOpt = document.createElement('option');
-  emptyOpt.value = '';
-  emptyOpt.textContent = '— выберите —';
-  itemSel.appendChild(emptyOpt);
-
-  // Группируем: сначала плёнка, потом расходники
-  const films = inventoryItems.filter(i => i.type === 'film');
-  const consumables = inventoryItems.filter(i => i.type === 'consumable');
-  if (films.length) {
-    const og = document.createElement('optgroup');
-    og.label = '🎞 Плёнка';
-    films.forEach(i => {
-      const o = document.createElement('option');
-      o.value = i.id; o.textContent = i.name; o.dataset.unit = i.unit; o.dataset.type = 'film';
-      og.appendChild(o);
-    });
-    itemSel.appendChild(og);
-  }
-  if (consumables.length) {
-    const og = document.createElement('optgroup');
-    og.label = '🧴 Расходники';
-    consumables.forEach(i => {
-      const o = document.createElement('option');
-      o.value = i.id; o.textContent = i.name; o.dataset.unit = i.unit; o.dataset.type = 'consumable';
-      og.appendChild(o);
-    });
-    itemSel.appendChild(og);
-  }
-  itemGroup.append(itemLabel, itemSel);
-
-  // Рулон (только для плёнки)
-  const rollGroup = document.createElement('div');
-  rollGroup.id = `matRollGroup-${idx}`;
-  rollGroup.style.display = 'none';
-  const rollLabel = document.createElement('label');
-  rollLabel.style.cssText = 'display:block;font-size:.72rem;color:#64748b;margin-bottom:3px;font-weight:600';
-  rollLabel.textContent = 'Рулон';
-  const rollSel = document.createElement('select');
-  rollSel.id = `matRoll-${idx}`;
-  rollSel.style.cssText = 'width:100%;padding:7px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:.82rem;background:#fff';
-  rollGroup.append(rollLabel, rollSel);
-
-  // Количество
-  const qtyGroup = document.createElement('div');
-  const qtyLabel = document.createElement('label');
-  qtyLabel.style.cssText = 'display:block;font-size:.72rem;color:#64748b;margin-bottom:3px;font-weight:600';
-  qtyLabel.textContent = 'Кол-во';
-  const qtyInput = document.createElement('input');
-  qtyInput.type = 'number'; qtyInput.id = `matQty-${idx}`;
-  qtyInput.min = '0.01'; qtyInput.step = '0.01'; qtyInput.placeholder = '0';
-  qtyInput.style.cssText = 'width:100%;padding:7px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:.82rem';
-  qtyGroup.append(qtyLabel, qtyInput);
-
-  // Кнопка удалить
-  const delBtn = document.createElement('button');
-  delBtn.textContent = '✕';
-  delBtn.style.cssText = 'padding:7px 10px;background:rgba(220,38,38,.08);border:1px solid rgba(220,38,38,.15);border-radius:8px;color:#dc2626;cursor:pointer;font-size:.8rem;align-self:end';
-  delBtn.addEventListener('click', () => line.remove());
-
-  // При выборе позиции — показываем/скрываем рулоны
-  itemSel.addEventListener('change', () => {
-    const selectedOpt = itemSel.selectedOptions[0];
-    const isFilm = selectedOpt?.dataset.type === 'film';
-    rollGroup.style.display = isFilm ? '' : 'none';
-    rollSel.innerHTML = '<option value="">— все рулоны —</option>';
-    if (isFilm) {
-      const rolls = inventoryRolls.filter(r => r.item_id === itemSel.value);
-      rolls.forEach(r => {
-        const o = document.createElement('option');
-        o.value = r.id;
-        o.textContent = `${r.roll_number} (${r.qty_remaining} м)`;
-        rollSel.appendChild(o);
-      });
-    }
-    // Автоподставляем единицу в label
-    qtyLabel.textContent = 'Кол-во' + (selectedOpt?.dataset.unit ? ` (${selectedOpt.dataset.unit})` : '');
-  });
-
-  line.append(itemGroup, rollGroup, qtyGroup, delBtn);
-  container.appendChild(line);
-}
-
-async function saveMaterials(studioId, userId) {
-  const lines = [];
-  document.querySelectorAll('.mat-line').forEach(line => {
-    const idx     = line.id.replace('mat-', '');
-    const itemId  = document.getElementById(`matItem-${idx}`)?.value;
-    const rollId  = document.getElementById(`matRoll-${idx}`)?.value || null;
-    const qty     = parseFloat(document.getElementById(`matQty-${idx}`)?.value) || 0;
-    if (!itemId || qty <= 0) return;
-    const item = inventoryItems.find(i => i.id === itemId);
-    lines.push({ itemId, rollId, qty, unitCost: item?.avg_cost || 0 });
-  });
-
-  if (!lines.length) return true; // нет строк — ок
-
-  const rows = lines.map(l => ({
-    studio_id: studioId,
-    item_id: l.itemId,
-    roll_id: l.rollId,
-    calculation_id: calcId,
-    type: 'writeoff',
-    qty: -l.qty,
-    unit_cost: l.unitCost,
-    notes: `Заказ: ${calculation.car_name || calcId}`,
-    created_by: userId,
-  }));
-
-  const { error } = await sb.from('inventory_transactions').insert(rows);
-  if (error) {
-    showToast('error', 'Ошибка списания материалов: ' + error.message);
-    return false;
-  }
-  return true;
-}
-
 // ── Навигация ────────────────────────────────────────────────────────
 function goBack() {
   window.location.href = document.referrer?.includes('board.html') ? 'board.html' : 'dashboard.html';
@@ -1257,7 +1372,7 @@ function goBack() {
 
 // ── Точка входа ──────────────────────────────────────────────────────
 async function initPage() {
-  initNav({ actionHref: 'board.html', actionLabel: '← В работе' });
+  initNav({ actionHref: 'board.html', actionLabel: '← На доску' });
 
   document.getElementById('btnBack').addEventListener('click', goBack);
 
@@ -1292,8 +1407,15 @@ async function initPage() {
   }
 
   calculation = calcData;
+  checkinDate = calcData.checkin_date || null;
   await loadExecutors();
-  await loadInventoryData();
+
+  // Загружаем все бронирования студии для мини-календарей
+  const { data: bookingsData } = await sb
+    .from('calendar_bookings')
+    .select('post_id, date_from, date_to, executor_ids, calc_id')
+    .eq('studio_id', studioCtx.studioId);
+  allBookings = bookingsData || [];
 
   const { data: existingData } = await sb
     .from('work_assignments')
@@ -1316,9 +1438,7 @@ async function initPage() {
   }
 
   renderContent(services, assignments);
-  await renderExistingMaterials();
-
-  document.getElementById('btnAddMat')?.addEventListener('click', addMatLine);
+  bindCalModal();
 }
 
 document.addEventListener('DOMContentLoaded', initPage);
