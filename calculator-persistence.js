@@ -17,82 +17,45 @@ function getSb() {
   return window._crmSb ?? window.sb ?? null;
 }
 
-// ── Проверить подписку/триал ──────────────────────────────────────
-async function checkAccess(user) {
-  const sb = getSb();
-  if (!sb) return true;
-  try {
-    const { data: member, error } = await sb
-      .from('studio_members')
-      .select('studio_id, studios(subscription_tier, subscription_expires_at)')
-      .eq('user_id', user.id)
-      .eq('is_active', true)
-      .maybeSingle();
-
-    if (error || !member) return false;
-
-    const tier    = member.studios?.subscription_tier;
-    const expires = member.studios?.subscription_expires_at
-      ? new Date(member.studios.subscription_expires_at)
-      : null;
-    const now = new Date();
-
-    if (tier === 'active') return !expires || expires > now;
-    if (tier === 'trial')  return !!expires && expires > now;
-    return false;
-  } catch (e) {
-    console.error('[persistence] checkAccess error:', e);
-    return false;
-  }
-}
-
-// ── Авторизация + загрузка профиля ───────────────────────────────
+// ── Авторизация через единый getStudioContext ────────────────────
+// Вся логика подписки, ролей и кэша — в studio-context.js.
+// calculator-persistence.js только читает результат.
 async function checkAuth() {
-  const sb = getSb();
-  if (!sb) return true; // Supabase не загружен — dev-режим
+  // Если studio-context.js не подключён (dev/preview) — пропускаем
+  if (typeof window.getStudioContext !== 'function') {
+    console.warn('[persistence] getStudioContext not found — skipping auth check');
+    return true;
+  }
 
   try {
-    const { data: { session } } = await sb.auth.getSession();
+    const ctx = await window.getStudioContext();
 
-    if (!session) {
+    // Нет сессии — редирект на логин
+    if (!ctx) {
       window.location.href = 'welcome.html';
       return false;
     }
 
-    currentUser = session.user;
-
-    // Загружаем профиль студии
-    const { data: member } = await sb
-      .from('studio_members')
-      .select('studio_id, role, studios(name, subscription_tier, subscription_expires_at, settings)')
-      .eq('user_id', session.user.id)
-      .eq('is_active', true)
-      .maybeSingle();
-
-    if (member) {
-      currentProfile = {
-        id:           session.user.id,
-        studio_name:  member.studios?.name || 'Студия',
-        studio_id:    member.studio_id,
-        role:         member.role || 'staff',
-        is_paid:      ['active', 'trial'].includes(member.studios?.subscription_tier),
-        trial_ends_at: member.studios?.subscription_expires_at,
-        settings:     member.studios?.settings || {},
-      };
-    } else {
-      currentProfile = null;
-    }
+    // Заполняем глобальные переменные калькулятора
+    currentUser = ctx.user;
+    currentProfile = {
+      id:            ctx.user.id,
+      studio_name:   ctx.studio?.name                     || 'Студия',
+      studio_id:     ctx.studioId                         || null,
+      role:          ctx.role                             || 'staff',
+      is_paid:       ctx.hasAccess,
+      trial_ends_at: ctx.studio?.subscription_expires_at  || null,
+      settings:      ctx.studio?.settings                 || {},
+    };
 
     displayUserInfo();
 
     // ── Paywall ─────────────────────────────────────────────────
-    const hasAccess = await checkAccess(session.user);
-    if (!hasAccess) {
-      const trialExpired = currentProfile !== null; // есть студия, но истёк триал
+    if (!ctx.hasAccess) {
+      const trialExpired = ctx.subscriptionStatus === 'expired';
       if (typeof window.showPaywall === 'function') {
         window.showPaywall(trialExpired);
       } else {
-        // Минимальный fallback если nav.js не загрузился
         document.body.innerHTML =
           '<div style="display:flex;align-items:center;justify-content:center;height:100vh;' +
           'font-family:system-ui;flex-direction:column;gap:16px;">' +
@@ -107,7 +70,7 @@ async function checkAuth() {
     return true;
   } catch (e) {
     console.error('[persistence] checkAuth error:', e);
-    return true; // При сетевой ошибке не блокируем — лучше лишний доступ, чем недоступный продукт
+    return true; // при сетевой ошибке не блокируем
   }
 }
 
