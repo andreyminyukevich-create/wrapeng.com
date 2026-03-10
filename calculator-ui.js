@@ -117,6 +117,10 @@ function initPageState() {
 
 // ── Зоны инициализации ────────────────────────────────────────────
 function initUI() {
+  if (typeof window.initNav === 'function') {
+    window.initNav({ activePage: 'calculator.html' });
+  }
+
   initTheme();
 
   initDiscounts();
