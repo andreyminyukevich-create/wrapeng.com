@@ -367,6 +367,12 @@ textarea { resize: vertical; min-height: 64px; }
         <label>Заметки</label>
         <textarea id="pNotes" placeholder=""></textarea>
       </div>
+      <div class="form-group">
+        <label>Привязать к заказу <span style="font-weight:400;color:var(--muted)">(необязательно)</span></label>
+        <select id="pCalcId">
+          <option value="">— Без привязки —</option>
+        </select>
+      </div>
 
       <div id="purchaseHistoryBlock" class="purchase-history-block" style="display:none">
         <div class="form-divider"></div>
@@ -1056,9 +1062,31 @@ function openPurchaseModal(presetItemId) {
   document.getElementById('pOther').value     = '';
   document.getElementById('pNotes').value     = '';
   document.getElementById('pTotal').value     = '';
+  document.getElementById('pCalcId').value    = '';
   addPurchaseLine(presetItemId);
+  loadActiveCalcs();
   openModal('purchaseModal');
   loadPurchaseHistory(presetItemId);
+}
+
+async function loadActiveCalcs() {
+  const sel = document.getElementById('pCalcId');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">— Без привязки —</option>';
+  const { data } = await sb.from('calculations')
+    .select('id, car_name, status, checkin_date')
+    .eq('studio_id', studioId)
+    .in('status', ['new','scheduled','accepted','in_progress','waiting','done'])
+    .order('checkin_date', { ascending: false })
+    .limit(50);
+  (data || []).forEach(c => {
+    const o = document.createElement('option');
+    o.value = c.id;
+    const d = c.checkin_date ? new Date(c.checkin_date + 'T00:00:00').toLocaleDateString('ru-RU', { day:'numeric', month:'short' }) : '';
+    o.textContent = (c.car_name || 'Без названия') + (d ? ' — ' + d : '');
+    if (c.id === cur) o.selected = true;
+    sel.appendChild(o);
+  });
 }
 
 async function loadPurchaseHistory(itemId) {
@@ -1230,16 +1258,17 @@ async function savePurchase() {
   btn.disabled = true;
 
   const { data: purchase, error: pErr } = await sb.from('purchases').insert({
-    studio_id:      studioId,
-    supplier_name:  document.getElementById('pSupplier').value.trim() || null,
-    invoice_number: document.getElementById('pInvoice').value.trim() || null,
-    payment_method: document.getElementById('pPayment').value,
-    purchase_date:  document.getElementById('pDate').value,
-    total_goods:    goods, total_delivery: delivery,
-    total_other:    other + vatAmt,
-    total_amount:   goods + delivery + other + vatAmt,
-    notes:          document.getElementById('pNotes').value.trim() || null,
-    created_by:     currentUser.id,
+    studio_id:       studioId,
+    supplier_name:   document.getElementById('pSupplier').value.trim() || null,
+    invoice_number:  document.getElementById('pInvoice').value.trim() || null,
+    payment_method:  document.getElementById('pPayment').value,
+    purchase_date:   document.getElementById('pDate').value,
+    total_goods:     goods, total_delivery: delivery,
+    total_other:     other + vatAmt,
+    total_amount:    goods + delivery + other + vatAmt,
+    notes:           document.getElementById('pNotes').value.trim() || null,
+    calculation_id:  document.getElementById('pCalcId').value || null,
+    created_by:      currentUser.id,
   }).select().single();
 
   if (pErr) { btn.disabled = false; toast('❌ Ошибка: ' + pErr.message); return; }
