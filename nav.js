@@ -14,13 +14,19 @@
 
   // ── Статусы заказов (глобально для всех страниц) ─────────────────
   window.STATUSES = {
-    new:         { label: 'Расчёт произведён',      short: 'Расчёт',   icon: '📋', cls: 'status-new' },
-    scheduled:   { label: 'Назначена дата и время', short: 'Дата',     icon: '📅', cls: 'status-scheduled' },
-    in_progress: { label: 'Принято в работу',       short: 'В работе', icon: '🔧', cls: 'status-in_progress' },
-    done:        { label: 'Завершено',              short: 'Готово',   icon: '✅', cls: 'status-done' },
-    delivered:   { label: 'Выдано',                 short: 'Выдано',   icon: '🚗', cls: 'status-delivered' },
-    cancelled:   { label: 'Отказ',                  short: 'Отказ',    icon: '❌', cls: 'status-cancelled' },
+    // ── 9-шаговый pipeline ─────────────────────────────────────────
+    new:         { label: 'Расчёт произведён',      short: 'Расчёт',   icon: '📋', cls: 'status-new',         step: 1 },
+    scheduled:   { label: 'Запись подтверждена',    short: 'Запись',   icon: '📅', cls: 'status-scheduled',   step: 2 },
+    accepted:    { label: 'Авто принято',           short: 'Принято',  icon: '🔑', cls: 'status-accepted',    step: 3 },
+    in_progress: { label: 'В работе',               short: 'В работе', icon: '🔧', cls: 'status-in_progress', step: 4 },
+    waiting:     { label: 'Ожидание',               short: 'Ожидание', icon: '⏸', cls: 'status-waiting',    step: 5 },
+    done:        { label: 'Готово',                 short: 'Готово',   icon: '✅', cls: 'status-done',        step: 6 },
+    delivered:   { label: 'Выдано',                 short: 'Выдано',   icon: '🚗', cls: 'status-delivered',   step: 7 },
+    closed:      { label: 'Закрыто',                short: 'Закрыто',  icon: '🔒', cls: 'status-closed',      step: 8 },
+    cancelled:   { label: 'Отменено',               short: 'Отменено', icon: '❌', cls: 'status-cancelled',   step: 9 },
   };
+  // Обратная совместимость: старые записи с 'Принято в работу' и 'Завершено' продолжают работать
+  // через normalizeStatus() — маппинг происходит на уровне отображения, данные не меняются.
 
   // ADMIN_ID не является секретом — это публичный UUID для UI-ветки.
   // Источник истины: core/auth.js → ADMIN_ID.
