@@ -9,82 +9,85 @@
 <script src="nav.js"></script>
 <style>
 :root {
-  --font:       -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
-  --bg:         #eef2f9; --surface: #ffffff;
-  --border:     rgba(15,23,42,0.08); --text: #0f172a;
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+  --bg: #eef2f9; --surface: #ffffff;
+  --border: rgba(15,23,42,0.08); --text: #0f172a;
   --text-muted: #64748b; --text-dim: #94a3b8;
-  --primary:    #2563eb; --primary-dk: #1d4ed8;
-  --success:    #059669; --danger: #dc2626; --warning: #d97706;
+  --primary: #2563eb; --primary-dk: #1d4ed8;
+  --success: #059669; --danger: #dc2626; --warning: #d97706;
   --radius: 14px; --radius-sm: 9px;
   --shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 14px rgba(0,0,0,0.06);
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: var(--font); -webkit-font-smoothing: antialiased; background: var(--bg); color: var(--text); min-height: 100svh; }
-.container { max-width: 1280px; margin: 0 auto; padding: 24px 20px 48px; }
+.container { max-width: 1100px; margin: 0 auto; padding: 24px 20px 60px; }
 
 .summary { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:20px; }
 .summary-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:18px 20px; box-shadow:var(--shadow); position:relative; overflow:hidden; }
-.summary-card::after { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:var(--accent,var(--primary)); }
+.summary-card::after { content:""; position:absolute; top:0; left:0; right:0; height:3px; background:var(--accent,var(--primary)); }
 .summary-card:nth-child(1){--accent:var(--warning)} .summary-card:nth-child(2){--accent:var(--success)} .summary-card:nth-child(3){--accent:var(--primary)}
 .summary-label { font-size:0.68rem; font-weight:700; text-transform:uppercase; letter-spacing:0.07em; color:var(--text-muted); margin-bottom:6px; }
-.summary-value { font-size:1.65rem; font-weight:800; color:var(--text); letter-spacing:-0.5px; line-height:1; }
+.summary-value { font-size:1.6rem; font-weight:800; color:var(--text); letter-spacing:-0.5px; line-height:1; }
 .summary-card:nth-child(1) .summary-value { color:var(--warning); }
 .summary-card:nth-child(2) .summary-value { color:var(--success); }
 
 .toolbar { display:flex; gap:10px; align-items:center; margin-bottom:16px; flex-wrap:wrap; }
-.filter-select { padding:9px 32px 9px 13px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text); font-size:0.85rem; font-family:var(--font); cursor:pointer; outline:none; transition:border-color 0.15s,box-shadow 0.15s; -webkit-appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2394a3b8' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 12px center; }
+.filter-select { padding:9px 32px 9px 13px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text); font-size:0.85rem; font-family:var(--font); cursor:pointer; outline:none; -webkit-appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2712%27 height=%278%27 viewBox=%270 0 12 8%27%3E%3Cpath d=%27M1 1l5 5 5-5%27 stroke=%27%2394a3b8%27 stroke-width=%271.5%27 fill=%27none%27 stroke-linecap=%27round%27/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 12px center; }
 .filter-select:focus { border-color:var(--primary); box-shadow:0 0 0 3px rgba(37,99,235,0.08); }
 
-.tabs { display:flex; gap:3px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm); padding:3px; margin-bottom:16px; width:fit-content; box-shadow:0 1px 2px rgba(0,0,0,0.03); }
+.tabs { display:flex; gap:3px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm); padding:3px; margin-bottom:20px; width:fit-content; }
 .tab { padding:8px 18px; background:transparent; border:none; border-radius:7px; color:var(--text-muted); font-size:0.82rem; font-weight:700; cursor:pointer; transition:all 0.15s; font-family:var(--font); white-space:nowrap; display:flex; align-items:center; gap:6px; }
 .tab:hover { background:var(--bg); color:var(--text); }
 .tab.active { background:var(--primary); color:#fff; box-shadow:0 2px 8px rgba(37,99,235,0.22); }
 .tab-badge { display:inline-flex; align-items:center; justify-content:center; min-width:18px; height:18px; padding:0 5px; background:rgba(255,255,255,0.25); border-radius:10px; font-size:0.68rem; font-weight:800; }
 .tab:not(.active) .tab-badge { background:var(--bg); color:var(--text-muted); }
 
-.bulk-actions { display:flex; gap:10px; align-items:center; margin-bottom:12px; padding:10px 14px; background:rgba(37,99,235,0.05); border:1px solid rgba(37,99,235,0.15); border-radius:var(--radius-sm); }
+.executor-list { display:flex; flex-direction:column; gap:12px; }
+.executor-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden; }
+.executor-head { display:flex; align-items:center; gap:14px; padding:16px 20px; cursor:pointer; transition:background 0.12s; user-select:none; }
+.executor-head:hover { background:#f8fafc; }
+.executor-avatar { width:40px; height:40px; border-radius:50%; background:rgba(37,99,235,0.1); color:var(--primary); display:flex; align-items:center; justify-content:center; font-size:0.95rem; font-weight:800; flex-shrink:0; letter-spacing:-0.5px; }
+.executor-info { flex:1; min-width:0; }
+.executor-name { font-size:0.95rem; font-weight:700; color:var(--text); }
+.executor-meta { font-size:0.75rem; color:var(--text-muted); margin-top:2px; }
+.executor-total { font-size:1.15rem; font-weight:800; color:var(--success); white-space:nowrap; }
+.executor-actions { display:flex; gap:8px; align-items:center; margin-left:8px; }
+.executor-chevron { color:var(--text-dim); font-size:0.72rem; margin-left:4px; transition:transform .2s; flex-shrink:0; }
+.executor-card.open .executor-chevron { transform:rotate(180deg); }
 
-.table-wrap { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow); overflow-x:auto; -webkit-overflow-scrolling:touch; }
-table { width:100%; border-collapse:collapse; min-width:540px; }
-thead { background:var(--bg); border-bottom:1px solid var(--border); }
-th { padding:11px 14px; text-align:left; font-size:0.68rem; font-weight:700; text-transform:uppercase; letter-spacing:0.07em; color:var(--text-muted); white-space:nowrap; }
-tbody tr { border-bottom:1px solid var(--border); transition:background 0.12s; }
-tbody tr:hover { background:#f8fafc; }
-tbody tr:last-child { border-bottom:none; }
-td { padding:13px 14px; font-size:0.85rem; vertical-align:middle; }
-.executor-name { font-weight:700; color:var(--text); }
-.car-name     { color:var(--text-muted); font-size:0.82rem; max-width:160px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.service-name { font-size:0.82rem; color:var(--text-muted); max-width:180px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.salary       { font-weight:800; font-size:0.95rem; color:var(--success); letter-spacing:-0.2px; white-space:nowrap; }
-.month-badge  { display:inline-block; padding:3px 9px; background:var(--bg); border:1px solid var(--border); border-radius:6px; font-size:0.72rem; font-weight:700; color:var(--text-muted); white-space:nowrap; }
-.checkbox-cell { width:36px; padding-left:16px; }
-.checkbox-cell input { cursor:pointer; width:16px; height:16px; accent-color:var(--primary); }
+.assignments-wrap { border-top:1px solid var(--border); display:none; }
+.executor-card.open .assignments-wrap { display:block; }
+.assignments-table { width:100%; border-collapse:collapse; }
+.assignments-table th { padding:9px 16px; text-align:left; font-size:0.67rem; font-weight:700; text-transform:uppercase; letter-spacing:0.07em; color:var(--text-muted); background:var(--bg); border-bottom:1px solid var(--border); white-space:nowrap; }
+.assignments-table td { padding:11px 16px; font-size:0.84rem; border-bottom:1px solid var(--border); vertical-align:middle; }
+.assignments-table tbody tr:last-child td { border-bottom:none; }
+.assignments-table tbody tr:hover td { background:#f8fafc; }
+.assign-car { font-weight:600; color:var(--text); }
+.assign-svc { color:var(--text-muted); font-size:0.79rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:220px; }
+.assign-month { display:inline-block; padding:3px 9px; background:var(--bg); border:1px solid var(--border); border-radius:6px; font-size:0.72rem; font-weight:700; color:var(--text-muted); }
+.assign-salary { font-weight:800; color:var(--success); }
+.assign-admin  { font-weight:800; color:var(--warning); }
 
-.btn { display:inline-flex; align-items:center; gap:5px; padding:7px 14px; border-radius:var(--radius-sm); font-size:0.78rem; font-weight:700; font-family:var(--font); cursor:pointer; border:none; transition:all 0.15s; white-space:nowrap; }
-.btn-success  { background:var(--success); color:#fff; }
-.btn-success:hover { background:#047857; }
+.btn { display:inline-flex; align-items:center; gap:5px; padding:8px 14px; border-radius:var(--radius-sm); font-size:0.79rem; font-weight:700; font-family:var(--font); cursor:pointer; border:none; transition:all 0.15s; white-space:nowrap; }
 .btn-pay   { background:rgba(5,150,105,0.08); color:var(--success); border:1px solid rgba(5,150,105,0.2); }
 .btn-pay:hover   { background:var(--success); color:#fff; border-color:var(--success); }
-.btn-unpay { background:rgba(220,38,38,0.07); color:var(--danger); border:1px solid rgba(220,38,38,0.15); }
+.btn-unpay { background:rgba(220,38,38,0.07); color:var(--danger); border:1px solid rgba(220,38,38,0.15); font-size:0.74rem; padding:5px 10px; }
 .btn-unpay:hover { background:var(--danger); color:#fff; border-color:var(--danger); }
-.btn[disabled] { opacity:0.5; cursor:not-allowed; }
+.btn[disabled]   { opacity:0.5; cursor:not-allowed; pointer-events:none; }
 
-.empty-state { text-align:center; padding:56px 20px; color:var(--text-muted); }
-.empty-state-icon { font-size:2.4rem; margin-bottom:10px; opacity:0.35; }
-.empty-state h3   { font-size:0.95rem; font-weight:700; color:var(--text); }
+.empty-state { text-align:center; padding:56px 20px; color:var(--text-muted); background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); }
+.empty-state h3 { font-size:0.95rem; font-weight:700; color:var(--text); margin-bottom:4px; }
+.empty-state p  { font-size:0.82rem; }
 .loading { text-align:center; padding:56px; color:var(--text-muted); font-size:0.88rem; }
 
 @media (max-width:768px) {
   .container { padding:16px 14px 40px; }
-  .summary { grid-template-columns:1fr; gap:8px; }
-  .tabs { width:100%; }
-  .tab { flex:1; justify-content:center; padding:8px 10px; }
-  .toolbar,.bulk-actions { flex-direction:column; align-items:stretch; }
-  .filter-select { width:100%; }
-}
-@media (max-width:480px) {
   .summary { grid-template-columns:1fr 1fr; }
   .summary-card:last-child { grid-column:1/-1; }
+  .executor-head { padding:14px 16px; gap:10px; }
+  .executor-actions .btn { padding:6px 10px; font-size:0.74rem; }
+  .assignments-table th, .assignments-table td { padding:9px 12px; }
+  .assign-svc { max-width:130px; }
 }
 </style>
 </head>
@@ -92,82 +95,72 @@ td { padding:13px 14px; font-size:0.85rem; vertical-align:middle; }
 
 <div class="container">
   <div class="summary">
-    <div class="summary-card"><div class="summary-label">К выплате</div><div class="summary-value" id="summaryPending">0</div></div>
-    <div class="summary-card"><div class="summary-label">Выплачено</div><div class="summary-value" id="summaryPaid">0</div></div>
-    <div class="summary-card"><div class="summary-label">Всего работ</div><div class="summary-value" id="summaryTotal">0</div></div>
+    <div class="summary-card"><div class="summary-label">К выплате</div><div class="summary-value" id="summaryPending">—</div></div>
+    <div class="summary-card"><div class="summary-label">Выплачено (месяц)</div><div class="summary-value" id="summaryPaid">—</div></div>
+    <div class="summary-card"><div class="summary-label">Исполнителей</div><div class="summary-value" id="summaryExecutors">—</div></div>
   </div>
 
   <div class="toolbar">
     <select class="filter-select" id="monthFilter"><option value="all">Все месяцы</option></select>
-    <select class="filter-select" id="executorFilter"><option value="all">Все исполнители</option></select>
   </div>
 
   <div class="tabs">
-    <button class="tab active" data-tab="pending">⏳ К выплате <span class="tab-badge" id="badgePending">0</span></button>
-    <button class="tab"        data-tab="paid">✅ Выплачено <span class="tab-badge" id="badgePaid">0</span></button>
-    <button class="tab"        data-tab="cancelled">❌ Отменено <span class="tab-badge" id="badgeCancelled">0</span></button>
+    <button class="tab active" data-tab="pending">К выплате <span class="tab-badge" id="badgePending">0</span></button>
+    <button class="tab"        data-tab="paid">Выплачено  <span class="tab-badge" id="badgePaid">0</span></button>
   </div>
 
-  <div class="bulk-actions" id="bulkActions" style="display:none">
-    <span id="selectedCount" style="font-size:0.82rem;color:var(--text-muted);font-weight:600">Выбрано: 0</span>
-    <button class="btn btn-success" id="btnPaySelected">💰 Выплатить выбранные</button>
-  </div>
-
-  <div id="tabContent"><div class="loading">⏳ Загрузка...</div></div>
+  <div id="tabContent"><div class="loading">Загрузка...</div></div>
 </div>
 
 <script src="footer.js"></script>
 <script type="module">
-import { sb }               from './supabase.js';
-import { requireAuth }      from './auth.js';
-import { getStudioContext }  from './studio-context.js';
-import { escapeHtml }        from './formatters.js';
-import { confirmAction, lockButton } from './ui.js';
+import { sb }              from "./supabase.js";
+import { requireAuth }     from "./auth.js";
+import { getStudioContext } from "./studio-context.js";
+import { confirmAction, lockButton } from "./ui.js";
 
-// ── State ───────────────────────────────────────────────────────────────
 let studioId       = null;
 let allAssignments = [];
-let currentTab     = 'pending';
-let selectedIds    = new Set();
-const e = escapeHtml;
+let currentTab     = "pending";
+let currentMonth   = "all";
 
-// ── Helpers ─────────────────────────────────────────────────────────────
 function fmt(n) {
-  return new Intl.NumberFormat('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n || 0);
+  return new Intl.NumberFormat("ru-RU", { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(n || 0);
 }
 function fmtMonth(str) {
-  if (!str) return '';
-  const [y, m] = str.split('-');
-  const months = ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
-  return `${months[parseInt(m) - 1]} ${y}`;
+  if (!str) return "—";
+  const [y, m] = str.split("-");
+  const months = ["Янв","Фев","Мар","Апр","Май","Июн","Июл","Авг","Сен","Окт","Ноя","Дек"];
+  return months[parseInt(m)-1] + " " + y;
+}
+function initials(name) {
+  if (!name) return "?";
+  return name.trim().split(/\s+/).map(w => w[0]).join("").toUpperCase().slice(0, 2);
+}
+function pluralWorks(n) {
+  if (n % 10 === 1 && n % 100 !== 11) return "работа";
+  if ([2,3,4].includes(n % 10) && ![12,13,14].includes(n % 100)) return "работы";
+  return "работ";
 }
 
-// ── Load ────────────────────────────────────────────────────────────────
 async function loadAssignments() {
-  document.getElementById('tabContent').innerHTML = '<div class="loading">⏳ Загрузка...</div>';
+  document.getElementById("tabContent").innerHTML = "<div class="loading">Загрузка...</div>";
 
   const { data, error } = await sb
-    .from('work_assignments')
-    .select(`
-      id, calculation_id, executor_id, executor_name,
-      service_name, salary, status, payment_month,
-      is_admin_sale, admin_percent,
-      calculations ( car_name ),
-      executors ( full_name )
-    `)
-    .eq('studio_id', studioId)
-    .order('created_at', { ascending: false });
+    .from("work_assignments")
+    .select("id, calculation_id, executor_id, executor_name, service_name, salary, status, payment_month, is_admin_sale, admin_percent, calculations ( car_name ), executors ( full_name )")
+    .eq("studio_id", studioId)
+    .order("payment_month", { ascending: false });
 
   if (error) {
-    console.error('[payouts] load:', error);
-    document.getElementById('tabContent').innerHTML = '<div class="empty-state"><div class="empty-state-icon">❌</div><h3>Ошибка загрузки</h3></div>';
+    document.getElementById("tabContent").innerHTML = "<div class="empty-state"><h3>Ошибка загрузки</h3><p>" + error.message + "</p></div>";
     return;
   }
 
   allAssignments = (data || []).map(a => ({
     ...a,
-    executor_display: a.executors?.full_name || a.executor_name || 'Неизвестно',
-    car_display:      a.calculations?.car_name || 'Неизвестно',
+    executor_display: a.executors?.full_name || a.executor_name || "Неизвестно",
+    car_display:      a.calculations?.car_name || "—",
   }));
 
   populateFilters();
@@ -175,232 +168,175 @@ async function loadAssignments() {
   renderTab();
 }
 
-// ── Filters ─────────────────────────────────────────────────────────────
 function populateFilters() {
-  const months    = [...new Set(allAssignments.map(a => a.payment_month).filter(Boolean))].sort().reverse();
-  const executors = [...new Set(allAssignments.map(a => a.executor_display))].sort();
-
-  const mf = document.getElementById('monthFilter');
-  mf.innerHTML = '';
-  const allOpt = document.createElement('option'); allOpt.value = 'all'; allOpt.textContent = 'Все месяцы'; mf.appendChild(allOpt);
-  months.forEach(m => { const o = document.createElement('option'); o.value = m; o.textContent = fmtMonth(m); mf.appendChild(o); });
-
-  const ef = document.getElementById('executorFilter');
-  ef.innerHTML = '';
-  const allExec = document.createElement('option'); allExec.value = 'all'; allExec.textContent = 'Все исполнители'; ef.appendChild(allExec);
-  executors.forEach(name => { const o = document.createElement('option'); o.value = name; o.textContent = name; ef.appendChild(o); });
+  const months = [...new Set(allAssignments.map(a => a.payment_month).filter(Boolean))].sort().reverse();
+  const mf = document.getElementById("monthFilter");
+  mf.innerHTML = "<option value="all">Все месяцы</option>";
+  months.forEach(m => { const o = document.createElement("option"); o.value = m; o.textContent = fmtMonth(m); mf.appendChild(o); });
 }
 
-// ── Summary ──────────────────────────────────────────────────────────────
 function updateSummary() {
-  const pending = allAssignments.filter(a => a.status === 'pending').reduce((s, a) => s + (a.salary || 0), 0);
-  const paid    = allAssignments.filter(a => a.status === 'paid').reduce((s, a) => s + (a.salary || 0), 0);
-  document.getElementById('summaryPending').textContent = fmt(pending);
-  document.getElementById('summaryPaid').textContent    = fmt(paid);
-  document.getElementById('summaryTotal').textContent   = allAssignments.length;
-  document.getElementById('badgePending').textContent   = allAssignments.filter(a => a.status === 'pending').length;
-  document.getElementById('badgePaid').textContent      = allAssignments.filter(a => a.status === 'paid').length;
-  document.getElementById('badgeCancelled').textContent = allAssignments.filter(a => a.status === 'cancelled').length;
+  const pending   = allAssignments.filter(a => a.status === "pending");
+  const paid      = allAssignments.filter(a => a.status === "paid");
+  const thisMonth = new Date().toISOString().slice(0, 7);
+  const paidMon   = paid.filter(a => a.payment_month === thisMonth);
+
+  document.getElementById("summaryPending").textContent   = fmt(pending.reduce((s,a) => s+(a.salary||0), 0)) + " ₽";
+  document.getElementById("summaryPaid").textContent      = fmt(paidMon.reduce((s,a) => s+(a.salary||0), 0)) + " ₽";
+  document.getElementById("summaryExecutors").textContent = new Set(pending.map(a => a.executor_display)).size;
+  document.getElementById("badgePending").textContent     = pending.length;
+  document.getElementById("badgePaid").textContent        = paid.length;
 }
 
-// ── Render tab ───────────────────────────────────────────────────────────
 function renderTab() {
-  const month    = document.getElementById('monthFilter').value;
-  const executor = document.getElementById('executorFilter').value;
-
   let filtered = allAssignments.filter(a => a.status === currentTab);
-  if (month    !== 'all') filtered = filtered.filter(a => a.payment_month    === month);
-  if (executor !== 'all') filtered = filtered.filter(a => a.executor_display === executor);
+  if (currentMonth !== "all") filtered = filtered.filter(a => a.payment_month === currentMonth);
 
-  const content = document.getElementById('tabContent');
-  const bulkBar = document.getElementById('bulkActions');
+  const content = document.getElementById("tabContent");
 
   if (!filtered.length) {
-    content.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div><h3>Нет записей</h3></div>';
-    bulkBar.style.display = 'none';
+    content.innerHTML = "<div class="empty-state"><h3>Нет записей</h3><p>" + (currentTab === "pending" ? "Все выплачено или назначений ещё нет" : "Выплат пока не было") + "</p></div>";
     return;
   }
 
-  bulkBar.style.display = currentTab === 'pending' ? 'flex' : 'none';
-
-  // Build table via DOM
-  const wrap  = document.createElement('div'); wrap.className = 'table-wrap';
-  const tbl   = document.createElement('table');
-  const thead = document.createElement('thead');
-  const hrow  = document.createElement('tr');
-
-  if (currentTab === 'pending') {
-    const th = document.createElement('th'); th.className = 'checkbox-cell';
-    const cb = document.createElement('input'); cb.type = 'checkbox'; cb.id = 'selectAll';
-    th.appendChild(cb); hrow.appendChild(th);
-  }
-  ['Исполнитель','Машина','Услуга','Месяц','Сумма'].forEach(t => {
-    const th = document.createElement('th'); th.textContent = t; hrow.appendChild(th);
-  });
-  if (currentTab === 'pending' || currentTab === 'paid') {
-    hrow.appendChild(document.createElement('th'));
-  }
-  thead.appendChild(hrow); tbl.appendChild(thead);
-
-  const tbody = document.createElement('tbody');
+  // Группировка по исполнителю
+  const groups = {};
   filtered.forEach(a => {
-    const tr = document.createElement('tr');
-
-    if (currentTab === 'pending') {
-      const td = document.createElement('td'); td.className = 'checkbox-cell';
-      const cb = document.createElement('input'); cb.type = 'checkbox'; cb.className = 'row-checkbox';
-      cb.dataset.id = a.id; cb.checked = selectedIds.has(a.id);
-      td.appendChild(cb); tr.appendChild(td);
-    }
-
-    // Исполнитель
-    const tdName = document.createElement('td'); tdName.className = 'executor-name';
-    tdName.textContent = a.executor_display; tr.appendChild(tdName);
-
-    // Машина
-    const tdCar = document.createElement('td'); tdCar.className = 'car-name';
-    tdCar.textContent = a.car_display; tr.appendChild(tdCar);
-
-    // Услуга
-    const tdSvc = document.createElement('td'); tdSvc.className = 'service-name';
-    tdSvc.textContent = a.service_name || (a.is_admin_sale ? `💰 Продажа (${a.admin_percent}%)` : '—');
-    tr.appendChild(tdSvc);
-
-    // Месяц
-    const tdMonth = document.createElement('td');
-    const badge   = document.createElement('span'); badge.className = 'month-badge';
-    badge.textContent = fmtMonth(a.payment_month); tdMonth.appendChild(badge); tr.appendChild(tdMonth);
-
-    // Сумма
-    const tdSal = document.createElement('td'); tdSal.className = 'salary';
-    tdSal.textContent = fmt(a.salary); tr.appendChild(tdSal);
-
-    // Действия
-    if (currentTab === 'pending') {
-      const tdBtn = document.createElement('td');
-      const btn   = document.createElement('button'); btn.className = 'btn btn-pay';
-      btn.textContent = '💰 Выплатить'; btn.dataset.action = 'pay'; btn.dataset.id = a.id;
-      tdBtn.appendChild(btn); tr.appendChild(tdBtn);
-    }
-    if (currentTab === 'paid') {
-      const tdBtn = document.createElement('td');
-      const btn   = document.createElement('button'); btn.className = 'btn btn-unpay';
-      btn.textContent = '↩ Отменить'; btn.dataset.action = 'unpay'; btn.dataset.id = a.id;
-      tdBtn.appendChild(btn); tr.appendChild(tdBtn);
-    }
-
-    tbody.appendChild(tr);
+    if (!groups[a.executor_display]) groups[a.executor_display] = { name: a.executor_display, items: [] };
+    groups[a.executor_display].items.push(a);
   });
 
-  tbl.appendChild(tbody);
-  wrap.appendChild(tbl);
-  content.innerHTML = '';
-  content.appendChild(wrap);
+  content.innerHTML = "";
+  const list = document.createElement("div");
+  list.className = "executor-list";
+
+  Object.values(groups).forEach(g => {
+    const total = g.items.reduce((s, a) => s + (a.salary || 0), 0);
+    const card  = document.createElement("div");
+    card.className = "executor-card";
+
+    const head = document.createElement("div");
+    head.className = "executor-head";
+
+    const avatar = document.createElement("div");
+    avatar.className = "executor-avatar";
+    avatar.textContent = initials(g.name);
+
+    const info = document.createElement("div");
+    info.className = "executor-info";
+    info.innerHTML = "<div class="executor-name">" + g.name + "</div><div class="executor-meta">" + g.items.length + " " + pluralWorks(g.items.length) + "</div>";
+
+    const totalEl = document.createElement("div");
+    totalEl.className = "executor-total";
+    totalEl.textContent = fmt(total) + " ₽";
+
+    const actions = document.createElement("div");
+    actions.className = "executor-actions";
+
+    if (currentTab === "pending") {
+      const payBtn = document.createElement("button");
+      payBtn.className = "btn btn-pay";
+      payBtn.textContent = "Выплатить всё";
+      payBtn.addEventListener("click", async e => {
+        e.stopPropagation();
+        const ok = await confirmAction({ message: "Выплатить " + g.name + " — " + fmt(total) + " ₽?" });
+        if (!ok) return;
+        const release = lockButton(payBtn, "...");
+        const { error } = await sb.from("work_assignments").update({ status: "paid" }).in("id", g.items.map(i => i.id));
+        release();
+        if (!error) await loadAssignments();
+      });
+      actions.appendChild(payBtn);
+    }
+
+    const chevron = document.createElement("div");
+    chevron.className = "executor-chevron";
+    chevron.textContent = "▼";
+
+    head.append(avatar, info, totalEl, actions, chevron);
+    head.addEventListener("click", e => {
+      if (e.target.closest("button")) return;
+      card.classList.toggle("open");
+    });
+
+    // Таблица работ
+    const wrap = document.createElement("div");
+    wrap.className = "assignments-wrap";
+    const tbl = document.createElement("table");
+    tbl.className = "assignments-table";
+    const thead = document.createElement("thead");
+    thead.innerHTML = "<tr><th>Машина</th><th>Услуга</th><th>Месяц</th><th style="text-align:right">Сумма</th>" + (currentTab === "paid" ? "<th></th>" : "") + "</tr>";
+    const tbody = document.createElement("tbody");
+
+    g.items.forEach(a => {
+      const tr = document.createElement("tr");
+      const isAdmin = a.is_admin_sale;
+      const svcLabel = a.service_name || (isAdmin ? "Продажа (" + a.admin_percent + "%)" : "—");
+
+      const tdCar = document.createElement("td"); tdCar.className = "assign-car"; tdCar.textContent = a.car_display;
+      const tdSvc = document.createElement("td"); tdSvc.innerHTML = "<div class="assign-svc">" + svcLabel + "</div>";
+      const tdMon = document.createElement("td"); tdMon.innerHTML = "<span class="assign-month">" + fmtMonth(a.payment_month) + "</span>";
+      const tdSal = document.createElement("td"); tdSal.style.textAlign = "right";
+      tdSal.innerHTML = "<span class="" + (isAdmin ? "assign-admin" : "assign-salary") + "">" + fmt(a.salary) + " ₽</span>";
+
+      tr.append(tdCar, tdSvc, tdMon, tdSal);
+
+      if (currentTab === "paid") {
+        const tdBtn = document.createElement("td");
+        const btn = document.createElement("button");
+        btn.className = "btn btn-unpay";
+        btn.textContent = "Отменить";
+        btn.addEventListener("click", async () => {
+          const ok = await confirmAction({ message: "Отменить выплату? Вернётся в «К выплате»." });
+          if (!ok) return;
+          const release = lockButton(btn, "...");
+          const { error } = await sb.from("work_assignments").update({ status: "pending" }).eq("id", a.id);
+          release();
+          if (!error) await loadAssignments();
+        });
+        tdBtn.appendChild(btn);
+        tr.appendChild(tdBtn);
+      }
+
+      tbody.appendChild(tr);
+    });
+
+    tbl.append(thead, tbody);
+    wrap.appendChild(tbl);
+    card.append(head, wrap);
+    list.appendChild(card);
+  });
+
+  content.appendChild(list);
 }
 
-// ── Actions ──────────────────────────────────────────────────────────────
-async function markAsPaid(ids) {
-  const { error } = await sb.from('work_assignments').update({ status: 'paid' }).in('id', ids);
-  if (error) { console.error('[payouts] markAsPaid:', error); return; }
-  selectedIds.clear();
-  await loadAssignments();
-}
-
-async function paySingle(id, btn) {
-  const ok = await confirmAction({ message: 'Подтвердить выплату?' });
-  if (!ok) return;
-  const release = lockButton(btn, '⏳');
-  await markAsPaid([id]);
-  release();
-}
-
-async function paySelected() {
-  if (selectedIds.size === 0) return;
-  const ok = await confirmAction({ message: `Выплатить ${selectedIds.size} записей?` });
-  if (!ok) return;
-  const btn     = document.getElementById('btnPaySelected');
-  const release = lockButton(btn, '⏳...');
-  await markAsPaid([...selectedIds]);
-  release();
-}
-
-async function unpaySingle(id, btn) {
-  const ok = await confirmAction({ message: 'Отменить выплату? Запись вернётся в «К выплате».' });
-  if (!ok) return;
-  const release = lockButton(btn, '⏳');
-  const { error } = await sb.from('work_assignments').update({ status: 'pending' }).eq('id', id);
-  release();
-  if (error) { console.error('[payouts] unpay:', error); return; }
-  await loadAssignments();
-}
-
-// ── Events ────────────────────────────────────────────────────────────────
 function bindEvents() {
-  // Фильтры
-  document.getElementById('monthFilter').addEventListener('change', renderTab);
-  document.getElementById('executorFilter').addEventListener('change', renderTab);
-
-  // Табы
-  document.querySelectorAll('.tab[data-tab]').forEach(tab => {
-    tab.addEventListener('click', () => {
+  document.getElementById("monthFilter").addEventListener("change", e => { currentMonth = e.target.value; renderTab(); });
+  document.querySelectorAll(".tab[data-tab]").forEach(tab => {
+    tab.addEventListener("click", () => {
       currentTab = tab.dataset.tab;
-      selectedIds.clear();
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
+      document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+      tab.classList.add("active");
       renderTab();
     });
   });
-
-  // Выплатить выбранные
-  document.getElementById('btnPaySelected').addEventListener('click', paySelected);
-
-  // Delegation на tabContent — чекбоксы + кнопки
-  document.getElementById('tabContent').addEventListener('change', e => {
-    const cb = e.target.closest('.row-checkbox');
-    if (!cb) return;
-    if (cb.checked) selectedIds.add(cb.dataset.id);
-    else            selectedIds.delete(cb.dataset.id);
-    document.getElementById('selectedCount').textContent = `Выбрано: ${selectedIds.size}`;
-  });
-
-  document.getElementById('tabContent').addEventListener('change', e => {
-    const all = e.target.closest('#selectAll');
-    if (!all) return;
-    document.querySelectorAll('.row-checkbox').forEach(cb => {
-      cb.checked = all.checked;
-      if (all.checked) selectedIds.add(cb.dataset.id);
-      else             selectedIds.delete(cb.dataset.id);
-    });
-    document.getElementById('selectedCount').textContent = `Выбрано: ${selectedIds.size}`;
-  });
-
-  document.getElementById('tabContent').addEventListener('click', async e => {
-    const btn = e.target.closest('[data-action]');
-    if (!btn) return;
-    const { action, id } = btn.dataset;
-    if (action === 'pay')   await paySingle(id, btn);
-    if (action === 'unpay') await unpaySingle(id, btn);
-  });
 }
 
-// ── Init ──────────────────────────────────────────────────────────────────
 async function initPage() {
-  initNav();
+  initNav({ activePage: "payouts.html" });
   bindEvents();
-
-  const user = await requireAuth({ redirectTo: 'welcome.html' });
+  const user = await requireAuth({ redirectTo: "welcome.html" });
   if (!user) return;
-
   const ctx = await getStudioContext();
   if (!ctx?.studioId) {
-    document.getElementById('tabContent').innerHTML = '<div class="empty-state"><div class="empty-state-icon">⚠️</div><h3>Студия не найдена</h3></div>';
+    document.getElementById("tabContent").innerHTML = "<div class="empty-state"><h3>Студия не найдена</h3></div>";
     return;
   }
   studioId = ctx.studioId;
   await loadAssignments();
 }
 
-document.addEventListener('DOMContentLoaded', initPage);
+document.addEventListener("DOMContentLoaded", initPage);
 </script>
 </body>
 </html>
