@@ -24,7 +24,7 @@ function collectAll() {
     ms:     { mat: 0, mot: 0, names: [], details: [] }
   };
 
-  // ── Полная защита вкруг ──────────────────────────────────────
+  // ── Полная защита кузова ──────────────────────────────────────
   const pkgWrapMat = parseFloat(q('#pkgWrapMat')?.value) || 0;
   const pkgWrapMot = parseFloat(q('#pkgWrapMot')?.value) || 0;
   const pkgPrepMat = parseFloat(q('#pkgPrepMat')?.value) || 0;
@@ -36,7 +36,7 @@ function collectAll() {
   if (pkgWrapMat || pkgWrapMot || pkgPrepMat || pkgPrepMot || pkgArmMat || pkgArmMot || pkgCosts) {
     sums.pkg.mat = pkgWrapMat + pkgPrepMat + pkgArmMat + pkgCosts;
     sums.pkg.mot = pkgWrapMot + pkgPrepMot + pkgArmMot;
-    sums.pkg.names.push('Полная защита вкруг');
+    sums.pkg.names.push('Полная защита кузова');
   }
 
   // ── Защита ударной части ─────────────────────────────────────
@@ -83,7 +83,7 @@ function collectAll() {
 
   sums.arm.mat += collectAdditionalCosts('arm');
 
-  // ── PPF прозрачный вкруг ─────────────────────────────────────
+  // ── PPF прозрачный (кузов) ─────────────────────────────────────
   if (q('#ppfClearChk')?.checked) {
     const pr = parseFloat(q('#ppfClearPrice')?.value) || 0;
     let m    = parseFloat(q('#ppfClearM')?.value)     || 0;
@@ -91,10 +91,10 @@ function collectAll() {
     if (q('#ppfClearComplex')?.checked) { m *= 1.1; mot *= 1.1; }
     const mat = r100(m * pr);
     sums.wrap.mat += mat; sums.wrap.mot += mot;
-    sums.wrap.details.push(['PPF прозрачный вкруг', m, pr, mat, mot, 0]);
+    sums.wrap.details.push(['PPF прозрачный (кузов)', m, pr, mat, mot, 0]);
   }
 
-  // ── PPF цветной вкруг ────────────────────────────────────────
+  // ── PPF цветной (кузов) ────────────────────────────────────────
   if (q('#ppfColorChk')?.checked) {
     const pr = parseFloat(q('#ppfColorPrice')?.value) || 0;
     let m    = parseFloat(q('#ppfColorM')?.value)     || 0;
@@ -102,10 +102,10 @@ function collectAll() {
     if (q('#ppfColorComplex')?.checked) { m *= 1.1; mot *= 1.1; }
     const mat = r100(m * pr);
     sums.wrap.mat += mat; sums.wrap.mot += mot;
-    sums.wrap.details.push(['PPF цветной вкруг', m, pr, mat, mot, 0]);
+    sums.wrap.details.push(['PPF цветной (кузов)', m, pr, mat, mot, 0]);
   }
 
-  // ── PPF матовый вкруг ────────────────────────────────────────
+  // ── PPF матовый (кузов) ────────────────────────────────────────
   if (q('#ppfMatChk')?.checked) {
     const pr = parseFloat(q('#ppfMatPrice')?.value) || 0;
     let m    = parseFloat(q('#ppfMatM')?.value)     || 0;
@@ -113,7 +113,7 @@ function collectAll() {
     if (q('#ppfMatComplex')?.checked) { m *= 1.1; mot *= 1.1; }
     const mat = r100(m * pr);
     sums.wrap.mat += mat; sums.wrap.mot += mot;
-    sums.wrap.details.push(['PPF матовый вкруг', m, pr, mat, mot, 0]);
+    sums.wrap.details.push(['PPF матовый (кузов)', m, pr, mat, mot, 0]);
   }
 
   // ── PPF частично ─────────────────────────────────────────────
