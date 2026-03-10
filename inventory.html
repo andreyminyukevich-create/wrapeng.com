@@ -389,7 +389,6 @@ textarea { resize: vertical; min-height: 64px; }
       </div>
       <div class="form-row">
         <div class="form-group"><label>Поставщик</label><input type="text" id="equipSupplier"></div>
-        <div class="form-group"><label>Место хранения</label><input type="text" id="equipLocation" placeholder="Стеллаж А"></div>
       </div>
       <div class="form-group"><label>Заметки</label><textarea id="equipNotes"></textarea></div>
       <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
@@ -410,7 +409,16 @@ textarea { resize: vertical; min-height: 64px; }
     <div class="modal-body">
       <input type="hidden" id="assignEquipId">
       <div id="assignEquipName" style="font-weight:700;margin-bottom:12px;font-size:0.95rem"></div>
-      <div class="form-group"><label>Кому выдаётся *</label><input type="text" id="assignName" placeholder="Имя сотрудника"></div>
+      <div class="form-group"><label>Кому выдаётся *</label>
+        <select id="assignName">
+          <option value="">— выберите сотрудника —</option>
+          <option value="__new__">➕ Внести нового...</option>
+        </select>
+      </div>
+      <div class="form-group" id="assignNewNameGroup" style="display:none">
+        <label>ФИО нового сотрудника *</label>
+        <input type="text" id="assignNewName" placeholder="Иванов Иван Иванович">
+      </div>
       <div class="form-row">
         <div class="form-group"><label>Дата выдачи</label><input type="date" id="assignIssued"></div>
         <div class="form-group"><label>Плановый возврат</label><input type="date" id="assignReturn"></div>
@@ -430,7 +438,7 @@ textarea { resize: vertical; min-height: 64px; }
 import { sb }              from './supabase.js';
 import { requireAuth }      from './auth.js';
 import { getStudioContext }  from './studio-context.js';
-import { showToast }         from './ui.js';
+import { showToast, confirmAction } from './ui.js';
 
 // ── Состояние ─────────────────────────────────────────────────────────
 let studioId       = null;
@@ -438,6 +446,7 @@ let currentUser    = null;
 let allItems       = [];
 let allRolls       = [];
 let allEquipment   = [];
+let allExecutors   = [];
 let allPurchases   = [];
 let writeoffItemId = null;
 let purchaseLineCount  = 0;
@@ -478,6 +487,15 @@ async function loadEquipment() {
   if (error) { console.error(error); return; }
   allEquipment = data || [];
   renderEquipment();
+}
+
+async function loadExecutors() {
+  const { data } = await sb.from('executors')
+    .select('id, full_name, is_active')
+    .eq('studio_id', studioId)
+    .eq('is_active', true)
+    .order('full_name');
+  allExecutors = data || [];
 }
 
 async function loadStats() {
@@ -712,8 +730,7 @@ function renderEquipment() {
 
 function buildEquipCard(eq) {
   const activeAssign = (eq.equipment_assignments || []).find(a => !a.returned_at);
-  const monthlyDepr  = (eq.purchase_price && eq.useful_life_months)
-    ? Math.round((eq.purchase_price - (eq.residual_value || 0)) / eq.useful_life_months) : null;
+
   const statusMap = { active: ['badge-active', '✓ Активно'], repair: ['badge-repair', '🔧 Ремонт'], written_off: ['badge-written_off', '✗ Списано'] };
   const [badgeCls, statusLabel] = statusMap[eq.status] || statusMap.active;
 
@@ -744,11 +761,9 @@ function buildEquipCard(eq) {
 
   const qtyEl = document.createElement('div');
   qtyEl.className = 'item-qty';
-  if (monthlyDepr) {
-    qtyEl.appendChild(el('div', 'item-qty-val', fmt(monthlyDepr) + ' ₽'));
-    qtyEl.appendChild(el('div', 'item-qty-unit', 'аморт./мес'));
-  } else {
-    qtyEl.appendChild(el('div', 'item-qty-val', '—', 'color:var(--muted)'));
+  if (eq.purchase_price) {
+    qtyEl.appendChild(el('div', 'item-qty-val', fmt(eq.purchase_price) + ' ₽'));
+    qtyEl.appendChild(el('div', 'item-qty-unit', 'стоимость'));
   }
 
   const actions = document.createElement('div');
@@ -784,8 +799,7 @@ function buildEquipCard(eq) {
   const rows = [
     eq.purchase_price    ? ['Стоимость покупки',    fmt(eq.purchase_price) + ' ₽'] : null,
     eq.purchase_date     ? ['Дата покупки',          eq.purchase_date]              : null,
-    monthlyDepr          ? ['Амортизация в мес',     fmt(monthlyDepr) + ' ₽']      : null,
-    eq.useful_life_months? ['Срок службы',           eq.useful_life_months + ' мес']: null,
+
     eq.condition         ? ['Состояние',             conditionLabel[eq.condition] || eq.condition] : null,
     eq.serial_number     ? ['Серийный номер',        eq.serial_number]              : null,
     eq.location          ? ['Местонахождение',       eq.location]                   : null,
@@ -1301,11 +1315,11 @@ function openEquipModal(id) {
     document.getElementById('equipPrice').value        = eq.purchase_price || '';
     document.getElementById('equipLife').value         = eq.useful_life_months || '';
     document.getElementById('equipSupplier').value     = eq.supplier_name || '';
-    document.getElementById('equipLocation').value     = eq.location || '';
+    
     document.getElementById('equipNotes').value        = eq.notes || '';
   } else {
     document.getElementById('equipId').value = '';
-    ['equipSku','equipCategory','equipName','equipBrand','equipModel','equipSerial','equipPurchaseDate','equipPrice','equipLife','equipSupplier','equipLocation','equipNotes'].forEach(f => { document.getElementById(f).value = ''; });
+    ['equipSku','equipCategory','equipName','equipBrand','equipModel','equipSerial','equipPurchaseDate','equipPrice','equipLife','equipSupplier','equipNotes'].forEach(f => { document.getElementById(f).value = ''; });
     document.getElementById('equipCondition').value = 'good';
   }
   openModal('equipModal');
@@ -1327,7 +1341,7 @@ async function saveEquipment() {
     purchase_price:     parseFloat(document.getElementById('equipPrice').value) || null,
     useful_life_months: parseInt(document.getElementById('equipLife').value) || null,
     supplier_name:      document.getElementById('equipSupplier').value.trim() || null,
-    location:           document.getElementById('equipLocation').value.trim() || null,
+    
     notes:              document.getElementById('equipNotes').value.trim() || null,
   };
   const btn = document.getElementById('btnSaveEquip');
@@ -1346,8 +1360,24 @@ async function saveEquipment() {
 function openAssignModal(equipId) {
   document.getElementById('assignEquipId').value = equipId;
   const eq = allEquipment.find(e => e.id === equipId);
-  document.getElementById('assignEquipName').textContent = eq?.name || ''; // textContent
-  document.getElementById('assignName').value    = '';
+  document.getElementById('assignEquipName').textContent = eq?.name || '';
+
+  // Заполняем список сотрудников
+  const sel = document.getElementById('assignName');
+  sel.innerHTML = '<option value="">— выберите сотрудника —</option>';
+  (allExecutors || []).filter(e => e.is_active !== false).forEach(ex => {
+    const o = document.createElement('option');
+    o.value = ex.full_name;
+    o.textContent = ex.full_name;
+    sel.appendChild(o);
+  });
+  const newOpt = document.createElement('option');
+  newOpt.value = '__new__';
+  newOpt.textContent = '➕ Внести нового...';
+  sel.appendChild(newOpt);
+
+  document.getElementById('assignNewNameGroup').style.display = 'none';
+  document.getElementById('assignNewName').value = '';
   document.getElementById('assignIssued').value  = new Date().toISOString().split('T')[0];
   document.getElementById('assignReturn').value  = '';
   document.getElementById('assignPurpose').value = '';
@@ -1357,7 +1387,8 @@ function openAssignModal(equipId) {
 
 async function saveAssignment() {
   const equipId = document.getElementById('assignEquipId').value;
-  const name    = document.getElementById('assignName').value.trim();
+  let name = document.getElementById('assignName').value;
+  if (name === '__new__') name = document.getElementById('assignNewName').value.trim();
   if (!name) { toast('⚠ Укажите сотрудника'); return; }
   const btn = document.getElementById('btnSaveAssign');
   btn.disabled = true;
@@ -1372,7 +1403,7 @@ async function saveAssignment() {
   btn.disabled = false;
   if (error) { toast('❌ Ошибка: ' + error.message); return; }
   closeModal('assignModal');
-  toast('✅ Оборудование выдано');
+  toast('✅ Оборудование выдано ' + name);
   await loadEquipment();
 }
 
@@ -1410,9 +1441,13 @@ function bindEvents() {
   // Списки — делегирование
   ['filmList', 'consumableList', 'equipList'].forEach(listId => {
     document.getElementById(listId).addEventListener('click', e => {
+      // Если кнопка имеет прямой обработчик через addEventListener — она сама справится
+      // Здесь обрабатываем только то, у чего нет прямого listener:
       const btn = e.target.closest('[data-action]');
       if (!btn) return;
-      const { action, id, rollId, assignId } = btn.dataset;
+      const { action, id, rollId } = btn.dataset;
+
+      // toggle открывает/закрывает body карточки
       if (action === 'toggle') {
         const bodyEl = document.getElementById(btn.dataset.bodyId || id);
         if (bodyEl) bodyEl.classList.toggle('open');
@@ -1424,22 +1459,12 @@ function bindEvents() {
         if (bodyEl) bodyEl.classList.toggle('open');
         return;
       }
-      if (action === 'writeoff')      openWriteoff(id, null);
-      if (action === 'writeoff-roll') openWriteoff(id, rollId);
-      if (action === 'edit-item')     openItemModal(id, e);
-      if (action === 'purchase')      openPurchaseModal(id);
-      if (action === 'assign')        openAssignModal(id);
-      if (action === 'return')        returnEquipment(btn.dataset.assignId);
-      if (action === 'edit-equip')    openEquipModal(id);
+
+      // Эти кнопки рендерятся без прямых listener — делегирование нужно
+      if (action === 'writeoff-roll') { openWriteoff(id, rollId); return; }
+      if (action === 'purchase')      { openPurchaseModal(id);    return; }
     });
 
-    // toggle по клику на header (без data-action на самом header-е)
-    document.getElementById(listId).addEventListener('click', e => {
-      const header = e.target.closest('.item-header');
-      if (!header) return;
-      const bodyId = header.dataset.bodyId;
-      if (bodyId) { const b = document.getElementById(bodyId); if (b) b.classList.toggle('open'); }
-    });
   });
 
   // Модал позиции
@@ -1485,8 +1510,13 @@ async function initPage() {
   studioId = ctx.studioId;
   window._studioId = studioId;
 
-  await Promise.all([loadItems(), loadRolls(), loadEquipment()]);
+  await Promise.all([loadItems(), loadRolls(), loadEquipment(), loadExecutors()]);
   await loadStats();
+
+  // Показывать поле ввода нового имени при выборе "__new__"
+  document.getElementById('assignName').addEventListener('change', function() {
+    document.getElementById('assignNewNameGroup').style.display = this.value === '__new__' ? 'block' : 'none';
+  });
 }
 
 document.addEventListener('DOMContentLoaded', initPage);
