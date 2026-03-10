@@ -2052,7 +2052,7 @@ window.addEventListener('unhandledrejection', function(e) {
     </div>
 
     <div class="card">
-      <h2 class="collapsible collapsed">📦 Полная защита вкруг</h2>
+      <h2 class="collapsible collapsed">📦 Полная защита кузова</h2>
       <div class="card-content collapsed">
         <div class="package-grid">
           <div><label>Стоимость пленки:</label><input type="number" id="pkgWrapMat" placeholder="0" step="0.01"></div>
@@ -2395,10 +2395,21 @@ let currentCalculationId = null;
 // Конец inline-блока — весь код калькулятора в модульных файлах ниже
 </script>
 
+<!-- ── Мост: экспортируем ES-модули в window для non-module скриптов ── -->
+<script type="module">
+  import { getStudioContext, clearContextCache, requireAccess, SUBSCRIPTION }
+    from './studio-context.js';
+  window.getStudioContext   = getStudioContext;
+  window.clearContextCache  = clearContextCache;
+  window.requireAccess      = requireAccess;
+  window.SUBSCRIPTION       = SUBSCRIPTION;
+</script>
+
 <!-- ── Модули калькулятора (порядок важен) ────────────────── -->
-<script src="calculator-data.js"></script>
-<script src="calculator-engine.js"></script>
-<script src="calculator-render.js"></script>
-<script src="calculator-pdf.js"></script>
-<script src="calculator-ui.js"></script>
-<script src="calculator-persistence.js"></script>
+<!-- defer гарантирует что они выполнятся после type="module" выше -->
+<script defer src="calculator-data.js"></script>
+<script defer src="calculator-engine.js"></script>
+<script defer src="calculator-render.js"></script>
+<script defer src="calculator-pdf.js"></script>
+<script defer src="calculator-ui.js"></script>
+<script defer src="calculator-persistence.js"></script>
