@@ -1205,18 +1205,6 @@ function calcPurchaseTotal() {
   total += vatAmt;
   document.getElementById('pTotal').value = fmt(total) + ' ₽' + (vatAmt ? ` (в т.ч. НДС ${fmt(vatAmt)} ₽)` : '');
 }
-    const sum   = parseFloat(document.getElementById(`pSum-${idx}`)?.value) || 0;
-    const qty   = parseFloat(document.getElementById(`pQty-${idx}`)?.value) || 0;
-    const price = parseFloat(document.getElementById(`pPrice-${idx}`)?.value) || 0;
-    total += sum || (qty * price);
-  });
-  total += parseFloat(document.getElementById('pDelivery').value) || 0;
-  total += parseFloat(document.getElementById('pOther').value) || 0;
-  const vatPct = parseFloat(document.getElementById('pVat').value) || 0;
-  const vatAmt = vatPct > 0 ? Math.round(total * vatPct / 100 * 100) / 100 : 0;
-  total += vatAmt;
-  document.getElementById('pTotal').value = fmt(total) + ' ₽' + (vatAmt ? ` (в т.ч. НДС ${fmt(vatAmt)} ₽)` : '');
-}
 
 async function savePurchase() {
   const lines = [];
