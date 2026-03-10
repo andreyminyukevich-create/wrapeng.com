@@ -144,7 +144,7 @@ function pluralWorks(n) {
 }
 
 async function loadAssignments() {
-  document.getElementById("tabContent").innerHTML = "<div class="loading">Загрузка...</div>";
+  document.getElementById("tabContent").innerHTML = '<div class="loading">Загрузка...</div>';
 
   const { data, error } = await sb
     .from("work_assignments")
@@ -153,7 +153,7 @@ async function loadAssignments() {
     .order("payment_month", { ascending: false });
 
   if (error) {
-    document.getElementById("tabContent").innerHTML = "<div class="empty-state"><h3>Ошибка загрузки</h3><p>" + error.message + "</p></div>";
+    document.getElementById("tabContent").innerHTML = '<div class="empty-state"><h3>Ошибка загрузки</h3><p>' + error.message + '</p></div>';
     return;
   }
 
@@ -171,7 +171,7 @@ async function loadAssignments() {
 function populateFilters() {
   const months = [...new Set(allAssignments.map(a => a.payment_month).filter(Boolean))].sort().reverse();
   const mf = document.getElementById("monthFilter");
-  mf.innerHTML = "<option value="all">Все месяцы</option>";
+  mf.innerHTML = '<option value="all">Все месяцы</option>';
   months.forEach(m => { const o = document.createElement("option"); o.value = m; o.textContent = fmtMonth(m); mf.appendChild(o); });
 }
 
@@ -195,7 +195,7 @@ function renderTab() {
   const content = document.getElementById("tabContent");
 
   if (!filtered.length) {
-    content.innerHTML = "<div class="empty-state"><h3>Нет записей</h3><p>" + (currentTab === "pending" ? "Все выплачено или назначений ещё нет" : "Выплат пока не было") + "</p></div>";
+    content.innerHTML = '<div class="empty-state"><h3>Нет записей</h3><p>' + (currentTab === 'pending' ? 'Все выплачено или назначений ещё нет' : 'Выплат пока не было') + '</p></div>';
     return;
   }
 
@@ -224,7 +224,7 @@ function renderTab() {
 
     const info = document.createElement("div");
     info.className = "executor-info";
-    info.innerHTML = "<div class="executor-name">" + g.name + "</div><div class="executor-meta">" + g.items.length + " " + pluralWorks(g.items.length) + "</div>";
+    info.innerHTML = '<div class="executor-name">' + g.name + '</div><div class="executor-meta">' + g.items.length + ' ' + pluralWorks(g.items.length) + '</div>';
 
     const totalEl = document.createElement("div");
     totalEl.className = "executor-total";
@@ -265,7 +265,7 @@ function renderTab() {
     const tbl = document.createElement("table");
     tbl.className = "assignments-table";
     const thead = document.createElement("thead");
-    thead.innerHTML = "<tr><th>Машина</th><th>Услуга</th><th>Месяц</th><th style="text-align:right">Сумма</th>" + (currentTab === "paid" ? "<th></th>" : "") + "</tr>";
+    thead.innerHTML = '<tr><th>Машина</th><th>Услуга</th><th>Месяц</th><th style="text-align:right">Сумма</th>' + (currentTab === 'paid' ? '<th></th>' : '') + '</tr>';
     const tbody = document.createElement("tbody");
 
     g.items.forEach(a => {
@@ -274,10 +274,10 @@ function renderTab() {
       const svcLabel = a.service_name || (isAdmin ? "Продажа (" + a.admin_percent + "%)" : "—");
 
       const tdCar = document.createElement("td"); tdCar.className = "assign-car"; tdCar.textContent = a.car_display;
-      const tdSvc = document.createElement("td"); tdSvc.innerHTML = "<div class="assign-svc">" + svcLabel + "</div>";
-      const tdMon = document.createElement("td"); tdMon.innerHTML = "<span class="assign-month">" + fmtMonth(a.payment_month) + "</span>";
-      const tdSal = document.createElement("td"); tdSal.style.textAlign = "right";
-      tdSal.innerHTML = "<span class="" + (isAdmin ? "assign-admin" : "assign-salary") + "">" + fmt(a.salary) + " ₽</span>";
+      const tdSvc = document.createElement('td'); tdSvc.innerHTML = '<div class="assign-svc">' + svcLabel + '</div>';
+      const tdMon = document.createElement('td'); tdMon.innerHTML = '<span class="assign-month">' + fmtMonth(a.payment_month) + '</span>';
+      const tdSal = document.createElement('td'); tdSal.style.textAlign = 'right';
+      tdSal.innerHTML = '<span class="' + (isAdmin ? 'assign-admin' : 'assign-salary') + '">' + fmt(a.salary) + ' ₽</span>';
 
       tr.append(tdCar, tdSvc, tdMon, tdSal);
 
@@ -329,7 +329,7 @@ async function initPage() {
   if (!user) return;
   const ctx = await getStudioContext();
   if (!ctx?.studioId) {
-    document.getElementById("tabContent").innerHTML = "<div class="empty-state"><h3>Студия не найдена</h3></div>";
+    document.getElementById('tabContent').innerHTML = '<div class="empty-state"><h3>Студия не найдена</h3></div>';
     return;
   }
   studioId = ctx.studioId;
