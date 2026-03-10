@@ -576,7 +576,7 @@ async function approveStudio(studioId, name) {
   const trialEnds=new Date(Date.now()+72*3600*1000).toISOString();
   const {error}=await sb.from('studios').update({subscription_tier:'trial',subscription_expires_at:trialEnds}).eq('id',studioId);
   if(error){console.error('[admin] approveStudio:',error);return;}
-  await loadStudios(); switchTab('trial');
+  await loadStudios(); await loadRequests();
 }
 
 async function blockStudio(studioId, name) {
@@ -773,15 +773,13 @@ async function initPage() {
   bindStaticEvents();
   bindDelegation();
 
-  const user = await requireAuth({ redirectTo: 'welcome.html' });
-  if (!user) return;
-
-  if (user.id !== ADMIN_USER_ID) {
-    document.body.innerHTML = '<div style="text-align:center;padding:60px;font-family:sans-serif"><h2>🚫 Доступ запрещён</h2><p style="color:#64748b;margin-top:8px">Эта страница только для администратора</p><a href="dashboard.html" style="color:#2563eb">← Вернуться</a></div>';
+  const {data:{session}}=await sb.auth.getSession();
+  if(!session){window.location.href='welcome.html';return;}
+  if(session.user.id!==ADMIN_USER_ID){
+    document.body.innerHTML='<div style="text-align:center;padding:60px;font-family:sans-serif"><h2>🚫 Доступ запрещён</h2><p style="color:#64748b;margin-top:8px">Эта страница только для администратора</p><a href="dashboard.html" style="color:#2563eb">← Вернуться</a></div>';
     return;
   }
-
-  document.getElementById('adminBadge').textContent = '👑 ' + user.email;
+  document.getElementById('adminBadge').textContent='👑 '+session.user.email;
   switchTab('requests');
   await Promise.all([loadStudios(), loadCommissions()]);
   await loadRequests();
