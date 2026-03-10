@@ -62,6 +62,20 @@ body { background: var(--bg); color: var(--text); min-height: 100dvh; font-famil
 .rolls-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
 .rolls-table tr:last-child td { border-bottom: none; }
 .rolls-table tr:hover td { background: var(--bg); }
+
+/* ── История ─────────────────────────────────────────────── */
+.history-filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; align-items: center; }
+.history-table { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+.history-table th { text-align: left; padding: 8px 12px; font-size: 0.69rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--border); background: var(--bg); }
+.history-table td { padding: 9px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.history-table tr:last-child td { border-bottom: none; }
+.history-table tr:hover td { background: var(--bg); }
+.hist-type { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+.hist-type.purchase   { background: #dcfce7; color: #15803d; }
+.hist-type.writeoff   { background: #fee2e2; color: #b91c1c; }
+.hist-type.adjustment { background: #dbeafe; color: #1d4ed8; }
+.hist-qty-pos { color: var(--success, #16a34a); font-weight: 600; }
+.hist-qty-neg { color: var(--danger, #dc2626); font-weight: 600; }
 .roll-bar-wrap { width: 100px; background: rgba(0,0,0,0.06); border-radius: 4px; height: 7px; display: inline-block; vertical-align: middle; }
 .roll-bar { height: 7px; border-radius: 4px; background: var(--primary); transition: width 0.3s; }
 .roll-bar.low   { background: var(--warning); }
@@ -117,10 +131,24 @@ textarea { resize: vertical; min-height: 64px; }
 .form-divider { height: 1px; background: var(--border); margin: 14px 0; }
 .form-section-title { font-size: 0.72rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; }
 
-.purchase-lines { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
-.purchase-line { background: var(--bg); border-radius: 8px; padding: 10px 12px; position: relative; }
-.purchase-line-del { position: absolute; top: 8px; right: 8px; background: none; border: none; cursor: pointer; color: var(--muted); font-size: 0.9rem; padding: 2px 5px; border-radius: 4px; }
-.purchase-line-del:hover { color: var(--danger); background: var(--danger-bg); }
+.purchase-lines { width: 100%; margin-bottom: 10px; }
+.purchase-lines-table { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+.purchase-lines-table th { text-align: left; padding: 6px 8px; font-size: 0.69rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1.5px solid var(--border); white-space: nowrap; }
+.purchase-lines-table td { padding: 5px 6px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.purchase-lines-table tr:last-child td { border-bottom: none; }
+.purchase-lines-table input, .purchase-lines-table select { padding: 6px 8px; font-size: 0.83rem; }
+.purchase-lines-table .col-type { width: 130px; }
+.purchase-lines-table .col-name { min-width: 140px; }
+.purchase-lines-table .col-num  { width: 90px; }
+.purchase-lines-table .col-del  { width: 32px; text-align: center; }
+.pline-del { background: none; border: none; cursor: pointer; color: var(--muted); font-size: 1rem; padding: 2px 6px; border-radius: 4px; line-height: 1; }
+.pline-del:hover { color: var(--danger); background: var(--danger-bg); }
+.purchase-history-block { margin-top: 14px; }
+.purchase-history-row { display: flex; align-items: center; justify-content: space-between; padding: 7px 10px; background: var(--bg); border-radius: 7px; margin-bottom: 5px; font-size: 0.82rem; }
+.purchase-history-row:last-child { margin-bottom: 0; }
+.purchase-history-date { color: var(--muted); min-width: 70px; }
+.purchase-history-supplier { flex: 1; padding: 0 10px; font-weight: 500; }
+.purchase-history-amount { color: var(--primary); font-weight: 700; white-space: nowrap; }
 
 .assigned-to { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; background: rgba(124,58,237,0.08); color: #7c3aed; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
 
@@ -140,10 +168,10 @@ textarea { resize: vertical; min-height: 64px; }
 
 <div class="page-wrap">
   <div class="page-header">
-    <div class="page-title">📦 <span>Склад</span></div>
+    <div class="page-title"><span>Склад</span></div>
     <div class="header-actions">
-      <button class="btn btn-secondary" id="btnNewItem">➕ Новая позиция</button>
-      <button class="btn btn-primary"   id="btnNewPurchase">🛒 Новая закупка</button>
+      <button class="btn btn-secondary" id="btnNewItem">Новая позиция</button>
+      <button class="btn btn-primary"   id="btnNewPurchase">Новая закупка</button>
     </div>
   </div>
 
@@ -151,6 +179,7 @@ textarea { resize: vertical; min-height: 64px; }
     <button class="tab-btn active" data-tab="film">🎞 Плёнка</button>
     <button class="tab-btn"        data-tab="consumable">🧴 Расходники</button>
     <button class="tab-btn"        data-tab="equipment">🔧 Оборудование</button>
+    <button class="tab-btn"        data-tab="history">📋 История</button>
   </div>
 
   <div class="stats-row">
@@ -158,6 +187,10 @@ textarea { resize: vertical; min-height: 64px; }
     <div class="stat-card"><div class="stat-label">Заканчивается</div><div class="stat-value" id="statLow" style="color:var(--warning)">—</div></div>
     <div class="stat-card"><div class="stat-label">Закупок в этом месяце</div><div class="stat-value" id="statPurchases">—</div></div>
     <div class="stat-card"><div class="stat-label">Сумма закупок (мес)</div><div class="stat-value" id="statAmount">—</div></div>
+  </div>
+
+  <div id="lowStockAlert" style="display:none;background:var(--warning-bg,#fff8e1);border:1px solid var(--warning,#f59e0b);border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:0.88rem;color:var(--text);">
+    ⚠ <strong>Заканчиваются:</strong> <span id="lowStockList"></span>
   </div>
 
   <div class="tab-panel active" id="tab-film">
@@ -168,6 +201,23 @@ textarea { resize: vertical; min-height: 64px; }
   </div>
   <div class="tab-panel" id="tab-equipment">
     <div id="equipList" class="items-grid"><div class="loader">⏳ Загрузка...</div></div>
+  </div>
+  <div class="tab-panel" id="tab-history">
+    <div class="history-filters">
+      <select id="histFilterType" class="form-control" style="width:auto;">
+        <option value="">Все типы</option>
+        <option value="purchase">Закупка</option>
+        <option value="writeoff">Списание</option>
+        <option value="adjustment">Корректировка</option>
+      </select>
+      <select id="histFilterItem" class="form-control" style="width:auto;">
+        <option value="">Все позиции</option>
+      </select>
+      <input type="date" id="histFilterFrom" class="form-control" style="width:auto;" placeholder="От">
+      <input type="date" id="histFilterTo"   class="form-control" style="width:auto;" placeholder="До">
+      <button class="btn btn-sm btn-secondary" id="btnHistLoad">Показать</button>
+    </div>
+    <div id="historyList"><div class="loader">Выберите фильтры и нажмите «Показать»</div></div>
   </div>
 </div>
 
@@ -235,7 +285,7 @@ textarea { resize: vertical; min-height: 64px; }
       </div>
       <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
         <button class="btn btn-secondary" data-close="itemModal">Отмена</button>
-        <button class="btn btn-primary" id="btnSaveItem">💾 Сохранить</button>
+        <button class="btn btn-primary" id="btnSaveItem">Сохранить</button>
       </div>
     </div>
   </div>
@@ -243,9 +293,9 @@ textarea { resize: vertical; min-height: 64px; }
 
 <!-- Закупка -->
 <div class="modal-overlay" id="purchaseModal" style="display:none">
-  <div class="modal" style="max-width:620px">
+  <div class="modal" style="max-width:700px">
     <div class="modal-header">
-      <div class="modal-title" id="purchaseModalTitle">🛒 Новая закупка</div>
+      <div class="modal-title">Новая закупка</div>
       <button class="modal-close" data-close="purchaseModal">✕</button>
     </div>
     <div class="modal-body">
@@ -268,26 +318,38 @@ textarea { resize: vertical; min-height: 64px; }
           <label>Форма оплаты</label>
           <select id="pPayment">
             <option value="cash">Наличные</option>
-            <option value="no_vat">Без НДС</option>
-            <option value="vat">С НДС</option>
+            <option value="no_vat">Безналичные без НДС</option>
+            <option value="vat">Безналичные с НДС</option>
           </select>
         </div>
       </div>
       <div id="vatRow" style="display:none" class="form-group">
         <label>Ставка НДС (%)</label>
-        <input type="number" id="pVat" placeholder="20" min="0" max="100" step="1">
+        <input type="number" id="pVat" placeholder="20" min="0" max="100" step="1" style="max-width:120px">
       </div>
+
       <div class="form-divider"></div>
       <div class="form-section-title">Позиции закупки</div>
-      <div id="purchaseLines" class="purchase-lines"></div>
-      <button class="btn btn-ghost btn-sm" id="btnAddPurchaseLine">➕ Добавить позицию</button>
-      <div id="purchaseHistorySection" style="display:none;margin-top:16px">
-        <div class="form-divider"></div>
-        <div class="form-section-title" style="margin-bottom:8px">📋 История закупок</div>
-        <div id="purchaseHistoryList"></div>
+
+      <div class="purchase-lines" id="purchaseLinesWrap">
+        <table class="purchase-lines-table">
+          <thead>
+            <tr>
+              <th class="col-type">Тип</th>
+              <th class="col-name">Наименование</th>
+              <th class="col-num">Кол-во</th>
+              <th class="col-num">Цена / ед.</th>
+              <th class="col-num">Сумма</th>
+              <th class="col-del"></th>
+            </tr>
+          </thead>
+          <tbody id="purchaseLines"></tbody>
+        </table>
       </div>
+      <button class="btn btn-ghost btn-sm" id="btnAddPurchaseLine" style="margin-bottom:4px">+ Добавить строку</button>
+
       <div class="form-divider"></div>
-      <div class="form-row">
+      <div class="form-row triple">
         <div class="form-group">
           <label>Доставка (руб)</label>
           <input type="number" id="pDelivery" placeholder="0" min="0">
@@ -296,18 +358,25 @@ textarea { resize: vertical; min-height: 64px; }
           <label>Доп. расходы (руб)</label>
           <input type="number" id="pOther" placeholder="0" min="0">
         </div>
-      </div>
-      <div class="form-group">
-        <label>Итого</label>
-        <input type="text" id="pTotal" readonly style="font-weight:800;color:var(--primary);background:var(--primary-light)">
+        <div class="form-group">
+          <label>Итого</label>
+          <input type="text" id="pTotal" readonly style="font-weight:800;color:var(--primary);background:var(--primary-light,#eff6ff)">
+        </div>
       </div>
       <div class="form-group">
         <label>Заметки</label>
         <textarea id="pNotes" placeholder=""></textarea>
       </div>
-      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
+
+      <div id="purchaseHistoryBlock" class="purchase-history-block" style="display:none">
+        <div class="form-divider"></div>
+        <div class="form-section-title">Последние закупки</div>
+        <div id="purchaseHistoryList"></div>
+      </div>
+
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
         <button class="btn btn-secondary" data-close="purchaseModal">Отмена</button>
-        <button class="btn btn-primary" id="btnSavePurchase">💾 Провести закупку</button>
+        <button class="btn btn-primary" id="btnSavePurchase">Провести закупку</button>
       </div>
     </div>
   </div>
@@ -317,7 +386,7 @@ textarea { resize: vertical; min-height: 64px; }
 <div class="modal-overlay" id="writeoffModal" style="display:none">
   <div class="modal">
     <div class="modal-header">
-      <div class="modal-title">📤 Списание материала</div>
+      <div class="modal-title">Списание материала</div>
       <button class="modal-close" data-close="writeoffModal">✕</button>
     </div>
     <div class="modal-body">
@@ -344,7 +413,7 @@ textarea { resize: vertical; min-height: 64px; }
       </div>
       <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
         <button class="btn btn-secondary" data-close="writeoffModal">Отмена</button>
-        <button class="btn btn-danger"    id="btnSaveWriteoff">📤 Списать</button>
+        <button class="btn btn-danger"    id="btnSaveWriteoff">Списать</button>
       </div>
     </div>
   </div>
@@ -389,11 +458,12 @@ textarea { resize: vertical; min-height: 64px; }
       </div>
       <div class="form-row">
         <div class="form-group"><label>Поставщик</label><input type="text" id="equipSupplier"></div>
+        <div class="form-group"><label>Место хранения</label><input type="text" id="equipLocation" placeholder="Стеллаж А"></div>
       </div>
       <div class="form-group"><label>Заметки</label><textarea id="equipNotes"></textarea></div>
       <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
         <button class="btn btn-secondary" data-close="equipModal">Отмена</button>
-        <button class="btn btn-primary" id="btnSaveEquip">💾 Сохранить</button>
+        <button class="btn btn-primary" id="btnSaveEquip">Сохранить</button>
       </div>
     </div>
   </div>
@@ -409,16 +479,7 @@ textarea { resize: vertical; min-height: 64px; }
     <div class="modal-body">
       <input type="hidden" id="assignEquipId">
       <div id="assignEquipName" style="font-weight:700;margin-bottom:12px;font-size:0.95rem"></div>
-      <div class="form-group"><label>Кому выдаётся *</label>
-        <select id="assignName">
-          <option value="">— выберите сотрудника —</option>
-          <option value="__new__">➕ Внести нового...</option>
-        </select>
-      </div>
-      <div class="form-group" id="assignNewNameGroup" style="display:none">
-        <label>ФИО нового сотрудника *</label>
-        <input type="text" id="assignNewName" placeholder="Иванов Иван Иванович">
-      </div>
+      <div class="form-group"><label>Кому выдаётся *</label><input type="text" id="assignName" placeholder="Имя сотрудника"></div>
       <div class="form-row">
         <div class="form-group"><label>Дата выдачи</label><input type="date" id="assignIssued"></div>
         <div class="form-group"><label>Плановый возврат</label><input type="date" id="assignReturn"></div>
@@ -427,7 +488,7 @@ textarea { resize: vertical; min-height: 64px; }
       <div class="form-group"><label>Состояние при выдаче</label><input type="text" id="assignCondition" placeholder="Отличное, рабочее..."></div>
       <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
         <button class="btn btn-secondary" data-close="assignModal">Отмена</button>
-        <button class="btn btn-primary" id="btnSaveAssign">✅ Выдать</button>
+        <button class="btn btn-primary" id="btnSaveAssign">Выдать</button>
       </div>
     </div>
   </div>
@@ -438,7 +499,7 @@ textarea { resize: vertical; min-height: 64px; }
 import { sb }              from './supabase.js';
 import { requireAuth }      from './auth.js';
 import { getStudioContext }  from './studio-context.js';
-import { showToast, confirmAction } from './ui.js';
+import { showToast }         from './ui.js';
 
 // ── Состояние ─────────────────────────────────────────────────────────
 let studioId       = null;
@@ -446,11 +507,8 @@ let currentUser    = null;
 let allItems       = [];
 let allRolls       = [];
 let allEquipment   = [];
-let allExecutors   = [];
-let allPurchases   = [];
 let writeoffItemId = null;
-let purchaseLineCount  = 0;
-let editingPurchaseId  = null; // null = новая, string = редактирование
+let purchaseLineCount = 0;
 
 const fmt = n => Number(n || 0).toLocaleString('ru-RU', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 const conditionLabel = { excellent: 'Отличное', good: 'Хорошее', fair: 'Требует обслуживания', poor: 'Плохое' };
@@ -489,15 +547,6 @@ async function loadEquipment() {
   renderEquipment();
 }
 
-async function loadExecutors() {
-  const { data } = await sb.from('executors')
-    .select('id, full_name, is_active')
-    .eq('studio_id', studioId)
-    .eq('is_active', true)
-    .order('full_name');
-  allExecutors = data || [];
-}
-
 async function loadStats() {
   const now = new Date();
   const monthStart = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-01`;
@@ -509,6 +558,95 @@ async function loadStats() {
   document.getElementById('statLow').textContent       = String(lowItems.length);
   document.getElementById('statPurchases').textContent = String((purchases || []).length);
   document.getElementById('statAmount').textContent    = fmt(monthTotal) + ' ₽';
+
+  // Алерт-баннер заканчивающихся позиций
+  const alertEl = document.getElementById('lowStockAlert');
+  if (lowItems.length) {
+    document.getElementById('lowStockList').textContent = lowItems.map(i => `${i.name} (${fmt(i.qty_current)} ${i.unit})`).join(' · ');
+    alertEl.style.display = 'block';
+  } else {
+    alertEl.style.display = 'none';
+  }
+  // Заполняем селект позиций в фильтре истории
+  const sel = document.getElementById('histFilterItem');
+  sel.innerHTML = '<option value="">Все позиции</option>';
+  allItems.forEach(i => {
+    const opt = document.createElement('option');
+    opt.value = i.id; opt.textContent = i.name;
+    sel.appendChild(opt);
+  });
+}
+
+// ── История движений ──────────────────────────────────────────────────
+const histTypeLabel = { purchase: '📥 Закупка', writeoff: '📤 Списание', adjustment: '🔧 Корр-ка' };
+const histTypeKey   = { purchase: 'purchase', writeoff: 'writeoff', adjustment: 'adjustment' };
+
+async function loadHistory() {
+  const container = document.getElementById('historyList');
+  container.innerHTML = '<div class="loader">⏳ Загрузка...</div>';
+  const type   = document.getElementById('histFilterType').value;
+  const itemId = document.getElementById('histFilterItem').value;
+  const from   = document.getElementById('histFilterFrom').value;
+  const to     = document.getElementById('histFilterTo').value;
+
+  let q = sb.from('inventory_transactions')
+    .select('*, inventory_items(name, unit)')
+    .eq('studio_id', studioId)
+    .order('created_at', { ascending: false })
+    .limit(200);
+  if (type)   q = q.eq('type', type);
+  if (itemId) q = q.eq('item_id', itemId);
+  if (from)   q = q.gte('created_at', from + 'T00:00:00');
+  if (to)     q = q.lte('created_at', to + 'T23:59:59');
+
+  const { data, error } = await q;
+  if (error) { container.innerHTML = '<div style="padding:20px;color:var(--danger)">❌ Ошибка загрузки</div>'; return; }
+  renderHistory(data || [], container);
+}
+
+function renderHistory(rows, container) {
+  if (!rows.length) {
+    container.innerHTML = '<div style="padding:20px;color:var(--muted);text-align:center">Движений не найдено</div>';
+    return;
+  }
+  const tbl = document.createElement('table');
+  tbl.className = 'history-table';
+  tbl.innerHTML = `<thead><tr>
+    <th>Дата</th><th>Тип</th><th>Позиция</th><th>Количество</th><th>Цена / ед</th><th>Сумма</th><th>Примечание</th>
+  </tr></thead>`;
+  const tbody = document.createElement('tbody');
+  rows.forEach(r => {
+    const item = r.inventory_items;
+    const unit = item?.unit || '';
+    const qty  = Number(r.qty || 0);
+    const cost = Number(r.unit_cost || 0);
+    const dateStr = new Date(r.created_at).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    const typeKey = histTypeKey[r.type] || r.type;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="color:var(--muted);font-size:0.8rem;white-space:nowrap">${dateStr}</td>
+      <td><span class="hist-type ${typeKey}">${histTypeLabel[r.type] || r.type}</span></td>
+      <td>${item?.name || '—'}</td>
+      <td class="${qty >= 0 ? 'hist-qty-pos' : 'hist-qty-neg'}">${qty >= 0 ? '+' : ''}${fmt(qty)} ${unit}</td>
+      <td style="color:var(--muted)">${cost ? fmt(cost) + ' ₽' : '—'}</td>
+      <td>${cost && qty ? fmt(Math.abs(qty * cost)) + ' ₽' : '—'}</td>
+      <td style="color:var(--muted);font-size:0.82rem">${r.notes || '—'}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+  tbl.appendChild(tbody);
+  container.innerHTML = '';
+  container.appendChild(tbl);
+}
+
+async function openItemHistory(itemId) {
+  // Переключаемся на вкладку История и фильтруем по позиции
+  switchTab('history');
+  document.getElementById('histFilterItem').value = itemId;
+  document.getElementById('histFilterType').value = '';
+  document.getElementById('histFilterFrom').value = '';
+  document.getElementById('histFilterTo').value   = '';
+  await loadHistory();
 }
 
 // ── Рендер: Плёнка ────────────────────────────────────────────────────
@@ -556,11 +694,12 @@ function buildFilmCard(item) {
 
   const actions = document.createElement('div');
   actions.className = 'item-actions';
-  const writeoffBtnF = actionBtn('btn btn-sm btn-ghost', '📤 Списать', 'writeoff', item.id);
-  const editBtnF     = actionBtn('btn btn-sm btn-secondary btn-icon', '✏️', 'edit-item', item.id);
-  writeoffBtnF.addEventListener('click', e => { e.stopPropagation(); openWriteoff(item.id, null); });
-  editBtnF.addEventListener('click',     e => { e.stopPropagation(); openItemModal(item.id, e); });
-  actions.append(writeoffBtnF, editBtnF);
+  actions.addEventListener('click', e => e.stopPropagation());
+  actions.append(
+    actionBtn('btn btn-sm btn-ghost', 'Списать', 'writeoff', item.id),
+    actionBtn('btn btn-sm btn-ghost', '📋', 'history', item.id),
+    actionBtn('btn btn-sm btn-secondary btn-icon', '✏️', 'edit-item', item.id),
+  );
 
   header.append(icon, meta, stats, actions);
 
@@ -575,7 +714,7 @@ function buildFilmCard(item) {
   } else {
     body.appendChild(el('div', '', 'Рулонов нет. Проведите закупку.', 'color:var(--muted);font-size:0.84rem;padding:10px 0'));
   }
-  body.appendChild(actionBtn('btn btn-sm btn-ghost', '🛒 Закупить', 'purchase', item.id));
+  body.appendChild(actionBtn('btn btn-sm btn-ghost', 'Закупить', 'purchase', item.id));
 
   card.append(header, body);
   return card;
@@ -612,7 +751,7 @@ function buildRollsTable(rolls, itemId) {
     const tdSum = el('td', '', sumVal);
     const tdDt  = el('td', '', dateStr, 'color:var(--muted);font-size:0.78rem');
     const tdBtn = document.createElement('td');
-    tdBtn.appendChild(actionBtn('btn btn-sm btn-secondary', '📤', 'writeoff-roll', itemId, r.id));
+    tdBtn.appendChild(actionBtn('btn btn-sm btn-secondary', 'Списать', 'writeoff-roll', itemId, r.id));
 
     tr.append(tdNum, tdType, tdQty, tdBar, tdW, tdP, tdSum, tdDt, tdBtn);
     tbody.appendChild(tr);
@@ -666,11 +805,12 @@ function buildConsumableCard(item) {
 
   const actions = document.createElement('div');
   actions.className = 'item-actions';
-  const writeoffBtnC = actionBtn('btn btn-sm btn-ghost', '📤', 'writeoff', item.id);
-  const editBtnC     = actionBtn('btn btn-sm btn-secondary btn-icon', '✏️', 'edit-item', item.id);
-  writeoffBtnC.addEventListener('click', e => { e.stopPropagation(); openWriteoff(item.id, null); });
-  editBtnC.addEventListener('click',     e => { e.stopPropagation(); openItemModal(item.id, e); });
-  actions.append(writeoffBtnC, editBtnC);
+  actions.addEventListener('click', e => e.stopPropagation());
+  actions.append(
+    actionBtn('btn btn-sm btn-ghost', 'Списать', 'writeoff', item.id),
+    actionBtn('btn btn-sm btn-ghost', '📋', 'history', item.id),
+    actionBtn('btn btn-sm btn-secondary btn-icon', '✏️', 'edit-item', item.id),
+  );
 
   header.append(icon, meta, stats, actions);
 
@@ -683,41 +823,10 @@ function buildConsumableCard(item) {
     notes.textContent = item.notes;
     body.appendChild(notes);
   }
-  body.appendChild(actionBtn('btn btn-sm btn-ghost', '🛒 Закупить', 'purchase', item.id));
+  body.appendChild(actionBtn('btn btn-sm btn-ghost', 'Закупить', 'purchase', item.id));
 
   card.append(header, body);
   return card;
-}
-
-// ── Перенос из оборудования в плёнку ─────────────────────────────────
-async function moveEquipToFilm(eq) {
-  const ok = await confirmAction({
-    message: `Перенести «${eq.name}» из оборудования в плёнку?\n\nПозиция будет удалена из раздела Оборудование и создана как позиция типа «Плёнка» в разделе Плёнка.`,
-    confirmText: 'Перенести',
-  });
-  if (!ok) return;
-
-  // Создаём позицию в inventory_items
-  const payload = {
-    studio_id: studioId,
-    type: 'film',
-    name: eq.name,
-    brand: eq.brand || null,
-    sku: eq.sku || null,
-    unit: 'м',
-    film_width_cm: null,
-    qty_min_alert: null,
-    notes: eq.notes || null,
-  };
-  const { data: newItem, error: itemErr } = await sb.from('inventory_items').insert(payload).select().single();
-  if (itemErr) { toast('❌ Ошибка создания позиции: ' + itemErr.message); return; }
-
-  // Деактивируем оборудование
-  await sb.from('equipment').update({ status: 'written_off', notes: (eq.notes || '') + ' [Перенесено в Плёнку]' }).eq('id', eq.id);
-
-  toast('✅ Перенесено в Плёнку. Откройте раздел «Плёнка» и проведите закупку для новой позиции.');
-  await Promise.all([loadItems(), loadEquipment()]);
-  switchTab('film');
 }
 
 // ── Рендер: Оборудование ──────────────────────────────────────────────
@@ -730,7 +839,8 @@ function renderEquipment() {
 
 function buildEquipCard(eq) {
   const activeAssign = (eq.equipment_assignments || []).find(a => !a.returned_at);
-
+  const monthlyDepr  = (eq.purchase_price && eq.useful_life_months)
+    ? Math.round((eq.purchase_price - (eq.residual_value || 0)) / eq.useful_life_months) : null;
   const statusMap = { active: ['badge-active', '✓ Активно'], repair: ['badge-repair', '🔧 Ремонт'], written_off: ['badge-written_off', '✗ Списано'] };
   const [badgeCls, statusLabel] = statusMap[eq.status] || statusMap.active;
 
@@ -761,30 +871,24 @@ function buildEquipCard(eq) {
 
   const qtyEl = document.createElement('div');
   qtyEl.className = 'item-qty';
-  if (eq.purchase_price) {
-    qtyEl.appendChild(el('div', 'item-qty-val', fmt(eq.purchase_price) + ' ₽'));
-    qtyEl.appendChild(el('div', 'item-qty-unit', 'стоимость'));
+  if (monthlyDepr) {
+    qtyEl.appendChild(el('div', 'item-qty-val', fmt(monthlyDepr) + ' ₽'));
+    qtyEl.appendChild(el('div', 'item-qty-unit', 'аморт./мес'));
+  } else {
+    qtyEl.appendChild(el('div', 'item-qty-val', '—', 'color:var(--muted)'));
   }
 
   const actions = document.createElement('div');
   actions.className = 'item-actions';
-  actions.addEventListener('click', e => e.stopPropagation()); // блокируем toggle заголовка
+  actions.addEventListener('click', e => e.stopPropagation());
   if (!activeAssign) {
-    const assignBtnE = actionBtn('btn btn-sm btn-ghost', '👤 Выдать', 'assign', eq.id);
-    assignBtnE.addEventListener('click', () => openAssignModal(eq.id));
-    actions.appendChild(assignBtnE);
+    actions.appendChild(actionBtn('btn btn-sm btn-ghost', '👤 Выдать', 'assign', eq.id));
   } else {
     const retBtn = actionBtn('btn btn-sm btn-secondary', '↩ Вернуть', 'return', eq.id);
     retBtn.dataset.assignId = activeAssign.id;
-    retBtn.addEventListener('click', () => returnEquipment(activeAssign.id));
     actions.appendChild(retBtn);
   }
-  const editEquipBtn = actionBtn('btn btn-sm btn-secondary btn-icon', '✏️', 'edit-equip', eq.id);
-  editEquipBtn.addEventListener('click', () => openEquipModal(eq.id));
-  const moveToFilmBtn = actionBtn('btn btn-sm btn-ghost btn-icon', '🎞', 'move-to-film', eq.id);
-  moveToFilmBtn.title = 'Перенести в Плёнку';
-  moveToFilmBtn.addEventListener('click', () => moveEquipToFilm(eq));
-  actions.append(editEquipBtn, moveToFilmBtn);
+  actions.appendChild(actionBtn('btn btn-sm btn-secondary btn-icon', '✏️', 'edit-equip', eq.id));
 
   header.append(icon, meta, qtyEl, actions);
 
@@ -799,7 +903,8 @@ function buildEquipCard(eq) {
   const rows = [
     eq.purchase_price    ? ['Стоимость покупки',    fmt(eq.purchase_price) + ' ₽'] : null,
     eq.purchase_date     ? ['Дата покупки',          eq.purchase_date]              : null,
-
+    monthlyDepr          ? ['Амортизация в мес',     fmt(monthlyDepr) + ' ₽']      : null,
+    eq.useful_life_months? ['Срок службы',           eq.useful_life_months + ' мес']: null,
     eq.condition         ? ['Состояние',             conditionLabel[eq.condition] || eq.condition] : null,
     eq.serial_number     ? ['Серийный номер',        eq.serial_number]              : null,
     eq.location          ? ['Местонахождение',       eq.location]                   : null,
@@ -938,145 +1043,115 @@ async function saveItem() {
 }
 
 // ── Закупка ───────────────────────────────────────────────────────────
-async function openPurchaseModal(presetItemId, purchaseIdToEdit) {
-  editingPurchaseId = purchaseIdToEdit || null;
+function openPurchaseModal(presetItemId) {
   purchaseLineCount = 0;
   document.getElementById('purchaseLines').innerHTML = '';
-  document.getElementById('purchaseModalTitle').textContent = editingPurchaseId ? '✏️ Редактировать закупку' : '🛒 Новая закупка';
-  document.getElementById('btnSavePurchase').textContent = editingPurchaseId ? '💾 Сохранить изменения' : '💾 Провести закупку';
-
-  // Загружаем историю закупок в нижней части
-  loadPurchaseHistory();
-
-  if (editingPurchaseId) {
-    // Загружаем данные существующей закупки
-    const { data: pData } = await sb.from('purchases').select('*').eq('id', editingPurchaseId).single();
-    const { data: pItems } = await sb.from('purchase_items').select('*').eq('purchase_id', editingPurchaseId);
-    if (pData) {
-      document.getElementById('pSupplier').value  = pData.supplier_name || '';
-      document.getElementById('pInvoice').value   = pData.invoice_number || '';
-      document.getElementById('pDate').value      = pData.purchase_date || '';
-      document.getElementById('pPayment').value   = pData.payment_method || 'cash';
-      document.getElementById('pDelivery').value  = pData.total_delivery || '';
-      document.getElementById('pOther').value     = pData.total_other || '';
-      document.getElementById('pNotes').value     = pData.notes || '';
-      document.getElementById('vatRow').style.display = pData.payment_method === 'vat' ? 'block' : 'none';
-    }
-    if (pItems?.length) {
-      for (const pi of pItems) {
-        const item = allItems.find(i => i.id === pi.item_id);
-        addPurchaseLine(pi.item_id, pi.qty, pi.unit_price);
-        // Устанавливаем название если не нашли по id
-        const lastIdx = purchaseLineCount;
-        if (!item) document.getElementById(`pName-${lastIdx}`).value = pi.notes || '—';
-      }
-    } else {
-      addPurchaseLine();
-    }
-  } else {
-    document.getElementById('pSupplier').value  = '';
-    document.getElementById('pInvoice').value   = '';
-    document.getElementById('pDate').value      = new Date().toISOString().split('T')[0];
-    document.getElementById('pPayment').value   = 'cash';
-    document.getElementById('pVat').value       = '';
-    document.getElementById('vatRow').style.display = 'none';
-    document.getElementById('pDelivery').value  = '';
-    document.getElementById('pOther').value     = '';
-    document.getElementById('pNotes').value     = '';
-    document.getElementById('pTotal').value     = '';
-    addPurchaseLine(presetItemId || null);
-  }
-  calcPurchaseTotal();
+  document.getElementById('pSupplier').value  = '';
+  document.getElementById('pInvoice').value   = '';
+  document.getElementById('pDate').value      = new Date().toISOString().split('T')[0];
+  document.getElementById('pPayment').value   = 'cash';
+  document.getElementById('pVat').value       = '';
+  document.getElementById('vatRow').style.display = 'none';
+  document.getElementById('pDelivery').value  = '';
+  document.getElementById('pOther').value     = '';
+  document.getElementById('pNotes').value     = '';
+  document.getElementById('pTotal').value     = '';
+  addPurchaseLine(presetItemId);
   openModal('purchaseModal');
+  loadPurchaseHistory(presetItemId);
 }
 
-function addPurchaseLine(presetItemId, presetQty, presetPrice) {
+async function loadPurchaseHistory(itemId) {
+  const block = document.getElementById('purchaseHistoryBlock');
+  const list  = document.getElementById('purchaseHistoryList');
+  if (!itemId) {
+    // Показать последние 5 закупок студии
+    const { data } = await sb.from('purchases').select('purchase_date, supplier_name, total_amount')
+      .eq('studio_id', studioId).order('purchase_date', { ascending: false }).limit(5);
+    if (!data?.length) { block.style.display = 'none'; return; }
+    list.innerHTML = '';
+    data.forEach(p => {
+      const row = document.createElement('div');
+      row.className = 'purchase-history-row';
+      const d = new Date(p.purchase_date).toLocaleDateString('ru-RU', { day: '2-digit', month: 'long' });
+      row.innerHTML = `<span class="purchase-history-date">${d}</span>
+        <span class="purchase-history-supplier">${p.supplier_name || '—'}</span>
+        <span class="purchase-history-amount">${fmt(p.total_amount)} ₽</span>`;
+      list.appendChild(row);
+    });
+    block.style.display = 'block';
+  } else {
+    // Последние закупки по этой позиции
+    const { data } = await sb.from('inventory_transactions')
+      .select('created_at, unit_cost, qty, purchases(supplier_name)')
+      .eq('studio_id', studioId).eq('item_id', itemId).eq('type', 'purchase')
+      .order('created_at', { ascending: false }).limit(5);
+    if (!data?.length) { block.style.display = 'none'; return; }
+    list.innerHTML = '';
+    data.forEach(t => {
+      const row = document.createElement('div');
+      row.className = 'purchase-history-row';
+      const d = new Date(t.created_at).toLocaleDateString('ru-RU', { day: '2-digit', month: 'long' });
+      const item = allItems.find(i => i.id === itemId);
+      row.innerHTML = `<span class="purchase-history-date">${d}</span>
+        <span class="purchase-history-supplier">${t.purchases?.supplier_name || '—'}</span>
+        <span class="purchase-history-amount">${fmt(t.unit_cost)} ₽ / ${item?.unit || 'ед.'}</span>`;
+      list.appendChild(row);
+    });
+    block.style.display = 'block';
+  }
+}
+
+function addPurchaseLine(presetItemId) {
   purchaseLineCount++;
-  const idx = purchaseLineCount;
-  const line = document.createElement('div');
-  line.className = 'purchase-line';
-  line.id = `pline-${idx}`;
+  const idx  = purchaseLineCount;
+  const tbody = document.getElementById('purchaseLines');
+  const tr   = document.createElement('tr');
+  tr.id = `pline-${idx}`;
 
   const datalistId = `pNameList-${idx}`;
 
-  // Кнопка удаления
-  const del = document.createElement('button');
-  del.className = 'purchase-line-del';
-  del.textContent = '✕';
-  del.addEventListener('click', () => { line.remove(); calcPurchaseTotal(); });
-
-  // Строка: тип + название
-  const topRow = document.createElement('div');
-  topRow.className = 'form-row';
-  topRow.style.marginBottom = '6px';
-
-  // Тип позиции
-  const typeGroup = document.createElement('div');
-  typeGroup.className = 'form-group';
-  typeGroup.style.cssText = 'flex:0 0 130px;min-width:0';
-  const typeLbl = document.createElement('label');
-  typeLbl.textContent = 'Тип';
+  // Тип
   const typeSelect = document.createElement('select');
   typeSelect.id = `pType-${idx}`;
-  [['film','🎞 Плёнка'], ['consumable','🧴 Расходник']].forEach(([v, t]) => {
-    const o = document.createElement('option');
-    o.value = v; o.textContent = t;
+  [['film', 'Плёнка'], ['consumable', 'Расходник'], ['equipment', 'Оборудование']].forEach(([v, l]) => {
+    const o = document.createElement('option'); o.value = v; o.textContent = l;
     typeSelect.appendChild(o);
   });
-  typeGroup.append(typeLbl, typeSelect);
 
-  // Поле названия
-  const nameGroup = document.createElement('div');
-  nameGroup.className = 'form-group';
-  nameGroup.style.marginBottom = '0';
-  const nameLbl = document.createElement('label');
-  nameLbl.textContent = 'Наименование';
+  // Наименование
   const nameInput = document.createElement('input');
-  nameInput.type = 'text';
-  nameInput.id   = `pName-${idx}`;
+  nameInput.type = 'text'; nameInput.id = `pName-${idx}`;
   nameInput.setAttribute('list', datalistId);
-  nameInput.autocomplete = 'off';
-  if (presetItemId) {
-    const preItem = allItems.find(i => i.id === presetItemId);
-    if (preItem) { nameInput.value = preItem.name; typeSelect.value = preItem.type || 'film'; }
-  }
-  // Автозаполнение типа при выборе известной позиции
-  nameInput.addEventListener('change', () => {
-    const matched = allItems.find(i => i.name.toLowerCase() === nameInput.value.toLowerCase());
-    if (matched) typeSelect.value = matched.type || 'film';
-  });
+  nameInput.autocomplete = 'off'; nameInput.style.width = '100%';
   const datalist = document.createElement('datalist');
   datalist.id = datalistId;
-  allItems.forEach(i => {
-    const opt = document.createElement('option');
-    opt.value = i.name;
-    datalist.appendChild(opt);
-  });
-  nameGroup.append(nameLbl, nameInput, datalist);
-  topRow.append(typeGroup, nameGroup);
 
-  // Строка кол-во / цена / сумма
-  const row = document.createElement('div');
-  row.className = 'form-row';
-  row.style.marginBottom = '0';
+  function refreshNamelist() {
+    const t = typeSelect.value;
+    // все позиции выбранного типа + оборудование для equipment
+    let items = allItems.filter(i => i.type === t);
+    if (t === 'equipment') {
+      items = (allEquipment || []);
+    }
+    datalist.innerHTML = '';
+    items.forEach(i => {
+      const opt = document.createElement('option'); opt.value = i.name;
+      datalist.appendChild(opt);
+    });
+  }
+  typeSelect.addEventListener('change', refreshNamelist);
+  refreshNamelist();
 
-  [['pQty', 'Кол-во', presetQty || '0'], ['pPrice', 'Цена за ед.', presetPrice || '0'], ['pSum', 'Сумма', '0']].forEach(([prefix, label, ph]) => {
-    const g = document.createElement('div');
-    g.className = 'form-group';
-    g.style.marginBottom = '0';
-    const lbl = document.createElement('label');
-    lbl.textContent = label;
+  // Числовые поля
+  function numInput(prefix, ph) {
     const inp = document.createElement('input');
-    inp.type = 'number';
-    inp.id   = `${prefix}-${idx}`;
-    inp.placeholder = ph;
-    inp.min  = '0';
-    inp.step = '0.01';
-    if (prefix === 'pQty' && presetQty)    inp.value = presetQty;
-    if (prefix === 'pPrice' && presetPrice) inp.value = presetPrice;
+    inp.type = 'number'; inp.id = `${prefix}-${idx}`;
+    inp.placeholder = ph; inp.min = '0'; inp.step = '0.01';
+    inp.style.width = '100%';
     inp.addEventListener('input', () => {
       if (prefix === 'pQty' || prefix === 'pPrice') {
-        const qty   = parseFloat(document.getElementById(`pQty-${idx}`)?.value) || 0;
+        const qty   = parseFloat(document.getElementById(`pQty-${idx}`)?.value)   || 0;
         const price = parseFloat(document.getElementById(`pPrice-${idx}`)?.value) || 0;
         if (qty && price) document.getElementById(`pSum-${idx}`).value = (qty * price).toFixed(2);
       } else {
@@ -1086,18 +1161,50 @@ function addPurchaseLine(presetItemId, presetQty, presetPrice) {
       }
       calcPurchaseTotal();
     });
-    g.append(lbl, inp);
-    row.appendChild(g);
-  });
+    return inp;
+  }
 
-  line.append(del, topRow, row);
-  document.getElementById('purchaseLines').appendChild(line);
+  const delBtn = document.createElement('button');
+  delBtn.className = 'pline-del'; delBtn.textContent = '×';
+  delBtn.addEventListener('click', () => { tr.remove(); calcPurchaseTotal(); });
+
+  const tdType = document.createElement('td'); tdType.className = 'col-type'; tdType.appendChild(typeSelect);
+  const tdName = document.createElement('td'); tdName.className = 'col-name'; tdName.append(nameInput, datalist);
+  const tdQty  = document.createElement('td'); tdQty.className  = 'col-num';  tdQty.appendChild(numInput('pQty', '0'));
+  const tdPrc  = document.createElement('td'); tdPrc.className  = 'col-num';  tdPrc.appendChild(numInput('pPrice', '0'));
+  const tdSum  = document.createElement('td'); tdSum.className  = 'col-num';  tdSum.appendChild(numInput('pSum', '0'));
+  const tdDel  = document.createElement('td'); tdDel.className  = 'col-del';  tdDel.appendChild(delBtn);
+
+  tr.append(tdType, tdName, tdQty, tdPrc, tdSum, tdDel);
+  tbody.appendChild(tr);
+
+  // Если открыли с presetItemId — подставляем тип и имя
+  if (presetItemId) {
+    const item = allItems.find(i => i.id === presetItemId);
+    if (item) {
+      typeSelect.value = item.type;
+      refreshNamelist();
+      nameInput.value = item.name;
+    }
+  }
 }
 
 function calcPurchaseTotal() {
   let total = 0;
-  document.querySelectorAll('.purchase-line').forEach(line => {
-    const idx   = line.id.replace('pline-','');
+  document.querySelectorAll('#purchaseLines tr').forEach(tr => {
+    const idx   = tr.id.replace('pline-', '');
+    const sum   = parseFloat(document.getElementById(`pSum-${idx}`)?.value)   || 0;
+    const qty   = parseFloat(document.getElementById(`pQty-${idx}`)?.value)   || 0;
+    const price = parseFloat(document.getElementById(`pPrice-${idx}`)?.value) || 0;
+    total += sum || (qty * price);
+  });
+  total += parseFloat(document.getElementById('pDelivery').value) || 0;
+  total += parseFloat(document.getElementById('pOther').value)    || 0;
+  const vatPct = parseFloat(document.getElementById('pVat').value) || 0;
+  const vatAmt = vatPct > 0 ? Math.round(total * vatPct / 100 * 100) / 100 : 0;
+  total += vatAmt;
+  document.getElementById('pTotal').value = fmt(total) + ' ₽' + (vatAmt ? ` (в т.ч. НДС ${fmt(vatAmt)} ₽)` : '');
+}
     const sum   = parseFloat(document.getElementById(`pSum-${idx}`)?.value) || 0;
     const qty   = parseFloat(document.getElementById(`pQty-${idx}`)?.value) || 0;
     const price = parseFloat(document.getElementById(`pPrice-${idx}`)?.value) || 0;
@@ -1111,67 +1218,17 @@ function calcPurchaseTotal() {
   document.getElementById('pTotal').value = fmt(total) + ' ₽' + (vatAmt ? ` (в т.ч. НДС ${fmt(vatAmt)} ₽)` : '');
 }
 
-async function loadPurchaseHistory() {
-  const section = document.getElementById('purchaseHistorySection');
-  const list    = document.getElementById('purchaseHistoryList');
-  if (!section || !list) return;
-
-  const { data } = await sb.from('purchases')
-    .select('id, purchase_date, supplier_name, total_amount, notes')
-    .eq('studio_id', studioId)
-    .order('purchase_date', { ascending: false })
-    .limit(10);
-
-  if (!data?.length) { section.style.display = 'none'; return; }
-
-  section.style.display = 'block';
-  list.innerHTML = '';
-
-  data.forEach(p => {
-    const row = document.createElement('div');
-    row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:0.82rem;gap:8px';
-
-    const left = document.createElement('div');
-    left.style.cssText = 'flex:1;min-width:0';
-    const dateEl = document.createElement('span');
-    dateEl.style.cssText = 'color:var(--muted);margin-right:8px';
-    dateEl.textContent = p.purchase_date ? new Date(p.purchase_date).toLocaleDateString('ru-RU', { day:'2-digit', month:'short' }) : '—';
-    const supplierEl = document.createElement('span');
-    supplierEl.style.fontWeight = '600';
-    supplierEl.textContent = p.supplier_name || 'Без поставщика';
-    left.append(dateEl, supplierEl);
-
-    const right = document.createElement('div');
-    right.style.cssText = 'display:flex;align-items:center;gap:8px;flex-shrink:0';
-
-    const amtEl = document.createElement('span');
-    amtEl.style.cssText = 'font-weight:700;color:var(--success)';
-    amtEl.textContent = fmt(p.total_amount) + ' ₽';
-
-    const editBtn = document.createElement('button');
-    editBtn.className = 'btn btn-sm btn-secondary btn-icon';
-    editBtn.textContent = '✏️';
-    editBtn.title = 'Редактировать';
-    editBtn.addEventListener('click', () => openPurchaseModal(null, p.id));
-
-    right.append(amtEl, editBtn);
-    row.append(left, right);
-    list.appendChild(row);
-  });
-}
-
-
 async function savePurchase() {
   const lines = [];
-  document.querySelectorAll('.purchase-line').forEach(line => {
-    const idx   = line.id.replace('pline-', '');
+  document.querySelectorAll('#purchaseLines tr').forEach(tr => {
+    const idx   = tr.id.replace('pline-', '');
     const name  = document.getElementById(`pName-${idx}`)?.value.trim();
-    const qty   = parseFloat(document.getElementById(`pQty-${idx}`)?.value) || 0;
-    const price = parseFloat(document.getElementById(`pPrice-${idx}`)?.value) || 0;
-    const sum   = parseFloat(document.getElementById(`pSum-${idx}`)?.value) || (qty * price);
     const type  = document.getElementById(`pType-${idx}`)?.value || 'consumable';
+    const qty   = parseFloat(document.getElementById(`pQty-${idx}`)?.value)   || 0;
+    const price = parseFloat(document.getElementById(`pPrice-${idx}`)?.value) || 0;
+    const sum   = parseFloat(document.getElementById(`pSum-${idx}`)?.value)   || (qty * price);
     if (!name && !sum) return;
-    lines.push({ name: name || '—', qty, price: price || (qty ? sum / qty : 0), sum, type });
+    lines.push({ name: name || '—', type, qty, price: price || (qty ? sum / qty : 0), sum });
   });
   if (!lines.length) { toast('⚠ Добавьте хотя бы одну позицию'); return; }
 
@@ -1184,7 +1241,7 @@ async function savePurchase() {
   const btn = document.getElementById('btnSavePurchase');
   btn.disabled = true;
 
-  const purchasePayload = {
+  const { data: purchase, error: pErr } = await sb.from('purchases').insert({
     studio_id:      studioId,
     supplier_name:  document.getElementById('pSupplier').value.trim() || null,
     invoice_number: document.getElementById('pInvoice').value.trim() || null,
@@ -1194,49 +1251,27 @@ async function savePurchase() {
     total_other:    other + vatAmt,
     total_amount:   goods + delivery + other + vatAmt,
     notes:          document.getElementById('pNotes').value.trim() || null,
-  };
+    created_by:     currentUser.id,
+  }).select().single();
 
-  let purchaseId = editingPurchaseId;
-
-  if (editingPurchaseId) {
-    const { error: updErr } = await sb.from('purchases').update(purchasePayload).eq('id', editingPurchaseId);
-    if (updErr) { btn.disabled = false; toast('❌ Ошибка: ' + updErr.message); return; }
-    await sb.from('purchase_items').delete().eq('purchase_id', editingPurchaseId);
-  } else {
-    const { data: purchase, error: pErr } = await sb.from('purchases')
-      .insert({ ...purchasePayload, created_by: currentUser.id })
-      .select().single();
-    if (pErr) { btn.disabled = false; toast('❌ Ошибка: ' + pErr.message); return; }
-    purchaseId = purchase.id;
-  }
+  if (pErr) { btn.disabled = false; toast('❌ Ошибка: ' + pErr.message); return; }
 
   for (const line of lines) {
     let item = allItems.find(i => i.name.toLowerCase() === line.name.toLowerCase());
     if (!item && line.name !== '—') {
-      const { data: newItem } = await sb.from('inventory_items').insert({
-        studio_id: studioId, name: line.name,
-        type: line.type, unit: line.type === 'film' ? 'м' : 'шт',
-      }).select().single();
+      const unit = line.type === 'film' ? 'м' : line.type === 'equipment' ? 'шт' : 'шт';
+      const { data: newItem } = await sb.from('inventory_items').insert({ studio_id: studioId, name: line.name, type: line.type || 'consumable', unit }).select().single();
       if (newItem) { item = newItem; allItems.push(newItem); }
     }
-    await sb.from('purchase_items').insert({
-      purchase_id: purchaseId, item_id: item?.id || null,
-      qty: line.qty || 1, unit_price: line.price, notes: line.name,
-    });
-    if (item && !editingPurchaseId) {
-      await sb.from('inventory_transactions').insert({
-        studio_id: studioId, item_id: item.id, purchase_id: purchaseId,
-        type: 'purchase', qty: line.qty || 1, unit_cost: line.price,
-        created_by: currentUser.id,
-      });
+    await sb.from('purchase_items').insert({ purchase_id: purchase.id, item_id: item?.id || null, qty: line.qty || 1, unit_price: line.price, notes: line.name });
+    if (item) {
+      await sb.from('inventory_transactions').insert({ studio_id: studioId, item_id: item.id, purchase_id: purchase.id, type: 'purchase', qty: line.qty || 1, unit_cost: line.price, created_by: currentUser.id });
     }
   }
 
   btn.disabled = false;
-  const wasEditing = editingPurchaseId;
-  editingPurchaseId = null;
   closeModal('purchaseModal');
-  toast(wasEditing ? '✅ Закупка обновлена' : '✅ Закупка проведена');
+  toast('✅ Закупка проведена');
   await Promise.all([loadItems(), loadRolls(), loadStats()]);
 }
 
@@ -1315,11 +1350,11 @@ function openEquipModal(id) {
     document.getElementById('equipPrice').value        = eq.purchase_price || '';
     document.getElementById('equipLife').value         = eq.useful_life_months || '';
     document.getElementById('equipSupplier').value     = eq.supplier_name || '';
-    
+    document.getElementById('equipLocation').value     = eq.location || '';
     document.getElementById('equipNotes').value        = eq.notes || '';
   } else {
     document.getElementById('equipId').value = '';
-    ['equipSku','equipCategory','equipName','equipBrand','equipModel','equipSerial','equipPurchaseDate','equipPrice','equipLife','equipSupplier','equipNotes'].forEach(f => { document.getElementById(f).value = ''; });
+    ['equipSku','equipCategory','equipName','equipBrand','equipModel','equipSerial','equipPurchaseDate','equipPrice','equipLife','equipSupplier','equipLocation','equipNotes'].forEach(f => { document.getElementById(f).value = ''; });
     document.getElementById('equipCondition').value = 'good';
   }
   openModal('equipModal');
@@ -1341,7 +1376,7 @@ async function saveEquipment() {
     purchase_price:     parseFloat(document.getElementById('equipPrice').value) || null,
     useful_life_months: parseInt(document.getElementById('equipLife').value) || null,
     supplier_name:      document.getElementById('equipSupplier').value.trim() || null,
-    
+    location:           document.getElementById('equipLocation').value.trim() || null,
     notes:              document.getElementById('equipNotes').value.trim() || null,
   };
   const btn = document.getElementById('btnSaveEquip');
@@ -1360,24 +1395,8 @@ async function saveEquipment() {
 function openAssignModal(equipId) {
   document.getElementById('assignEquipId').value = equipId;
   const eq = allEquipment.find(e => e.id === equipId);
-  document.getElementById('assignEquipName').textContent = eq?.name || '';
-
-  // Заполняем список сотрудников
-  const sel = document.getElementById('assignName');
-  sel.innerHTML = '<option value="">— выберите сотрудника —</option>';
-  (allExecutors || []).filter(e => e.is_active !== false).forEach(ex => {
-    const o = document.createElement('option');
-    o.value = ex.full_name;
-    o.textContent = ex.full_name;
-    sel.appendChild(o);
-  });
-  const newOpt = document.createElement('option');
-  newOpt.value = '__new__';
-  newOpt.textContent = '➕ Внести нового...';
-  sel.appendChild(newOpt);
-
-  document.getElementById('assignNewNameGroup').style.display = 'none';
-  document.getElementById('assignNewName').value = '';
+  document.getElementById('assignEquipName').textContent = eq?.name || ''; // textContent
+  document.getElementById('assignName').value    = '';
   document.getElementById('assignIssued').value  = new Date().toISOString().split('T')[0];
   document.getElementById('assignReturn').value  = '';
   document.getElementById('assignPurpose').value = '';
@@ -1387,8 +1406,7 @@ function openAssignModal(equipId) {
 
 async function saveAssignment() {
   const equipId = document.getElementById('assignEquipId').value;
-  let name = document.getElementById('assignName').value;
-  if (name === '__new__') name = document.getElementById('assignNewName').value.trim();
+  const name    = document.getElementById('assignName').value.trim();
   if (!name) { toast('⚠ Укажите сотрудника'); return; }
   const btn = document.getElementById('btnSaveAssign');
   btn.disabled = true;
@@ -1403,7 +1421,7 @@ async function saveAssignment() {
   btn.disabled = false;
   if (error) { toast('❌ Ошибка: ' + error.message); return; }
   closeModal('assignModal');
-  toast('✅ Оборудование выдано ' + name);
+  toast('✅ Оборудование выдано');
   await loadEquipment();
 }
 
@@ -1441,13 +1459,9 @@ function bindEvents() {
   // Списки — делегирование
   ['filmList', 'consumableList', 'equipList'].forEach(listId => {
     document.getElementById(listId).addEventListener('click', e => {
-      // Если кнопка имеет прямой обработчик через addEventListener — она сама справится
-      // Здесь обрабатываем только то, у чего нет прямого listener:
       const btn = e.target.closest('[data-action]');
       if (!btn) return;
-      const { action, id, rollId } = btn.dataset;
-
-      // toggle открывает/закрывает body карточки
+      const { action, id, rollId, assignId } = btn.dataset;
       if (action === 'toggle') {
         const bodyEl = document.getElementById(btn.dataset.bodyId || id);
         if (bodyEl) bodyEl.classList.toggle('open');
@@ -1459,12 +1473,23 @@ function bindEvents() {
         if (bodyEl) bodyEl.classList.toggle('open');
         return;
       }
-
-      // Эти кнопки рендерятся без прямых listener — делегирование нужно
-      if (action === 'writeoff-roll') { openWriteoff(id, rollId); return; }
-      if (action === 'purchase')      { openPurchaseModal(id);    return; }
+      if (action === 'writeoff')      openWriteoff(id, null);
+      if (action === 'writeoff-roll') openWriteoff(id, rollId);
+      if (action === 'edit-item')     openItemModal(id, e);
+      if (action === 'purchase')      openPurchaseModal(id);
+      if (action === 'assign')        openAssignModal(id);
+      if (action === 'return')        returnEquipment(btn.dataset.assignId);
+      if (action === 'edit-equip')    openEquipModal(id);
+      if (action === 'history')       openItemHistory(id);
     });
 
+    // toggle по клику на header (без data-action на самом header-е)
+    document.getElementById(listId).addEventListener('click', e => {
+      const header = e.target.closest('.item-header');
+      if (!header) return;
+      const bodyId = header.dataset.bodyId;
+      if (bodyId) { const b = document.getElementById(bodyId); if (b) b.classList.toggle('open'); }
+    });
   });
 
   // Модал позиции
@@ -1487,11 +1512,12 @@ function bindEvents() {
   document.getElementById('btnSaveWriteoff').addEventListener('click', saveWriteoff);
   document.getElementById('btnSaveEquip').addEventListener('click', saveEquipment);
   document.getElementById('btnSaveAssign').addEventListener('click', saveAssignment);
+  document.getElementById('btnHistLoad').addEventListener('click', loadHistory);
 }
 
 // ── Init ──────────────────────────────────────────────────────────────
 async function initPage() {
-  initNav({ actionHref: 'calculator.html', actionLabel: '➕ Новый расчёт' });
+  initNav({ actionHref: 'calculator.html', actionLabel: 'Новый расчёт' });
   bindEvents();
 
   const user = await requireAuth({ redirectTo: 'welcome.html' });
@@ -1510,13 +1536,8 @@ async function initPage() {
   studioId = ctx.studioId;
   window._studioId = studioId;
 
-  await Promise.all([loadItems(), loadRolls(), loadEquipment(), loadExecutors()]);
+  await Promise.all([loadItems(), loadRolls(), loadEquipment()]);
   await loadStats();
-
-  // Показывать поле ввода нового имени при выборе "__new__"
-  document.getElementById('assignName').addEventListener('change', function() {
-    document.getElementById('assignNewNameGroup').style.display = this.value === '__new__' ? 'block' : 'none';
-  });
 }
 
 document.addEventListener('DOMContentLoaded', initPage);
