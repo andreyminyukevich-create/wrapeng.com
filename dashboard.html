@@ -241,10 +241,41 @@ body {
   .stat-value { font-size: 1.4rem; }
   .mini-kanban { grid-template-columns: repeat(6, minmax(120px, 1fr)); }
 }
+/* ── Quick actions ──────────────────────────── */
+.quick-actions {
+  display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap;
+}
+.qa-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 9px 16px; border-radius: 10px; font-size: 0.82rem;
+  font-weight: 700; font-family: inherit; cursor: pointer;
+  border: none; text-decoration: none; transition: all .15s; white-space: nowrap;
+}
+.qa-primary { background: #2563eb; color: #fff; }
+.qa-primary:hover { background: #1d4ed8; }
+.qa-secondary { background: #fff; color: #64748b; border: 1px solid rgba(15,23,42,.1); }
+.qa-secondary:hover { color: #0f172a; border-color: rgba(37,99,235,.3); }
+
+/* ── Mobile active list ─────────────────────── */
+.mobile-active { display: none; }
+.mobile-active-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 11px 14px; background: #f8fafc;
+  border: 1px solid rgba(15,23,42,.07); border-radius: 11px;
+  text-decoration: none; color: inherit; transition: all .15s;
+  margin-bottom: 6px;
+}
+.mobile-active-item:hover { border-color: #2563eb; background: #fff; }
+.mobile-active-left { flex: 1; min-width: 0; }
+.mobile-active-car { font-size: .88rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #0f172a; margin-bottom: 2px; }
+.mobile-active-meta { font-size: .72rem; color: #64748b; font-weight: 500; }
+.mobile-active-price { font-size: .9rem; font-weight: 800; color: #059669; flex-shrink: 0; margin-left: 10px; }
+.mobile-status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-right: 8px; }
+
 @media (max-width: 640px) {
   .container { padding: 14px 12px 24px; }
   .page-header-actions { display: none !important; }
-  .page-header { margin-bottom: 14px; }
+  .page-header { margin-bottom: 10px; }
   .studio-name { font-size: 1.05rem; }
   .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 12px; }
   .stat-card  { padding: 14px 14px 12px; border-radius: 14px; }
@@ -253,6 +284,9 @@ body {
   .stat-label { font-size: 0.62rem; }
   .search-input { max-width: 100%; font-size: 0.9rem; }
   .card-kanban { display: none; }
+  .mobile-active { display: block; }
+  .quick-actions { gap: 6px; }
+  .qa-btn { padding: 9px 13px; font-size: .79rem; }
 }
 @media (max-width: 480px) {
   .search-input { max-width: 100%; }
@@ -302,6 +336,23 @@ body {
       <div class="stat-value" id="statMonthAvg">—</div>
       <div class="stat-change">За месяц</div>
     </a>
+  </div>
+
+  <!-- Быстрые действия -->
+  <div class="quick-actions">
+    <a href="calculator.html" class="qa-btn qa-primary">➕ Новый расчёт</a>
+    <a href="board.html"      class="qa-btn qa-secondary">📋 Доска</a>
+    <a href="calendar.html"   class="qa-btn qa-secondary">🗓 Календарь</a>
+    <a href="analytics.html"  class="qa-btn qa-secondary">📊 Аналитика</a>
+  </div>
+
+  <!-- Активные заказы (только мобиле) -->
+  <div class="card mobile-active" id="mobileActiveCard">
+    <div class="card-header">
+      <span class="card-title">🔧 Активные заказы</span>
+      <a href="board.html" class="card-link">Все →</a>
+    </div>
+    <div id="mobileActiveList"><div class="loading">⏳</div></div>
   </div>
 
   <!-- Поиск -->
@@ -384,6 +435,69 @@ function resetStats() {
     const el = document.getElementById(id);
     if (el) el.textContent = '—';
   });
+}
+
+const ACTIVE_STATUSES = ['new', 'scheduled', 'in_progress', 'done'];
+const STATUS_DOT = {
+  new:         '#94a3b8',
+  scheduled:   '#f59e0b',
+  in_progress: '#2563eb',
+  done:        '#7c3aed',
+};
+const STATUS_SHORT = {
+  new:         'Расчёт',
+  scheduled:   'Запись',
+  in_progress: 'В работе',
+  done:        'Готово',
+};
+
+function renderMobileActive(data) {
+  const el = document.getElementById('mobileActiveList');
+  if (!el) return;
+
+  const active = data
+    .filter(c => ACTIVE_STATUSES.includes(normalizeStatus(c.status)))
+    .slice(0, 8);
+
+  if (!active.length) {
+    el.innerHTML = '<div style="color:#94a3b8;font-size:.82rem;text-align:center;padding:18px 0">Активных заказов нет</div>';
+    return;
+  }
+
+  const frag = document.createDocumentFragment();
+  active.forEach(c => {
+    const st    = normalizeStatus(c.status);
+    const link  = document.createElement('a');
+    link.className = 'mobile-active-item';
+    link.href = `board.html`;
+
+    const dot = document.createElement('div');
+    dot.className = 'mobile-status-dot';
+    dot.style.background = STATUS_DOT[st] || '#94a3b8';
+
+    const left = document.createElement('div');
+    left.className = 'mobile-active-left';
+
+    const car = document.createElement('div');
+    car.className = 'mobile-active-car';
+    car.textContent = c.car_name || 'Без названия';
+
+    const meta = document.createElement('div');
+    meta.className = 'mobile-active-meta';
+    meta.textContent = STATUS_SHORT[st] || st;
+
+    left.append(car, meta);
+
+    const price = document.createElement('div');
+    price.className = 'mobile-active-price';
+    price.textContent = fmt(c.final_price || c.total_price || 0) + ' ₽';
+
+    link.append(dot, left, price);
+    frag.appendChild(link);
+  });
+
+  el.innerHTML = '';
+  el.appendChild(frag);
 }
 
 // ── Мини-канбан ───────────────────────────────────────────────────
@@ -568,6 +682,7 @@ async function loadData(studioId) {
   allCalcsForSearch = data || [];
   renderStats(allCalcsForSearch);
   renderKanban(allCalcsForSearch);
+  renderMobileActive(allCalcsForSearch);
 }
 
 // ── Привязка событий ──────────────────────────────────────────────
