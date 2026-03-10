@@ -1,187 +1,290 @@
 /**
- * calculator-pdf.js
- * PDF-экспорт: КП, себестоимость, исполнители
- * Зависит от: calculator-data.js, calculator-persistence.js (currentProfile)
+ * calculator-ui.js
+ * UI-логика: инициализация, биндинги, форматирование
+ * Зависит от: calculator-data.js, calculator-engine.js, calculator-render.js,
+ *             calculator-persistence.js, calculator-pdf.js
  */
 
-function showTrialWatermark() {
-  if (!currentProfile) return;
-  if (currentProfile.is_paid) {
-    document.querySelectorAll('.trial-watermark').forEach(w => w.style.display = 'none');
+// ── Аккордеоны (event delegation) ────────────────────────────────
+document.addEventListener('click', function(e) {
+  const h2 = e.target.closest('h2.collapsible');
+  if (!h2) return;
+  const card    = h2.closest('.card');
+  if (!card) return;
+  const content = card.querySelector('.card-content');
+  if (!content) return;
+  h2.classList.toggle('collapsed');
+  content.classList.toggle('collapsed');
+});
+
+// ── Тема ──────────────────────────────────────────────────────────
+function initTheme() {
+  document.body.setAttribute('data-theme', 'light');
+  qa('.toggle-btn').forEach(b => {
+    b.addEventListener('click', () => {
+      const r = b.querySelector('input[type=radio]');
+      if (r) {
+        r.checked = true;
+        qa('.toggle-btn').forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+        renderAll();
+      }
+    });
+  });
+}
+
+// ── Скидки ───────────────────────────────────────────────────────
+function initDiscounts() {
+  qa('.discount-btn').forEach(b => {
+    b.addEventListener('click', () => {
+      disc = parseInt(b.dataset.discount) || 0;
+      qa('.discount-btn').forEach(x => x.classList.toggle('active', parseInt(x.dataset.discount) === disc));
+      q('#customDiscount').value = '';
+      renderAll();
+    });
+  });
+
+  q('#customDiscount')?.addEventListener('input', e => {
+    disc = Math.max(0, Math.min(100, parseFloat(e.target.value) || 0));
+    qa('.discount-btn').forEach(b => b.classList.remove('active'));
+    renderAll();
+  });
+}
+
+// ── Бренды / Модели ───────────────────────────────────────────────
+function fillBrands() {
+  const s = q('#brand');
+  if (s.options.length > 2) {
+    const yearInput = q('#year');
+    if (yearInput && !yearInput.value) yearInput.value = '2026';
     return;
   }
-  const trialEnd = currentProfile.trial_ends_at ? new Date(currentProfile.trial_ends_at) : null;
-  if (!trialEnd) return;
-  const watermarkText = `ПРОБНАЯ ВЕРСИЯ ДО ${trialEnd.toLocaleDateString('ru-RU')}`;
-  document.querySelectorAll('.trial-watermark').forEach(w => {
-    w.textContent = watermarkText;
-    w.style.display = 'block';
+  s.innerHTML = '<option value="">Выберите бренд</option><option value="manual">Ввести вручную</option>';
+  Object.keys(carDB).sort().forEach(b => {
+    const o = document.createElement('option');
+    o.value = b; o.textContent = b;
+    s.appendChild(o);
   });
+  const yearInput = q('#year');
+  if (yearInput && !yearInput.value) yearInput.value = '2026';
 }
 
-function exportPDF(blockId, filename) {
-  const { jsPDF } = window.jspdf || {};
-  if (!jsPDF || !window.html2canvas) { alert('Библиотеки PDF загружаются...'); return; }
+function fillModels(brandValue) {
+  const m  = q('#model');
+  const bm = q('#brandManual');
+  m.innerHTML = '<option value="">Выберите модель</option><option value="manual">Ввести вручную</option>';
 
-  const holder = q('#pdfTemplates');
-  const block  = q(blockId);
-  const orig   = holder.style.display;
-  holder.style.display  = 'block';
-  holder.style.position = 'absolute';
-  holder.style.left     = '-9999px';
-
-  setTimeout(() => {
-    html2canvas(block, { scale: 2, useCORS: true, backgroundColor: '#fff' }).then(canvas => {
-      const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
-      const pw  = pdf.internal.pageSize.getWidth();
-      const ph  = pdf.internal.pageSize.getHeight();
-      const ratio = Math.min(pw / canvas.width, ph / canvas.height);
-      const sw  = canvas.width  * ratio;
-      const sh  = canvas.height * ratio;
-      const x   = (pw - sw) / 2;
-      pdf.addImage(canvas.toDataURL('image/png'), 'PNG', x, 20, sw, Math.min(sh, ph - 40));
-      pdf.save(filename);
-    }).catch(err => {
-      alert('Ошибка создания PDF: ' + err.message);
-    }).finally(() => {
-      holder.style.display = orig;
+  if (brandValue && carDB[brandValue]) {
+    bm.classList.add('invis');
+    carDB[brandValue].forEach(md => {
+      const o = document.createElement('option');
+      o.value = md; o.textContent = md;
+      m.appendChild(o);
     });
-  }, 200);
+  } else if (brandValue === 'manual') {
+    bm.classList.remove('invis');
+    m.innerHTML = '<option value="manual">Ввести вручную</option>';
+    q('#modelManual')?.classList.remove('invis');
+  }
 }
 
-function prepKP() {
-  showTrialWatermark();
+function onBrandChange() {
+  fillModels(q('#brand').value);
+  renderAll();
+}
 
-  const tb = q('#pdfKPTBody');
-  if (!tb) return;
-  tb.innerHTML = '';
+function onModelChange() {
+  const m = q('#model').value;
+  q('#modelManual')?.classList.toggle('invis', m !== 'manual');
+  renderAll();
+}
 
-  qa('#kpTable tbody tr').forEach(tr => {
-    const r = document.createElement('tr');
-    r.innerHTML = `<td style="width:25%">${tr.children[0].textContent.trim()}</td>` +
-                  `<td style="width:50%">${tr.children[1].textContent.trim() || '—'}</td>` +
-                  `<td style="width:25%">${tr.children[2].textContent.trim()}</td>`;
-    tb.appendChild(r);
+// ── Форматирование ────────────────────────────────────────────────
+function formatYearInput(input) {
+  let val = input.value.replace(/\D/g, '');
+  if (val.length > 4) val = val.slice(0, 4);
+  input.value = val;
+}
+
+function formatNumberInput(input) {
+  const val = parseFloat(input.value);
+  if (!isNaN(val) && val >= 0) input.value = val.toFixed(2);
+}
+
+function setDefaultMarkups() {
+  ['#pkgMarkup','#impactMarkup','#armMarkup','#wrapMarkup','#detMarkup','#glMarkup','#miscMarkup'].forEach(id => {
+    const field = q(id);
+    if (field) field.value = 40;
+  });
+}
+
+// ── Состояние страницы ────────────────────────────────────────────
+function initPageState() {
+  const isTelegram = window.TelegramWebviewProxy !== undefined || navigator.userAgent.includes('Telegram');
+  if (isTelegram) {
+    const warning = q('#telegramWarning');
+    if (warning) warning.style.display = 'block';
+  }
+}
+
+// ── Зоны инициализации ────────────────────────────────────────────
+function initUI() {
+  initTheme();
+
+  initDiscounts();
+
+}
+
+function initDataSources() {
+  fillBrands();
+
+  q('#brand')?.addEventListener('change', onBrandChange);
+  q('#model')?.addEventListener('change', onModelChange);
+}
+
+function initRender() {
+  renderServiceList('#armContent',  armServices,    'arm');
+  renderWrapContent();
+
+  renderPartialLists();
+
+  renderServiceList('#detContent',  detailServices, 'det');
+  renderServiceList('#glContent',   glassServices,  'gl');
+  renderServiceList('#miscContent', miscServices,   'misc');
+  initServiceToggles();
+
+  setDefaultMarkups();
+
+  initChart();
+
+  renderAll();
+}
+
+function initBindings() {
+  // Добавление строк
+  const addRowBindings = [
+    { sel: '#btnAddPkgCost',    action: () => addCostRow('pkg') },
+    { sel: '#btnAddImpactCost', action: () => addCostRow('impact') },
+    { sel: '#btnAddArm',        action: () => { addDynRow('#armDyn',  'arm');  initServiceToggles(); } },
+    { sel: '#btnAddArmCost',    action: () => addCostRow('arm') },
+    { sel: '#btnAddWrap',       action: () => { addDynRow('#wrapDyn', 'wrap'); initServiceToggles(); } },
+    { sel: '#btnAddWrapCost',   action: () => addCostRow('wrap') },
+    { sel: '#btnAddDet',        action: () => { addDynRow('#detDyn',  'det');  initServiceToggles(); } },
+    { sel: '#btnAddDetCost',    action: () => addCostRow('det') },
+    { sel: '#btnAddGl',         action: () => { addDynRow('#glDyn',   'gl');   initServiceToggles(); } },
+    { sel: '#btnAddGlCost',     action: () => addCostRow('gl') },
+    { sel: '#btnAddMisc',       action: () => { addDynRow('#miscDyn', 'misc'); initServiceToggles(); } },
+    { sel: '#btnAddMiscCost',   action: () => addCostRow('misc') },
+  ];
+  addRowBindings.forEach(({ sel, action }) => q(sel)?.addEventListener('click', action));
+
+  // Форма оплаты
+  qa('input[name=payMode]').forEach(r => r.addEventListener('change', () => { renderAll(); scheduleSave(); }));
+
+  // Управляющие кнопки
+  q('#btnSaveCalc')?.addEventListener('click', async () => {
+    const btn = q('#btnSaveCalc');
+    const orig = btn?.textContent;
+    if (btn) { btn.textContent = '⏳ Сохранение...'; btn.disabled = true; }
+    await saveCalculation();
+
+    if (btn) { btn.textContent = orig; btn.disabled = false; }
   });
 
-  q('#pdfKPTotal').textContent = q('#kpTotal')?.textContent || '0,00';
+  // "Новый расчёт" — сохраняет текущий и сбрасывает форму
+  q('#btnReset')?.addEventListener('click', async () => {
+    const btn = q('#btnReset');
+    if (!confirm('Сохранить текущий расчёт и начать новый?')) return;
+    if (btn) { btn.textContent = '⏳ Сохраняем...'; btn.disabled = true; }
+    await saveCalculation();
 
-  const br   = q('#brandManual').classList.contains('invis') ? q('#brand').value   : q('#brandManual').value;
-  const md   = q('#modelManual').classList.contains('invis') ? q('#model').value   : q('#modelManual').value;
-  const yr   = q('#year').value || '—';
-  const now  = new Date();
-  const payMode = q('input[name=payMode]:checked')?.value;
-  const payText = payMode === 'cash' ? 'Наличные' : payMode === 'card' ? 'Карта или ИП' : 'ООО';
-
-  q('#pdfKPMeta').innerHTML = `Автомобиль: ${br || '—'} ${md || '—'} ${yr}<br>` +
-    `Дата: ${now.toLocaleDateString('ru-RU')} ${now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}<br>` +
-    `<b><i>Условия оплаты: ${payText}</i></b>`;
-}
-
-function prepCost() {
-  showTrialWatermark();
-
-  const tb = q('#pdfCostTBody');
-  if (!tb) return;
-  tb.innerHTML = '';
-
-  qa('#costTable tbody tr').forEach(tr => {
-    const r = document.createElement('tr');
-    r.innerHTML = `<td>${tr.children[0].textContent.trim()}</td>` +
-                  `<td>${tr.children[1].textContent.trim()}</td>` +
-                  `<td>${tr.children[2].textContent.trim()}</td>`;
-    tb.appendChild(r);
-  });
-
-  q('#pdfCM').textContent = q('#cMat')?.textContent || '0,00';
-  q('#pdfCO').textContent = q('#cMot')?.textContent || '0,00';
-
-  const br = q('#brandManual').classList.contains('invis') ? q('#brand').value : q('#brandManual').value;
-  const md = q('#modelManual').classList.contains('invis') ? q('#model').value : q('#modelManual').value;
-  const yr = q('#year').value || '—';
-  q('#pdfCostMeta').textContent = `Автомобиль: ${br || '—'} ${md || '—'} ${yr}`;
-}
-
-function prepExecutors() {
-  showTrialWatermark();
-
-  const tb = q('#pdfExecutorsTBody');
-  if (!tb) return;
-  tb.innerHTML = '';
-  const todayStr = new Date().toISOString().split('T')[0];
-
-  qa('#executorsContent .executor-row').forEach(row => {
-    const name   = row.querySelector('.executor-row-header')?.textContent?.trim() || '';
-    const baseId = row.getAttribute('data-exec-id');
-    if (baseId) {
-      const executor = row.querySelector(`#${baseId}name`)?.value || '';
-      if (executor) {
-        const r = document.createElement('tr');
-        r.innerHTML = `<td>${name}</td><td>${executor}</td>` +
-          `<td>${row.querySelector(`#${baseId}receive`)?.value || todayStr}</td>` +
-          `<td>${row.querySelector(`#${baseId}return`)?.value  || ''}</td>` +
-          `<td>${row.querySelector(`#${baseId}note`)?.value    || ''}</td>`;
-        tb.appendChild(r);
-      }
+    // Сбрасываем ID чтобы следующий расчёт создался новым
+    if (typeof currentCalculationId !== 'undefined') {
+      try { window._calcNewMode = true; } catch(e) {}
     }
-    row.querySelector('.extra-executors')?.querySelectorAll('.extra-executor-row').forEach(extraRow => {
-      const eName = extraRow.querySelector('input[id*="name"]')?.value || '';
-      if (eName) {
-        const r = document.createElement('tr');
-        r.innerHTML = `<td>${name}</td><td>${eName}</td>` +
-          `<td>${extraRow.querySelector('input[id*="receive"]')?.value || todayStr}</td>` +
-          `<td>${extraRow.querySelector('input[id*="return"]')?.value  || ''}</td>` +
-          `<td>${extraRow.querySelector('input[id*="note"]')?.value    || ''}</td>`;
-        tb.appendChild(r);
+    location.href = location.pathname; // перезагрузка без ?load=
+  });
+
+  // Экспорт PDF — только скачать КП
+  q('#btnDownloadKP')?.addEventListener('click', () => {
+    prepKP();
+
+    setTimeout(() => exportPDF('#pdfKP', 'Коммерческое_предложение.pdf'), 100);
+  });
+  q('#btnExportExecutors')?.addEventListener('click', () => {
+    prepExecutors();
+
+    setTimeout(() => exportPDF('#pdfExecutors', 'Список_исполнителей.pdf'), 100);
+  });
+  q('#btnExportExecutorsWithSalary')?.addEventListener('click', () => {
+    prepExecutorsWithSalary();
+
+    setTimeout(() => exportPDF('#pdfExecutorsWithSalary', 'Список_исполнителей_ЗП.pdf'), 100);
+  });
+
+  // Chips (наценки)
+  qa('.chip').forEach(ch => {
+    ch.addEventListener('click', () => {
+      const sel    = ch.getAttribute('data-markup-target');
+      const ppfIdx = ch.getAttribute('data-ppf-markup');
+      const pvcIdx = ch.getAttribute('data-pvc-markup');
+      if (sel) {
+        const tgt = q(sel);
+        if (tgt) { tgt.value = ch.textContent.trim(); renderAll(); }
+      } else if (ppfIdx !== null) {
+        const inp = ch.closest('.service-item')?.querySelector('.ppf-part-markup');
+        if (inp) { inp.value = ch.textContent.trim(); renderAll(); }
+      } else if (pvcIdx !== null) {
+        const inp = ch.closest('.service-item')?.querySelector('.pvc-part-markup');
+        if (inp) { inp.value = ch.textContent.trim(); renderAll(); }
       }
     });
   });
 
-  const br = q('#brandManual').classList.contains('invis') ? q('#brand').value : q('#brandManual').value;
-  const md = q('#modelManual').classList.contains('invis') ? q('#model').value : q('#modelManual').value;
-  const yr = q('#year').value || '—';
-  q('#pdfExecutorsMeta').textContent = `Автомобиль: ${br || '—'} ${md || '—'} ${yr}`;
-}
-
-function prepExecutorsWithSalary() {
-  showTrialWatermark();
-
-  const tb = q('#pdfExecutorsWithSalaryTBody');
-  if (!tb) return;
-  tb.innerHTML = '';
-  const todayStr = new Date().toISOString().split('T')[0];
-
-  qa('#executorsContent .executor-row').forEach(row => {
-    const name   = row.querySelector('.executor-row-header')?.textContent?.trim() || '';
-    const baseId = row.getAttribute('data-exec-id');
-    if (baseId) {
-      const executor = row.querySelector(`#${baseId}name`)?.value || '';
-      if (executor) {
-        const salary = row.querySelector(`#${baseId}salary`)?.value || '0';
-        const r = document.createElement('tr');
-        r.innerHTML = `<td>${name}</td><td>${executor}</td><td>${fmt(parseFloat(salary))}</td>` +
-          `<td>${row.querySelector(`#${baseId}receive`)?.value || todayStr}</td>` +
-          `<td>${row.querySelector(`#${baseId}return`)?.value  || ''}</td>` +
-          `<td>${row.querySelector(`#${baseId}note`)?.value    || ''}</td>`;
-        tb.appendChild(r);
-      }
+  // Глобальные input-события
+  document.addEventListener('input', e => {
+    if (e.target.id === 'year') { formatYearInput(e.target); renderAll(); scheduleSave(); return; }
+    if (e.target.id && e.target.id.includes('salary')) e.target.dataset.manuallySet = 'true';
+    if (e.target.matches('input[type="number"]')) {
+      const val = parseFloat(e.target.value);
+      if (!isNaN(val) && val < 0) e.target.value = '';
     }
-    row.querySelector('.extra-executors')?.querySelectorAll('.extra-executor-row').forEach(extraRow => {
-      const eName = extraRow.querySelector('input[id*="name"]')?.value || '';
-      if (eName) {
-        const eSalary = extraRow.querySelector('input[id*="salary"]')?.value || '0';
-        const r = document.createElement('tr');
-        r.innerHTML = `<td>${name}</td><td>${eName}</td><td>${fmt(parseFloat(eSalary))}</td>` +
-          `<td>${extraRow.querySelector('input[id*="receive"]')?.value || todayStr}</td>` +
-          `<td>${extraRow.querySelector('input[id*="return"]')?.value  || ''}</td>` +
-          `<td>${extraRow.querySelector('input[id*="note"]')?.value    || ''}</td>`;
-        tb.appendChild(r);
-      }
-    });
+    if (e.target.matches('input, select')) { renderAll(); scheduleSave(); }
   });
 
-  const br = q('#brandManual').classList.contains('invis') ? q('#brand').value : q('#brandManual').value;
-  const md = q('#modelManual').classList.contains('invis') ? q('#model').value : q('#modelManual').value;
-  const yr = q('#year').value || '—';
-  q('#pdfExecutorsWithSalaryMeta').textContent = `Автомобиль: ${br || '—'} ${md || '—'} ${yr}`;
+  document.addEventListener('blur', e => {
+    if (e.target.matches('input[type="number"]') && e.target.value !== '') {
+      formatNumberInput(e.target); renderAll(); scheduleSave();
+
+    }
+  }, true);
 }
+
+async function initAuthAndAccess() {
+  return await checkAuth();
+
+}
+
+// ── Точка входа ───────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
+  const hasAccess = await initAuthAndAccess();
+  if (!hasAccess) return;
+
+  initPageState();
+
+  initUI();
+
+  initDataSources();
+
+  initRender();
+
+  initBindings();
+
+  await loadCalculationFromUrl();
+
+});
+
+// ── Глобальный экспорт для inline handlers ────────────────────────
+window.fillModels    = fillModels;
+window.onBrandChange = onBrandChange;
+window.onModelChange = onModelChange;
