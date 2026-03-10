@@ -591,7 +591,6 @@ function buildWorkItem(service, existingAssignments = []) {
   const renderSalLabel = (val) => {
     salEl.textContent = val > 0 ? `Мотивация: ${fmt(val)} ₽` : 'Задать мотивацию';
     salEl.dataset.baseSalary = String(val);
-    addBtn.dataset.baseSalary = String(val);
   };
   renderSalLabel(service.baseSalary);
 
@@ -616,6 +615,7 @@ function buildWorkItem(service, existingAssignments = []) {
   const closeSalEdit = () => {
     const val = parseFloat(salInput.value) || 0;
     renderSalLabel(val);
+    addBtn.dataset.baseSalary = String(val);
     // Обновить salary-input во всех строках исполнителей
     rowsEl.querySelectorAll('.salary-input').forEach(inp => {
       if (!parseFloat(inp.value)) inp.value = val > 0 ? String(Math.round(val)) : '';
