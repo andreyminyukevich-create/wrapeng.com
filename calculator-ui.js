@@ -1,124 +1,100 @@
 /**
- * calculator-ui.js
- * UI-логика: инициализация, биндинги, форматирование
+ * calculator-ui.js — v1.1 (актуальная версия из calculator.html)
+ * Инициализация UI: бренды, модели, скидки, тема, биндинги, точка входа.
  * Зависит от: calculator-data.js, calculator-engine.js, calculator-render.js,
- *             calculator-persistence.js, calculator-pdf.js
+ *             calculator-persistence.js (initAuthAndAccess, loadCalculationFromUrl, scheduleSave)
  */
 
-// ── Аккордеоны (event delegation) ────────────────────────────────
-document.addEventListener('click', function(e) {
-  const h2 = e.target.closest('h2.collapsible');
-  if (!h2) return;
-  const card    = h2.closest('.card');
-  if (!card) return;
-  const content = card.querySelector('.card-content');
-  if (!content) return;
-  h2.classList.toggle('collapsed');
-  content.classList.toggle('collapsed');
-});
-
-// ── Тема ──────────────────────────────────────────────────────────
-function initTheme() {
-  document.body.setAttribute('data-theme', 'light');
-  qa('.toggle-btn').forEach(b => {
-    b.addEventListener('click', () => {
-      const r = b.querySelector('input[type=radio]');
-      if (r) {
-        r.checked = true;
-        qa('.toggle-btn').forEach(x => x.classList.remove('active'));
-        b.classList.add('active');
-        renderAll();
-      }
-    });
-  });
-}
-
-// ── Скидки ───────────────────────────────────────────────────────
-function initDiscounts() {
-  qa('.discount-btn').forEach(b => {
-    b.addEventListener('click', () => {
-      disc = parseInt(b.dataset.discount) || 0;
-      qa('.discount-btn').forEach(x => x.classList.toggle('active', parseInt(x.dataset.discount) === disc));
-      q('#customDiscount').value = '';
-      renderAll();
-    });
-  });
-
-  q('#customDiscount')?.addEventListener('input', e => {
-    disc = Math.max(0, Math.min(100, parseFloat(e.target.value) || 0));
-    qa('.discount-btn').forEach(b => b.classList.remove('active'));
-    renderAll();
-  });
-}
-
-// ── Бренды / Модели ───────────────────────────────────────────────
 function fillBrands() {
   const s = q('#brand');
+  
+  // Если бренды уже есть в HTML - не трогаем
   if (s.options.length > 2) {
     const yearInput = q('#year');
-    if (yearInput && !yearInput.value) yearInput.value = '2026';
+    if (yearInput && !yearInput.value) {
+      yearInput.value = '2026';
+    }
     return;
   }
+  
+  // Если по какой-то причине список пустой - заполняем из carDB
   s.innerHTML = '<option value="">Выберите бренд</option><option value="manual">Ввести вручную</option>';
   Object.keys(carDB).sort().forEach(b => {
     const o = document.createElement('option');
-    o.value = b; o.textContent = b;
+    o.value = b;
+    o.textContent = b;
     s.appendChild(o);
   });
+  
+  // Автозаполнение года 2026
   const yearInput = q('#year');
-  if (yearInput && !yearInput.value) yearInput.value = '2026';
-}
-
-function fillModels(brandValue) {
-  const m  = q('#model');
-  const bm = q('#brandManual');
-  m.innerHTML = '<option value="">Выберите модель</option><option value="manual">Ввести вручную</option>';
-
-  if (brandValue && carDB[brandValue]) {
-    bm.classList.add('invis');
-    carDB[brandValue].forEach(md => {
-      const o = document.createElement('option');
-      o.value = md; o.textContent = md;
-      m.appendChild(o);
-    });
-  } else if (brandValue === 'manual') {
-    bm.classList.remove('invis');
-    m.innerHTML = '<option value="manual">Ввести вручную</option>';
-    q('#modelManual')?.classList.remove('invis');
+  if (yearInput && !yearInput.value) {
+    yearInput.value = '2026';
   }
 }
-
-function onBrandChange() {
-  fillModels(q('#brand').value);
-  renderAll();
-}
-
-function onModelChange() {
-  const m = q('#model').value;
-  q('#modelManual')?.classList.toggle('invis', m !== 'manual');
-  renderAll();
-}
-
-// ── Форматирование ────────────────────────────────────────────────
 function formatYearInput(input) {
   let val = input.value.replace(/\D/g, '');
   if (val.length > 4) val = val.slice(0, 4);
   input.value = val;
 }
-
-function formatNumberInput(input) {
-  const val = parseFloat(input.value);
-  if (!isNaN(val) && val >= 0) input.value = val.toFixed(2);
+function onBrandChange() {
+  const b = q('#brand').value;
+  fillModels(b);
+  renderAll();
 }
 
+function fillModels(brandValue) {
+  const m = q('#model');
+  const bm = q('#brandManual');
+  m.innerHTML = '<option value="">Выберите модель</option><option value="manual">Ввести вручную</option>';
+  
+  if (brandValue && carDB[brandValue]) {
+    bm.classList.add('invis');
+    carDB[brandValue].forEach(md => {
+      const o = document.createElement('option');
+      o.value = md;
+      o.textContent = md;
+      m.appendChild(o);
+    });
+  } else if (brandValue === 'manual') {
+    bm.classList.remove('invis');
+    m.innerHTML = '<option value="manual">Ввести вручную</option>';
+    const mm = q('#modelManual');
+    if (mm) mm.classList.remove('invis');
+  }
+}
+
+function onModelChange() {
+  const m = q('#model').value;
+  const mm = q('#modelManual');
+  if (m === 'manual') mm.classList.remove('invis');
+  else mm.classList.add('invis');
+  renderAll();
+}
+
+
+// Helper для заглавной первой буквы
+function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
 function setDefaultMarkups() {
-  ['#pkgMarkup','#impactMarkup','#armMarkup','#wrapMarkup','#detMarkup','#glMarkup','#miscMarkup'].forEach(id => {
+  ['#pkgMarkup', '#impactMarkup', '#armMarkup', '#wrapMarkup', '#detMarkup', '#glMarkup', '#miscMarkup'].forEach(id => {
     const field = q(id);
     if (field) field.value = 40;
   });
 }
 
-// ── Состояние страницы ────────────────────────────────────────────
+function formatNumberInput(input) {
+  const val = parseFloat(input.value);
+  if (!isNaN(val) && val >= 0) {
+    input.value = val.toFixed(2);
+  }
+}
+
+// ══════════════════════════════════════════
+// ИНИЦИАЛИЗАЦИЯ — разбита по зонам ответственности
+// ══════════════════════════════════════════
+
+
 function initPageState() {
   const isTelegram = window.TelegramWebviewProxy !== undefined || navigator.userAgent.includes('Telegram');
   if (isTelegram) {
@@ -127,41 +103,31 @@ function initPageState() {
   }
 }
 
-// ── Зоны инициализации ────────────────────────────────────────────
 function initUI() {
   initTheme();
-
   initDiscounts();
-
 }
 
 function initDataSources() {
   fillBrands();
-
   q('#brand')?.addEventListener('change', onBrandChange);
   q('#model')?.addEventListener('change', onModelChange);
 }
 
 function initRender() {
-  renderServiceList('#armContent',  armServices,    'arm');
+  renderServiceList('#armContent', armServices, 'arm');
   renderWrapContent();
-
   renderPartialLists();
-
-  renderServiceList('#detContent',  detailServices, 'det');
-  renderServiceList('#glContent',   glassServices,  'gl');
-  renderServiceList('#miscContent', miscServices,   'misc');
+  renderServiceList('#detContent', detailServices, 'det');
+  renderServiceList('#glContent', glassServices, 'gl');
+  renderServiceList('#miscContent', miscServices, 'misc');
   initServiceToggles();
-
   setDefaultMarkups();
-
-  initChart();
-
   renderAll();
 }
 
 function initBindings() {
-  // Добавление строк
+  // Добавление строк — конфиг-массив вместо дублирования
   const addRowBindings = [
     { sel: '#btnAddPkgCost',    action: () => addCostRow('pkg') },
     { sel: '#btnAddImpactCost', action: () => addCostRow('impact') },
@@ -179,53 +145,80 @@ function initBindings() {
   addRowBindings.forEach(({ sel, action }) => q(sel)?.addEventListener('click', action));
 
   // Форма оплаты
-  qa('input[name=payMode]').forEach(r => r.addEventListener('change', () => { renderAll(); scheduleSave(); }));
+  qa('input[name=payMode]').forEach(r => r.addEventListener('change', () => {
+    renderAll();
+    scheduleSave();
+  }));
 
   // Управляющие кнопки
+  q('#btnRecalc')?.addEventListener('click', renderAll);
+  q('#btnReset')?.addEventListener('click', () => {
+    if (confirm('Вы уверены, что хотите сбросить все данные?')) location.reload();
+  });
   q('#btnSaveCalc')?.addEventListener('click', async () => {
     const btn = q('#btnSaveCalc');
-    const orig = btn?.textContent;
+    const originalText = btn?.textContent;
     if (btn) { btn.textContent = '⏳ Сохранение...'; btn.disabled = true; }
     await saveCalculation();
-
-    if (btn) { btn.textContent = orig; btn.disabled = false; }
+    if (btn) { btn.textContent = originalText; btn.disabled = false; }
   });
 
-  // "Новый расчёт" — сохраняет текущий и сбрасывает форму
-  q('#btnReset')?.addEventListener('click', async () => {
-    const btn = q('#btnReset');
-    if (!confirm('Сохранить текущий расчёт и начать новый?')) return;
-    if (btn) { btn.textContent = '⏳ Сохраняем...'; btn.disabled = true; }
-    await saveCalculation();
-
-    // Сбрасываем ID чтобы следующий расчёт создался новым
-    if (typeof currentCalculationId !== 'undefined') {
-      try { window._calcNewMode = true; } catch(e) {}
-    }
-    location.href = location.pathname; // перезагрузка без ?load=
-  });
-
-  // Экспорт PDF — только скачать КП
+  // Экспорт PDF
+  if (q('#btnShareKP')) q('#btnShareKP').style.display = 'inline-block';
   q('#btnDownloadKP')?.addEventListener('click', () => {
     prepKP();
-
     setTimeout(() => exportPDF('#pdfKP', 'Коммерческое_предложение.pdf'), 100);
+  });
+  q('#btnShareKP')?.addEventListener('click', async () => {
+    const btn = q('#btnShareKP');
+    const origText = btn.textContent;
+    btn.textContent = '⏳ Генерация...'; btn.disabled = true;
+    const fallbackDownload = () => { prepKP(); setTimeout(() => exportPDF('#pdfKP', 'КП_оклейка.pdf'), 100); };
+    try {
+      prepKP();
+      await new Promise(resolve => setTimeout(resolve, 400));
+      const { jsPDF } = window.jspdf || {};
+      if (!jsPDF || !window.html2canvas) { fallbackDownload(); return; }
+      const block = q('#pdfKP');
+      let canvas;
+      try {
+        canvas = await window.html2canvas(block, { scale: 2, useCORS: true, allowTaint: true, backgroundColor: '#fff', logging: false });
+      } catch(canvasErr) { fallbackDownload(); return; }
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
+      const pw = pdf.internal.pageSize.getWidth(), ph = pdf.internal.pageSize.getHeight();
+      const ratio = Math.min(pw / canvas.width, ph / canvas.height);
+      pdf.addImage(canvas.toDataURL('image/png'), 'PNG', (pw - canvas.width * ratio) / 2, 20, canvas.width * ratio, Math.min(canvas.height * ratio, ph - 40));
+      const pdfBlob = pdf.output('blob');
+      const pdfFile = new File([pdfBlob], 'КП_оклейка.pdf', { type: 'application/pdf' });
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
+        await navigator.share({ title: 'Коммерческое предложение', files: [pdfFile] });
+      } else {
+        const url = URL.createObjectURL(pdfBlob);
+        const a = document.createElement('a');
+        a.href = url; a.download = 'КП_оклейка.pdf'; a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      }
+    } catch(err) {
+      if (err.name !== 'AbortError') fallbackDownload();
+    } finally { btn.textContent = origText; btn.disabled = false; }
+  });
+  q('#btnExportCost')?.addEventListener('click', () => {
+    prepCost();
+    setTimeout(() => exportPDF('#pdfCost', 'Себестоимость.pdf'), 100);
   });
   q('#btnExportExecutors')?.addEventListener('click', () => {
     prepExecutors();
-
     setTimeout(() => exportPDF('#pdfExecutors', 'Список_исполнителей.pdf'), 100);
   });
   q('#btnExportExecutorsWithSalary')?.addEventListener('click', () => {
     prepExecutorsWithSalary();
-
     setTimeout(() => exportPDF('#pdfExecutorsWithSalary', 'Список_исполнителей_ЗП.pdf'), 100);
   });
 
   // Chips (наценки)
   qa('.chip').forEach(ch => {
     ch.addEventListener('click', () => {
-      const sel    = ch.getAttribute('data-markup-target');
+      const sel = ch.getAttribute('data-markup-target');
       const ppfIdx = ch.getAttribute('data-ppf-markup');
       const pvcIdx = ch.getAttribute('data-pvc-markup');
       if (sel) {
@@ -255,36 +248,94 @@ function initBindings() {
   document.addEventListener('blur', e => {
     if (e.target.matches('input[type="number"]') && e.target.value !== '') {
       formatNumberInput(e.target); renderAll(); scheduleSave();
-
     }
   }, true);
 }
 
-async function initAuthAndAccess() {
-  return await checkAuth();
+// ── Точка входа ──────────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
+function initTheme() {
+  // Принудительно светлая тема
+  document.body.setAttribute('data-theme', 'light');
+
+  qa('.toggle-btn').forEach(b => {
+    b.addEventListener('click', () => {
+      const r = b.querySelector('input[type=radio]');
+      if (r) {
+        r.checked = true;
+        qa('.toggle-btn').forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+        renderAll();
+      }
+    });
+  });
 
 }
 
-// ── Точка входа ───────────────────────────────────────────────────
+function initDiscounts() {
+  qa('.discount-btn').forEach(b => {
+    b.addEventListener('click', () => {
+      disc = parseInt(b.dataset.discount) || 0;
+      qa('.discount-btn').forEach(x => x.classList.toggle('active', parseInt(x.dataset.discount) === disc));
+      q('#customDiscount').value = '';
+      renderAll();
+    });
+  });
+  
+  q('#customDiscount')?.addEventListener('input', e => {
+    const v = Math.max(0, Math.min(100, parseFloat(e.target.value) || 0));
+    disc = v;
+    qa('.discount-btn').forEach(b => b.classList.remove('active'));
+    renderAll();
+  });
+}
+
+function initChart() {
 document.addEventListener('DOMContentLoaded', async () => {
+  // Инициализируем навигацию
+  if (typeof window.initNav === 'function') {
+    window.initNav({
+      activePage:  'calculator.html',
+      actionHref:  'calculator.html',
+      actionLabel: '➕ Новый расчёт',
+      hideAction:  true,
+    });
+  }
+
   const hasAccess = await initAuthAndAccess();
   if (!hasAccess) return;
 
   initPageState();
-
   initUI();
-
   initDataSources();
-
   initRender();
-
   initBindings();
 
   await loadCalculationFromUrl();
 
+  // Кнопка "Новый расчёт"
+  const btnNew = q('#btnNewCalc');
+  if (btnNew) {
+    btnNew.addEventListener('click', async () => {
+      if (confirm('Сохранить текущий расчёт перед созданием нового?')) {
+        await saveCalculation();
+      }
+      window.location.href = 'calculator.html';
+    });
+  }
 });
-
-// ── Глобальный экспорт для inline handlers ────────────────────────
-window.fillModels    = fillModels;
+// Экспортируем функции в глобальный scope для inline handlers
+window.fillModels = fillModels;
 window.onBrandChange = onBrandChange;
 window.onModelChange = onModelChange;
+window.renderAll = renderAll;
+
+function showToast() {
+  const t = document.getElementById('saveToast');
+  if (!t) return;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+
+</script>
