@@ -773,13 +773,15 @@ async function initPage() {
   bindStaticEvents();
   bindDelegation();
 
-  const {data:{session}}=await sb.auth.getSession();
-  if(!session){window.location.href='welcome.html';return;}
-  if(session.user.id!==ADMIN_USER_ID){
-    document.body.innerHTML='<div style="text-align:center;padding:60px;font-family:sans-serif"><h2>🚫 Доступ запрещён</h2><p style="color:#64748b;margin-top:8px">Эта страница только для администратора</p><a href="dashboard.html" style="color:#2563eb">← Вернуться</a></div>';
+  const user = await requireAuth({ redirectTo: 'welcome.html' });
+  if (!user) return;
+
+  if (user.id !== ADMIN_USER_ID) {
+    document.body.innerHTML = '<div style="text-align:center;padding:60px;font-family:sans-serif"><h2>🚫 Доступ запрещён</h2><p style="color:#64748b;margin-top:8px">Эта страница только для администратора</p><a href="dashboard.html" style="color:#2563eb">← Вернуться</a></div>';
     return;
   }
-  document.getElementById('adminBadge').textContent='👑 '+session.user.email;
+
+  document.getElementById('adminBadge').textContent = '👑 ' + user.email;
   switchTab('requests');
   await Promise.all([loadStudios(), loadCommissions()]);
   await loadRequests();
