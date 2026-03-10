@@ -14,7 +14,6 @@ body { visibility: hidden; }
   --bg:           #eef2f9;
   --surface:      #ffffff;
   --border:       rgba(15,23,42,0.08);
-  --border-focus: rgba(37,99,235,0.35);
   --text:         #0f172a;
   --text-muted:   #64748b;
   --text-dim:     #94a3b8;
@@ -39,10 +38,41 @@ html, body {
   overflow-x: hidden;
 }
 
+/* ── Search bar ───────────────────────────── */
+.board-toolbar {
+  padding: 10px 20px 0;
+  display: flex; align-items: center; gap: 10px;
+  flex-wrap: wrap;
+}
+.search-wrap {
+  position: relative; flex: 1; min-width: 180px; max-width: 320px;
+}
+.search-wrap input {
+  width: 100%; padding: 8px 12px 8px 34px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; font-family: var(--font); font-size: 0.83rem;
+  color: var(--text); outline: none; transition: border-color .15s, box-shadow .15s;
+}
+.search-wrap input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,.10); }
+.search-wrap .search-icon {
+  position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+  font-size: .82rem; pointer-events: none;
+}
+.filter-btn {
+  padding: 8px 14px; background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; font-size: .78rem; font-weight: 700; cursor: pointer;
+  font-family: var(--font); color: var(--text-muted); transition: all .15s;
+  white-space: nowrap;
+}
+.filter-btn:hover, .filter-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+.board-count-badge {
+  font-size: 0.72rem; color: var(--text-dim); font-weight: 600; white-space: nowrap;
+}
+
 /* ── Board layout ─────────────────────────── */
 .board-page  { display: flex; flex-direction: column; min-height: 100svh; }
 .board-outer {
-  flex: 1; overflow-x: auto; padding: 20px 20px 32px;
+  flex: 1; overflow-x: auto; padding: 14px 20px 32px;
   -webkit-overflow-scrolling: touch; scrollbar-width: thin;
   scrollbar-color: rgba(37,99,235,0.2) transparent;
 }
@@ -56,7 +86,13 @@ html, body {
   width: 272px; flex-shrink: 0; background: var(--surface);
   border-radius: var(--radius); border: 1px solid var(--border);
   display: flex; flex-direction: column;
-  max-height: calc(100svh - 110px); box-shadow: var(--shadow);
+  max-height: calc(100svh - 150px); box-shadow: var(--shadow);
+  transition: background .15s;
+}
+.column.drag-over {
+  background: rgba(37,99,235,0.04);
+  border-color: rgba(37,99,235,0.35);
+  box-shadow: 0 0 0 2px rgba(37,99,235,0.18);
 }
 .column-header {
   padding: 14px 16px 12px; display: flex; align-items: center;
@@ -79,9 +115,10 @@ html, body {
   padding: 10px; display: flex; flex-direction: column; gap: 7px;
   overflow-y: auto; flex: 1; scrollbar-width: thin;
   scrollbar-color: rgba(0,0,0,0.08) transparent;
+  min-height: 60px;
 }
 
-/* ── Column accent colours ─────────────────── */
+/* ── Column colours ─────────────────────────── */
 .col-new .column-dot        { background: #94a3b8; }
 .col-new .column-title      { color: #64748b; }
 .col-new .column-count      { background: rgba(148,163,184,0.12); }
@@ -91,42 +128,47 @@ html, body {
 .col-scheduled .column-title { color: #92400e; }
 .col-scheduled .column-count { background: rgba(245,158,11,0.1); color: #b45309; }
 .col-scheduled .column-sum   { color: #b45309; }
-.col-scheduled               { border-top: 3px solid #f59e0b; border-radius: var(--radius); }
+.col-scheduled               { border-top: 3px solid #f59e0b; }
 
 .col-in_progress .column-dot   { background: var(--primary); }
 .col-in_progress .column-title { color: var(--primary); }
 .col-in_progress .column-count { background: rgba(37,99,235,0.08); color: var(--primary); }
-.col-in_progress               { border-top: 3px solid var(--primary); border-radius: var(--radius); }
+.col-in_progress               { border-top: 3px solid var(--primary); }
 .col-in_progress .column-sum   { color: var(--primary); }
 
 .col-done .column-dot   { background: var(--purple); }
 .col-done .column-title { color: var(--purple); }
 .col-done .column-count { background: rgba(124,58,237,0.08); color: var(--purple); }
-.col-done               { border-top: 3px solid var(--purple); border-radius: var(--radius); }
+.col-done               { border-top: 3px solid var(--purple); }
 .col-done .column-sum   { color: var(--purple); }
 
 .col-delivered .column-dot   { background: var(--success); }
 .col-delivered .column-title { color: #065f46; }
 .col-delivered .column-count { background: rgba(5,150,105,0.08); color: var(--success); }
-.col-delivered               { border-top: 3px solid var(--success); border-radius: var(--radius); }
+.col-delivered               { border-top: 3px solid var(--success); }
 .col-delivered .column-sum   { color: var(--success); font-size: 0.9rem; }
 
 .col-cancelled .column-dot   { background: #dc2626; }
 .col-cancelled .column-title { color: #991b1b; }
 .col-cancelled .column-count { background: rgba(220,38,38,0.08); color: #dc2626; }
 .col-cancelled .column-sum   { color: #dc2626; }
-.col-cancelled               { border-top: 3px solid #dc2626; border-radius: var(--radius); opacity: 0.85; }
+.col-cancelled               { border-top: 3px solid #dc2626; opacity: 0.85; }
 
 /* ── Kanban card ──────────────────────────── */
 .kanban-card {
   background: #f8fafc; border: 1px solid var(--border);
   border-radius: var(--radius-sm); padding: 12px 13px;
-  cursor: pointer; transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s, background 0.15s;
+  cursor: grab; transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s, background 0.15s, opacity .15s;
+  user-select: none;
 }
 .kanban-card:hover {
   background: var(--surface); border-color: rgba(37,99,235,0.3);
   box-shadow: 0 3px 14px rgba(37,99,235,0.09); transform: translateY(-2px);
 }
+.kanban-card.dragging {
+  opacity: 0.45; cursor: grabbing; transform: rotate(1.5deg) scale(1.03);
+}
+.kanban-card.hidden-by-search { display: none; }
 .card-car {
   font-weight: 700; font-size: 0.88rem; margin-bottom: 5px;
   letter-spacing: -0.2px; white-space: nowrap; overflow: hidden;
@@ -160,6 +202,80 @@ html, body {
 .card-btn-secondary:hover { color: var(--text); border-color: rgba(37,99,235,0.25); background: #fff; }
 
 .empty-col { text-align: center; padding: 28px 12px; color: var(--text-dim); font-size: 0.78rem; }
+.loading { text-align: center; padding: 60px 20px; color: var(--text-muted); font-size: 0.88rem; width: 100%; }
+
+/* ── Drawer (right panel) ─────────────────── */
+.drawer-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(15,23,42,0.35); backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px); z-index: 500;
+}
+.drawer-overlay.active { display: block; }
+
+.drawer {
+  position: fixed; top: 0; right: -420px; bottom: 0;
+  width: 400px; max-width: 100vw;
+  background: var(--surface); border-left: 1px solid var(--border);
+  box-shadow: -8px 0 40px rgba(0,0,0,0.12);
+  display: flex; flex-direction: column; z-index: 600;
+  transition: right .25s cubic-bezier(.4,0,.2,1);
+  overflow: hidden;
+}
+.drawer.active { right: 0; }
+
+.drawer-header {
+  padding: 20px 20px 16px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: flex-start; gap: 12px;
+}
+.drawer-close {
+  margin-left: auto; flex-shrink: 0;
+  width: 32px; height: 32px; border-radius: 8px;
+  background: var(--bg); border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; color: var(--text-muted); transition: all .15s;
+}
+.drawer-close:hover { background: rgba(220,38,38,.08); color: var(--danger); }
+.drawer-car { font-size: 1.1rem; font-weight: 800; letter-spacing: -0.3px; margin-bottom: 4px; }
+.drawer-status-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 700;
+}
+.drawer-body {
+  flex: 1; overflow-y: auto; padding: 18px 20px;
+  scrollbar-width: thin; scrollbar-color: rgba(0,0,0,.08) transparent;
+}
+.drawer-section { margin-bottom: 20px; }
+.drawer-section-title {
+  font-size: 0.67rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--text-dim); margin-bottom: 10px;
+}
+.drawer-row {
+  display: flex; justify-content: space-between; align-items: baseline;
+  padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 0.85rem;
+}
+.drawer-row:last-child { border-bottom: none; }
+.drawer-row-label { color: var(--text-muted); font-weight: 500; }
+.drawer-row-value { font-weight: 700; text-align: right; }
+.drawer-note-box {
+  background: var(--bg); border-radius: var(--radius-sm); padding: 10px 13px; margin-top: 8px;
+}
+.drawer-note-text { font-size: 0.83rem; font-style: italic; color: var(--text-muted); line-height: 1.5; }
+
+.drawer-actions { padding: 16px 20px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 7px; }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 10px 18px; border-radius: var(--radius-sm);
+  font-size: 0.83rem; font-weight: 700; font-family: var(--font);
+  cursor: pointer; border: none; transition: all 0.15s;
+  text-decoration: none; white-space: nowrap; width: 100%;
+}
+.btn-primary   { background: var(--primary); color: #fff; }
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-secondary { background: transparent; color: var(--text-muted); border: 1px solid var(--border); }
+.btn-secondary:hover { background: var(--bg); color: var(--text); }
+.btn-danger    { background: rgba(220,38,38,0.07); color: var(--danger); border: 1px solid rgba(220,38,38,0.15); }
+.btn-danger:hover { background: rgba(220,38,38,0.14); }
 
 /* ── Modal ────────────────────────────────── */
 .modal {
@@ -169,7 +285,6 @@ html, body {
   align-items: center; justify-content: center; padding: 20px;
 }
 .modal.active { display: flex; animation: fadeIn 0.15s ease; }
-
 @keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
 @keyframes slideUp { from { transform: translateY(12px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
@@ -200,41 +315,33 @@ html, body {
 .form-group textarea:focus,
 .form-group select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.10); background: var(--surface); }
 .modal-footer { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
-
-.info-row { display: flex; justify-content: space-between; align-items: baseline; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
-.info-row:last-child { border-bottom: none; }
-.info-row-label { color: var(--text-muted); font-weight: 500; }
-.info-row-value { font-weight: 700; text-align: right; }
-.info-note-box   { background: var(--bg); border-radius: var(--radius-sm); padding: 10px 13px; margin-top: 10px; }
-.info-note-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-dim); margin-bottom: 4px; font-weight: 700; }
-.info-note-text  { font-size: 0.83rem; font-style: italic; color: var(--text-muted); }
-
-.btn {
-  display: inline-flex; align-items: center; gap: 5px;
-  padding: 9px 18px; border-radius: var(--radius-sm);
-  font-size: 0.83rem; font-weight: 700; font-family: var(--font);
-  cursor: pointer; border: none; transition: all 0.15s;
-  text-decoration: none; white-space: nowrap;
-}
-.btn-primary   { background: var(--primary); color: #fff; }
-.btn-primary:hover { background: var(--primary-dark); }
-.btn-secondary { background: transparent; color: var(--text-muted); border: 1px solid var(--border); }
-.btn-secondary:hover { background: var(--bg); color: var(--text); }
-
-.loading { text-align: center; padding: 60px 20px; color: var(--text-muted); font-size: 0.88rem; width: 100%; }
+.modal-footer .btn { width: auto; }
 
 @media (max-width: 640px) {
-  .board-outer  { padding: 12px 10px 24px; }
-  .column       { width: 240px; max-height: calc(100svh - 90px); }
+  .board-outer  { padding: 10px 10px 24px; }
+  .board-toolbar { padding: 10px 10px 0; }
+  .column       { width: 240px; max-height: calc(100svh - 160px); }
   .modal-content { padding: 22px 18px 20px; }
   .modal-footer  { flex-direction: column-reverse; gap: 7px; }
-  .modal-footer .btn { width: 100%; justify-content: center; }
+  .modal-footer .btn { width: 100%; }
+  .drawer       { width: 100vw; }
 }
 </style>
 </head>
 <body>
 
 <div class="board-page">
+  <!-- Поиск и фильтры -->
+  <div class="board-toolbar">
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="searchInput" placeholder="Поиск по авто..." autocomplete="off">
+    </div>
+    <button class="filter-btn" id="filterActive" data-filter="active">Активные</button>
+    <button class="filter-btn" id="filterAll"    data-filter="all">Все</button>
+    <span class="board-count-badge" id="boardCountBadge"></span>
+  </div>
+
   <div class="board-outer">
     <div class="board-wrap" id="board">
       <div class="loading">⏳ Загрузка...</div>
@@ -242,47 +349,31 @@ html, body {
   </div>
 </div>
 
-<!-- Modal: Информация о заказе -->
-<div class="modal" id="modalInfo">
-  <div class="modal-content">
-    <div class="modal-title">ℹ️ Информация о заказе</div>
-    <div style="font-size:1rem;font-weight:700;margin:4px 0 16px;letter-spacing:-0.2px" id="infoCarName"></div>
+<!-- Drawer: информация о заказе -->
+<div class="drawer-overlay" id="drawerOverlay"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
     <div>
-      <div class="info-row">
-        <span class="info-row-label">Статус</span>
-        <span class="info-row-value" id="infoStatus"></span>
-      </div>
-      <div class="info-row">
-        <span class="info-row-label">Сумма</span>
-        <span class="info-row-value" style="color:var(--success)" id="infoPrice"></span>
-      </div>
-      <div class="info-row" id="infoCheckinBlock" style="display:none">
-        <span class="info-row-label">Дата заезда</span>
-        <span class="info-row-value" id="infoCheckin"></span>
-      </div>
+      <div class="drawer-car" id="drawerCarName"></div>
+      <div class="drawer-status-badge" id="drawerStatusBadge"></div>
     </div>
-    <div id="infoNoteBlock" style="display:none">
-      <div class="info-note-box">
-        <div class="info-note-label">Комментарий</div>
-        <div class="info-note-text" id="infoNote"></div>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-secondary" id="btnInfoClose">Закрыть</button>
-      <button class="btn btn-primary"   id="btnInfoOpenCalc">📂 Открыть расчёт</button>
-    </div>
+    <button class="drawer-close" id="drawerClose">✕</button>
+  </div>
+  <div class="drawer-body" id="drawerBody">
+    <!-- заполняется динамически -->
+  </div>
+  <div class="drawer-actions" id="drawerActions">
+    <!-- кнопки действий -->
   </div>
 </div>
 
-<!-- Modal: Завершить работу -->
+<!-- Modal: Завершить работу (план/факт материалов) -->
 <div class="modal" id="modalDone">
   <div class="modal-content" style="max-width:540px">
     <div class="modal-title">✅ Завершить работу</div>
     <div class="modal-car" id="doneCarName"></div>
     <div id="doneMaterialsBlock" style="margin-bottom:16px">
-      <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:10px">
-        📦 Расход материалов
-      </div>
+      <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:10px">📦 Расход материалов</div>
       <div id="doneMaterialsLoading" style="color:var(--text-muted);font-size:0.82rem;text-align:center;padding:12px 0">Загрузка...</div>
       <div id="doneMaterialsRows" style="display:none">
         <div style="display:grid;grid-template-columns:1fr 110px 110px;gap:6px;margin-bottom:6px;padding:0 2px">
@@ -298,9 +389,7 @@ html, body {
         </div>
         <div id="doneDelta" style="margin-top:6px;font-size:0.78rem;text-align:right;color:var(--text-muted)"></div>
       </div>
-      <div id="doneMaterialsEmpty" style="display:none;color:var(--text-muted);font-size:0.82rem;padding:8px 0">
-        В расчёте нет плановых материалов.
-      </div>
+      <div id="doneMaterialsEmpty" style="display:none;color:var(--text-muted);font-size:0.82rem;padding:8px 0">В расчёте нет плановых материалов.</div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" id="btnDoneCancel">Отмена</button>
@@ -340,52 +429,69 @@ html, body {
 <script src="footer.js"></script>
 <script src="booking-popup.js"></script>
 <script type="module">
-import { sb }              from './supabase.js';
-import { requireAuth }     from './auth.js';
-import { getStudioContext } from './studio-context.js';
+import { sb }               from './supabase.js';
+import { requireAuth }      from './auth.js';
+import { getStudioContext }  from './studio-context.js';
 import { showToast, showLoading, showError, showEmpty, lockButton, confirmAction } from './ui.js';
 
 // ── Состояние ──────────────────────────────────────────────────────
-let allCalcs      = [];
-let assignmentsMap = {};  // calcId → [{executor_name, salary, is_admin_sale, admin_percent}]
-let activeCalcId  = null;
-let studioCtx     = null;
+let allCalcs       = [];
+let assignmentsMap = {};
+let activeCalcId   = null;
+let studioCtx      = null;
 let _donePlanItems = [];
+let _dragCalcId    = null;
+let _dragStatus    = null;
+let currentFilter  = 'active'; // 'active' | 'all'
+let searchTerm     = '';
 
-// ── Константы колонок ──────────────────────────────────────────────
+// ── Константы ──────────────────────────────────────────────────────
 const COLUMNS = [
-  { key: 'new',         label: 'Расчёт произведён',      icon: '📋' },
-  { key: 'scheduled',   label: 'Назначена дата и время', icon: '📅' },
-  { key: 'in_progress', label: 'Принято в работу',       icon: '🔧' },
-  { key: 'done',        label: 'Завершено',              icon: '✅' },
-  { key: 'delivered',   label: 'Выдано',                 icon: '🚗' },
-  { key: 'cancelled',   label: 'Отказ',                  icon: '❌' },
+  { key: 'new',         label: 'Расчёт произведён',      icon: '📋', active: true  },
+  { key: 'scheduled',   label: 'Назначена дата',          icon: '📅', active: true  },
+  { key: 'in_progress', label: 'В работе',                icon: '🔧', active: true  },
+  { key: 'done',        label: 'Завершено',               icon: '✅', active: true  },
+  { key: 'delivered',   label: 'Выдано',                  icon: '🚗', active: false },
+  { key: 'cancelled',   label: 'Отказ',                   icon: '❌', active: false },
 ];
+
+const STATUS_COLORS = {
+  new:         { bg: 'rgba(148,163,184,0.12)', color: '#64748b' },
+  scheduled:   { bg: 'rgba(245,158,11,0.12)',  color: '#b45309' },
+  in_progress: { bg: 'rgba(37,99,235,0.10)',   color: '#2563eb' },
+  done:        { bg: 'rgba(124,58,237,0.10)',  color: '#7c3aed' },
+  delivered:   { bg: 'rgba(5,150,105,0.10)',   color: '#059669' },
+  cancelled:   { bg: 'rgba(220,38,38,0.10)',   color: '#dc2626' },
+};
 
 // ── Утилиты ────────────────────────────────────────────────────────
 function fmt(n) {
   return new Intl.NumberFormat('ru-RU', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(n || 0);
 }
-
 function fmtDate(d) {
   if (!d) return null;
   return new Date(d).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
 }
-
 function normalizeStatus(status) {
   if (!status || status === 'draft' || status === 'pending') return 'new';
   return status;
+}
+function visibleColumns() {
+  return currentFilter === 'active'
+    ? COLUMNS.filter(c => c.active)
+    : COLUMNS;
 }
 
 // ── Обновление статуса в БД ────────────────────────────────────────
 async function updateStatus(calcId, status, extra = {}) {
   const { error } = await sb
     .from('calculations')
-    .update({ status, ...extra })
-    .eq('id', calcId);
+    .update({ status, updated_at: new Date().toISOString(), ...extra })
+    .eq('id', calcId)
+    .eq('studio_id', studioCtx.studioId);
   if (error) {
-    showToast('error', 'Ошибка: ' + error.message);
     console.error('[board] updateStatus:', error);
+    showToast('error', 'Ошибка обновления статуса');
     return false;
   }
   return true;
@@ -410,15 +516,12 @@ async function loadBoard() {
 
   allCalcs = data || [];
 
-  // Загружаем назначения
   assignmentsMap = {};
   if (allCalcs.length > 0) {
-    const calcIds = allCalcs.map(c => c.id);
     const { data: assignments } = await sb
       .from('work_assignments')
       .select('calculation_id, executor_name, salary, is_admin_sale, admin_percent')
-      .in('calculation_id', calcIds);
-
+      .in('calculation_id', allCalcs.map(c => c.id));
     (assignments || []).forEach(a => {
       if (!assignmentsMap[a.calculation_id]) assignmentsMap[a.calculation_id] = [];
       assignmentsMap[a.calculation_id].push(a);
@@ -433,14 +536,17 @@ function renderBoard() {
   const board = document.getElementById('board');
   board.innerHTML = '';
 
-  const frag = document.createDocumentFragment();
+  const cols  = visibleColumns();
+  const frag  = document.createDocumentFragment();
+  let total   = 0;
 
-  COLUMNS.forEach(col => {
-    const cards  = allCalcs.filter(c => normalizeStatus(c.status) === col.key);
-    const colSum = cards.reduce((s, c) => s + (c.final_price || c.total_price || 0), 0);
+  cols.forEach(col => {
+    let cards = allCalcs.filter(c => normalizeStatus(c.status) === col.key);
+    total += cards.length;
 
     const colEl = document.createElement('div');
     colEl.className = `column col-${col.key}`;
+    colEl.dataset.status = col.key;
 
     // Заголовок
     const header = document.createElement('div');
@@ -455,62 +561,112 @@ function renderBoard() {
 
     const metaEl = document.createElement('div');
     metaEl.style.cssText = 'display:flex;flex-direction:column;align-items:flex-end;gap:2px';
-
     const countEl = document.createElement('div');
     countEl.className = 'column-count';
-    countEl.textContent = `${cards.length} авто`;
+    countEl.textContent = `${cards.length}`;
     metaEl.appendChild(countEl);
 
+    const colSum = cards.reduce((s, c) => s + (c.final_price || c.total_price || 0), 0);
     if (colSum > 0) {
       const sumEl = document.createElement('div');
       sumEl.className = 'column-sum';
-      sumEl.textContent = fmt(colSum);
+      sumEl.textContent = fmt(colSum) + ' ₽';
       metaEl.appendChild(sumEl);
     }
-
     header.append(titleEl, metaEl);
 
     // Карточки
     const cardsEl = document.createElement('div');
     cardsEl.className = 'column-cards';
+    cardsEl.dataset.status = col.key;
 
     if (cards.length === 0) {
       const empty = document.createElement('div');
       empty.className = 'empty-col';
-      empty.textContent = '📭 Пока пусто';
+      empty.textContent = '📭 Пусто';
       cardsEl.appendChild(empty);
     } else {
       cards.forEach(c => cardsEl.appendChild(buildCard(c, col.key)));
     }
+
+    // Drag & drop на колонку
+    colEl.addEventListener('dragover', onDragOver);
+    colEl.addEventListener('dragleave', onDragLeave);
+    colEl.addEventListener('drop', onDrop);
 
     colEl.append(header, cardsEl);
     frag.appendChild(colEl);
   });
 
   board.appendChild(frag);
+  applySearch();
+  updateBadge(total);
+}
+
+// ── Drag & Drop ────────────────────────────────────────────────────
+function onDragStart(e, calcId, fromStatus) {
+  _dragCalcId  = calcId;
+  _dragStatus  = fromStatus;
+  e.dataTransfer.effectAllowed = 'move';
+  e.currentTarget.classList.add('dragging');
+}
+function onDragEnd(e) {
+  e.currentTarget.classList.remove('dragging');
+  document.querySelectorAll('.column.drag-over').forEach(c => c.classList.remove('drag-over'));
+}
+function onDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  e.currentTarget.closest('.column')?.classList.add('drag-over');
+}
+function onDragLeave(e) {
+  if (!e.currentTarget.contains(e.relatedTarget)) {
+    e.currentTarget.closest('.column')?.classList.remove('drag-over');
+  }
+}
+async function onDrop(e) {
+  e.preventDefault();
+  const col = e.currentTarget.closest('.column');
+  col?.classList.remove('drag-over');
+  const toStatus = col?.dataset.status;
+  if (!toStatus || !_dragCalcId || toStatus === _dragStatus) return;
+
+  // Нельзя перетащить в done/delivered через drag — там нужны модалы
+  if (toStatus === 'done') {
+    const calc = allCalcs.find(c => c.id === _dragCalcId);
+    openModalDone(_dragCalcId, calc?.car_name || 'Без названия');
+    return;
+  }
+  if (toStatus === 'delivered') {
+    const calc = allCalcs.find(c => c.id === _dragCalcId);
+    openModalDeliver(_dragCalcId, calc?.car_name || 'Без названия', calc?.total_price || 0);
+    return;
+  }
+
+  const ok = await updateStatus(_dragCalcId, toStatus);
+  if (ok) {
+    showToast('success', `Статус изменён → ${COLUMNS.find(c=>c.key===toStatus)?.label}`);
+    loadBoard();
+  }
 }
 
 // ── Построение карточки ────────────────────────────────────────────
 function buildCard(calc, status) {
   const card = document.createElement('div');
   card.className = 'kanban-card';
-  // Все данные — в data-атрибутах. Обработчики навешены через delegation.
-  card.dataset.calcId      = calc.id;
-  card.dataset.status      = status;
-  card.dataset.carName     = calc.car_name     || '';
-  card.dataset.checkinDate = calc.checkin_date || '';
-  card.dataset.checkinTime = calc.checkin_time || '';
-  card.dataset.note        = calc.schedule_note || '';
-  card.dataset.price       = String(calc.final_price || calc.total_price || 0);
+  card.dataset.calcId  = calc.id;
+  card.dataset.status  = status;
+  card.dataset.carName = (calc.car_name || '').toLowerCase();
+  card.draggable = true;
 
-  // Название авто
+  card.addEventListener('dragstart', e => onDragStart(e, calc.id, status));
+  card.addEventListener('dragend',   onDragEnd);
+
   const carEl = document.createElement('div');
   carEl.className = 'card-car';
-  carEl.textContent = calc.car_name || 'Без названия'; // textContent — безопасно
-
+  carEl.textContent = calc.car_name || 'Без названия';
   card.appendChild(carEl);
 
-  // Дата заезда
   if (calc.checkin_date) {
     const checkinEl = document.createElement('div');
     checkinEl.className = 'card-checkin';
@@ -519,7 +675,6 @@ function buildCard(calc, status) {
     card.appendChild(checkinEl);
   }
 
-  // Заметка
   if (calc.schedule_note) {
     const noteEl = document.createElement('div');
     noteEl.className = 'card-note';
@@ -527,30 +682,31 @@ function buildCard(calc, status) {
     card.appendChild(noteEl);
   }
 
-  // Цена
   const priceEl = document.createElement('div');
   priceEl.className = 'card-price';
-  priceEl.textContent = fmt(calc.final_price || calc.total_price);
+  priceEl.textContent = fmt(calc.final_price || calc.total_price) + ' ₽';
   card.appendChild(priceEl);
 
-  // Блок исполнителей
   if (['in_progress', 'done', 'delivered'].includes(status)) {
     const execBlock = buildExecutorsBlock(calc, status);
     if (execBlock) card.appendChild(execBlock);
   }
 
-  // Кнопки действий
-  const actionsEl = buildCardActions(calc.id, status, calc);
-  card.appendChild(actionsEl);
+  // Клик по карточке → drawer
+  card.addEventListener('click', e => {
+    if (e.target.closest('.card-btn')) return;
+    openDrawer(calc, status);
+  });
 
   return card;
 }
 
+// ── Блок исполнителей на карточке ─────────────────────────────────
 function buildExecutorsBlock(calc, status) {
   const asgns = assignmentsMap[calc.id] || [];
   if (!asgns.length) return null;
 
-  const workers   = asgns.filter(a => !a.is_admin_sale);
+  const workers    = asgns.filter(a => !a.is_admin_sale);
   const adminSales = asgns.filter(a => a.is_admin_sale);
 
   let adminSalary = 0;
@@ -577,206 +733,212 @@ function buildExecutorsBlock(calc, status) {
   label.textContent = '👥 Исполнители';
   block.appendChild(label);
 
-  if (uniqueNames.length > 0) {
-    uniqueNames.forEach(name => {
-      const nameEl = document.createElement('div');
-      nameEl.style.cssText = 'font-size:0.75rem;color:#0f172a;font-weight:600;line-height:1.5';
-      nameEl.textContent = name;
-      block.appendChild(nameEl);
-    });
-  } else {
-    const noExec = document.createElement('div');
-    noExec.style.cssText = 'font-size:0.73rem;color:#94a3b8;font-style:italic';
-    noExec.textContent = 'Не назначены';
-    block.appendChild(noExec);
+  uniqueNames.forEach(name => {
+    const el = document.createElement('div');
+    el.style.cssText = 'font-size:0.75rem;color:#0f172a;font-weight:600;line-height:1.5';
+    el.textContent = name;
+    block.appendChild(el);
+  });
+
+  if (!uniqueNames.length) {
+    const el = document.createElement('div');
+    el.style.cssText = 'font-size:0.73rem;color:#94a3b8;font-style:italic';
+    el.textContent = 'Не назначены';
+    block.appendChild(el);
   }
 
   if (totalSalary > 0) {
     const salEl = document.createElement('div');
     salEl.style.cssText = 'font-size:0.75rem;font-weight:700;color:#7c3aed;margin-top:2px';
-    const salaryLabel = (status === 'delivered' && adminSales.length > 0 && calc.final_price)
+    const lbl = (status === 'delivered' && adminSales.length > 0 && calc.final_price)
       ? '💸 ЗП (от факта)' : '💸 ЗП (план)';
-    salEl.textContent = `${salaryLabel}: ${fmt(totalSalary)}`;
+    salEl.textContent = `${lbl}: ${fmt(totalSalary)} ₽`;
     block.appendChild(salEl);
   }
 
   return block;
 }
 
-// Кнопки — data-action навешивается, delegation ниже
-function buildCardActions(calcId, status, calc) {
-  const wrap = document.createElement('div');
-  wrap.className = 'card-actions';
+// ── DRAWER ─────────────────────────────────────────────────────────
+function openDrawer(calc, status) {
+  activeCalcId = calc.id;
 
-  const btn = (text, action, cls = 'card-btn-secondary', extraStyle = '') => {
+  const col      = COLUMNS.find(c => c.key === status);
+  const sc       = STATUS_COLORS[status] || STATUS_COLORS.new;
+  const carName  = calc.car_name || 'Без названия';
+
+  document.getElementById('drawerCarName').textContent = carName;
+
+  const badge = document.getElementById('drawerStatusBadge');
+  badge.textContent = `${col?.icon || ''} ${col?.label || status}`;
+  badge.style.cssText = `background:${sc.bg};color:${sc.color}`;
+
+  // Body — детали
+  const body = document.getElementById('drawerBody');
+  body.innerHTML = '';
+
+  const rows = [];
+
+  const price = calc.final_price || calc.total_price;
+  if (price) rows.push(['💰 Сумма', fmt(price) + ' ₽']);
+
+  if (calc.checkin_date) {
+    const timeStr = calc.checkin_time ? ', ' + calc.checkin_time.slice(0, 5) : '';
+    rows.push(['📅 Дата заезда', fmtDate(calc.checkin_date) + timeStr]);
+  }
+
+  const asgns = assignmentsMap[calc.id] || [];
+  const uniqueNames = [...new Set(asgns.map(a => a.executor_name).filter(Boolean))];
+  if (uniqueNames.length) rows.push(['👥 Исполнители', uniqueNames.join(', ')]);
+
+  rows.push(['📆 Создан', new Date(calc.created_at).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })]);
+
+  const section = document.createElement('div');
+  section.className = 'drawer-section';
+  rows.forEach(([label, value]) => {
+    const row = document.createElement('div');
+    row.className = 'drawer-row';
+    row.innerHTML = `<span class="drawer-row-label">${label}</span><span class="drawer-row-value">${value}</span>`;
+    section.appendChild(row);
+  });
+  body.appendChild(section);
+
+  if (calc.schedule_note) {
+    const noteSection = document.createElement('div');
+    noteSection.className = 'drawer-section';
+    const noteTitle = document.createElement('div');
+    noteTitle.className = 'drawer-section-title';
+    noteTitle.textContent = 'Комментарий';
+    const noteBox = document.createElement('div');
+    noteBox.className = 'drawer-note-box';
+    const noteText = document.createElement('div');
+    noteText.className = 'drawer-note-text';
+    noteText.textContent = calc.schedule_note;
+    noteBox.appendChild(noteText);
+    noteSection.append(noteTitle, noteBox);
+    body.appendChild(noteSection);
+  }
+
+  // Actions
+  buildDrawerActions(calc, status);
+
+  document.getElementById('drawerOverlay').classList.add('active');
+  document.getElementById('drawer').classList.add('active');
+}
+
+function closeDrawer() {
+  document.getElementById('drawer').classList.remove('active');
+  document.getElementById('drawerOverlay').classList.remove('active');
+  setTimeout(() => { activeCalcId = null; }, 300);
+}
+
+function buildDrawerActions(calc, status) {
+  const el = document.getElementById('drawerActions');
+  el.innerHTML = '';
+
+  const btn = (text, fn, cls = 'btn-secondary') => {
     const b = document.createElement('button');
-    b.className = `card-btn ${cls}`;
+    b.className = `btn ${cls}`;
     b.textContent = text;
-    b.dataset.action  = action;
-    b.dataset.calcId  = calcId;
-    if (extraStyle) b.style.cssText = extraStyle;
+    b.addEventListener('click', fn);
     return b;
   };
 
+  const goCalc     = () => { window.location.href = `calculator.html?load=${encodeURIComponent(calc.id)}`; };
+  const goAssign   = () => { window.location.href = `assign-work.html?calc_id=${encodeURIComponent(calc.id)}`; };
+  const goAct      = () => { window.location.href = `acceptance-act.html?calc_id=${encodeURIComponent(calc.id)}`; };
+  const goWorkOrder= () => { window.location.href = `work-order.html?calc_id=${encodeURIComponent(calc.id)}`; };
+
+  const doBook = () => {
+    closeDrawer();
+    BookingPopup.open({
+      calcId: calc.id, calcName: calc.car_name || 'Без названия',
+      calcPrice: calc.final_price || calc.total_price || 0,
+      studioId: studioCtx.studioId, onSaved: loadBoard,
+    });
+  };
+
+  const doCancel = async () => {
+    const ok = await confirmAction({ message: `Перевести «${calc.car_name || 'Без названия'}» в отказ?` });
+    if (!ok) return;
+    const success = await updateStatus(calc.id, 'cancelled');
+    if (success) { closeDrawer(); showToast('success', 'Заказ отменён'); loadBoard(); }
+  };
+
+  const doRestore = async () => {
+    const ok = await confirmAction({ message: `Вернуть «${calc.car_name || 'Без названия'}» в расчёты?` });
+    if (!ok) return;
+    const success = await updateStatus(calc.id, 'new');
+    if (success) { closeDrawer(); showToast('success', 'Заказ восстановлен'); loadBoard(); }
+  };
+
+  const doDone = () => {
+    closeDrawer();
+    openModalDone(calc.id, calc.car_name || 'Без названия');
+  };
+  const doDeliver = () => {
+    closeDrawer();
+    openModalDeliver(calc.id, calc.car_name || 'Без названия', calc.total_price || 0);
+  };
+
   if (status === 'new') {
-    wrap.append(
-      btn('📂 Открыть',  'open-calc'),
-      btn('📅 Записать', 'book',   'card-btn-primary'),
-      btn('❌ Отказ',    'cancel', 'card-btn-cancel'),
+    el.append(
+      btn('📂 Открыть расчёт', goCalc),
+      btn('📅 Записать', doBook, 'btn-primary'),
+      btn('❌ Отказ', doCancel, 'btn-danger'),
     );
   } else if (status === 'scheduled') {
-    wrap.append(
-      btn('📂 Открыть',         'open-calc'),
-      btn('✏️ Изменить запись', 'book'),
-      btn('📋 Принять авто',   'accept-act'),
-      btn('🔧 Взять в работу', 'go-assign', 'card-btn-primary'),
-      btn('❌ Отказ',          'cancel',    'card-btn-cancel'),
+    el.append(
+      btn('📂 Открыть расчёт',   goCalc),
+      btn('✏️ Изменить запись',  doBook),
+      btn('📋 Акт приёмки',      goAct),
+      btn('🔧 Взять в работу',   goAssign, 'btn-primary'),
+      btn('❌ Отказ',            doCancel, 'btn-danger'),
     );
   } else if (status === 'in_progress') {
-    wrap.append(
-      btn('📂 Открыть',   'open-calc'),
-      btn('👥 Задачи',    'go-assign'),
-      btn('✅ Завершить', 'done',   'card-btn-primary', 'background:var(--purple);color:#fff'),
+    el.append(
+      btn('📂 Открыть расчёт', goCalc),
+      btn('👥 Задачи',         goAssign),
+      btn('✅ Завершить',       doDone, 'btn-primary'),
     );
   } else if (status === 'done') {
-    wrap.append(
-      btn('📂 Открыть',         'open-calc'),
-      btn('📄 Акт приёмки',     'accept-act'),
-      btn('🖨️ Заказ-наряд',    'work-order'),
-      btn('🚗 Выдать клиенту',  'deliver', 'card-btn-primary', 'background:var(--success);color:#fff'),
+    el.append(
+      btn('📂 Открыть расчёт',    goCalc),
+      btn('📄 Акт приёмки',       goAct),
+      btn('🖨️ Заказ-наряд',      goWorkOrder),
+      btn('🚗 Выдать клиенту',    doDeliver, 'btn-primary'),
     );
-    // Сохраняем цену для модала выдачи
-    wrap.dataset.totalPrice = String(calc.total_price || 0);
   } else if (status === 'delivered') {
-    wrap.append(
-      btn('📂 Открыть',     'open-calc'),
-      btn('📄 Акт приёмки', 'accept-act'),
-      btn('🖨️ Акт передачи', 'work-order', 'card-btn-primary', 'background:#0f172a;color:#fff'),
+    el.append(
+      btn('📂 Открыть расчёт',  goCalc),
+      btn('📄 Акт приёмки',     goAct),
+      btn('🖨️ Акт передачи',   goWorkOrder),
     );
   } else if (status === 'cancelled') {
-    wrap.append(
-      btn('📂 Открыть',      'open-calc'),
-      btn('↩️ Восстановить', 'restore'),
+    el.append(
+      btn('📂 Открыть расчёт', goCalc),
+      btn('↩️ Восстановить',   doRestore, 'btn-primary'),
     );
   }
-
-  return wrap;
 }
 
-// ── Event delegation на всей доске ─────────────────────────────────
-function bindBoardEvents() {
-  const board = document.getElementById('board');
-
-  board.addEventListener('click', async e => {
-    // Кнопка действия
-    const btn = e.target.closest('[data-action]');
-    if (btn) {
-      e.stopPropagation();
-      await handleCardAction(btn.dataset.action, btn.dataset.calcId, btn);
-      return;
-    }
-
-    // Клик по карточке → инфо-модал
-    const card = e.target.closest('.kanban-card');
-    if (card) {
-      openModalInfo(card.dataset);
-    }
+// ── Поиск ──────────────────────────────────────────────────────────
+function applySearch() {
+  const term = searchTerm.trim().toLowerCase();
+  let visible = 0;
+  document.querySelectorAll('.kanban-card').forEach(card => {
+    const name = card.dataset.carName || '';
+    const match = !term || name.includes(term);
+    card.classList.toggle('hidden-by-search', !match);
+    if (match) visible++;
   });
+  updateBadge(visible);
 }
 
-async function handleCardAction(action, calcId, btnEl) {
-  const calc = allCalcs.find(c => c.id === calcId);
-  if (!calc && action !== 'open-calc') return;
-
-  const carName = calc?.car_name || 'Без названия';
-
-  switch (action) {
-    case 'open-calc':
-      window.location.href = `calculator.html?load=${encodeURIComponent(calcId)}`;
-      break;
-
-    case 'book':
-      activeCalcId = calcId;
-      BookingPopup.open({
-        calcId,
-        calcName:  carName,
-        calcPrice: calc.final_price || calc.total_price || 0,
-        studioId:  studioCtx.studioId,
-        onSaved:   loadBoard,
-      });
-      break;
-
-    case 'accept-act':
-      window.location.href = `acceptance-act.html?calc_id=${encodeURIComponent(calcId)}`;
-      break;
-
-    case 'work-order':
-      window.location.href = `work-order.html?calc_id=${encodeURIComponent(calcId)}`;
-      break;
-
-    case 'go-assign':
-      window.location.href = `assign-work.html?calc_id=${encodeURIComponent(calcId)}`;
-      break;
-
-    case 'done':
-      openModalDone(calcId, carName);
-      break;
-
-    case 'deliver':
-      openModalDeliver(calcId, carName, calc.total_price || 0);
-      break;
-
-    case 'cancel': {
-      const ok = await confirmAction({ message: `Перевести «${carName}» в отказ?` });
-      if (!ok) return;
-      const release = lockButton(btnEl, '...');
-      const success = await updateStatus(calcId, 'cancelled');
-      release();
-      if (success) { showToast('success', 'Заказ отменён'); loadBoard(); }
-      break;
-    }
-
-    case 'restore': {
-      const ok = await confirmAction({ message: `Вернуть «${carName}» в расчёты?` });
-      if (!ok) return;
-      const release = lockButton(btnEl, '...');
-      const success = await updateStatus(calcId, 'new');
-      release();
-      if (success) { showToast('success', 'Заказ восстановлен'); loadBoard(); }
-      break;
-    }
-  }
-}
-
-// ── Модал: информация о заказе ─────────────────────────────────────
-function openModalInfo(dataset) {
-  activeCalcId = dataset.calcId;
-  const STATUS_LABELS = Object.fromEntries(
-    COLUMNS.map(c => [c.key, `${c.icon} ${c.label}`])
-  );
-
-  document.getElementById('infoCarName').textContent  = dataset.carName || 'Без названия';
-  document.getElementById('infoStatus').textContent   = STATUS_LABELS[dataset.status] || dataset.status;
-  document.getElementById('infoPrice').textContent    = fmt(parseFloat(dataset.price) || 0);
-
-  const checkinBlock = document.getElementById('infoCheckinBlock');
-  if (dataset.checkinDate) {
-    const timeStr = dataset.checkinTime ? ', ' + dataset.checkinTime.slice(0, 5) : '';
-    document.getElementById('infoCheckin').textContent = fmtDate(dataset.checkinDate) + timeStr;
-    checkinBlock.style.display = 'flex';
-  } else {
-    checkinBlock.style.display = 'none';
-  }
-
-  const noteBlock = document.getElementById('infoNoteBlock');
-  if (dataset.note) {
-    document.getElementById('infoNote').textContent = dataset.note;
-    noteBlock.style.display = 'block';
-  } else {
-    noteBlock.style.display = 'none';
-  }
-
-  document.getElementById('modalInfo').classList.add('active');
+function updateBadge(count) {
+  const badge = document.getElementById('boardCountBadge');
+  const cols  = visibleColumns();
+  badge.textContent = count ? `${count} авто · ${cols.length} колонок` : '';
 }
 
 // ── Модал: завершить работу ────────────────────────────────────────
@@ -798,13 +960,13 @@ function extractMaterials(calcData) {
   }
 
   if (d.package) {
-    add('pkg_wrap', 'Оклейка (Полная защита)',     d.package.wrapMat);
-    add('pkg_prep', 'Подготовка (Полная защита)',   d.package.prepMat);
-    add('pkg_arm',  'Бронирование (Полная защита)', d.package.armMat);
+    add('pkg_wrap', 'Оклейка (Полная защита кузова)', d.package.wrapMat);
+    add('pkg_prep', 'Подготовка (Полная защита)',     d.package.prepMat);
+    add('pkg_arm',  'Бронирование (Полная защита)',   d.package.armMat);
   }
   if (d.impact) {
     add('impact_wrap', 'Оклейка (Ударная часть)',     d.impact.wrapMat);
-    add('impact_prep', 'Подготовка (Ударная часть)', d.impact.prepMat);
+    add('impact_prep', 'Подготовка (Ударная часть)',  d.impact.prepMat);
     add('impact_arm',  'Бронирование (Ударная часть)', d.impact.armMat);
   }
   if (d.services_detail) {
@@ -815,13 +977,7 @@ function extractMaterials(calcData) {
         if (m > 0) add(`${key}_${idx}`, item.name || gName, m);
       });
     });
-  } else {
-    const cats = { arm: 'Арматурные работы', wrap: 'Оклейка', det: 'Детейлинг', gl: 'Стёкла', ms: 'Прочие услуги' };
-    Object.entries(cats).forEach(([key, name]) => {
-      if (d[key]) add(key, name, d[key].mat || d[key].material);
-    });
   }
-
   return items;
 }
 
@@ -838,8 +994,7 @@ async function loadDoneMaterials(calcId) {
   const { data } = await sb
     .from('calculations')
     .select('calculation_data, fact_materials')
-    .eq('id', calcId)
-    .single();
+    .eq('id', calcId).single();
 
   const items    = extractMaterials(data?.calculation_data || {});
   const existing = data?.fact_materials || {};
@@ -860,7 +1015,7 @@ async function loadDoneMaterials(calcId) {
     const nameEl = document.createElement('div');
     nameEl.style.cssText = 'font-size:0.8rem;color:var(--text);font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
     nameEl.title = item.name;
-    nameEl.textContent = item.name; // безопасно
+    nameEl.textContent = item.name;
 
     const planEl = document.createElement('div');
     planEl.style.cssText = 'font-size:0.82rem;color:var(--text-muted);text-align:right;font-weight:600';
@@ -868,9 +1023,7 @@ async function loadDoneMaterials(calcId) {
 
     const factWrap = document.createElement('div');
     const factInput = document.createElement('input');
-    factInput.type = 'number';
-    factInput.min  = '0';
-    factInput.step = '1';
+    factInput.type  = 'number'; factInput.min = '0'; factInput.step = '1';
     factInput.dataset.key = item.key;
     factInput.value = String(existing[item.key] !== undefined ? existing[item.key] : item.plan);
     factInput.style.cssText = 'width:100%;padding:5px 8px;background:rgba(124,58,237,0.05);border:1px solid rgba(124,58,237,0.25);border-radius:6px;font-size:0.82rem;font-weight:700;color:#7c3aed;outline:none;text-align:right;font-family:var(--font)';
@@ -881,7 +1034,6 @@ async function loadDoneMaterials(calcId) {
     frag.appendChild(row);
   });
   list.appendChild(frag);
-
   updateDoneTotals();
 }
 
@@ -891,22 +1043,13 @@ function updateDoneTotals() {
   document.querySelectorAll('#doneMaterialsList input[data-key]').forEach(inp => {
     factSum += parseFloat(inp.value) || 0;
   });
-
   document.getElementById('donePlanTotal').textContent = fmt(planSum);
   document.getElementById('doneFactTotal').textContent = fmt(factSum);
-
-  const delta   = factSum - planSum;
+  const delta = factSum - planSum;
   const deltaEl = document.getElementById('doneDelta');
-  if (delta === 0) {
-    deltaEl.textContent = 'Факт совпал с планом';
-    deltaEl.style.color = 'var(--text-muted)';
-  } else if (delta > 0) {
-    deltaEl.textContent = `Перерасход: +${fmt(delta)}`;
-    deltaEl.style.color = 'var(--danger)';
-  } else {
-    deltaEl.textContent = `Экономия: ${fmt(Math.abs(delta))}`;
-    deltaEl.style.color = 'var(--success)';
-  }
+  if (delta === 0)      { deltaEl.textContent = 'Факт совпал с планом'; deltaEl.style.color = 'var(--text-muted)'; }
+  else if (delta > 0)   { deltaEl.textContent = `Перерасход: +${fmt(delta)}`; deltaEl.style.color = 'var(--danger)'; }
+  else                  { deltaEl.textContent = `Экономия: ${fmt(Math.abs(delta))}`; deltaEl.style.color = 'var(--success)'; }
 }
 
 // ── Модал: выдать клиенту ──────────────────────────────────────────
@@ -918,32 +1061,20 @@ function openModalDeliver(calcId, carName, price) {
   document.getElementById('modalDeliver').classList.add('active');
 }
 
-// ── Закрытие модалов ───────────────────────────────────────────────
-function closeModal(modalId) {
-  document.getElementById(modalId)?.classList.remove('active');
-  if (!document.querySelector('.modal.active')) activeCalcId = null;
+function closeModal(id) {
+  document.getElementById(id)?.classList.remove('active');
 }
 
-// ── Привязка событий модалов ───────────────────────────────────────
-function bindModalEvents() {
-  // Закрытие по клику вне
-  document.querySelectorAll('.modal').forEach(m => {
-    m.addEventListener('click', e => {
-      if (e.target === m) closeModal(m.id);
-    });
-  });
+// ── Привязка событий ───────────────────────────────────────────────
+function bindEvents() {
+  // Drawer
+  document.getElementById('drawerClose').addEventListener('click', closeDrawer);
+  document.getElementById('drawerOverlay').addEventListener('click', closeDrawer);
 
-  // Кнопки модала Info
-  document.getElementById('btnInfoClose').addEventListener('click', () => closeModal('modalInfo'));
-  document.getElementById('btnInfoOpenCalc').addEventListener('click', () => {
-    closeModal('modalInfo');
-    if (activeCalcId) window.location.href = `calculator.html?load=${encodeURIComponent(activeCalcId)}`;
-  });
-
-  // Кнопки модала Done
+  // Модал Done
   document.getElementById('btnDoneCancel').addEventListener('click', () => closeModal('modalDone'));
   document.getElementById('btnDoneSave').addEventListener('click', async () => {
-    const btn  = document.getElementById('btnDoneSave');
+    const btn = document.getElementById('btnDoneSave');
     const release = lockButton(btn, '⏳ Сохранение...');
     const factMaterials = {};
     document.querySelectorAll('#doneMaterialsList input[data-key]').forEach(inp => {
@@ -952,27 +1083,53 @@ function bindModalEvents() {
     const extra = Object.keys(factMaterials).length > 0 ? { fact_materials: factMaterials } : {};
     const ok = await updateStatus(activeCalcId, 'done', extra);
     release();
-    if (ok) {
-      closeModal('modalDone');
-      showToast('success', 'Работа завершена');
-      loadBoard();
-    }
+    if (ok) { closeModal('modalDone'); showToast('success', 'Работа завершена'); loadBoard(); }
+  });
+  document.getElementById('modalDone').addEventListener('click', e => {
+    if (e.target === document.getElementById('modalDone')) closeModal('modalDone');
   });
 
-  // Кнопки модала Deliver
+  // Модал Deliver
   document.getElementById('btnDeliverCancel').addEventListener('click', () => closeModal('modalDeliver'));
   document.getElementById('btnDeliverSave').addEventListener('click', async () => {
-    const btn     = document.getElementById('btnDeliverSave');
+    const btn = document.getElementById('btnDeliverSave');
     const release = lockButton(btn, '⏳ Сохранение...');
-    const price   = parseFloat(document.getElementById('deliverPrice').value) || null;
-    const note    = document.getElementById('deliverNote').value.trim();
-    const ok = await updateStatus(activeCalcId, 'delivered', { final_price: price, delivery_note: note });
+    const price = parseFloat(document.getElementById('deliverPrice').value) || null;
+    const note  = document.getElementById('deliverNote').value.trim();
+    const ok    = await updateStatus(activeCalcId, 'delivered', { final_price: price, delivery_note: note });
     release();
-    if (ok) {
-      closeModal('modalDeliver');
-      showToast('success', 'Автомобиль выдан');
-      loadBoard();
-    }
+    if (ok) { closeModal('modalDeliver'); showToast('success', 'Автомобиль выдан'); loadBoard(); }
+  });
+  document.getElementById('modalDeliver').addEventListener('click', e => {
+    if (e.target === document.getElementById('modalDeliver')) closeModal('modalDeliver');
+  });
+
+  // Поиск
+  const searchInput = document.getElementById('searchInput');
+  searchInput.addEventListener('input', () => {
+    searchTerm = searchInput.value;
+    applySearch();
+  });
+
+  // Фильтры
+  document.getElementById('filterActive').addEventListener('click', () => {
+    currentFilter = 'active';
+    document.getElementById('filterActive').classList.add('active');
+    document.getElementById('filterAll').classList.remove('active');
+    renderBoard();
+  });
+  document.getElementById('filterAll').addEventListener('click', () => {
+    currentFilter = 'all';
+    document.getElementById('filterAll').classList.add('active');
+    document.getElementById('filterActive').classList.remove('active');
+    renderBoard();
+  });
+
+  // ESC закрывает drawer и модалы
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape') return;
+    if (document.getElementById('drawer').classList.contains('active')) { closeDrawer(); return; }
+    ['modalDone', 'modalDeliver'].forEach(id => closeModal(id));
   });
 }
 
@@ -988,31 +1145,29 @@ async function initPage() {
     studioCtx = await getStudioContext();
   } catch (err) {
     console.error('[board] getStudioContext:', err);
-    const board = document.getElementById('board');
-    showError(board, 'Ошибка загрузки данных студии', () => location.reload());
+    showError(document.getElementById('board'), 'Ошибка загрузки данных студии', () => location.reload());
     return;
   }
 
   if (!studioCtx?.studioId) {
-    const board = document.getElementById('board');
-    showError(board, 'Студия не найдена. Обратитесь к администратору.');
+    showError(document.getElementById('board'), 'Студия не найдена. Обратитесь к администратору.');
     return;
   }
 
   if (!studioCtx.hasAccess) {
-    const board = document.getElementById('board');
-    showEmpty(board, 'Нет доступа', 'Оформите подписку, чтобы работать с доской заказов');
+    showEmpty(document.getElementById('board'), 'Нет доступа', 'Оформите подписку');
     window.showPaywall?.(studioCtx.subscriptionStatus === 'expired');
     return;
   }
 
-  bindModalEvents();
-  bindBoardEvents();
+  // Активный фильтр по умолчанию
+  document.getElementById('filterActive').classList.add('active');
+
+  bindEvents();
   await loadBoard();
 }
 
 document.addEventListener('DOMContentLoaded', initPage);
 </script>
-
 </body>
 </html>
