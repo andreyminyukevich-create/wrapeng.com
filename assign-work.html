@@ -81,6 +81,7 @@ body {
 /* ── Work list ────────────────────────────────── */
 .work-list { display: flex; flex-direction: column; gap: 10px; }
 .work-item { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; transition: border-color 0.15s; }
+.mat-line { display: grid; grid-template-columns: 1fr 1fr auto auto; gap: 8px; align-items: end; margin-bottom: 8px; }
 .work-item:hover { border-color: rgba(37,99,235,0.2); }
 .work-item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 10px; flex-wrap: wrap; }
 .work-service-name { font-weight: 700; font-size: 0.88rem; color: var(--text); }
@@ -211,10 +212,13 @@ import { getStudioContext }  from './studio-context.js';
 import { showToast, showError, showNotFound, showEmpty, lockButton } from './ui.js';
 
 // ── Состояние ───────────────────────────────────────────────────────
-let studioCtx   = null;
-let calculation = null;
-let executors   = [];
-let calcId      = null;
+let studioCtx      = null;
+let calculation    = null;
+let executors      = [];
+let calcId         = null;
+let inventoryItems = [];  // плёнки и расходники для выбора
+let inventoryRolls = [];  // рулоны для привязки
+let matLineCount   = 0;   // счётчик строк материалов
 let rowCounter  = 0;
 
 const SERVICE_NAMES = {
@@ -733,6 +737,21 @@ function renderContent(services, existingAssignments = []) {
 
   banner.append(bannerIcon, bannerText, woLink, boardLink);
 
+  // ── Блок материалов ──────────────────────────────────────────────────
+  const matsCard = document.createElement('div');
+  matsCard.className = 'card';
+  matsCard.style.marginBottom = '16px';
+  matsCard.innerHTML = `
+    <div class="card-header" style="padding:14px 18px">
+      <div style="font-size:.82rem;font-weight:800;color:#0f172a">📦 Материалы / Расходники</div>
+      <div style="font-size:.75rem;color:#94a3b8">Что списываем со склада по этому заказу</div>
+    </div>
+    <div class="card-body" style="padding:14px 18px">
+      <div id="matLines"></div>
+      <button class="btn btn-ghost btn-sm" id="btnAddMat" style="margin-top:6px">➕ Добавить материал</button>
+    </div>`;
+  frag.appendChild(matsCard);
+
   sumCard.append(sumTitle, sumBlock, actRow, banner);
   frag.appendChild(sumCard);
 
@@ -958,6 +977,10 @@ async function saveAssignments(btnEl) {
 
     await sb.from('calculations').update({ work_assigned: true, status: 'in_progress' }).eq('id', calcId);
 
+    // Списываем материалы со склада
+    const user = await requireAuth({ redirectTo: 'welcome.html' });
+    await saveMaterials(studioCtx.studioId, user?.id);
+
     release();
     showSavedBanner(assignments.length);
   } catch (err) {
@@ -1031,6 +1054,202 @@ function extractServices(calcData) {
   return services;
 }
 
+// ── Материалы / Склад ────────────────────────────────────────────────
+
+async function loadInventoryData() {
+  const [itemsRes, rollsRes] = await Promise.all([
+    sb.from('inventory_items')
+      .select('id, name, type, unit, avg_cost')
+      .eq('studio_id', studioCtx.studioId)
+      .in('type', ['film', 'consumable'])
+      .order('name'),
+    sb.from('inventory_rolls')
+      .select('id, item_id, roll_number, qty_remaining, cost_per_unit')
+      .eq('studio_id', studioCtx.studioId)
+      .gt('qty_remaining', 0)
+      .order('roll_number'),
+  ]);
+  inventoryItems = itemsRes.data || [];
+  inventoryRolls = rollsRes.data || [];
+}
+
+async function renderExistingMaterials() {
+  // Загружаем уже списанные материалы по этому заказу
+  const { data } = await sb
+    .from('inventory_transactions')
+    .select('id, qty, unit_cost, notes, item:item_id(name, unit), roll:roll_id(roll_number)')
+    .eq('studio_id', studioCtx.studioId)
+    .eq('calculation_id', calcId)
+    .eq('type', 'writeoff');
+
+  if (!data?.length) return;
+
+  const container = document.getElementById('matLines');
+  if (!container) return;
+
+  const existingHeader = document.createElement('div');
+  existingHeader.style.cssText = 'font-size:.72rem;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px';
+  existingHeader.textContent = 'Уже списано:';
+  container.appendChild(existingHeader);
+
+  data.forEach(tx => {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:8px;padding:6px 10px;background:#f8fafc;border-radius:8px;margin-bottom:4px;font-size:.82rem';
+    const qty = Math.abs(tx.qty);
+    const rollStr = tx.roll?.roll_number ? ` (рулон ${tx.roll.roll_number})` : '';
+    row.innerHTML = `
+      <span style="color:#059669">✓</span>
+      <span style="font-weight:600;flex:1">${tx.item?.name || '—'}${rollStr}</span>
+      <span style="color:#64748b">${qty} ${tx.item?.unit || ''}</span>
+      <span style="color:#64748b;font-size:.75rem">${tx.notes || ''}</span>`;
+    container.appendChild(row);
+  });
+
+  const divider = document.createElement('div');
+  divider.style.cssText = 'border-top:1px solid #e2e8f0;margin:12px 0 8px';
+  container.appendChild(divider);
+
+  const newHeader = document.createElement('div');
+  newHeader.style.cssText = 'font-size:.72rem;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px';
+  newHeader.textContent = 'Добавить:';
+  container.appendChild(newHeader);
+}
+
+function addMatLine() {
+  matLineCount++;
+  const idx = matLineCount;
+  const container = document.getElementById('matLines');
+  if (!container) return;
+
+  const line = document.createElement('div');
+  line.className = 'mat-line';
+  line.id = `mat-${idx}`;
+  line.style.cssText = 'display:grid;grid-template-columns:1fr 1fr auto auto;gap:8px;align-items:end;margin-bottom:8px';
+
+  // Позиция склада
+  const itemGroup = document.createElement('div');
+  const itemLabel = document.createElement('label');
+  itemLabel.style.cssText = 'display:block;font-size:.72rem;color:#64748b;margin-bottom:3px;font-weight:600';
+  itemLabel.textContent = 'Позиция';
+  const itemSel = document.createElement('select');
+  itemSel.id = `matItem-${idx}`;
+  itemSel.style.cssText = 'width:100%;padding:7px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:.82rem;background:#fff';
+  const emptyOpt = document.createElement('option');
+  emptyOpt.value = '';
+  emptyOpt.textContent = '— выберите —';
+  itemSel.appendChild(emptyOpt);
+
+  // Группируем: сначала плёнка, потом расходники
+  const films = inventoryItems.filter(i => i.type === 'film');
+  const consumables = inventoryItems.filter(i => i.type === 'consumable');
+  if (films.length) {
+    const og = document.createElement('optgroup');
+    og.label = '🎞 Плёнка';
+    films.forEach(i => {
+      const o = document.createElement('option');
+      o.value = i.id; o.textContent = i.name; o.dataset.unit = i.unit; o.dataset.type = 'film';
+      og.appendChild(o);
+    });
+    itemSel.appendChild(og);
+  }
+  if (consumables.length) {
+    const og = document.createElement('optgroup');
+    og.label = '🧴 Расходники';
+    consumables.forEach(i => {
+      const o = document.createElement('option');
+      o.value = i.id; o.textContent = i.name; o.dataset.unit = i.unit; o.dataset.type = 'consumable';
+      og.appendChild(o);
+    });
+    itemSel.appendChild(og);
+  }
+  itemGroup.append(itemLabel, itemSel);
+
+  // Рулон (только для плёнки)
+  const rollGroup = document.createElement('div');
+  rollGroup.id = `matRollGroup-${idx}`;
+  rollGroup.style.display = 'none';
+  const rollLabel = document.createElement('label');
+  rollLabel.style.cssText = 'display:block;font-size:.72rem;color:#64748b;margin-bottom:3px;font-weight:600';
+  rollLabel.textContent = 'Рулон';
+  const rollSel = document.createElement('select');
+  rollSel.id = `matRoll-${idx}`;
+  rollSel.style.cssText = 'width:100%;padding:7px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:.82rem;background:#fff';
+  rollGroup.append(rollLabel, rollSel);
+
+  // Количество
+  const qtyGroup = document.createElement('div');
+  const qtyLabel = document.createElement('label');
+  qtyLabel.style.cssText = 'display:block;font-size:.72rem;color:#64748b;margin-bottom:3px;font-weight:600';
+  qtyLabel.textContent = 'Кол-во';
+  const qtyInput = document.createElement('input');
+  qtyInput.type = 'number'; qtyInput.id = `matQty-${idx}`;
+  qtyInput.min = '0.01'; qtyInput.step = '0.01'; qtyInput.placeholder = '0';
+  qtyInput.style.cssText = 'width:100%;padding:7px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:.82rem';
+  qtyGroup.append(qtyLabel, qtyInput);
+
+  // Кнопка удалить
+  const delBtn = document.createElement('button');
+  delBtn.textContent = '✕';
+  delBtn.style.cssText = 'padding:7px 10px;background:rgba(220,38,38,.08);border:1px solid rgba(220,38,38,.15);border-radius:8px;color:#dc2626;cursor:pointer;font-size:.8rem;align-self:end';
+  delBtn.addEventListener('click', () => line.remove());
+
+  // При выборе позиции — показываем/скрываем рулоны
+  itemSel.addEventListener('change', () => {
+    const selectedOpt = itemSel.selectedOptions[0];
+    const isFilm = selectedOpt?.dataset.type === 'film';
+    rollGroup.style.display = isFilm ? '' : 'none';
+    rollSel.innerHTML = '<option value="">— все рулоны —</option>';
+    if (isFilm) {
+      const rolls = inventoryRolls.filter(r => r.item_id === itemSel.value);
+      rolls.forEach(r => {
+        const o = document.createElement('option');
+        o.value = r.id;
+        o.textContent = `${r.roll_number} (${r.qty_remaining} м)`;
+        rollSel.appendChild(o);
+      });
+    }
+    // Автоподставляем единицу в label
+    qtyLabel.textContent = 'Кол-во' + (selectedOpt?.dataset.unit ? ` (${selectedOpt.dataset.unit})` : '');
+  });
+
+  line.append(itemGroup, rollGroup, qtyGroup, delBtn);
+  container.appendChild(line);
+}
+
+async function saveMaterials(studioId, userId) {
+  const lines = [];
+  document.querySelectorAll('.mat-line').forEach(line => {
+    const idx     = line.id.replace('mat-', '');
+    const itemId  = document.getElementById(`matItem-${idx}`)?.value;
+    const rollId  = document.getElementById(`matRoll-${idx}`)?.value || null;
+    const qty     = parseFloat(document.getElementById(`matQty-${idx}`)?.value) || 0;
+    if (!itemId || qty <= 0) return;
+    const item = inventoryItems.find(i => i.id === itemId);
+    lines.push({ itemId, rollId, qty, unitCost: item?.avg_cost || 0 });
+  });
+
+  if (!lines.length) return true; // нет строк — ок
+
+  const rows = lines.map(l => ({
+    studio_id: studioId,
+    item_id: l.itemId,
+    roll_id: l.rollId,
+    calculation_id: calcId,
+    type: 'writeoff',
+    qty: -l.qty,
+    unit_cost: l.unitCost,
+    notes: `Заказ: ${calculation.car_name || calcId}`,
+    created_by: userId,
+  }));
+
+  const { error } = await sb.from('inventory_transactions').insert(rows);
+  if (error) {
+    showToast('error', 'Ошибка списания материалов: ' + error.message);
+    return false;
+  }
+  return true;
+}
+
 // ── Навигация ────────────────────────────────────────────────────────
 function goBack() {
   window.location.href = document.referrer?.includes('board.html') ? 'board.html' : 'dashboard.html';
@@ -1074,6 +1293,7 @@ async function initPage() {
 
   calculation = calcData;
   await loadExecutors();
+  await loadInventoryData();
 
   const { data: existingData } = await sb
     .from('work_assignments')
@@ -1096,6 +1316,9 @@ async function initPage() {
   }
 
   renderContent(services, assignments);
+  await renderExistingMaterials();
+
+  document.getElementById('btnAddMat')?.addEventListener('click', addMatLine);
 }
 
 document.addEventListener('DOMContentLoaded', initPage);
