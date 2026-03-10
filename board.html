@@ -997,10 +997,45 @@ async function openDrawer(calc, status) {
     frag.appendChild(secNote);
   }
 
+  // ── Блок: комментарий ────────────────────────────────
+  const note = fullCalc?.schedule_note;
+  if (note) {
+    const secNote = mkSection('💬 Комментарий');
+    const noteBox = document.createElement('div');
+    noteBox.className = 'drawer-note-box';
+    const noteText = document.createElement('div');
+    noteText.className = 'drawer-note-text';
+    noteText.textContent = note;
+    noteBox.appendChild(noteText);
+    secNote.appendChild(noteBox);
+    frag.appendChild(secNote);
+  }
+
+  // ── Блок: материалы ──────────────────────────────────
+  const { data: txData } = await sb
+    .from('inventory_transactions')
+    .select('qty, unit_cost, notes, item:item_id(name, unit), roll:roll_id(roll_number)')
+    .eq('studio_id', studioCtx.studioId)
+    .eq('calculation_id', calc.id)
+    .eq('type', 'writeoff');
+
+  if (txData?.length) {
+    const secMat = mkSection('📦 Материалы');
+    txData.forEach(tx => {
+      const qty = Math.abs(tx.qty);
+      const cost = qty * (tx.unit_cost || 0);
+      const roll = tx.roll?.roll_number ? ` · рулон ${tx.roll.roll_number}` : '';
+      const row = mkRow(
+        (tx.item?.name || '—') + roll,
+        `${qty} ${tx.item?.unit || ''}${cost > 0 ? ' · ' + fmt(cost) + ' ₽' : ''}`,
+      );
+      secMat.appendChild(row);
+    });
+    frag.appendChild(secMat);
+  }
+
   body.appendChild(frag);
 }
-
-function mkSection(title) {
   const sec = document.createElement('div');
   sec.className = 'drawer-section';
   const t = document.createElement('div');
