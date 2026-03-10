@@ -245,7 +245,7 @@ textarea { resize: vertical; min-height: 64px; }
 <div class="modal-overlay" id="purchaseModal" style="display:none">
   <div class="modal" style="max-width:620px">
     <div class="modal-header">
-      <div class="modal-title">🛒 Новая закупка</div>
+      <div class="modal-title" id="purchaseModalTitle">🛒 Новая закупка</div>
       <button class="modal-close" data-close="purchaseModal">✕</button>
     </div>
     <div class="modal-body">
@@ -281,6 +281,11 @@ textarea { resize: vertical; min-height: 64px; }
       <div class="form-section-title">Позиции закупки</div>
       <div id="purchaseLines" class="purchase-lines"></div>
       <button class="btn btn-ghost btn-sm" id="btnAddPurchaseLine">➕ Добавить позицию</button>
+      <div id="purchaseHistorySection" style="display:none;margin-top:16px">
+        <div class="form-divider"></div>
+        <div class="form-section-title" style="margin-bottom:8px">📋 История закупок</div>
+        <div id="purchaseHistoryList"></div>
+      </div>
       <div class="form-divider"></div>
       <div class="form-row">
         <div class="form-group">
@@ -433,8 +438,10 @@ let currentUser    = null;
 let allItems       = [];
 let allRolls       = [];
 let allEquipment   = [];
+let allPurchases   = [];
 let writeoffItemId = null;
-let purchaseLineCount = 0;
+let purchaseLineCount  = 0;
+let editingPurchaseId  = null; // null = новая, string = редактирование
 
 const fmt = n => Number(n || 0).toLocaleString('ru-RU', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 const conditionLabel = { excellent: 'Отличное', good: 'Хорошее', fair: 'Требует обслуживания', poor: 'Плохое' };
@@ -531,11 +538,11 @@ function buildFilmCard(item) {
 
   const actions = document.createElement('div');
   actions.className = 'item-actions';
-  actions.addEventListener('click', e => e.stopPropagation());
-  actions.append(
-    actionBtn('btn btn-sm btn-ghost', '📤 Списать', 'writeoff', item.id),
-    actionBtn('btn btn-sm btn-secondary btn-icon', '✏️', 'edit-item', item.id),
-  );
+  const writeoffBtnF = actionBtn('btn btn-sm btn-ghost', '📤 Списать', 'writeoff', item.id);
+  const editBtnF     = actionBtn('btn btn-sm btn-secondary btn-icon', '✏️', 'edit-item', item.id);
+  writeoffBtnF.addEventListener('click', e => { e.stopPropagation(); openWriteoff(item.id, null); });
+  editBtnF.addEventListener('click',     e => { e.stopPropagation(); openItemModal(item.id, e); });
+  actions.append(writeoffBtnF, editBtnF);
 
   header.append(icon, meta, stats, actions);
 
@@ -641,11 +648,11 @@ function buildConsumableCard(item) {
 
   const actions = document.createElement('div');
   actions.className = 'item-actions';
-  actions.addEventListener('click', e => e.stopPropagation());
-  actions.append(
-    actionBtn('btn btn-sm btn-ghost', '📤', 'writeoff', item.id),
-    actionBtn('btn btn-sm btn-secondary btn-icon', '✏️', 'edit-item', item.id),
-  );
+  const writeoffBtnC = actionBtn('btn btn-sm btn-ghost', '📤', 'writeoff', item.id);
+  const editBtnC     = actionBtn('btn btn-sm btn-secondary btn-icon', '✏️', 'edit-item', item.id);
+  writeoffBtnC.addEventListener('click', e => { e.stopPropagation(); openWriteoff(item.id, null); });
+  editBtnC.addEventListener('click',     e => { e.stopPropagation(); openItemModal(item.id, e); });
+  actions.append(writeoffBtnC, editBtnC);
 
   header.append(icon, meta, stats, actions);
 
@@ -662,6 +669,37 @@ function buildConsumableCard(item) {
 
   card.append(header, body);
   return card;
+}
+
+// ── Перенос из оборудования в плёнку ─────────────────────────────────
+async function moveEquipToFilm(eq) {
+  const ok = await confirmAction({
+    message: `Перенести «${eq.name}» из оборудования в плёнку?\n\nПозиция будет удалена из раздела Оборудование и создана как позиция типа «Плёнка» в разделе Плёнка.`,
+    confirmText: 'Перенести',
+  });
+  if (!ok) return;
+
+  // Создаём позицию в inventory_items
+  const payload = {
+    studio_id: studioId,
+    type: 'film',
+    name: eq.name,
+    brand: eq.brand || null,
+    sku: eq.sku || null,
+    unit: 'м',
+    film_width_cm: null,
+    qty_min_alert: null,
+    notes: eq.notes || null,
+  };
+  const { data: newItem, error: itemErr } = await sb.from('inventory_items').insert(payload).select().single();
+  if (itemErr) { toast('❌ Ошибка создания позиции: ' + itemErr.message); return; }
+
+  // Деактивируем оборудование
+  await sb.from('equipment').update({ status: 'written_off', notes: (eq.notes || '') + ' [Перенесено в Плёнку]' }).eq('id', eq.id);
+
+  toast('✅ Перенесено в Плёнку. Откройте раздел «Плёнка» и проведите закупку для новой позиции.');
+  await Promise.all([loadItems(), loadEquipment()]);
+  switchTab('film');
 }
 
 // ── Рендер: Оборудование ──────────────────────────────────────────────
@@ -715,15 +753,23 @@ function buildEquipCard(eq) {
 
   const actions = document.createElement('div');
   actions.className = 'item-actions';
-  actions.addEventListener('click', e => e.stopPropagation());
+  actions.addEventListener('click', e => e.stopPropagation()); // блокируем toggle заголовка
   if (!activeAssign) {
-    actions.appendChild(actionBtn('btn btn-sm btn-ghost', '👤 Выдать', 'assign', eq.id));
+    const assignBtnE = actionBtn('btn btn-sm btn-ghost', '👤 Выдать', 'assign', eq.id);
+    assignBtnE.addEventListener('click', () => openAssignModal(eq.id));
+    actions.appendChild(assignBtnE);
   } else {
     const retBtn = actionBtn('btn btn-sm btn-secondary', '↩ Вернуть', 'return', eq.id);
     retBtn.dataset.assignId = activeAssign.id;
+    retBtn.addEventListener('click', () => returnEquipment(activeAssign.id));
     actions.appendChild(retBtn);
   }
-  actions.appendChild(actionBtn('btn btn-sm btn-secondary btn-icon', '✏️', 'edit-equip', eq.id));
+  const editEquipBtn = actionBtn('btn btn-sm btn-secondary btn-icon', '✏️', 'edit-equip', eq.id);
+  editEquipBtn.addEventListener('click', () => openEquipModal(eq.id));
+  const moveToFilmBtn = actionBtn('btn btn-sm btn-ghost btn-icon', '🎞', 'move-to-film', eq.id);
+  moveToFilmBtn.title = 'Перенести в Плёнку';
+  moveToFilmBtn.addEventListener('click', () => moveEquipToFilm(eq));
+  actions.append(editEquipBtn, moveToFilmBtn);
 
   header.append(icon, meta, qtyEl, actions);
 
@@ -878,24 +924,59 @@ async function saveItem() {
 }
 
 // ── Закупка ───────────────────────────────────────────────────────────
-function openPurchaseModal(presetItemId) {
+async function openPurchaseModal(presetItemId, purchaseIdToEdit) {
+  editingPurchaseId = purchaseIdToEdit || null;
   purchaseLineCount = 0;
   document.getElementById('purchaseLines').innerHTML = '';
-  document.getElementById('pSupplier').value  = '';
-  document.getElementById('pInvoice').value   = '';
-  document.getElementById('pDate').value      = new Date().toISOString().split('T')[0];
-  document.getElementById('pPayment').value   = 'cash';
-  document.getElementById('pVat').value       = '';
-  document.getElementById('vatRow').style.display = 'none';
-  document.getElementById('pDelivery').value  = '';
-  document.getElementById('pOther').value     = '';
-  document.getElementById('pNotes').value     = '';
-  document.getElementById('pTotal').value     = '';
-  addPurchaseLine();
+  document.getElementById('purchaseModalTitle').textContent = editingPurchaseId ? '✏️ Редактировать закупку' : '🛒 Новая закупка';
+  document.getElementById('btnSavePurchase').textContent = editingPurchaseId ? '💾 Сохранить изменения' : '💾 Провести закупку';
+
+  // Загружаем историю закупок в нижней части
+  loadPurchaseHistory();
+
+  if (editingPurchaseId) {
+    // Загружаем данные существующей закупки
+    const { data: pData } = await sb.from('purchases').select('*').eq('id', editingPurchaseId).single();
+    const { data: pItems } = await sb.from('purchase_items').select('*').eq('purchase_id', editingPurchaseId);
+    if (pData) {
+      document.getElementById('pSupplier').value  = pData.supplier_name || '';
+      document.getElementById('pInvoice').value   = pData.invoice_number || '';
+      document.getElementById('pDate').value      = pData.purchase_date || '';
+      document.getElementById('pPayment').value   = pData.payment_method || 'cash';
+      document.getElementById('pDelivery').value  = pData.total_delivery || '';
+      document.getElementById('pOther').value     = pData.total_other || '';
+      document.getElementById('pNotes').value     = pData.notes || '';
+      document.getElementById('vatRow').style.display = pData.payment_method === 'vat' ? 'block' : 'none';
+    }
+    if (pItems?.length) {
+      for (const pi of pItems) {
+        const item = allItems.find(i => i.id === pi.item_id);
+        addPurchaseLine(pi.item_id, pi.qty, pi.unit_price);
+        // Устанавливаем название если не нашли по id
+        const lastIdx = purchaseLineCount;
+        if (!item) document.getElementById(`pName-${lastIdx}`).value = pi.notes || '—';
+      }
+    } else {
+      addPurchaseLine();
+    }
+  } else {
+    document.getElementById('pSupplier').value  = '';
+    document.getElementById('pInvoice').value   = '';
+    document.getElementById('pDate').value      = new Date().toISOString().split('T')[0];
+    document.getElementById('pPayment').value   = 'cash';
+    document.getElementById('pVat').value       = '';
+    document.getElementById('vatRow').style.display = 'none';
+    document.getElementById('pDelivery').value  = '';
+    document.getElementById('pOther').value     = '';
+    document.getElementById('pNotes').value     = '';
+    document.getElementById('pTotal').value     = '';
+    addPurchaseLine(presetItemId || null);
+  }
+  calcPurchaseTotal();
   openModal('purchaseModal');
 }
 
-function addPurchaseLine() {
+function addPurchaseLine(presetItemId, presetQty, presetPrice) {
   purchaseLineCount++;
   const idx = purchaseLineCount;
   const line = document.createElement('div');
@@ -910,10 +991,30 @@ function addPurchaseLine() {
   del.textContent = '✕';
   del.addEventListener('click', () => { line.remove(); calcPurchaseTotal(); });
 
+  // Строка: тип + название
+  const topRow = document.createElement('div');
+  topRow.className = 'form-row';
+  topRow.style.marginBottom = '6px';
+
+  // Тип позиции
+  const typeGroup = document.createElement('div');
+  typeGroup.className = 'form-group';
+  typeGroup.style.cssText = 'flex:0 0 130px;min-width:0';
+  const typeLbl = document.createElement('label');
+  typeLbl.textContent = 'Тип';
+  const typeSelect = document.createElement('select');
+  typeSelect.id = `pType-${idx}`;
+  [['film','🎞 Плёнка'], ['consumable','🧴 Расходник']].forEach(([v, t]) => {
+    const o = document.createElement('option');
+    o.value = v; o.textContent = t;
+    typeSelect.appendChild(o);
+  });
+  typeGroup.append(typeLbl, typeSelect);
+
   // Поле названия
   const nameGroup = document.createElement('div');
   nameGroup.className = 'form-group';
-  nameGroup.style.marginBottom = '6px';
+  nameGroup.style.marginBottom = '0';
   const nameLbl = document.createElement('label');
   nameLbl.textContent = 'Наименование';
   const nameInput = document.createElement('input');
@@ -921,21 +1022,31 @@ function addPurchaseLine() {
   nameInput.id   = `pName-${idx}`;
   nameInput.setAttribute('list', datalistId);
   nameInput.autocomplete = 'off';
+  if (presetItemId) {
+    const preItem = allItems.find(i => i.id === presetItemId);
+    if (preItem) { nameInput.value = preItem.name; typeSelect.value = preItem.type || 'film'; }
+  }
+  // Автозаполнение типа при выборе известной позиции
+  nameInput.addEventListener('change', () => {
+    const matched = allItems.find(i => i.name.toLowerCase() === nameInput.value.toLowerCase());
+    if (matched) typeSelect.value = matched.type || 'film';
+  });
   const datalist = document.createElement('datalist');
   datalist.id = datalistId;
   allItems.forEach(i => {
     const opt = document.createElement('option');
-    opt.value = i.name; // это имена позиций из БД, не из формы
+    opt.value = i.name;
     datalist.appendChild(opt);
   });
   nameGroup.append(nameLbl, nameInput, datalist);
+  topRow.append(typeGroup, nameGroup);
 
   // Строка кол-во / цена / сумма
   const row = document.createElement('div');
   row.className = 'form-row';
   row.style.marginBottom = '0';
 
-  [['pQty', 'Кол-во', '0'], ['pPrice', 'Цена за ед.', '0'], ['pSum', 'Сумма', '0']].forEach(([prefix, label, ph]) => {
+  [['pQty', 'Кол-во', presetQty || '0'], ['pPrice', 'Цена за ед.', presetPrice || '0'], ['pSum', 'Сумма', '0']].forEach(([prefix, label, ph]) => {
     const g = document.createElement('div');
     g.className = 'form-group';
     g.style.marginBottom = '0';
@@ -947,12 +1058,14 @@ function addPurchaseLine() {
     inp.placeholder = ph;
     inp.min  = '0';
     inp.step = '0.01';
+    if (prefix === 'pQty' && presetQty)    inp.value = presetQty;
+    if (prefix === 'pPrice' && presetPrice) inp.value = presetPrice;
     inp.addEventListener('input', () => {
       if (prefix === 'pQty' || prefix === 'pPrice') {
         const qty   = parseFloat(document.getElementById(`pQty-${idx}`)?.value) || 0;
         const price = parseFloat(document.getElementById(`pPrice-${idx}`)?.value) || 0;
         if (qty && price) document.getElementById(`pSum-${idx}`).value = (qty * price).toFixed(2);
-      } else { // pSum
+      } else {
         const qty = parseFloat(document.getElementById(`pQty-${idx}`)?.value) || 0;
         const sum = parseFloat(document.getElementById(`pSum-${idx}`)?.value) || 0;
         if (qty && sum) document.getElementById(`pPrice-${idx}`).value = (sum / qty).toFixed(2);
@@ -963,7 +1076,7 @@ function addPurchaseLine() {
     row.appendChild(g);
   });
 
-  line.append(del, nameGroup, row);
+  line.append(del, topRow, row);
   document.getElementById('purchaseLines').appendChild(line);
 }
 
@@ -984,6 +1097,56 @@ function calcPurchaseTotal() {
   document.getElementById('pTotal').value = fmt(total) + ' ₽' + (vatAmt ? ` (в т.ч. НДС ${fmt(vatAmt)} ₽)` : '');
 }
 
+async function loadPurchaseHistory() {
+  const section = document.getElementById('purchaseHistorySection');
+  const list    = document.getElementById('purchaseHistoryList');
+  if (!section || !list) return;
+
+  const { data } = await sb.from('purchases')
+    .select('id, purchase_date, supplier_name, total_amount, notes')
+    .eq('studio_id', studioId)
+    .order('purchase_date', { ascending: false })
+    .limit(10);
+
+  if (!data?.length) { section.style.display = 'none'; return; }
+
+  section.style.display = 'block';
+  list.innerHTML = '';
+
+  data.forEach(p => {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:0.82rem;gap:8px';
+
+    const left = document.createElement('div');
+    left.style.cssText = 'flex:1;min-width:0';
+    const dateEl = document.createElement('span');
+    dateEl.style.cssText = 'color:var(--muted);margin-right:8px';
+    dateEl.textContent = p.purchase_date ? new Date(p.purchase_date).toLocaleDateString('ru-RU', { day:'2-digit', month:'short' }) : '—';
+    const supplierEl = document.createElement('span');
+    supplierEl.style.fontWeight = '600';
+    supplierEl.textContent = p.supplier_name || 'Без поставщика';
+    left.append(dateEl, supplierEl);
+
+    const right = document.createElement('div');
+    right.style.cssText = 'display:flex;align-items:center;gap:8px;flex-shrink:0';
+
+    const amtEl = document.createElement('span');
+    amtEl.style.cssText = 'font-weight:700;color:var(--success)';
+    amtEl.textContent = fmt(p.total_amount) + ' ₽';
+
+    const editBtn = document.createElement('button');
+    editBtn.className = 'btn btn-sm btn-secondary btn-icon';
+    editBtn.textContent = '✏️';
+    editBtn.title = 'Редактировать';
+    editBtn.addEventListener('click', () => openPurchaseModal(null, p.id));
+
+    right.append(amtEl, editBtn);
+    row.append(left, right);
+    list.appendChild(row);
+  });
+}
+
+
 async function savePurchase() {
   const lines = [];
   document.querySelectorAll('.purchase-line').forEach(line => {
@@ -992,8 +1155,9 @@ async function savePurchase() {
     const qty   = parseFloat(document.getElementById(`pQty-${idx}`)?.value) || 0;
     const price = parseFloat(document.getElementById(`pPrice-${idx}`)?.value) || 0;
     const sum   = parseFloat(document.getElementById(`pSum-${idx}`)?.value) || (qty * price);
+    const type  = document.getElementById(`pType-${idx}`)?.value || 'consumable';
     if (!name && !sum) return;
-    lines.push({ name: name || '—', qty, price: price || (qty ? sum / qty : 0), sum });
+    lines.push({ name: name || '—', qty, price: price || (qty ? sum / qty : 0), sum, type });
   });
   if (!lines.length) { toast('⚠ Добавьте хотя бы одну позицию'); return; }
 
@@ -1006,7 +1170,7 @@ async function savePurchase() {
   const btn = document.getElementById('btnSavePurchase');
   btn.disabled = true;
 
-  const { data: purchase, error: pErr } = await sb.from('purchases').insert({
+  const purchasePayload = {
     studio_id:      studioId,
     supplier_name:  document.getElementById('pSupplier').value.trim() || null,
     invoice_number: document.getElementById('pInvoice').value.trim() || null,
@@ -1016,26 +1180,49 @@ async function savePurchase() {
     total_other:    other + vatAmt,
     total_amount:   goods + delivery + other + vatAmt,
     notes:          document.getElementById('pNotes').value.trim() || null,
-    created_by:     currentUser.id,
-  }).select().single();
+  };
 
-  if (pErr) { btn.disabled = false; toast('❌ Ошибка: ' + pErr.message); return; }
+  let purchaseId = editingPurchaseId;
+
+  if (editingPurchaseId) {
+    const { error: updErr } = await sb.from('purchases').update(purchasePayload).eq('id', editingPurchaseId);
+    if (updErr) { btn.disabled = false; toast('❌ Ошибка: ' + updErr.message); return; }
+    await sb.from('purchase_items').delete().eq('purchase_id', editingPurchaseId);
+  } else {
+    const { data: purchase, error: pErr } = await sb.from('purchases')
+      .insert({ ...purchasePayload, created_by: currentUser.id })
+      .select().single();
+    if (pErr) { btn.disabled = false; toast('❌ Ошибка: ' + pErr.message); return; }
+    purchaseId = purchase.id;
+  }
 
   for (const line of lines) {
     let item = allItems.find(i => i.name.toLowerCase() === line.name.toLowerCase());
     if (!item && line.name !== '—') {
-      const { data: newItem } = await sb.from('inventory_items').insert({ studio_id: studioId, name: line.name, type: 'consumable', unit: 'шт' }).select().single();
+      const { data: newItem } = await sb.from('inventory_items').insert({
+        studio_id: studioId, name: line.name,
+        type: line.type, unit: line.type === 'film' ? 'м' : 'шт',
+      }).select().single();
       if (newItem) { item = newItem; allItems.push(newItem); }
     }
-    await sb.from('purchase_items').insert({ purchase_id: purchase.id, item_id: item?.id || null, qty: line.qty || 1, unit_price: line.price, notes: line.name });
-    if (item) {
-      await sb.from('inventory_transactions').insert({ studio_id: studioId, item_id: item.id, purchase_id: purchase.id, type: 'purchase', qty: line.qty || 1, unit_cost: line.price, created_by: currentUser.id });
+    await sb.from('purchase_items').insert({
+      purchase_id: purchaseId, item_id: item?.id || null,
+      qty: line.qty || 1, unit_price: line.price, notes: line.name,
+    });
+    if (item && !editingPurchaseId) {
+      await sb.from('inventory_transactions').insert({
+        studio_id: studioId, item_id: item.id, purchase_id: purchaseId,
+        type: 'purchase', qty: line.qty || 1, unit_cost: line.price,
+        created_by: currentUser.id,
+      });
     }
   }
 
   btn.disabled = false;
+  const wasEditing = editingPurchaseId;
+  editingPurchaseId = null;
   closeModal('purchaseModal');
-  toast('✅ Закупка проведена');
+  toast(wasEditing ? '✅ Закупка обновлена' : '✅ Закупка проведена');
   await Promise.all([loadItems(), loadRolls(), loadStats()]);
 }
 
