@@ -997,20 +997,6 @@ async function openDrawer(calc, status) {
     frag.appendChild(secNote);
   }
 
-  // ── Блок: комментарий ────────────────────────────────
-  const note = fullCalc?.schedule_note;
-  if (note) {
-    const secNote = mkSection('💬 Комментарий');
-    const noteBox = document.createElement('div');
-    noteBox.className = 'drawer-note-box';
-    const noteText = document.createElement('div');
-    noteText.className = 'drawer-note-text';
-    noteText.textContent = note;
-    noteBox.appendChild(noteText);
-    secNote.appendChild(noteBox);
-    frag.appendChild(secNote);
-  }
-
   // ── Блок: материалы ──────────────────────────────────
   const { data: txData } = await sb
     .from('inventory_transactions')
