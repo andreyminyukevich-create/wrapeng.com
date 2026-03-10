@@ -1,6 +1,5 @@
 /**
- * calculator-pdf.js — v1.1 (актуальная версия из calculator.html)
- * Экспорт PDF, брендинг КП, триал-watermark.
+ * calculator-pdf.js — v1.1
  * Зависит от: calculator-data.js, calculator-engine.js
  * Внешние: jsPDF, html2canvas
  */
@@ -276,7 +275,3 @@ function prepExecutorsWithSalary() {
   
   q('#pdfExecutorsWithSalaryMeta').textContent = `Автомобиль: ${br || '—'} ${md || '—'} ${yr}`;
 }
-
-function setDefaultMarkups() {
-  ['#pkgMarkup', '#impactMarkup', '#armMarkup', '#wrapMarkup', '#detMarkup', '#glMarkup', '#miscMarkup'].forEach(id => {
-    const field = q(id);
