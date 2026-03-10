@@ -223,24 +223,34 @@ html, body {
 .empty-col { text-align: center; padding: 28px 12px; color: var(--text-dim); font-size: 0.78rem; }
 .loading { text-align: center; padding: 60px 20px; color: var(--text-muted); font-size: 0.88rem; width: 100%; }
 
-/* ── Drawer (right panel) ─────────────────── */
+/* ── Модал карточки (центральный) ─────────────── */
 .drawer-overlay {
   display: none; position: fixed; inset: 0;
-  background: rgba(15,23,42,0.35); backdrop-filter: blur(3px);
+  background: rgba(15,23,42,0.45); backdrop-filter: blur(3px);
   -webkit-backdrop-filter: blur(3px); z-index: 500;
 }
 .drawer-overlay.active { display: block; }
 
 .drawer {
-  position: fixed; top: 0; right: -420px; bottom: 0;
-  width: 400px; max-width: 100vw;
-  background: var(--surface); border-left: 1px solid var(--border);
-  box-shadow: -8px 0 40px rgba(0,0,0,0.12);
-  display: flex; flex-direction: column; z-index: 600;
-  transition: right .25s cubic-bezier(.4,0,.2,1);
+  position: fixed; top: 50%; left: 50%;
+  transform: translate(-50%, -48%) scale(0.97);
+  width: min(560px, 96vw);
+  max-height: 88vh;
+  background: var(--surface);
+  border-radius: 16px;
+  box-shadow: 0 12px 48px rgba(0,0,0,0.18);
+  display: flex; flex-direction: column;
+  z-index: 600;
+  opacity: 0;
+  transition: opacity .2s ease, transform .2s ease;
+  pointer-events: none;
   overflow: hidden;
 }
-.drawer.active { right: 0; }
+.drawer.active {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+  pointer-events: all;
+}
 
 .drawer-header {
   padding: 20px 20px 16px; border-bottom: 1px solid var(--border);
@@ -395,7 +405,7 @@ html, body {
 
   <div class="board-outer">
     <div class="board-wrap" id="board">
-      <div class="loading">⏳ Загрузка...</div>
+      <div class="loading">Загрузка...</div>
     </div>
   </div>
 </div>
@@ -421,10 +431,10 @@ html, body {
 <!-- Modal: Завершить работу (план/факт материалов) -->
 <div class="modal" id="modalDone">
   <div class="modal-content" style="max-width:540px">
-    <div class="modal-title">✅ Завершить работу</div>
+    <div class="modal-title">Работа выполнена</div>
     <div class="modal-car" id="doneCarName"></div>
     <div id="doneMaterialsBlock" style="margin-bottom:16px">
-      <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:10px">📦 Расход материалов</div>
+      <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:10px">Расход материалов</div>
       <div id="doneMaterialsLoading" style="color:var(--text-muted);font-size:0.82rem;text-align:center;padding:12px 0">Загрузка...</div>
       <div id="doneMaterialsRows" style="display:none">
         <div style="display:grid;grid-template-columns:1fr 110px 110px;gap:6px;margin-bottom:6px;padding:0 2px">
@@ -444,7 +454,7 @@ html, body {
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" id="btnDoneCancel">Отмена</button>
-      <button class="btn" style="background:var(--purple);color:#fff" id="btnDoneSave">✅ Завершить</button>
+      <button class="btn" style="background:var(--purple);color:#fff" id="btnDoneSave">Завершить</button>
     </div>
   </div>
 </div>
@@ -452,7 +462,7 @@ html, body {
 <!-- Modal: Выдать клиенту -->
 <div class="modal" id="modalDeliver">
   <div class="modal-content">
-    <div class="modal-title">🚗 Выдать клиенту</div>
+    <div class="modal-title">Выдать клиенту</div>
     <div class="modal-car" id="deliverCarName"></div>
     <div class="form-group">
       <label>Итоговая сумма</label>
@@ -472,7 +482,7 @@ html, body {
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" id="btnDeliverCancel">Отмена</button>
-      <button class="btn" style="background:var(--success);color:#fff" id="btnDeliverSave">🚗 Выдать</button>
+      <button class="btn" style="background:var(--success);color:#fff" id="btnDeliverSave">Выдать</button>
     </div>
   </div>
 </div>
@@ -511,7 +521,7 @@ const COLUMNS = [
   { key: 'scheduled',   label: 'Запись подтверждена', icon: '📅' },
   { key: 'accepted',    label: 'Авто принято',        icon: '🔑' },
   { key: 'in_progress', label: 'В работе',            icon: '🔧' },
-  { key: 'waiting',     label: 'Ожидание',            icon: '⏸' },
+  { key: 'waiting',     label: 'Ждём клиента',        icon: '⏸' },
   { key: 'done',        label: 'Готово',              icon: '✅' },
   { key: 'delivered',   label: 'Выдано',              icon: '🚗' },
   { key: 'closed',      label: 'Закрыто',             icon: '🔒' },
@@ -796,7 +806,7 @@ function buildExecutorsBlock(calc, status) {
 
   const label = document.createElement('div');
   label.style.cssText = 'font-size:0.67rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#64748b;margin-bottom:4px';
-  label.textContent = '👥 Исполнители';
+  label.textContent = 'Ответственные';
   block.appendChild(label);
 
   uniqueNames.forEach(name => {
@@ -891,7 +901,7 @@ async function openDrawer(calc, status) {
   const frag = document.createDocumentFragment();
 
   // ── Блок: авто ───────────────────────────────────────
-  const secCar = mkSection('🚗 Автомобиль');
+  const secCar = mkSection('Автомобиль');
   const carRows = [
     ['Название',    calc.car_name || '—'],
     ['Год',         car.year || '—'],
@@ -917,7 +927,7 @@ async function openDrawer(calc, status) {
 
   // ── Блок: услуги ─────────────────────────────────────
   if (services.length) {
-    const secSvc = mkSection('🔧 Услуги');
+    const secSvc = mkSection('Услуги');
     const list   = document.createElement('div');
     list.style.cssText = 'display:flex;flex-direction:column;gap:4px;margin-top:4px';
     services.forEach((svc, i) => {
@@ -938,7 +948,7 @@ async function openDrawer(calc, status) {
 
   // ── Блок: исполнители ─────────────────────────────────
   if (asgns.length) {
-    const secExec = mkSection('👥 Исполнители');
+    const secExec = mkSection('Ответственные');
     const workerMap = {};
     workers.forEach(a => {
       const n = a.executor_name || '—';
@@ -986,7 +996,7 @@ async function openDrawer(calc, status) {
   // ── Блок: комментарий ────────────────────────────────
   const note = fullCalc?.schedule_note;
   if (note) {
-    const secNote = mkSection('💬 Комментарий');
+    const secNote = mkSection('Комментарий');
     const noteBox = document.createElement('div');
     noteBox.className = 'drawer-note-box';
     const noteText = document.createElement('div');
@@ -1006,7 +1016,7 @@ async function openDrawer(calc, status) {
     .eq('type', 'writeoff');
 
   if (txData?.length) {
-    const secMat = mkSection('📦 Материалы');
+    const secMat = mkSection('Материалы');
     txData.forEach(tx => {
       const qty = Math.abs(tx.qty);
       const cost = qty * (tx.unit_cost || 0);
@@ -1104,63 +1114,62 @@ function buildDrawerActions(calc, status) {
   };
   const doDeliver = () => {
     closeDrawer();
-    openModalDeliver(calc.id, calc.car_name || 'Без названия', calc.total_price || 0);
+    openModalDeliver(calc.id, calc.car_name || 'Без названия', calc.final_price || calc.total_price || 0);
   };
 
   // ── 9-шаговый pipeline ────────────────────────────────────────────
   if (status === 'new') {
     el.append(
-      btn('📂 Открыть расчёт', goCalc),
-      btn('📅 Записать на дату', doBook, 'btn-primary'),
-      btn('❌ Отменить', doCancel, 'btn-danger'),
+      btn('Открыть расчёт', goCalc),
+      btn('Записать на дату', doBook, 'btn-primary'),
+      btn('Отменить заказ', doCancel, 'btn-danger'),
     );
   } else if (status === 'scheduled') {
     el.append(
-      btn('📂 Открыть расчёт',   goCalc),
-      btn('✏️ Изменить запись',  doBook),
-      btn('📋 Акт приёмки авто', goAct),
-      btn('🔑 Принять авто', () => move('accepted', 'Авто принято'), 'btn-primary'),
-      btn('❌ Отменить', doCancel, 'btn-danger'),
+      btn('Открыть расчёт',   goCalc),
+      btn('Изменить запись',  doBook),
+      btn('Акт приёмки авто', goAct),
+      btn('Принять авто', () => move('accepted', 'Авто принято'), 'btn-primary'),
+      btn('Отменить заказ', doCancel, 'btn-danger'),
     );
   } else if (status === 'accepted') {
     el.append(
-      btn('📂 Открыть расчёт', goCalc),
-      btn('📋 Акт приёмки',    goAct),
-      btn('👥 Назначить задачи', goAssign),
-      btn('🔧 Взять в работу', () => move('in_progress', 'Статус → В работе'), 'btn-primary'),
-      btn('❌ Отменить', doCancel, 'btn-danger'),
+      btn('Открыть расчёт', goCalc),
+      btn('Акт приёмки',    goAct),
+      btn('Назначить ответственных', goAssign),
+      btn('Взять в работу', () => move('in_progress', 'Статус → В работе'), 'btn-primary'),
+      btn('Отменить заказ', doCancel, 'btn-danger'),
     );
   } else if (status === 'in_progress') {
     el.append(
-      btn('📂 Открыть расчёт', goCalc),
-      btn('👥 Задачи',         goAssign),
-      btn('⏸ На ожидание',    () => move('waiting', 'Статус → Ожидание')),
-      btn('✅ Готово',          doDone, 'btn-primary'),
+      btn('Открыть расчёт', goCalc),
+      btn('Назначить ответственных', goAssign),
+      btn('Работа выполнена', doDone, 'btn-primary'),
+      btn('Отменить заказ', doCancel, 'btn-danger'),
     );
   } else if (status === 'waiting') {
     el.append(
-      btn('📂 Открыть расчёт', goCalc),
-      btn('🔧 Вернуть в работу', () => move('in_progress', 'Статус → В работе'), 'btn-primary'),
-      btn('✅ Готово',            doDone),
-      btn('❌ Отменить', doCancel, 'btn-danger'),
+      btn('Открыть расчёт', goCalc),
+      btn('Назначить ответственных', goAssign),
+      btn('Выдать клиенту', doDeliver, 'btn-primary'),
     );
   } else if (status === 'done') {
     el.append(
-      btn('📂 Открыть расчёт',  goCalc),
-      btn('📄 Акт приёмки',     goAct),
-      btn('🖨️ Заказ-наряд',    goWorkOrder),
-      btn('🚗 Выдать клиенту',  doDeliver, 'btn-primary'),
+      btn('Открыть расчёт',  goCalc),
+      btn('Акт приёмки',     goAct),
+      btn('Заказ-наряд',     goWorkOrder),
+      btn('Выдать клиенту',  doDeliver, 'btn-primary'),
     );
   } else if (status === 'delivered') {
     el.append(
-      btn('📂 Открыть расчёт', goCalc),
-      btn('🖨️ Акт передачи',  goWorkOrder),
-      btn('🔒 Закрыть заказ',  () => move('closed', 'Заказ закрыт'), 'btn-primary'),
+      btn('Открыть расчёт', goCalc),
+      btn('Заказ-наряд',    goWorkOrder),
+      btn('Закрыть заказ',  () => move('closed', 'Заказ закрыт'), 'btn-primary'),
     );
   } else if (status === 'closed') {
     el.append(
-      btn('📂 Открыть расчёт', goCalc),
-      btn('🖨️ Документы',     goWorkOrder),
+      btn('Открыть расчёт', goCalc),
+      btn('Документы',      goWorkOrder),
     );
   } else if (status === 'cancelled') {
     el.append(
@@ -1322,13 +1331,13 @@ function bindEvents() {
   document.getElementById('btnDoneCancel').addEventListener('click', () => closeModal('modalDone'));
   document.getElementById('btnDoneSave').addEventListener('click', async () => {
     const btn = document.getElementById('btnDoneSave');
-    const release = lockButton(btn, '⏳ Сохранение...');
+    const release = lockButton(btn, 'Сохранение...');
     const factMaterials = {};
     document.querySelectorAll('#doneMaterialsList input[data-key]').forEach(inp => {
       factMaterials[inp.dataset.key] = parseFloat(inp.value) || 0;
     });
     const extra = Object.keys(factMaterials).length > 0 ? { fact_materials: factMaterials } : {};
-    const ok = await updateStatus(activeCalcId, 'done', extra);
+    const ok = await updateStatus(activeCalcId, 'waiting', extra);
     release();
     if (ok) { closeModal('modalDone'); showToast('success', 'Работа завершена'); loadBoard(); }
   });
@@ -1340,7 +1349,7 @@ function bindEvents() {
   document.getElementById('btnDeliverCancel').addEventListener('click', () => closeModal('modalDeliver'));
   document.getElementById('btnDeliverSave').addEventListener('click', async () => {
     const btn = document.getElementById('btnDeliverSave');
-    const release = lockButton(btn, '⏳ Сохранение...');
+    const release = lockButton(btn, 'Сохранение...');
     const price = parseFloat(document.getElementById('deliverPrice').value) || null;
     const note  = document.getElementById('deliverNote').value.trim();
     const ok    = await updateStatus(activeCalcId, 'delivered', { final_price: price, delivery_note: note });
