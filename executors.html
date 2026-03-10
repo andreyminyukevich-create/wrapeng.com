@@ -478,11 +478,11 @@ async function initPage() {
 }
 
 // ── Карточка сотрудника ───────────────────────────────────────────────
-function closeExecutorCard() {
+window.closeExecutorCard = function() {
   document.getElementById('execCardOverlay').style.display = 'none';
   document.getElementById('execCardDrawer').classList.remove('open');
   document.getElementById('execCardDrawer').style.display = 'none';
-}
+};
 
 async function openExecutorCard(execId) {
   const exec = (await sb.from('executors').select('*').eq('id', execId).single()).data;
