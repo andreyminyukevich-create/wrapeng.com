@@ -1,8 +1,7 @@
 /**
- * calculator-ui.js — v1.1 (актуальная версия из calculator.html)
- * Инициализация UI: бренды, модели, скидки, тема, биндинги, точка входа.
+ * calculator-ui.js — v1.1
  * Зависит от: calculator-data.js, calculator-engine.js, calculator-render.js,
- *             calculator-persistence.js (initAuthAndAccess, loadCalculationFromUrl, scheduleSave)
+ *             calculator-persistence.js
  */
 
 function fillBrands() {
@@ -75,6 +74,44 @@ function onModelChange() {
 
 // Helper для заглавной первой буквы
 function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+
+function initTheme() {
+  // Принудительно светлая тема
+  document.body.setAttribute('data-theme', 'light');
+
+  qa('.toggle-btn').forEach(b => {
+    b.addEventListener('click', () => {
+      const r = b.querySelector('input[type=radio]');
+      if (r) {
+        r.checked = true;
+        qa('.toggle-btn').forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+        renderAll();
+      }
+    });
+  });
+
+}
+
+function initDiscounts() {
+  qa('.discount-btn').forEach(b => {
+    b.addEventListener('click', () => {
+      disc = parseInt(b.dataset.discount) || 0;
+      qa('.discount-btn').forEach(x => x.classList.toggle('active', parseInt(x.dataset.discount) === disc));
+      q('#customDiscount').value = '';
+      renderAll();
+    });
+  });
+  
+  q('#customDiscount')?.addEventListener('input', e => {
+    const v = Math.max(0, Math.min(100, parseFloat(e.target.value) || 0));
+    disc = v;
+    qa('.discount-btn').forEach(b => b.classList.remove('active'));
+    renderAll();
+  });
+}
+
 
 function setDefaultMarkups() {
   ['#pkgMarkup', '#impactMarkup', '#armMarkup', '#wrapMarkup', '#detMarkup', '#glMarkup', '#miscMarkup'].forEach(id => {
@@ -252,56 +289,8 @@ function initBindings() {
   }, true);
 }
 
-// ── Точка входа ──────────────────────────
+
 document.addEventListener('DOMContentLoaded', async () => {
-function initTheme() {
-  // Принудительно светлая тема
-  document.body.setAttribute('data-theme', 'light');
-
-  qa('.toggle-btn').forEach(b => {
-    b.addEventListener('click', () => {
-      const r = b.querySelector('input[type=radio]');
-      if (r) {
-        r.checked = true;
-        qa('.toggle-btn').forEach(x => x.classList.remove('active'));
-        b.classList.add('active');
-        renderAll();
-      }
-    });
-  });
-
-}
-
-function initDiscounts() {
-  qa('.discount-btn').forEach(b => {
-    b.addEventListener('click', () => {
-      disc = parseInt(b.dataset.discount) || 0;
-      qa('.discount-btn').forEach(x => x.classList.toggle('active', parseInt(x.dataset.discount) === disc));
-      q('#customDiscount').value = '';
-      renderAll();
-    });
-  });
-  
-  q('#customDiscount')?.addEventListener('input', e => {
-    const v = Math.max(0, Math.min(100, parseFloat(e.target.value) || 0));
-    disc = v;
-    qa('.discount-btn').forEach(b => b.classList.remove('active'));
-    renderAll();
-  });
-}
-
-function initChart() {
-document.addEventListener('DOMContentLoaded', async () => {
-  // Инициализируем навигацию
-  if (typeof window.initNav === 'function') {
-    window.initNav({
-      activePage:  'calculator.html',
-      actionHref:  'calculator.html',
-      actionLabel: '➕ Новый расчёт',
-      hideAction:  true,
-    });
-  }
-
   const hasAccess = await initAuthAndAccess();
   if (!hasAccess) return;
 
@@ -312,8 +301,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   initBindings();
 
   await loadCalculationFromUrl();
+});
 
-  // Кнопка "Новый расчёт"
+  // Новый расчёт — сохраняем и перезагружаем
   const btnNew = q('#btnNewCalc');
   if (btnNew) {
     btnNew.addEventListener('click', async () => {
@@ -323,7 +313,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       window.location.href = 'calculator.html';
     });
   }
-});
+
+  
 // Экспортируем функции в глобальный scope для inline handlers
 window.fillModels = fillModels;
 window.onBrandChange = onBrandChange;
@@ -336,6 +327,3 @@ function showToast() {
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2000);
 }
-
-
-</script>
