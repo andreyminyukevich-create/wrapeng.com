@@ -323,7 +323,29 @@ body {
     <div id="searchResults"></div>
   </div>
 
-  <!-- Мини-канбан -->\n  <div class=\"card card-kanban\">\n    <div class=\"card-header\">\n      <span class=\"card-title\">В работе</span>\n      <a href=\"board.html\" class=\"card-link\">Открыть всё →</a>\n    </div>\n    <div class=\"mini-kanban\" id=\"miniKanban\">\n      <div class=\"loading\">Загрузка...</div>\n    </div>\n  </div>\n\n  <!-- Документы -->\n  <div class=\"card\" id=\"docsCard\">\n    <div class=\"card-header\" id=\"docsToggle\" style=\"cursor:pointer;user-select:none\" onclick=\"toggleDocs()\">\n      <span class=\"card-title\">Документы</span>\n      <span id=\"docsChevron\" style=\"font-size:0.85rem;color:#64748b;transition:transform .2s\">▼</span>\n    </div>\n    <div id=\"docsBody\" style=\"display:none;padding-top:4px\">\n      <div id=\"docsContent\" style=\"color:#94a3b8;font-size:0.84rem;padding:12px 0;text-align:center\">Загрузка...</div>\n    </div>\n  </div>\n\n</div>
+  <!-- Мини-канбан -->
+  <div class="card card-kanban">
+    <div class="card-header">
+      <span class="card-title">В работе</span>
+      <a href="board.html" class="card-link">Открыть всё →</a>
+    </div>
+    <div class="mini-kanban" id="miniKanban">
+      <div class="loading">Загрузка...</div>
+    </div>
+  </div>
+
+  <!-- Документы -->
+  <div class="card" id="docsCard">
+    <div class="card-header" id="docsToggle" style="cursor:pointer;user-select:none" onclick="toggleDocs()">
+      <span class="card-title">Документы</span>
+      <span id="docsChevron" style="font-size:0.85rem;color:#64748b;transition:transform .2s">▼</span>
+    </div>
+    <div id="docsBody" style="display:none;padding-top:4px">
+      <div id="docsContent" style="color:#94a3b8;font-size:0.84rem;padding:12px 0;text-align:center">Загрузка...</div>
+    </div>
+  </div>
+
+</div>
 
 <script src="footer.js"></script>
 <script type="module">
@@ -631,28 +653,29 @@ async function initPage() {
   window._dashStudioId = ctx.studioId;
 }
 
-let _docsOpen = false;
+// ── Документы ─────────────────────────────────────────────────────────
+let _docsOpen   = false;
+let _docsLoaded = false;
+
 window.toggleDocs = async function() {
-  const body    = document.getElementById('docsBody');
-  const chevron = document.getElementById('docsChevron');
   _docsOpen = !_docsOpen;
-  body.style.display = _docsOpen ? 'block' : 'none';
-  chevron.style.transform = _docsOpen ? 'rotate(180deg)' : '';
+  document.getElementById('docsBody').style.display    = _docsOpen ? 'block' : 'none';
+  document.getElementById('docsChevron').style.transform = _docsOpen ? 'rotate(180deg)' : '';
   if (_docsOpen && !_docsLoaded) await loadDocs();
 };
 
-let _docsLoaded = false;
 async function loadDocs() {
-  const el = document.getElementById('docsContent');
+  const el  = document.getElementById('docsContent');
   const sid = window._dashStudioId;
   if (!sid) return;
 
-  const { data } = await sb.from('calculations')
-    .select('id, car_name, status, checkin_date, total_price, final_price, created_at')
+  const { data } = await sb
+    .from('calculations')
+    .select('id, car_name, status, created_at, total_price, final_price')
     .eq('studio_id', sid)
     .in('status', ['accepted','in_progress','waiting','done','delivered','closed'])
     .order('created_at', { ascending: false })
-    .limit(30);
+    .limit(40);
 
   if (!data?.length) {
     el.innerHTML = '<span style="color:#94a3b8">Нет документов</span>';
@@ -660,29 +683,29 @@ async function loadDocs() {
     return;
   }
 
-  const docTypes = [
-    { key: 'act',   label: 'Акты приёмки',   statuses: ['accepted','in_progress','waiting','done','delivered','closed'], url: id => `acceptance-act.html?calc_id=${id}` },
-    { key: 'order', label: 'Заказ-наряды',    statuses: ['in_progress','waiting','done','delivered','closed'],            url: id => `work-order.html?calc_id=${id}` },
-    { key: 'done',  label: 'Акты выдачи',     statuses: ['delivered','closed'],                                           url: id => `work-order.html?calc_id=${id}` },
+  const sections = [
+    { label: 'Акты приёмки',  statuses: ['accepted','in_progress','waiting','done','delivered','closed'], url: id => 'acceptance-act.html?calc_id=' + id },
+    { label: 'Заказ-наряды',  statuses: ['in_progress','waiting','done','delivered','closed'],            url: id => 'work-order.html?calc_id=' + id },
+    { label: 'Акты выдачи',   statuses: ['delivered','closed'],                                           url: id => 'work-order.html?calc_id=' + id },
   ];
 
   el.innerHTML = '';
-  docTypes.forEach(dt => {
-    const items = data.filter(c => dt.statuses.includes(c.status));
+  sections.forEach(sec => {
+    const items = data.filter(c => sec.statuses.includes(c.status));
     if (!items.length) return;
 
-    const section = document.createElement('div');
-    section.style.cssText = 'margin-bottom:16px';
+    const block = document.createElement('div');
+    block.style.cssText = 'margin-bottom:16px';
 
     const title = document.createElement('div');
     title.style.cssText = 'font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#64748b;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #f1f5f9';
-    title.textContent = dt.label;
-    section.appendChild(title);
+    title.textContent = sec.label;
+    block.appendChild(title);
 
     items.forEach(c => {
       const row = document.createElement('a');
-      row.href = dt.url(c.id);
-      row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-radius:8px;text-decoration:none;color:inherit;transition:background .15s;margin-bottom:3px';
+      row.href = sec.url(c.id);
+      row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-radius:8px;text-decoration:none;color:inherit;transition:background .15s;margin-bottom:2px';
       row.onmouseover = () => row.style.background = '#f8fafc';
       row.onmouseout  = () => row.style.background = '';
 
@@ -692,7 +715,7 @@ async function loadDocs() {
       name.textContent = c.car_name || 'Без названия';
       const date = document.createElement('div');
       date.style.cssText = 'font-size:0.72rem;color:#94a3b8;margin-top:1px';
-      date.textContent = new Date(c.created_at).toLocaleDateString('ru-RU', {day:'numeric',month:'short',year:'numeric'});
+      date.textContent = new Date(c.created_at).toLocaleDateString('ru-RU', { day:'numeric', month:'short', year:'numeric' });
       left.append(name, date);
 
       const price = document.createElement('div');
@@ -701,10 +724,10 @@ async function loadDocs() {
       price.textContent = p ? new Intl.NumberFormat('ru-RU').format(p) + ' ₽' : '—';
 
       row.append(left, price);
-      section.appendChild(row);
+      block.appendChild(row);
     });
 
-    el.appendChild(section);
+    el.appendChild(block);
   });
 
   _docsLoaded = true;
