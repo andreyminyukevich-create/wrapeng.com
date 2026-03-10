@@ -91,6 +91,16 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvet
 .loading-state { text-align:center; padding:40px 20px; color:#94a3b8; font-size:0.85rem; }
 .no-data       { text-align:center; padding:28px 20px; color:#94a3b8; font-size:0.8rem; font-style:italic; }
 .widget-hidden { display:none !important; }
+.bg-profit { background:rgba(5,150,105,0.08); color:#059669; }
+.bg-loss    { background:rgba(220,38,38,0.08); color:#dc2626; }
+.margin-bar-wrap { display:flex; align-items:center; gap:6px; margin-top:4px; }
+.margin-bar-bg { flex:1; height:6px; border-radius:3px; background:#e2e8f0; overflow:hidden; }
+.margin-bar-fill { height:100%; border-radius:3px; transition:width .4s ease; }
+.margin-val { font-size:0.7rem; font-weight:800; width:32px; text-align:right; flex-shrink:0; }
+.profit-positive { color:#059669; font-weight:800; }
+.profit-negative { color:#dc2626; font-weight:800; }
+.dt td.r.green { color:#059669; }
+.dt td.r.red   { color:#dc2626; }
 @media (max-width:1100px) { .charts-2col,.charts-equal { grid-template-columns:1fr; } .check-cards { grid-template-columns:repeat(2,1fr); } }
 @media (max-width:768px)  { .container { padding:14px 14px 48px; } .kpi-grid { grid-template-columns:repeat(2,1fr); gap:10px; } .kpi-value { font-size:1.3rem; } .settings-panel { width:100%; } }
 @media (max-width:480px)  { .check-cards { grid-template-columns:1fr 1fr; } .period-tab { padding:5px 8px; font-size:0.72rem; } }
@@ -133,6 +143,26 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvet
     <div class="kpi-card"><span class="kpi-icon">🔧</span><div class="kpi-label">В работе сейчас</div><div class="kpi-value" id="kpiActive">—</div><span class="kpi-change flat" id="kpiActiveSub">—</span></div>
     <div class="kpi-card"><span class="kpi-icon">💸</span><div class="kpi-label">ФОТ (зарплаты)</div><div class="kpi-value" id="kpiFOT">—</div><span class="kpi-change flat" id="kpiFOTSub">за период</span></div>
   </div>
+
+  <!-- Маржа -->
+  <div class="kpi-grid gap14" id="wMargin">
+    <div class="kpi-card" style="--accent:#059669"><span class="kpi-icon">💵</span><div class="kpi-label">Выручка (факт)</div><div class="kpi-value" id="mRevenue">—</div><span class="kpi-change flat" id="mRevSub">по выданным заказам</span></div>
+    <div class="kpi-card" style="--accent:#dc2626"><span class="kpi-icon">💸</span><div class="kpi-label">Расходы (ЗП + закупки)</div><div class="kpi-value" id="mCosts">—</div><span class="kpi-change flat" id="mCostsSub">—</span></div>
+    <div class="kpi-card" style="--accent:#7c3aed"><span class="kpi-icon">📊</span><div class="kpi-label">Валовая прибыль</div><div class="kpi-value" id="mProfit">—</div><span class="kpi-change flat" id="mProfitSub">—</span></div>
+    <div class="kpi-card" style="--accent:#0891b2"><span class="kpi-icon">🎯</span><div class="kpi-label">Маржа %</div><div class="kpi-value" id="mMarginPct">—</div><span class="kpi-change flat" id="mMarginSub">выручка − расходы</span></div>
+  </div>
+
+  <!-- График P&L -->
+  <div class="sc gap14" id="wProfitChart">
+    <div class="sc-title">Выручка / Расходы / Прибыль по месяцам</div>
+    <div class="cwt" style="height:280px"><canvas id="profitChart"></canvas></div>
+  </div>
+
+  <!-- Таблица прибыльности по заказам -->
+  <div class="sc gap14" id="wProfitTable">
+    <div class="sc-title">Прибыльность по закрытым заказам</div>
+    <div id="profitTableWrap"><div class="loading-state">Загрузка...</div></div>
+  </div>
   <div class="charts-2col gap14" id="wRevChart">
     <div class="sc"><div class="sc-title">📈 Выручка и расчёты</div><div class="cwt"><canvas id="revenueChart"></canvas></div></div>
     <div class="sc"><div class="sc-title">🥧 Суммы по статусам</div><div class="cwt" id="statusChartWrap"><canvas id="statusChart"></canvas></div></div>
@@ -159,13 +189,16 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvet
 <div class="settings-panel" id="settingsPanel">
   <h3>⚙️ Настройка виджетов</h3>
   <p>Выберите блоки для отображения. Настройки сохраняются в браузере.</p>
-  <div class="widget-toggle"><label><input type="checkbox" data-widget="wKPI">       🚗 Основные KPI (4 карточки)</label></div>
-  <div class="widget-toggle"><label><input type="checkbox" data-widget="wKPI2">      📈 Доп. показатели (макс/мин/ФОТ)</label></div>
-  <div class="widget-toggle"><label><input type="checkbox" data-widget="wRevChart">  📈 Графики выручки и статусов</label></div>
-  <div class="widget-toggle"><label><input type="checkbox" data-widget="wFunnel">    🔽 Воронка и топ марок</label></div>
-  <div class="widget-toggle"><label><input type="checkbox" data-widget="wTopChecks"> 💎 Топ чеков</label></div>
-  <div class="widget-toggle"><label><input type="checkbox" data-widget="wMonthly">   📅 Динамика по месяцам</label></div>
-  <div class="widget-toggle"><label><input type="checkbox" data-widget="wEmployees"> 👥 Рейтинг сотрудников</label></div>
+  <div class="widget-toggle"><label><input type="checkbox" data-widget="wKPI">       Основные KPI (4 карточки)</label></div>
+  <div class="widget-toggle"><label><input type="checkbox" data-widget="wKPI2">      Доп. показатели (макс/мин/ФОТ)</label></div>
+  <div class="widget-toggle"><label><input type="checkbox" data-widget="wMargin">    Маржа и прибыль (4 карточки)</label></div>
+  <div class="widget-toggle"><label><input type="checkbox" data-widget="wProfitChart"> График P&amp;L по месяцам</label></div>
+  <div class="widget-toggle"><label><input type="checkbox" data-widget="wProfitTable"> Прибыльность по заказам</label></div>
+  <div class="widget-toggle"><label><input type="checkbox" data-widget="wRevChart">  Графики выручки и статусов</label></div>
+  <div class="widget-toggle"><label><input type="checkbox" data-widget="wFunnel">    Воронка и топ марок</label></div>
+  <div class="widget-toggle"><label><input type="checkbox" data-widget="wTopChecks"> Топ чеков</label></div>
+  <div class="widget-toggle"><label><input type="checkbox" data-widget="wMonthly">   Динамика по месяцам</label></div>
+  <div class="widget-toggle"><label><input type="checkbox" data-widget="wEmployees"> Рейтинг сотрудников</label></div>
   <button class="panel-close" id="btnPanelClose">✕ Закрыть</button>
 </div>
 
@@ -176,7 +209,7 @@ import { requireAuth }     from './auth.js';
 import { getStudioContext } from './studio-context.js';
 import { escapeHtml }       from './formatters.js';
 
-let allCalcs = [], allAssign = [], studioId = null;
+let allCalcs = [], allAssign = [], allPurchases = [], studioId = null;
 let activeDays = 30, customFrom = null, customTo = null, isCustom = false;
 const charts = {};
 const e = escapeHtml;
@@ -375,10 +408,159 @@ function buildLabel(cur) {
   set('periodLabel',range+' · '+cur.length+' расчётов');
 }
 
+function filterPurchases(range) {
+  return allPurchases.filter(p => { const d = new Date(p.purchase_date); return d >= range.from && d <= range.to; });
+}
+
+// Закупки привязанные к заказу (по calc_id) или по дате (без calc_id)
+function getPurchasesByCalc(calcIds, rangePurchases) {
+  const byCalc = {};
+  // Привязанные к конкретному заказу
+  allPurchases.filter(p => p.calculation_id && calcIds.has(p.calculation_id)).forEach(p => {
+    byCalc[p.calculation_id] = (byCalc[p.calculation_id] || 0) + (p.total_amount || 0);
+  });
+  return byCalc;
+}
+
+function renderMarginKPI(cur, asgn, purchases) {
+  const delivered = cur.filter(c => ['delivered','closed'].includes(ns(c.status)));
+  const revenue   = delivered.reduce((s,c) => s + (c.final_price || c.total_price || 0), 0);
+  const salary    = asgn.filter(a => !a.is_admin_sale).reduce((s,a) => s + (a.salary || 0), 0);
+  const purCost   = purchases.reduce((s,p) => s + (p.total_amount || 0), 0);
+  const costs     = salary + purCost;
+  const profit    = revenue - costs;
+  const marginPct = revenue > 0 ? Math.round(profit / revenue * 100) : null;
+
+  set('mRevenue', fmt(revenue));
+  set('mRevSub',  delivered.length + ' выданных заказов');
+  set('mCosts',   fmt(costs));
+  set('mCostsSub', 'ЗП: ' + fmt(salary) + ' + закупки: ' + fmt(purCost));
+  set('mProfit',   fmt(profit));
+
+  const profitEl = document.getElementById('mProfit');
+  if (profitEl) profitEl.style.color = profit >= 0 ? '#059669' : '#dc2626';
+
+  if (marginPct !== null) {
+    set('mMarginPct', marginPct + '%');
+    const el = document.getElementById('mMarginPct');
+    if (el) el.style.color = marginPct >= 30 ? '#059669' : marginPct >= 15 ? '#d97706' : '#dc2626';
+    set('mMarginSub', profit >= 0 ? 'Прибыльно' : 'Убыток за период');
+  } else {
+    set('mMarginPct', '—');
+    set('mMarginSub', 'Нет выданных заказов');
+  }
+}
+
+function renderProfitChart() {
+  const ctx = document.getElementById('profitChart'); if (!ctx) return;
+  if (charts.profit) { charts.profit.destroy(); charts.profit = null; }
+
+  const b = {};
+  allCalcs.filter(c => ['delivered','closed'].includes(ns(c.status))).forEach(c => {
+    const k = c.created_at.slice(0,7);
+    if (!b[k]) b[k] = { rev:0, sal:0, pur:0 };
+    b[k].rev += (c.final_price || c.total_price || 0);
+  });
+  allAssign.filter(a => !a.is_admin_sale).forEach(a => {
+    const m = a.payment_month || new Date().toISOString().slice(0,7);
+    if (!b[m]) b[m] = { rev:0, sal:0, pur:0 };
+    b[m].sal += (a.salary || 0);
+  });
+  allPurchases.forEach(p => {
+    const k = (p.purchase_date || '').slice(0,7);
+    if (!b[k]) b[k] = { rev:0, sal:0, pur:0 };
+    b[k].pur += (p.total_amount || 0);
+  });
+
+  const keys = Object.keys(b).sort().slice(-18);
+  if (!keys.length) { ctx.parentElement.innerHTML = '<div class="no-data">Нет данных</div>'; return; }
+
+  const labels = keys.map(k => { const [y,m]=k.split('-'); return new Date(+y,+m-1,1).toLocaleDateString('ru-RU',{month:'short',year:'2-digit'}); });
+  charts.profit = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label:'Выручка',  data:keys.map(k=>b[k].rev), backgroundColor:'rgba(37,99,235,0.65)', borderRadius:4, stack:'a' },
+        { label:'ЗП',       data:keys.map(k=>b[k].sal), backgroundColor:'rgba(220,38,38,0.55)',  borderRadius:4, stack:'b' },
+        { label:'Закупки',  data:keys.map(k=>b[k].pur), backgroundColor:'rgba(245,158,11,0.6)',  borderRadius:4, stack:'b' },
+        { label:'Прибыль',  data:keys.map(k=>b[k].rev - b[k].sal - b[k].pur),
+          type:'line', borderColor:'#059669', backgroundColor:'rgba(5,150,105,0.1)',
+          borderWidth:2.5, pointRadius:4, pointBackgroundColor:'#059669', fill:true, tension:0.3, yAxisID:'y' }
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
+      plugins:{
+        legend:{position:'top',labels:{font:{size:11},padding:10,boxWidth:13}},
+        tooltip:{callbacks:{label:c=>' '+fmt(c.parsed.y)}}
+      },
+      scales:{
+        y:{position:'left',grid:{color:'rgba(0,0,0,0.04)'},ticks:{callback:v=>v>=1e6?(v/1e6).toFixed(1)+'M':v>=1e3?Math.round(v/1e3)+'K':v,font:{size:10}}},
+        x:{ticks:{font:{size:10}}}
+      }
+    }
+  });
+}
+
+function renderProfitTable(cur, asgn) {
+  const w = document.getElementById('profitTableWrap'); if (!w) return;
+  const closed = cur.filter(c => ['delivered','closed'].includes(ns(c.status)));
+  if (!closed.length) { w.innerHTML = '<div class="no-data">Нет закрытых заказов за период</div>'; return; }
+
+  const salByCalc = {}, purByCalc = {};
+  const calcIds = new Set(closed.map(c => c.id));
+
+  asgn.filter(a => !a.is_admin_sale && calcIds.has(a.calculation_id)).forEach(a => {
+    salByCalc[a.calculation_id] = (salByCalc[a.calculation_id] || 0) + (a.salary || 0);
+  });
+  allPurchases.filter(p => p.calculation_id && calcIds.has(p.calculation_id)).forEach(p => {
+    purByCalc[p.calculation_id] = (purByCalc[p.calculation_id] || 0) + (p.total_amount || 0);
+  });
+
+  const rows = closed.map(c => {
+    const rev  = c.final_price || c.total_price || 0;
+    const sal  = salByCalc[c.id] || 0;
+    const pur  = purByCalc[c.id] || 0;
+    const prof = rev - sal - pur;
+    const pct  = rev > 0 ? Math.round(prof / rev * 100) : null;
+    return { c, rev, sal, pur, prof, pct };
+  }).sort((a,b) => b.prof - a.prof);
+
+  w.innerHTML = '<div style="overflow-x:auto"><table class="dt">' +
+    '<thead><tr><th>#</th><th>Авто</th><th class="r">Выручка</th><th class="r">ЗП</th><th class="r">Закупки</th><th class="r">Прибыль</th><th class="r">Маржа</th></tr></thead><tbody>' +
+    rows.map((r,i) => {
+      const isPro = r.prof >= 0;
+      const pctStr = r.pct !== null ? r.pct + '%' : '—';
+      const pctCls = r.pct === null ? '' : r.pct >= 30 ? 'green' : r.pct >= 15 ? '' : 'red';
+      return `<tr>
+        <td><span class="rn ${i<3?'r'+(i+1):''}">${i+1}</span></td>
+        <td style="font-weight:600">${e(r.c.car_name||'—')}</td>
+        <td class="r">${fmt(r.rev)}</td>
+        <td class="r" style="color:#dc2626">${r.sal > 0 ? fmt(r.sal) : '—'}</td>
+        <td class="r" style="color:#d97706">${r.pur > 0 ? fmt(r.pur) : '—'}</td>
+        <td class="r ${isPro?'green':'red'}">${fmt(r.prof)}</td>
+        <td class="r ${pctCls}">${pctStr}</td>
+      </tr>`;
+    }).join('') +
+    '</tbody></table></div>' +
+    '<p style="font-size:0.72rem;color:#94a3b8;margin-top:8px">Закупки учитываются только если привязаны к заказу. Остальные закупки отражаются в графике P&L по дате.</p>';
+}
+
 function render() {
   const range=getRange(),prev=getPrevRange(),cur=filterC(range),prevC=prev?filterC(prev):[],asgn=filterA(cur);
-  buildLabel(cur);renderKPI(cur,prevC);renderRevenueChart(cur);renderStatusChart(cur);
-  renderFunnel(cur);renderTopCars(cur);renderTopChecks(cur,asgn);renderMonthlyChart();renderEmployees(cur,asgn);
+  const purchases = filterPurchases(range);
+  buildLabel(cur);
+  renderKPI(cur,prevC);
+  renderMarginKPI(cur,asgn,purchases);
+  renderRevenueChart(cur);
+  renderStatusChart(cur);
+  renderFunnel(cur);renderTopCars(cur);renderTopChecks(cur,asgn);
+  renderMonthlyChart();
+  renderProfitChart();
+  renderProfitTable(cur,asgn);
+  renderEmployees(cur,asgn);
 }
 
 function bindEvents() {
@@ -421,12 +603,13 @@ async function initPage() {
   const today=new Date(),month=new Date(Date.now()-30*86400000);
   document.getElementById('dateTo').value=today.toISOString().split('T')[0];
   document.getElementById('dateFrom').value=month.toISOString().split('T')[0];
-  const [cr,ar]=await Promise.all([
-    sb.from('calculations').select('id,car_name,total_price,final_price,status,created_at').eq('studio_id',studioId).order('created_at',{ascending:true}),
-    sb.from('work_assignments').select('calculation_id,executor_name,executor_id,salary,is_admin_sale').eq('studio_id',studioId)
+  const [cr,ar,pr]=await Promise.all([
+    sb.from('calculations').select('id,car_name,total_price,final_price,status,created_at,checkin_date').eq('studio_id',studioId).order('created_at',{ascending:true}),
+    sb.from('work_assignments').select('calculation_id,executor_name,executor_id,salary,is_admin_sale').eq('studio_id',studioId),
+    sb.from('purchases').select('id,calculation_id,total_amount,purchase_date').eq('studio_id',studioId)
   ]);
-  if(cr.error){document.querySelector('.container').innerHTML=`<div class="loading-state">❌ Ошибка: ${e(cr.error.message)}</div>`;return;}
-  allCalcs=cr.data||[];allAssign=ar.data||[];
+  if(cr.error){document.querySelector('.container').innerHTML=`<div class="loading-state">Ошибка: ${e(cr.error.message)}</div>`;return;}
+  allCalcs=cr.data||[];allAssign=ar.data||[];allPurchases=pr.data||[];
   render();
 }
 
