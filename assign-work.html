@@ -578,12 +578,59 @@ function buildWorkItem(service, existingAssignments = []) {
   const nameEl = document.createElement('span');
   nameEl.className = 'work-service-name';
   nameEl.textContent = service.name;
+
+  // Мотивация — кликабельная если 0
+  const salWrap = document.createElement('div');
+  salWrap.style.cssText = 'display:flex;align-items:center;gap:6px;';
+
   const salEl = document.createElement('span');
-  salEl.className = 'work-base-salary';
-  salEl.textContent = service.baseSalary > 0
-    ? `Мотивация: ${fmt(service.baseSalary)} ₽`
-    : 'Сумма не задана — введите вручную';
-  header.append(nameEl, salEl);
+  salEl.className = 'work-base-salary' + (service.baseSalary > 0 ? '' : ' no-salary');
+  salEl.style.cssText = service.baseSalary > 0 ? '' : 'background:rgba(217,119,6,0.08);color:var(--warning);border-color:rgba(217,119,6,0.25);cursor:pointer;';
+  salEl.title = service.baseSalary > 0 ? '' : 'Нажмите чтобы задать мотивацию';
+
+  const renderSalLabel = (val) => {
+    salEl.textContent = val > 0 ? `Мотивация: ${fmt(val)} ₽` : 'Задать мотивацию';
+    salEl.dataset.baseSalary = String(val);
+    addBtn.dataset.baseSalary = String(val);
+  };
+  renderSalLabel(service.baseSalary);
+
+  // Инлайн-редактор мотивации
+  const salEditWrap = document.createElement('div');
+  salEditWrap.style.cssText = 'display:none;align-items:center;gap:6px;';
+  const salInput = document.createElement('input');
+  salInput.type = 'number'; salInput.min = '0'; salInput.step = '1';
+  salInput.value = service.baseSalary || '';
+  salInput.placeholder = 'Сумма ₽';
+  salInput.style.cssText = 'width:110px;padding:5px 8px;font-size:0.82rem;border:1.5px solid var(--warning);border-radius:7px;background:var(--surface);color:var(--text);outline:none;';
+  const salSaveBtn = document.createElement('button');
+  salSaveBtn.textContent = 'Ок';
+  salSaveBtn.style.cssText = 'padding:5px 10px;font-size:0.78rem;font-weight:700;background:var(--warning);color:#fff;border:none;border-radius:7px;cursor:pointer;font-family:var(--font);';
+  salEditWrap.append(salInput, salSaveBtn);
+
+  const openSalEdit = () => {
+    salEl.style.display = 'none';
+    salEditWrap.style.display = 'flex';
+    salInput.focus(); salInput.select();
+  };
+  const closeSalEdit = () => {
+    const val = parseFloat(salInput.value) || 0;
+    renderSalLabel(val);
+    // Обновить salary-input во всех строках исполнителей
+    rowsEl.querySelectorAll('.salary-input').forEach(inp => {
+      if (!parseFloat(inp.value)) inp.value = val > 0 ? String(Math.round(val)) : '';
+    });
+    salEl.style.display = '';
+    salEditWrap.style.display = 'none';
+    updateSummary();
+  };
+
+  salEl.addEventListener('click', openSalEdit);
+  salSaveBtn.addEventListener('click', closeSalEdit);
+  salInput.addEventListener('keydown', e => { if (e.key === 'Enter') closeSalEdit(); if (e.key === 'Escape') { salEditWrap.style.display='none'; salEl.style.display=''; } });
+
+  salWrap.append(salEl, salEditWrap);
+  header.append(nameEl, salWrap);
 
   // Executor rows container
   const rowsEl = document.createElement('div');
@@ -597,8 +644,8 @@ function buildWorkItem(service, existingAssignments = []) {
   // Add executor button
   const addBtn = document.createElement('button');
   addBtn.className = 'add-executor-btn';
-  addBtn.dataset.action      = 'add-exec-row';
-  addBtn.dataset.baseSalary  = String(service.baseSalary);
+  addBtn.dataset.action     = 'add-exec-row';
+  addBtn.dataset.baseSalary = String(service.baseSalary);
   addBtn.textContent = 'Добавить исполнителя';
 
   item.append(header, rowsEl, addBtn);
