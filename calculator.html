@@ -5,16 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Keep1R CRM — Расчёт оклейки</title>
 <script>document.documentElement.setAttribute('data-theme', 'light'); document.body && document.body.setAttribute('data-theme', 'light');</script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<style id="nav-css-inline">
-/* ═══════════════════════════════════════════
-   nav.css — Единая навигация CRM
-   Светлая тема, без переключателя.
-   Использует #navTopBar чтобы не конфликтовать
-   с .top-bar на отдельных страницах.
-═══════════════════════════════════════════ */
-
-/* Системный шрифт Apple — SF Pro на Mac/iOS, лучший на каждой платформе */
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<link rel="stylesheet" href="nav.css">
+<script src="nav.js"></script>
+<style id="calc-styles">
+/* Калькулятор — специфичные стили (nav.css подключён отдельно) */
 :root {
   --font: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
   --bg-primary:    #f0f4fb;
@@ -38,6 +33,8 @@
   --radius:        12px;
   --radius-sm:     8px;
 }
+
+/* nav-специфичные стили продублированы из nav.css — рефакторинг стилей в этапе 6 */
 
 /* ── Top Bar ─────────────────────────────── */
 #navTopBar {
@@ -1961,18 +1958,8 @@ window.addEventListener('unhandledrejection', function(e) {
   </div>
 </div>
 
-<!-- Навигация (инлайн, без nav.js) -->
-<div id="navTopBar">
-  <a href="dashboard.html" class="nav-brand">Keep1R CRM</a>
-  <div class="nav-links">
-    <a href="dashboard.html" class="nav-link">🏠 Главная</a>
-    <a href="board.html" class="nav-link">📋 Доска</a>
-    <a href="calculator.html" class="nav-link active">🧮 Калькулятор</a>
-  </div>
-  <div class="nav-right">
-    <div id="user-info" style="display:none;font-size:0.8rem;color:var(--text-muted);text-align:right"></div>
-  </div>
-</div>
+<!-- Навигация создаётся динамически через nav.js + initNav() в DOMContentLoaded -->
+<!-- user-info вставляется calc-persistence.js после авторизации -->
 
 <div id="calc-wrapper">
 <div id="app">
@@ -2389,14 +2376,21 @@ document.addEventListener('click', function(e) {
   content.classList.toggle('collapsed');
 });
 
-const SUPABASE_URL = 'https://hdghijgrrnzmntistdvw.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkZ2hpamdycm56bW50aXN0ZHZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMzMyNzksImV4cCI6MjA3NTYwOTI3OX0.D9EDTmVrFRVp0B8_5tCJM29gbFdtadsom0Ihsf4uQ8Q';
+// ── Единый Supabase клиент ──────────────────────────────────────
+// Не создаём второй экземпляр. window._crmSb создан в supabase.js / nav.js.
+// Fallback только для dev/preview без nav.js.
+if (!window._crmSb && window.supabase) {
+  window._crmSb = window.supabase.createClient(
+    'https://hdghijgrrnzmntistdvw.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkZ2hpamdycm56bW50aXN0ZHZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMzMyNzksImV4cCI6MjA3NTYwOTI3OX0.D9EDTmVrFRVp0B8_5tCJM29gbFdtadsom0Ihsf4uQ8Q',
+    { auth: { persistSession: true, autoRefreshToken: true } }
+  );
+}
+const sb = window._crmSb ?? null;
 
-const sb = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: true } }) : null;
-
-let currentUser = null;
-let currentProfile = null;
-let currentCalculationId = null; // ID текущего открытого расчёта
+let currentUser          = null;
+let currentProfile       = null;
+let currentCalculationId = null;
 
 
 // ========================================
@@ -4232,6 +4226,16 @@ function initBindings() {
 
 // ── Точка входа ──────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
+  // Инициализируем навигацию
+  if (typeof window.initNav === 'function') {
+    window.initNav({
+      activePage:  'calculator.html',
+      actionHref:  'calculator.html',
+      actionLabel: '➕ Новый расчёт',
+      hideAction:  true,
+    });
+  }
+
   const hasAccess = await initAuthAndAccess();
   if (!hasAccess) return;
 
@@ -4242,9 +4246,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   initBindings();
 
   await loadCalculationFromUrl();
-});
 
-  // Новый расчёт — сохраняем и перезагружаем
+  // Кнопка "Новый расчёт"
   const btnNew = q('#btnNewCalc');
   if (btnNew) {
     btnNew.addEventListener('click', async () => {
@@ -4254,8 +4257,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       window.location.href = 'calculator.html';
     });
   }
-
-  
+});
 // Экспортируем функции в глобальный scope для inline handlers
 window.fillModels = fillModels;
 window.onBrandChange = onBrandChange;
