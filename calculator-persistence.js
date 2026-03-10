@@ -112,7 +112,7 @@ function collectFormData() {
       year:  q('#year')?.value,
     },
 
-    // Полная защита вкруг
+    // Полная защита кузова
     package: {
       wrapMat: q('#pkgWrapMat')?.value,
       wrapMot: q('#pkgWrapMot')?.value,
@@ -489,7 +489,7 @@ async function loadCalculationFromUrl() {
       }, 150);
     }
 
-    // ── Полная защита вкруг ──────────────────────────────────────
+    // ── Полная защита кузова ──────────────────────────────────────
     if (formData.package) {
       _setVal('#pkgWrapMat', formData.package.wrapMat);
       _setVal('#pkgWrapMot', formData.package.wrapMot);
