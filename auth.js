@@ -30,7 +30,9 @@ export async function getCurrentUser() {
 export async function requireAuth({ redirectTo = 'welcome.html' } = {}) {
   const user = await getCurrentUser();
   if (!user) {
-    window.location.href = redirectTo;
+    const currentUrl = window.location.href;
+    const loginUrl = redirectTo + '?returnUrl=' + encodeURIComponent(currentUrl);
+    window.location.href = loginUrl;
     return null;
   }
   return user;
