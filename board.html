@@ -136,6 +136,12 @@ html, body {
 .col-in_progress               { border-top: 3px solid var(--primary); }
 .col-in_progress .column-sum   { color: var(--primary); }
 
+.col-outsourced .column-dot   { background: #f97316; }
+.col-outsourced .column-title { color: #c2410c; }
+.col-outsourced .column-count { background: rgba(249,115,22,0.10); color: #c2410c; }
+.col-outsourced               { border-top: 3px solid #f97316; }
+.col-outsourced .column-sum   { color: #c2410c; }
+
 .col-done .column-dot   { background: var(--purple); }
 .col-done .column-title { color: var(--purple); }
 .col-done .column-count { background: rgba(124,58,237,0.08); color: var(--purple); }
@@ -508,11 +514,12 @@ let studioCtx      = null;
 let _donePlanItems = [];
 let _dragCalcId    = null;
 let _dragStatus    = null;
+let _loading       = false;
 let searchTerm     = '';
 let currentFilter  = 'active'; // 'active' | 'all'
 
 // Активные = все кроме delivered, closed, cancelled
-const ACTIVE_KEYS = new Set(['new','scheduled','accepted','in_progress','waiting','done']);
+const ACTIVE_KEYS = new Set(['new','scheduled','accepted','in_progress','outsourced','waiting','done']);
 
 function visibleColumns() {
   return currentFilter === 'active'
@@ -525,6 +532,7 @@ const COLUMNS = [
   { key: 'scheduled',   label: 'Запись подтверждена', icon: '📅' },
   { key: 'accepted',    label: 'Авто принято',        icon: '🔑' },
   { key: 'in_progress', label: 'В работе',            icon: '🔧' },
+  { key: 'outsourced',  label: 'Аутсорсинг',          icon: '🏭' },
   { key: 'done',        label: 'Проверено',           icon: '✅' },
   { key: 'delivered',   label: 'Выдано',              icon: '🚗' },
   { key: 'cancelled',   label: 'Запись отменена',     icon: '❌' },
@@ -535,6 +543,7 @@ const STATUS_COLORS = {
   scheduled:   { bg: 'rgba(245,158,11,0.12)',  color: '#b45309' },
   accepted:    { bg: 'rgba(234,179,8,0.12)',   color: '#92400e' },
   in_progress: { bg: 'rgba(37,99,235,0.10)',   color: '#2563eb' },
+  outsourced:  { bg: 'rgba(249,115,22,0.12)', color: '#c2410c' },
   waiting:     { bg: 'rgba(107,114,128,0.12)', color: '#374151' },
   done:        { bg: 'rgba(124,58,237,0.10)',  color: '#7c3aed' },
   delivered:   { bg: 'rgba(5,150,105,0.10)',   color: '#059669' },
@@ -577,36 +586,41 @@ async function updateStatus(calcId, status, extra = {}) {
 
 // ── Загрузка данных ────────────────────────────────────────────────
 async function loadBoard() {
+  if (_loading) return;
+  _loading = true;
   const board = document.getElementById('board');
   showLoading(board, 'Загрузка доски...');
+  try {
+    const { data, error } = await sb
+      .from('calculations')
+      .select('id, car_name, car_brand, car_model, total_price, final_price, status, checkin_date, checkin_time, schedule_note, work_assigned, created_at, client_name, client_phone, updated_at')
+      .eq('studio_id', studioCtx.studioId)
+      .order('created_at', { ascending: false });
 
-  const { data, error } = await sb
-    .from('calculations')
-    .select('id, car_name, car_brand, car_model, total_price, final_price, status, checkin_date, checkin_time, schedule_note, work_assigned, created_at, client_name, client_phone, updated_at')
-    .eq('studio_id', studioCtx.studioId)
-    .order('created_at', { ascending: false });
+    if (error) {
+      showError(board, 'Не удалось загрузить заказы', loadBoard);
+      console.error('[board] loadBoard:', error);
+      return;
+    }
 
-  if (error) {
-    showError(board, 'Не удалось загрузить заказы', loadBoard);
-    console.error('[board] loadBoard:', error);
-    return;
+    allCalcs = data || [];
+
+    assignmentsMap = {};
+    if (allCalcs.length > 0) {
+      const { data: assignments } = await sb
+        .from('work_assignments')
+        .select('calculation_id, executor_name, salary, is_admin_sale, admin_percent')
+        .in('calculation_id', allCalcs.map(c => c.id));
+      (assignments || []).forEach(a => {
+        if (!assignmentsMap[a.calculation_id]) assignmentsMap[a.calculation_id] = [];
+        assignmentsMap[a.calculation_id].push(a);
+      });
+    }
+
+    renderBoard();
+  } finally {
+    _loading = false;
   }
-
-  allCalcs = data || [];
-
-  assignmentsMap = {};
-  if (allCalcs.length > 0) {
-    const { data: assignments } = await sb
-      .from('work_assignments')
-      .select('calculation_id, executor_name, salary, is_admin_sale, admin_percent')
-      .in('calculation_id', allCalcs.map(c => c.id));
-    (assignments || []).forEach(a => {
-      if (!assignmentsMap[a.calculation_id]) assignmentsMap[a.calculation_id] = [];
-      assignmentsMap[a.calculation_id].push(a);
-    });
-  }
-
-  renderBoard();
 }
 
 // ── Рендер доски ───────────────────────────────────────────────────
