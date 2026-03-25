@@ -770,8 +770,16 @@ async function onDrop(e) {
     PipelineForms.openModalAccept(_dragCalcId, carName);
     return;
   }
+  if (toStatus === 'in_progress' && _dragStatus === 'outsourced') {
+    PipelineForms.openModalReturn(_dragCalcId, carName);
+    return;
+  }
   if (toStatus === 'in_progress') {
     window.location.href = `assign-work.html?calc_id=${encodeURIComponent(_dragCalcId)}`;
+    return;
+  }
+  if (toStatus === 'outsourced') {
+    PipelineForms.openModalOutsource(_dragCalcId, carName);
     return;
   }
   if (toStatus === 'done') {
@@ -780,6 +788,10 @@ async function onDrop(e) {
   }
   if (toStatus === 'delivered') {
     openModalDeliver(_dragCalcId, carName, calc?.total_price || 0);
+    return;
+  }
+  if (toStatus === 'cancelled') {
+    PipelineForms.openModalCancel(_dragCalcId, carName);
     return;
   }
 
@@ -1179,11 +1191,9 @@ function buildDrawerActions(calc, status) {
     });
   };
 
-  const doCancel = async () => {
-    const ok = await confirmAction({ message: `Отменить заказ «${calc.car_name || 'Без названия'}»?` });
-    if (!ok) return;
-    const success = await updateStatus(calc.id, 'cancelled');
-    if (success) { closeDrawer(); showToast('success', 'Заказ отменён'); loadBoard(); }
+  const doCancel = () => {
+    closeDrawer();
+    PipelineForms.openModalCancel(calc.id, calc.car_name || 'Без названия');
   };
 
   const doRestore = async () => {
@@ -1229,14 +1239,14 @@ function buildDrawerActions(calc, status) {
     el.append(
       btn('Открыть расчёт', goCalc),
       btn('Назначить ответственных', goAssign),
-      btn('На аутсорсинг', () => move('outsourced', 'Статус → Аутсорсинг')),
+      btn('На аутсорсинг', () => { closeDrawer(); PipelineForms.openModalOutsource(calc.id, calc.car_name || 'Без названия'); }),
       btn('Работа выполнена', doDone, 'btn-primary'),
       btn('Отменить заказ', doCancel, 'btn-danger'),
     );
   } else if (status === 'outsourced') {
     el.append(
       btn('Открыть расчёт', goCalc),
-      btn('Вернуть в работу', () => move('in_progress', 'Возвращено в работу')),
+      btn('Вернуть в работу', () => { closeDrawer(); PipelineForms.openModalReturn(calc.id, calc.car_name || 'Без названия'); }),
       btn('Работа выполнена', doDone, 'btn-primary'),
       btn('Отменить заказ', doCancel, 'btn-danger'),
     );
@@ -1478,7 +1488,7 @@ function bindEvents() {
   document.addEventListener('keydown', e => {
     if (e.key !== 'Escape') return;
     if (document.getElementById('drawer').classList.contains('active')) { closeDrawer(); return; }
-    ['modalDone', 'modalDeliver', 'modalAccept'].forEach(id => closeModal(id));
+    ['modalDone', 'modalDeliver', 'modalAccept', 'modalOutsource', 'modalReturn', 'modalCancel'].forEach(id => closeModal(id));
   });
 }
 
