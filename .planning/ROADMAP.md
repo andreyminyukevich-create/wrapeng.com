@@ -13,6 +13,7 @@
 - [ ] **Phase 1: Foundation** - Database migrations, board infrastructure fixes, and acceptance modal (proves the two-step save pattern)
 - [ ] **Phase 2: Pipeline Transitions** - Remaining 5 transition modals completing the full status machine
 - [ ] **Phase 3: Document Pages** - Full acceptance act and work order pages with print layouts and status history
+- [ ] **Phase 4: Calculations Hub** - Separate calculations list page, "В воронку продаж"/"В воронку цеха" routing with data capture forms
 
 ---
 
@@ -31,7 +32,7 @@
 **Plans**: 2 plans
 Plans:
 - [x] 01-01-PLAN.md — SQL migration (4 tables) + outsourced column config + loadBoard guard
-- [ ] 01-02-PLAN.md — Transition guards + status history hook + acceptance modal
+- [x] 01-02-PLAN.md — Transition guards + status history hook + acceptance modal
 **UI hint**: yes
 
 ### Phase 2: Pipeline Transitions
@@ -60,6 +61,19 @@ Plans:
 **Plans**: TBD
 **UI hint**: yes
 
+### Phase 4: Calculations Hub
+**Goal**: Calculations exist as independent entities. Users see a list of recent calculations, and can route each one into the sales funnel (with client data) or workshop pipeline (with client + vehicle data) via dedicated forms.
+**Depends on**: Phase 1
+**Requirements**: TBD
+**Success Criteria** (what must be TRUE):
+  1. "Расчёты" nav button opens a list page showing the last ~30 saved calculations (not the calculator form)
+  2. "Новый расчёт" opens the calculator form for a fresh calculation
+  3. Each calculation card has "В воронку продаж" button — opens a form requiring client info (phone, name, source, etc.) before creating a lead
+  4. Each calculation card has "В воронку цеха" button — opens a form requiring client info + vehicle details (VIN, plate number, etc.) before creating a workshop order
+  5. Calculations auto-save on any change, even without being routed to a funnel
+**Plans**: TBD
+**UI hint**: yes
+
 ---
 
 ## Progress
@@ -69,6 +83,7 @@ Plans:
 | 1. Foundation | 0/2 | Planned | - |
 | 2. Pipeline Transitions | 0/? | Not started | - |
 | 3. Document Pages | 0/? | Not started | - |
+| 4. Calculations Hub | 0/? | Not started | - |
 
 ---
 
