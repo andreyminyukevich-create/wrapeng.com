@@ -187,6 +187,307 @@ async function saveAcceptance() {
   }
 }
 
+// -- Модал аутсорсинга --------------------------------------------
+
+let _outsourceCalcId = null;
+
+const OUTSOURCE_HTML = `
+<div class="modal" id="modalOutsource">
+  <div class="modal-content" style="max-width:540px;max-height:90vh;overflow-y:auto">
+    <div class="modal-title">На аутсорсинг</div>
+    <div class="modal-car" id="outsourceCarName"></div>
+    <div class="form-group">
+      <label>Подрядчик</label>
+      <input type="text" id="outsourceContractor" placeholder="Название компании или ФИО">
+    </div>
+    <div class="form-group">
+      <label>Вид работ</label>
+      <input type="text" id="outsourceWorkType" placeholder="напр. Покраска бампера">
+    </div>
+    <div class="form-group">
+      <label>Срок выполнения</label>
+      <input type="date" id="outsourceDeadline">
+    </div>
+    <div class="form-group">
+      <label>Тип аутсорсинга</label>
+      <select id="outsourceType">
+        <option value="car_leaves">Авто уезжает к подрядчику</option>
+        <option value="contractor_arrives">Подрядчик приезжает в студию</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Примечания</label>
+      <textarea id="outsourceNotes" rows="2" placeholder="Дополнительная информация..."></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="btnOutsourceCancel">Отмена</button>
+      <button class="btn btn-primary" id="btnOutsourceSave">Отправить</button>
+    </div>
+  </div>
+</div>
+`;
+
+function injectOutsource() {
+  if (document.getElementById('modalOutsource')) return;
+  document.body.insertAdjacentHTML('beforeend', OUTSOURCE_HTML);
+
+  document.getElementById('btnOutsourceCancel').addEventListener('click', () => {
+    document.getElementById('modalOutsource').classList.remove('active');
+  });
+  document.getElementById('btnOutsourceSave').addEventListener('click', saveOutsource);
+  document.getElementById('modalOutsource').addEventListener('click', e => {
+    if (e.target === document.getElementById('modalOutsource')) {
+      document.getElementById('modalOutsource').classList.remove('active');
+    }
+  });
+}
+
+function gatherOutsourceForm() {
+  return {
+    contractor_name: document.getElementById('outsourceContractor').value.trim() || null,
+    work_type: document.getElementById('outsourceWorkType').value.trim() || null,
+    deadline: document.getElementById('outsourceDeadline').value || null,
+    outsource_type: document.getElementById('outsourceType').value,
+    notes: document.getElementById('outsourceNotes').value.trim() || null,
+  };
+}
+
+function openModalOutsource(calcId, carName) {
+  injectOutsource();
+  _outsourceCalcId = calcId;
+
+  document.getElementById('outsourceCarName').textContent = carName;
+
+  // Reset form fields
+  document.getElementById('outsourceContractor').value = '';
+  document.getElementById('outsourceWorkType').value = '';
+  document.getElementById('outsourceDeadline').value = '';
+  document.getElementById('outsourceType').selectedIndex = 0;
+  document.getElementById('outsourceNotes').value = '';
+
+  document.getElementById('modalOutsource').classList.add('active');
+}
+
+async function saveOutsource() {
+  const btn = document.getElementById('btnOutsourceSave');
+  btn.disabled = true;
+  const origText = btn.textContent;
+  btn.textContent = 'Сохранение...';
+
+  try {
+    // Step 1: INSERT into outsource_records
+    const { error: insertErr } = await window._sb
+      .from('outsource_records')
+      .insert({
+        calc_id: _outsourceCalcId,
+        studio_id: window._boardCtx.studioId,
+        ...gatherOutsourceForm(),
+      });
+
+    if (insertErr) {
+      console.error('[pipeline] outsource insert:', insertErr);
+      window._showToast('error', 'Ошибка сохранения');
+      return;
+    }
+
+    // Step 2: PATCH status
+    const ok = await window._updateStatus(_outsourceCalcId, 'outsourced');
+    if (ok) {
+      window._closeModal('modalOutsource');
+      window._showToast('success', 'Отправлено на аутсорсинг');
+      window._loadBoard();
+    }
+  } finally {
+    btn.disabled = false;
+    btn.textContent = origText;
+  }
+}
+
+// -- Модал возврата -----------------------------------------------
+
+let _returnCalcId = null;
+
+const RETURN_HTML = `
+<div class="modal" id="modalReturn">
+  <div class="modal-content" style="max-width:540px;max-height:90vh;overflow-y:auto">
+    <div class="modal-title">Возврат из аутсорсинга</div>
+    <div class="modal-car" id="returnCarName"></div>
+    <div class="form-group">
+      <label>Дата возврата</label>
+      <input type="date" id="returnDate">
+    </div>
+    <div class="form-group">
+      <label>Состояние / замечания</label>
+      <textarea id="returnNotes" rows="3" placeholder="Состояние автомобиля при возврате, замечания по работе подрядчика..."></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="btnReturnCancel">Отмена</button>
+      <button class="btn btn-primary" id="btnReturnSave">Вернуть в работу</button>
+    </div>
+  </div>
+</div>
+`;
+
+function injectReturn() {
+  if (document.getElementById('modalReturn')) return;
+  document.body.insertAdjacentHTML('beforeend', RETURN_HTML);
+
+  document.getElementById('btnReturnCancel').addEventListener('click', () => {
+    document.getElementById('modalReturn').classList.remove('active');
+  });
+  document.getElementById('btnReturnSave').addEventListener('click', saveReturn);
+  document.getElementById('modalReturn').addEventListener('click', e => {
+    if (e.target === document.getElementById('modalReturn')) {
+      document.getElementById('modalReturn').classList.remove('active');
+    }
+  });
+}
+
+function openModalReturn(calcId, carName) {
+  injectReturn();
+  _returnCalcId = calcId;
+
+  document.getElementById('returnCarName').textContent = carName;
+  document.getElementById('returnDate').value = new Date().toISOString().slice(0, 10);
+  document.getElementById('returnNotes').value = '';
+
+  document.getElementById('modalReturn').classList.add('active');
+}
+
+async function saveReturn() {
+  const btn = document.getElementById('btnReturnSave');
+  btn.disabled = true;
+  const origText = btn.textContent;
+  btn.textContent = 'Сохранение...';
+
+  try {
+    const returnDate = document.getElementById('returnDate').value || new Date().toISOString();
+    const returnNotes = document.getElementById('returnNotes').value.trim() || null;
+
+    // UPDATE outsource_records — target only the active (unreturned) record
+    const { error: updateErr } = await window._sb
+      .from('outsource_records')
+      .update({ returned_at: returnDate, return_notes: returnNotes })
+      .eq('calc_id', _returnCalcId)
+      .eq('studio_id', window._boardCtx.studioId)
+      .is('returned_at', null);
+
+    if (updateErr) {
+      console.error('[pipeline] outsource return update:', updateErr);
+      window._showToast('error', 'Ошибка сохранения');
+      return;
+    }
+
+    // PATCH status back to in_progress
+    const ok = await window._updateStatus(_returnCalcId, 'in_progress');
+    if (ok) {
+      window._closeModal('modalReturn');
+      window._showToast('success', 'Авто возвращено в работу');
+      window._loadBoard();
+    }
+  } finally {
+    btn.disabled = false;
+    btn.textContent = origText;
+  }
+}
+
+// -- Модал отмены -------------------------------------------------
+
+let _cancelCalcId = null;
+
+const CANCEL_REASONS = [
+  { value: 'no_show',    label: 'Клиент не приехал' },
+  { value: 'refused',    label: 'Клиент отказался' },
+  { value: 'scheduling', label: 'Конфликт расписания' },
+  { value: 'other',      label: 'Другое' },
+];
+
+const CANCEL_HTML = `
+<div class="modal" id="modalCancel">
+  <div class="modal-content" style="max-width:540px;max-height:90vh;overflow-y:auto">
+    <div class="modal-title">Отмена заказа</div>
+    <div class="modal-car" id="cancelCarName"></div>
+    <div class="form-group">
+      <label>Причина отмены</label>
+      <select id="cancelReason">
+        <option value="">— выберите причину —</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Комментарий</label>
+      <textarea id="cancelComment" rows="3" placeholder="Подробности..."></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="btnCancelModalClose">Отмена</button>
+      <button class="btn" style="background:var(--danger);color:#fff" id="btnCancelSave">Отменить заказ</button>
+    </div>
+  </div>
+</div>
+`;
+
+function injectCancel() {
+  if (document.getElementById('modalCancel')) return;
+  document.body.insertAdjacentHTML('beforeend', CANCEL_HTML);
+
+  // Populate reason options dynamically
+  const sel = document.getElementById('cancelReason');
+  CANCEL_REASONS.forEach(r => {
+    const opt = document.createElement('option');
+    opt.value = r.value;
+    opt.textContent = r.label;
+    sel.appendChild(opt);
+  });
+
+  document.getElementById('btnCancelModalClose').addEventListener('click', () => {
+    document.getElementById('modalCancel').classList.remove('active');
+  });
+  document.getElementById('btnCancelSave').addEventListener('click', saveCancel);
+  document.getElementById('modalCancel').addEventListener('click', e => {
+    if (e.target === document.getElementById('modalCancel')) {
+      document.getElementById('modalCancel').classList.remove('active');
+    }
+  });
+}
+
+function openModalCancel(calcId, carName) {
+  injectCancel();
+  _cancelCalcId = calcId;
+
+  document.getElementById('cancelCarName').textContent = carName;
+  document.getElementById('cancelReason').selectedIndex = 0;
+  document.getElementById('cancelComment').value = '';
+
+  document.getElementById('modalCancel').classList.add('active');
+}
+
+async function saveCancel() {
+  const btn = document.getElementById('btnCancelSave');
+  btn.disabled = true;
+  const origText = btn.textContent;
+  btn.textContent = 'Сохранение...';
+
+  try {
+    const reason = document.getElementById('cancelReason').value;
+    if (!reason) {
+      window._showToast('warning', 'Выберите причину отмены');
+      return;
+    }
+
+    const comment = document.getElementById('cancelComment').value.trim();
+    const fullComment = comment ? '[' + reason + '] ' + comment : '[' + reason + ']';
+
+    const ok = await window._updateStatus(_cancelCalcId, 'cancelled', { _historyComment: fullComment });
+    if (ok) {
+      window._closeModal('modalCancel');
+      window._showToast('success', 'Заказ отменён');
+      window._loadBoard();
+    }
+  } finally {
+    btn.disabled = false;
+    btn.textContent = origText;
+  }
+}
+
 // ── Публичный API ─────────────────────────────────────────────────
-window.PipelineForms = { openModalAccept };
+window.PipelineForms = { openModalAccept, openModalOutsource, openModalReturn, openModalCancel };
 })();
