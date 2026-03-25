@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Расчёты — Keep1R CRM</title>
+<link rel="stylesheet" href="nav.css">
+<script src="nav.js"></script>
+<style>
+body { visibility: hidden; }
+:root {
+  --font:         -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
+  --bg:           #eef2f9;
+  --surface:      #ffffff;
+  --border:       rgba(15,23,42,0.08);
+  --text:         #0f172a;
+  --text-muted:   #64748b;
+  --text-dim:     #94a3b8;
+  --primary:      #2563eb;
+  --primary-dark: #1d4ed8;
+  --success:      #059669;
+  --warning:      #d97706;
+  --danger:       #dc2626;
+  --purple:       #7c3aed;
+  --shadow:       0 1px 3px rgba(0,0,0,0.05), 0 4px 16px rgba(0,0,0,0.07);
+  --shadow-modal: 0 8px 40px rgba(0,0,0,0.14);
+  --radius:       14px;
+  --radius-sm:    10px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: var(--font); -webkit-font-smoothing: antialiased;
+  background: var(--bg); color: var(--text); min-height: 100svh;
+}
+
+/* ── Шапка страницы ──────────────────────────────── */
+.page-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 24px; flex-wrap: wrap; gap: 12px;
+}
+.page-title { font-size: 1.15rem; font-weight: 800; letter-spacing: -0.3px; }
+.page-actions { display: flex; gap: 8px; align-items: center; }
+
+/* ── Кнопки ──────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 9px 16px; border-radius: 10px;
+  font-size: 0.82rem; font-weight: 700;
+  font-family: var(--font); cursor: pointer;
+  border: none; transition: all 0.15s; text-decoration: none; white-space: nowrap;
+}
+.btn-primary   { background: var(--primary); color: #fff; }
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-secondary { background: transparent; color: var(--text-muted); border: 1px solid var(--border); }
+.btn-secondary:hover { background: var(--bg); color: var(--text); }
+.btn-sm { padding: 6px 11px; font-size: 0.75rem; border-radius: 8px; }
+.btn-sales { background: rgba(37,99,235,0.07); color: var(--primary); border: 1px solid rgba(37,99,235,0.18); }
+.btn-sales:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+.btn-workshop { background: rgba(124,58,237,0.07); color: var(--purple); border: 1px solid rgba(124,58,237,0.18); }
+.btn-workshop:hover { background: var(--purple); color: #fff; border-color: var(--purple); }
+
+/* ── Фильтры ────────────────────────────────── */
+.filter-tabs {
+  display: flex; gap: 4px; padding: 0 24px 16px; flex-wrap: wrap;
+}
+.filter-tab {
+  padding: 7px 16px; border-radius: 20px;
+  font-size: 0.78rem; font-weight: 700;
+  color: var(--text-muted); background: var(--surface);
+  border: 1px solid var(--border); cursor: pointer;
+  font-family: var(--font); transition: all 0.15s;
+}
+.filter-tab:hover { color: var(--text); border-color: rgba(37,99,235,0.3); }
+.filter-tab.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+/* ── Сетка карточек ────────────────────────────── */
+.container { max-width: 1200px; margin: 0 auto; padding: 0 24px 48px; }
+.calc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 14px;
+}
+.calc-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 18px 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  transition: box-shadow 0.15s, transform 0.15s;
+}
+.calc-card:hover { box-shadow: var(--shadow); transform: translateY(-1px); }
+.calc-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; gap: 8px; }
+.calc-card-car { font-size: 0.92rem; font-weight: 700; color: var(--text); flex: 1; min-width: 0; }
+.calc-card-price { font-size: 1rem; font-weight: 800; color: var(--success); white-space: nowrap; }
+.calc-card-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+.calc-card-date { font-size: 0.75rem; color: var(--text-dim); }
+.status-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 10px; border-radius: 20px;
+  font-size: 0.7rem; font-weight: 700;
+  background: rgba(100,116,139,0.08); color: var(--text-muted);
+}
+.status-badge.s-draft       { background: rgba(148,163,184,0.12); color: #64748b; }
+.status-badge.s-scheduled   { background: rgba(245,158,11,0.10); color: #b45309; }
+.status-badge.s-accepted    { background: rgba(37,99,235,0.08); color: #1e40af; }
+.status-badge.s-in_progress { background: rgba(37,99,235,0.10); color: #1d4ed8; }
+.status-badge.s-outsourced  { background: rgba(217,119,6,0.10); color: #92400e; }
+.status-badge.s-done        { background: rgba(124,58,237,0.08); color: #6d28d9; }
+.status-badge.s-delivered   { background: rgba(5,150,105,0.08); color: #047857; }
+.status-badge.s-cancelled   { background: rgba(220,38,38,0.08); color: #b91c1c; }
+.calc-card-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+
+/* ── Состояния ────────────────────────────── */
+.loading { text-align: center; padding: 60px 20px; color: var(--text-muted); font-size: 0.88rem; }
+.empty-state { text-align: center; padding: 80px 20px; color: var(--text-muted); }
+.empty-state h3 { font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+.empty-state p { font-size: 0.85rem; margin-bottom: 16px; }
+
+/* ── Modal ────────────────────────────────── */
+.modal {
+  display: none; position: fixed; inset: 0;
+  background: rgba(15,23,42,0.5); backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px); z-index: 1000;
+  align-items: center; justify-content: center; padding: 20px;
+}
+.modal.active { display: flex; animation: fadeIn 0.15s ease; }
+@keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { transform: translateY(12px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.modal-content {
+  background: var(--surface); border-radius: var(--radius);
+  border: 1px solid var(--border); padding: 28px 28px 24px;
+  max-width: 540px; width: 100%; box-shadow: var(--shadow-modal);
+  animation: slideUp 0.18s ease; max-height: 90vh; overflow-y: auto;
+}
+.modal-title { font-size: 1.05rem; font-weight: 700; margin-bottom: 4px; letter-spacing: -0.2px; }
+.modal-car   { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 20px; font-weight: 500; }
+.form-group  { margin-bottom: 13px; }
+.form-group label {
+  display: block; font-size: 0.69rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.07em;
+  color: var(--text-muted); margin-bottom: 5px;
+}
+.form-group input,
+.form-group textarea,
+.form-group select {
+  width: 100%; padding: 10px 13px; background: var(--bg);
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  color: var(--text); font-size: 16px; font-family: var(--font);
+  transition: border-color 0.15s, box-shadow 0.15s; outline: none; -webkit-appearance: none;
+}
+.form-group textarea { resize: vertical; min-height: 72px; }
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.10); background: var(--surface); }
+.modal-footer { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+.modal-footer .btn { width: auto; }
+
+/* ── Адаптив ────────────────────────────── */
+@media (max-width: 768px) {
+  .page-header { padding: 16px; }
+  .filter-tabs { padding: 0 16px 12px; }
+  .container { padding: 0 16px 40px; }
+  .calc-grid { grid-template-columns: 1fr; gap: 10px; }
+  .page-title { font-size: 1rem; }
+}
+@media (max-width: 480px) {
+  .calc-card-actions { flex-direction: column; }
+  .calc-card-actions .btn-sm { width: 100%; justify-content: center; }
+}
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <div class="page-title">Расчёты</div>
+  <div class="page-actions">
+    <a href="calculator.html" class="btn btn-primary">+ Новый расчёт</a>
+  </div>
+</div>
+
+<div class="filter-tabs" id="filterTabs">
+  <button class="filter-tab active" data-filter="all">Все</button>
+  <button class="filter-tab" data-filter="draft">Черновики</button>
+  <button class="filter-tab" data-filter="active">В работе</button>
+  <button class="filter-tab" data-filter="done">Завершённые</button>
+</div>
+
+<div class="container">
+  <div id="calcList"><div class="loading">Загрузка расчётов...</div></div>
+</div>
+
+<script src="footer.js"></script>
+<script type="module">
+import { sb }               from './api.js';
+import { requireAuth }      from './auth.js';
+import { getStudioContext }  from './studio-context.js';
+import { showToast }         from './ui.js';
+
+// ── Состояние ───────────────────────────────────────────────────────
+let allCalcs = [];
+let currentFilter = 'all';
+let _modalCalcId = null;
+
+// ── Утилиты ─────────────────────────────────────────────────────────
+function fmt(n) {
+  return new Intl.NumberFormat('ru-RU', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(n || 0);
+}
+function fmtDate(d) {
+  return new Date(d).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+const STATUS_LABEL = {
+  draft: 'Черновик', new: 'Черновик', pending: 'Черновик',
+  scheduled: 'Запись', accepted: 'Принят', in_progress: 'В работе',
+  outsourced: 'Аутсорсинг', done: 'Готово', waiting: 'Готово',
+  delivered: 'Выдан', cancelled: 'Отменён',
+};
+
+const ACTIVE_STATUSES = ['scheduled', 'accepted', 'in_progress', 'outsourced', 'done', 'waiting'];
+const DONE_STATUSES   = ['delivered', 'cancelled'];
+const DRAFT_STATUSES  = ['draft', 'new', 'pending'];
+
+function normalizeStatus(s) {
+  if (!s || s === 'pending') return 'draft';
+  if (s === 'new') return 'draft';
+  if (s === 'waiting') return 'done';
+  return s;
+}
+
+function filterCalcs(list, filter) {
+  if (filter === 'all') return list;
+  if (filter === 'draft') return list.filter(c => DRAFT_STATUSES.includes(c.status));
+  if (filter === 'active') return list.filter(c => ACTIVE_STATUSES.includes(c.status));
+  if (filter === 'done') return list.filter(c => DONE_STATUSES.includes(c.status));
+  return list;
+}
+
+// ── Рендер карточек ─────────────────────────────────────────────────
+function renderCalcs(calcs) {
+  const container = document.getElementById('calcList');
+  const filtered = filterCalcs(calcs, currentFilter);
+
+  if (!calcs.length) {
+    container.innerHTML = '';
+    const empty = document.createElement('div');
+    empty.className = 'empty-state';
+    const h = document.createElement('h3');
+    h.textContent = 'Нет расчётов';
+    const p = document.createElement('p');
+    p.textContent = 'Создайте первый расчёт, чтобы начать работу';
+    const a = document.createElement('a');
+    a.href = 'calculator.html';
+    a.className = 'btn btn-primary';
+    a.textContent = '+ Новый расчёт';
+    empty.append(h, p, a);
+    container.appendChild(empty);
+    return;
+  }
+
+  if (!filtered.length) {
+    container.innerHTML = '';
+    const empty = document.createElement('div');
+    empty.className = 'empty-state';
+    const h = document.createElement('h3');
+    h.textContent = 'Нет расчётов в этой категории';
+    empty.appendChild(h);
+    container.appendChild(empty);
+    return;
+  }
+
+  const grid = document.createElement('div');
+  grid.className = 'calc-grid';
+
+  filtered.forEach(c => {
+    const st = normalizeStatus(c.status);
+    const card = document.createElement('div');
+    card.className = 'calc-card';
+
+    // Header: car name + price
+    const header = document.createElement('div');
+    header.className = 'calc-card-header';
+    const carEl = document.createElement('div');
+    carEl.className = 'calc-card-car';
+    carEl.textContent = c.car_name || 'Без названия';
+    const priceEl = document.createElement('div');
+    priceEl.className = 'calc-card-price';
+    priceEl.textContent = fmt(c.final_price || c.total_price || 0) + ' \u20BD';
+    header.append(carEl, priceEl);
+
+    // Meta: status badge + date
+    const meta = document.createElement('div');
+    meta.className = 'calc-card-meta';
+    const badge = document.createElement('span');
+    badge.className = 'status-badge s-' + st;
+    badge.textContent = STATUS_LABEL[c.status] || c.status;
+    const dateEl = document.createElement('span');
+    dateEl.className = 'calc-card-date';
+    dateEl.textContent = fmtDate(c.created_at);
+    meta.append(badge, dateEl);
+
+    // Actions
+    const actions = document.createElement('div');
+    actions.className = 'calc-card-actions';
+
+    const btnOpen = document.createElement('a');
+    btnOpen.className = 'btn btn-sm btn-secondary';
+    btnOpen.href = 'calculator.html?load=' + encodeURIComponent(c.id);
+    btnOpen.textContent = 'Открыть';
+
+    const btnSales = document.createElement('button');
+    btnSales.className = 'btn btn-sm btn-sales';
+    btnSales.textContent = 'В продажи';
+    btnSales.addEventListener('click', () => openModal('sales', c.id, c.car_name));
+
+    const btnWorkshop = document.createElement('button');
+    btnWorkshop.className = 'btn btn-sm btn-workshop';
+    btnWorkshop.textContent = 'В цех';
+    btnWorkshop.addEventListener('click', () => openModal('workshop', c.id, c.car_name));
+
+    // Only show funnel buttons for drafts (not yet routed)
+    actions.appendChild(btnOpen);
+    if (DRAFT_STATUSES.includes(c.status)) {
+      actions.append(btnSales, btnWorkshop);
+    }
+
+    card.append(header, meta, actions);
+    grid.appendChild(card);
+  });
+
+  container.innerHTML = '';
+  container.appendChild(grid);
+}
+
+// ── Модалки ─────────────────────────────────────────────────────────
+function injectModals() {
+  if (document.getElementById('modalSales')) return;
+
+  const salesHTML = `
+<div class="modal" id="modalSales">
+  <div class="modal-content">
+    <div class="modal-title">В воронку продаж</div>
+    <div class="modal-car" id="salesCarName"></div>
+    <div class="form-group">
+      <label>Имя клиента</label>
+      <input type="text" id="salesClientName" placeholder="ФИО клиента">
+    </div>
+    <div class="form-group">
+      <label>Телефон *</label>
+      <input type="tel" id="salesPhone" placeholder="+7 (___) ___-__-__">
+    </div>
+    <div class="form-group">
+      <label>Источник</label>
+      <select id="salesSource">
+        <option value="">— Выберите —</option>
+        <option value="website">Сайт</option>
+        <option value="instagram">Instagram</option>
+        <option value="referral">Рекомендация</option>
+        <option value="drive_in">Заехал сам</option>
+        <option value="repeat">Повторный</option>
+        <option value="other">Другое</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Комментарий</label>
+      <textarea id="salesComment" rows="2" placeholder="Примечания..."></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="btnSalesCancel">Отмена</button>
+      <button class="btn btn-primary" id="btnSalesSave">В продажи</button>
+    </div>
+  </div>
+</div>`;
+
+  const workshopHTML = `
+<div class="modal" id="modalWorkshop">
+  <div class="modal-content">
+    <div class="modal-title">В воронку цеха</div>
+    <div class="modal-car" id="workshopCarName"></div>
+    <div class="form-group">
+      <label>Имя клиента</label>
+      <input type="text" id="workshopClientName" placeholder="ФИО клиента">
+    </div>
+    <div class="form-group">
+      <label>Телефон *</label>
+      <input type="tel" id="workshopPhone" placeholder="+7 (___) ___-__-__">
+    </div>
+    <div class="form-group">
+      <label>VIN</label>
+      <input type="text" id="workshopVin" placeholder="Необязательно" maxlength="17" style="text-transform:uppercase">
+    </div>
+    <div class="form-group">
+      <label>Гос. номер</label>
+      <input type="text" id="workshopPlate" placeholder="А000АА000" style="text-transform:uppercase">
+    </div>
+    <div class="form-group">
+      <label>Источник</label>
+      <select id="workshopSource">
+        <option value="">— Выберите —</option>
+        <option value="website">Сайт</option>
+        <option value="instagram">Instagram</option>
+        <option value="referral">Рекомендация</option>
+        <option value="drive_in">Заехал сам</option>
+        <option value="repeat">Повторный</option>
+        <option value="other">Другое</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Комментарий</label>
+      <textarea id="workshopComment" rows="2" placeholder="Примечания..."></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="btnWorkshopCancel">Отмена</button>
+      <button class="btn" style="background:var(--purple);color:#fff" id="btnWorkshopSave">В цех</button>
+    </div>
+  </div>
+</div>`;
+
+  document.body.insertAdjacentHTML('beforeend', salesHTML);
+  document.body.insertAdjacentHTML('beforeend', workshopHTML);
+
+  // Bind sales modal
+  document.getElementById('btnSalesCancel').addEventListener('click', () => closeModal('modalSales'));
+  document.getElementById('btnSalesSave').addEventListener('click', saveSales);
+  document.getElementById('modalSales').addEventListener('click', e => {
+    if (e.target.id === 'modalSales') closeModal('modalSales');
+  });
+
+  // Bind workshop modal
+  document.getElementById('btnWorkshopCancel').addEventListener('click', () => closeModal('modalWorkshop'));
+  document.getElementById('btnWorkshopSave').addEventListener('click', saveWorkshop);
+  document.getElementById('modalWorkshop').addEventListener('click', e => {
+    if (e.target.id === 'modalWorkshop') closeModal('modalWorkshop');
+  });
+
+  // ESC
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      closeModal('modalSales');
+      closeModal('modalWorkshop');
+    }
+  });
+}
+
+function closeModal(id) {
+  document.getElementById(id)?.classList.remove('active');
+}
+
+function openModal(type, calcId, carName) {
+  injectModals();
+  _modalCalcId = calcId;
+
+  if (type === 'sales') {
+    document.getElementById('salesCarName').textContent = carName || '';
+    document.getElementById('salesClientName').value = '';
+    document.getElementById('salesPhone').value = '';
+    document.getElementById('salesSource').selectedIndex = 0;
+    document.getElementById('salesComment').value = '';
+    document.getElementById('modalSales').classList.add('active');
+  } else {
+    document.getElementById('workshopCarName').textContent = carName || '';
+    document.getElementById('workshopClientName').value = '';
+    document.getElementById('workshopPhone').value = '';
+    document.getElementById('workshopVin').value = '';
+    document.getElementById('workshopPlate').value = '';
+    document.getElementById('workshopSource').selectedIndex = 0;
+    document.getElementById('workshopComment').value = '';
+    document.getElementById('modalWorkshop').classList.add('active');
+  }
+}
+
+async function saveSales() {
+  const phone = document.getElementById('salesPhone').value.trim();
+  if (!phone) { showToast('warning', 'Укажите телефон клиента'); return; }
+
+  const btn = document.getElementById('btnSalesSave');
+  btn.disabled = true;
+  const orig = btn.textContent;
+  btn.textContent = 'Сохранение...';
+
+  try {
+    const name    = document.getElementById('salesClientName').value.trim() || null;
+    const source  = document.getElementById('salesSource').value || null;
+    const comment = document.getElementById('salesComment').value.trim() || null;
+
+    const { error } = await sb
+      .from('calculations')
+      .update({
+        client_name: name,
+        client_phone: phone,
+        lead_source: source,
+        lead_comment: comment,
+        status: 'scheduled',
+      })
+      .eq('id', _modalCalcId);
+
+    if (error) {
+      console.error('[calculations] sales save:', error);
+      showToast('error', 'Ошибка сохранения');
+      return;
+    }
+
+    closeModal('modalSales');
+    showToast('success', 'Отправлено в воронку продаж');
+    await loadCalcs();
+  } finally {
+    btn.disabled = false;
+    btn.textContent = orig;
+  }
+}
+
+async function saveWorkshop() {
+  const phone = document.getElementById('workshopPhone').value.trim();
+  if (!phone) { showToast('warning', 'Укажите телефон клиента'); return; }
+
+  const btn = document.getElementById('btnWorkshopSave');
+  btn.disabled = true;
+  const orig = btn.textContent;
+  btn.textContent = 'Сохранение...';
+
+  try {
+    const name    = document.getElementById('workshopClientName').value.trim() || null;
+    const vin     = document.getElementById('workshopVin').value.trim().toUpperCase() || null;
+    const plate   = document.getElementById('workshopPlate').value.trim().toUpperCase() || null;
+    const source  = document.getElementById('workshopSource').value || null;
+    const comment = document.getElementById('workshopComment').value.trim() || null;
+
+    const { error } = await sb
+      .from('calculations')
+      .update({
+        client_name: name,
+        client_phone: phone,
+        vin: vin,
+        plate_number: plate,
+        lead_source: source,
+        lead_comment: comment,
+        status: 'scheduled',
+      })
+      .eq('id', _modalCalcId);
+
+    if (error) {
+      console.error('[calculations] workshop save:', error);
+      showToast('error', 'Ошибка сохранения');
+      return;
+    }
+
+    closeModal('modalWorkshop');
+    showToast('success', 'Отправлено в воронку цеха');
+    await loadCalcs();
+  } finally {
+    btn.disabled = false;
+    btn.textContent = orig;
+  }
+}
+
+// ── Загрузка данных ─────────────────────────────────────────────────
+let _studioId = null;
+
+async function loadCalcs() {
+  const { data, error } = await sb
+    .from('calculations')
+    .select('id, car_name, total_price, final_price, status, created_at, brand, model, year')
+    .eq('studio_id', _studioId)
+    .order('created_at', { ascending: false })
+    .limit(50);
+
+  if (error) {
+    console.error('[calculations] loadCalcs:', error);
+    document.getElementById('calcList').innerHTML = '<div class="empty-state"><h3>Ошибка загрузки</h3></div>';
+    return;
+  }
+
+  allCalcs = data || [];
+  renderCalcs(allCalcs);
+}
+
+// ── Фильтры ─────────────────────────────────────────────────────────
+function bindFilters() {
+  document.getElementById('filterTabs').addEventListener('click', e => {
+    const tab = e.target.closest('.filter-tab');
+    if (!tab) return;
+    document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    currentFilter = tab.dataset.filter;
+    renderCalcs(allCalcs);
+  });
+}
+
+// ── Точка входа ─────────────────────────────────────────────────────
+async function initPage() {
+  initNav();
+  document.body.style.visibility = 'visible';
+
+  const user = await requireAuth({ redirectTo: 'welcome.html' });
+  if (!user) return;
+
+  let ctx;
+  try {
+    ctx = await getStudioContext();
+  } catch (err) {
+    console.error('[calculations] getStudioContext:', err);
+    document.getElementById('calcList').innerHTML = '<div class="empty-state"><h3>Ошибка загрузки данных студии</h3></div>';
+    return;
+  }
+
+  if (!ctx || !ctx.studioId) {
+    window.location.href = 'welcome.html';
+    return;
+  }
+
+  _studioId = ctx.studioId;
+  bindFilters();
+  await loadCalcs();
+}
+
+document.addEventListener('DOMContentLoaded', initPage);
+</script>
+
+</body>
+</html>
