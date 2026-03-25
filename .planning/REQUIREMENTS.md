@@ -84,31 +84,31 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DB-01 | Phase ? | Pending |
-| DB-02 | Phase ? | Pending |
-| DB-03 | Phase ? | Pending |
-| DB-04 | Phase ? | Pending |
-| BOARD-01 | Phase ? | Pending |
-| BOARD-02 | Phase ? | Pending |
-| BOARD-03 | Phase ? | Pending |
-| BOARD-04 | Phase ? | Pending |
-| FORM-01 | Phase ? | Pending |
-| FORM-02 | Phase ? | Pending |
-| FORM-03 | Phase ? | Pending |
-| FORM-04 | Phase ? | Pending |
-| FORM-05 | Phase ? | Pending |
-| FORM-06 | Phase ? | Pending |
-| DOC-01 | Phase ? | Pending |
-| DOC-02 | Phase ? | Pending |
-| DOC-03 | Phase ? | Pending |
-| DOC-04 | Phase ? | Pending |
-| DOC-05 | Phase ? | Pending |
+| DB-01 | Phase 1 | Pending |
+| DB-02 | Phase 1 | Pending |
+| DB-03 | Phase 1 | Pending |
+| DB-04 | Phase 1 | Pending |
+| BOARD-01 | Phase 1 | Pending |
+| BOARD-02 | Phase 1 | Pending |
+| BOARD-03 | Phase 1 | Pending |
+| BOARD-04 | Phase 1 | Pending |
+| FORM-01 | Phase 1 | Pending |
+| FORM-02 | Phase 2 | Pending |
+| FORM-03 | Phase 2 | Pending |
+| FORM-04 | Phase 2 | Pending |
+| FORM-05 | Phase 2 | Pending |
+| FORM-06 | Phase 2 | Pending |
+| DOC-01 | Phase 3 | Pending |
+| DOC-02 | Phase 3 | Pending |
+| DOC-03 | Phase 3 | Pending |
+| DOC-04 | Phase 3 | Pending |
+| DOC-05 | Phase 3 | Pending |
 
 **Coverage:**
 - v1 requirements: 19 total
-- Mapped to phases: 0
-- Unmapped: 19
+- Mapped to phases: 19
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-25*
-*Last updated: 2026-03-25 after initial definition*
+*Last updated: 2026-03-25 after roadmap creation — traceability complete*
