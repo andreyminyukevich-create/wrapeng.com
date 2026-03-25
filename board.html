@@ -1499,6 +1499,8 @@ async function initPage() {
   window._updateStatus = updateStatus;
   window._loadBoard = loadBoard;
   window._sb = sb;
+  window._showToast = showToast;
+  window._closeModal = id => document.getElementById(id)?.classList.remove('active');
 
   if (!studioCtx?.studioId) {
     showError(document.getElementById('board'), 'Студия не найдена. Обратитесь к администратору.');

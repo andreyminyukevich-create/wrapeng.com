@@ -43,10 +43,10 @@ const ACCEPT_HTML = `
     <div id="acceptPhotos" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:13px"></div>
 
     <div style="font-size:0.69rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--text-muted);margin-bottom:8px;margin-top:12px">Подтверждение</div>
-    <div class="form-group" style="display:flex;align-items:center;gap:10px">
-      <input type="checkbox" id="acceptClientAgreed" style="width:auto">
-      <label for="acceptClientAgreed" style="text-transform:none;font-size:0.85rem;font-weight:600;margin:0">Клиент согласен с актом приёмки</label>
-    </div>
+    <label style="display:flex;align-items:center;gap:10px;cursor:pointer;margin-bottom:10px">
+      <input type="checkbox" id="acceptClientAgreed" style="width:auto;min-width:18px;min-height:18px">
+      <span style="font-size:0.85rem;font-weight:600">Клиент согласен с актом приёмки</span>
+    </label>
     <div class="form-group">
       <label>Примечания</label>
       <textarea id="acceptNotes" rows="2" placeholder="Дополнительные заметки..."></textarea>
@@ -169,7 +169,7 @@ async function saveAcceptance() {
       const isDuplicate = insertErr.code === '23505' || (insertErr.message && insertErr.message.includes('duplicate'));
       if (!isDuplicate) {
         console.error('[pipeline] acceptance insert:', insertErr);
-        showToast('error', 'Ошибка сохранения акта приёмки');
+        window._showToast('error', 'Ошибка сохранения акта приёмки');
         return;
       }
     }
@@ -178,7 +178,7 @@ async function saveAcceptance() {
     const ok = await window._updateStatus(_acceptCalcId, 'accepted');
     if (ok) {
       document.getElementById('modalAccept').classList.remove('active');
-      showToast('success', 'Авто принято');
+      window._showToast('success', 'Авто принято');
       window._loadBoard();
     }
   } finally {
