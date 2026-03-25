@@ -34,8 +34,8 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 - [x] **DOC-01**: acceptance-act.html — full page showing acceptance act data for a calculation, loaded via ?calc_id=, with all acceptance fields rendered
 - [x] **DOC-02**: acceptance-act.html print layout — @media print CSS for A4 output, studio name header, structured fields, signature line
-- [ ] **DOC-03**: work-order.html — full page showing work order: services list, materials, executors, pricing, payment info, loaded via ?calc_id=
-- [ ] **DOC-04**: work-order.html print layout — @media print CSS for A4 output, studio name, structured table layout
+- [x] **DOC-03**: work-order.html — full page showing work order: services list, materials, executors, pricing, payment info, loaded via ?calc_id=
+- [x] **DOC-04**: work-order.html print layout — @media print CSS for A4 output, studio name, structured table layout
 - [x] **DOC-05**: Status history timeline on both document pages — chronological list of all status transitions for the calculation
 
 ## v2 Requirements
@@ -100,8 +100,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | FORM-06 | Phase 2 | Complete |
 | DOC-01 | Phase 3 | Complete |
 | DOC-02 | Phase 3 | Complete |
-| DOC-03 | Phase 3 | Pending |
-| DOC-04 | Phase 3 | Pending |
+| DOC-03 | Phase 3 | Complete |
+| DOC-04 | Phase 3 | Complete |
 | DOC-05 | Phase 3 | Complete |
 
 **Coverage:**
