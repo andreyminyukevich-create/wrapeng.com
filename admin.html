@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Keep1R CRM — Администрирование</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link rel="stylesheet" href="nav.css">
+<script src="nav.js"></script>
+<style>
+:root {
+  --font:-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica Neue',Arial,sans-serif;
+  --bg:#eef2f9; --surface:#ffffff; --border:rgba(15,23,42,0.08);
+  --text:#0f172a; --muted:#64748b; --dim:#94a3b8;
+  --primary:#2563eb; --primary-dk:#1d4ed8;
+  --success:#059669; --warning:#d97706; --danger:#dc2626; --purple:#7c3aed;
+  --radius:14px; --radius-sm:9px;
+  --shadow:0 1px 3px rgba(0,0,0,0.04),0 4px 14px rgba(0,0,0,0.06);
+  --shadow-lg:0 8px 40px rgba(0,0,0,0.14);
+}
+*{box-sizing:border-box;margin:0;padding:0} html{scrollbar-gutter:stable}
+body{font-family:var(--font);-webkit-font-smoothing:antialiased;background:var(--bg);color:var(--text);min-height:100svh}
+.page{max-width:1280px;min-width:900px;margin:0 auto;padding:24px 20px 48px}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px}
+.page-title{font-size:1.2rem;font-weight:800;letter-spacing:-0.3px} .page-title span{color:var(--primary)}
+.stats-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow)}
+.stat-label{font-size:0.67rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:5px}
+.stat-value{font-size:1.6rem;font-weight:800;letter-spacing:-0.8px;line-height:1}
+.stat-sub{font-size:0.7rem;color:var(--muted);margin-top:3px}
+.tabs{display:flex;gap:3px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:3px;margin-bottom:18px;width:fit-content;max-width:100%;flex-wrap:wrap;box-shadow:0 1px 2px rgba(0,0,0,0.03)}
+.tab-btn{padding:7px 15px;border-radius:7px;font-size:0.8rem;font-weight:700;cursor:pointer;border:none;background:transparent;color:var(--muted);font-family:var(--font);transition:all 0.15s;white-space:nowrap}
+.tab-btn:hover{background:var(--bg);color:var(--text)}
+.tab-btn.active{background:var(--primary);color:#fff;box-shadow:0 2px 8px rgba(37,99,235,0.22)}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:16px;box-shadow:var(--shadow)}
+.card-head{display:flex;align-items:center;justify-content:space-between;padding:15px 20px;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:10px}
+.card-head h2{font-size:0.9rem;font-weight:700}
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;font-size:0.82rem;table-layout:fixed}
+table td,table th{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+thead th{background:var(--bg);padding:9px 14px;text-align:left;font-size:0.67rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;border-bottom:1px solid var(--border);white-space:nowrap}
+tbody td{padding:11px 14px;border-bottom:1px solid var(--border);vertical-align:middle}
+tbody tr:last-child td{border-bottom:none} tbody tr:hover{background:#f8fafc}
+.studio-name{font-weight:700;font-size:0.85rem} .studio-email{font-size:0.75rem;color:var(--muted);margin-top:2px}
+.badge{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:20px;font-size:0.7rem;font-weight:700;white-space:nowrap}
+.badge-active {background:rgba(5,150,105,0.10);color:var(--success);border:1px solid rgba(5,150,105,0.2)}
+.badge-trial  {background:rgba(37,99,235,0.10);color:var(--primary);border:1px solid rgba(37,99,235,0.2)}
+.badge-expired{background:rgba(220,38,38,0.08);color:var(--danger);border:1px solid rgba(220,38,38,0.15)}
+.badge-ref    {background:rgba(124,58,237,0.08);color:var(--purple);border:1px solid rgba(124,58,237,0.15)}
+.badge-pending{background:rgba(217,119,6,0.08);color:var(--warning);border:1px solid rgba(217,119,6,0.2)}
+.badge-paid   {background:rgba(5,150,105,0.10);color:var(--success);border:1px solid rgba(5,150,105,0.2)}
+.actions{display:flex;gap:5px;flex-wrap:wrap}
+.btn{padding:6px 12px;border-radius:7px;font-size:0.75rem;font-weight:700;cursor:pointer;border:none;font-family:var(--font);transition:all 0.15s;white-space:nowrap;display:inline-flex;align-items:center;gap:4px}
+.btn:disabled{opacity:0.5;cursor:not-allowed}
+.btn-primary{background:var(--primary);color:#fff} .btn-primary:hover{background:var(--primary-dk)}
+.btn-success{background:var(--success);color:#fff} .btn-success:hover{background:#047857}
+.btn-warning{background:rgba(217,119,6,0.10);color:var(--warning);border:1px solid rgba(217,119,6,0.2)} .btn-warning:hover{background:var(--warning);color:#fff}
+.btn-danger{background:rgba(220,38,38,0.07);color:var(--danger);border:1px solid rgba(220,38,38,0.15)} .btn-danger:hover{background:var(--danger);color:#fff}
+.btn-ghost{background:rgba(37,99,235,0.06);color:var(--primary);border:1px solid rgba(37,99,235,0.18)} .btn-ghost:hover{background:var(--primary);color:#fff}
+.btn-excel{background:rgba(5,150,105,0.08);color:var(--success);border:1px solid rgba(5,150,105,0.2)} .btn-excel:hover{background:var(--success);color:#fff}
+.btn-sm{padding:4px 9px;font-size:0.7rem}
+.ref-code{font-family:monospace;font-size:0.82rem;font-weight:700;background:rgba(37,99,235,0.06);color:var(--primary);padding:2px 7px;border-radius:5px;letter-spacing:0.08em;border:1px solid rgba(37,99,235,0.15)}
+.expires-text{font-size:0.78rem;color:var(--muted)} .expires-soon{color:var(--warning);font-weight:700;font-size:0.78rem}
+.empty{text-align:center;padding:40px;color:var(--muted)} .empty-icon{font-size:2rem;margin-bottom:8px;opacity:0.35}
+.calcs-toolbar{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.toolbar-title{font-size:0.95rem;font-weight:800;color:var(--text);letter-spacing:-0.2px;white-space:nowrap;margin-right:4px}
+.calcs-toolbar select,.calcs-toolbar input[type="text"]{padding:8px 12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:0.82rem;font-family:var(--font);color:var(--text);outline:none;transition:border-color 0.15s,box-shadow 0.15s;box-shadow:0 1px 2px rgba(0,0,0,0.03)}
+.calcs-toolbar select:focus,.calcs-toolbar input[type="text"]:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(37,99,235,0.08)}
+.calcs-toolbar input[type="text"]{min-width:200px}
+.calcs-stats{display:flex;gap:8px;margin-left:auto;flex-wrap:wrap}
+.calcs-stat-pill{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:6px 14px;text-align:center}
+.calcs-stat-pill .s-label{font-size:0.65rem;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:0.06em}
+.calcs-stat-pill .s-val{font-size:1rem;font-weight:800;letter-spacing:-0.3px}
+.work-check{width:16px;height:16px;accent-color:var(--success);cursor:default;pointer-events:none}
+.modal-overlay{display:none;position:fixed;inset:0;z-index:1000;background:rgba(15,23,42,0.45);backdrop-filter:blur(5px);align-items:center;justify-content:center;padding:20px}
+.modal-overlay.active{display:flex;animation:fadein 0.15s ease}
+@keyframes fadein{from{opacity:0}to{opacity:1}} @keyframes slideup{from{transform:translateY(10px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);padding:26px 28px 24px;width:100%;max-width:420px;box-shadow:var(--shadow-lg);animation:slideup 0.18s ease}
+.modal h3{font-size:1rem;font-weight:700;margin-bottom:14px;letter-spacing:-0.2px}
+.modal-actions{display:flex;gap:8px;margin-top:18px} .modal-actions .btn{flex:1;padding:10px;font-size:0.82rem;justify-content:center}
+.form-group{margin-bottom:12px}
+.form-group label{display:block;font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:5px}
+.form-group select,.form-group input{width:100%;padding:9px 12px;background:var(--bg);border:1.5px solid var(--border);border-radius:8px;font-size:16px;font-family:var(--font);color:var(--text);outline:none;-webkit-appearance:none;transition:border-color 0.15s}
+.form-group select:focus,.form-group input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(37,99,235,0.08);background:var(--surface)}
+#calcViewModal{display:none;position:fixed;inset:0;background:rgba(15,23,42,0.5);backdrop-filter:blur(5px);z-index:9000;align-items:center;justify-content:center;padding:20px}
+#calcViewModal.active{display:flex}
+#calcViewModal .modal-box{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);padding:26px 28px;max-width:680px;width:100%;max-height:88svh;overflow-y:auto;box-shadow:var(--shadow-lg)}
+#calcViewModal h2{font-size:1.05rem;font-weight:700;margin-bottom:18px;letter-spacing:-0.2px}
+.calc-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}
+.calc-detail-item{background:var(--bg);border-radius:10px;padding:11px 14px;border:1px solid var(--border)}
+.calc-detail-label{font-size:0.67rem;color:var(--dim);text-transform:uppercase;letter-spacing:0.06em;font-weight:700;margin-bottom:3px}
+.calc-detail-value{font-size:0.92rem;font-weight:700;color:var(--text)} .calc-detail-value.accent{color:var(--purple)}
+.calc-services-list{border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:14px}
+.calc-services-list table{min-width:0}
+.calc-services-list th{background:var(--bg);padding:8px 12px;text-align:left;font-weight:700;color:var(--muted);font-size:0.68rem;text-transform:uppercase;letter-spacing:0.06em}
+.calc-services-list td{padding:8px 12px;border-top:1px solid var(--border);font-size:0.82rem}
+@media(max-width:1100px){.stats-row{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:768px){.page{padding:14px 12px 36px}.stats-row{grid-template-columns:repeat(2,1fr)}.tabs{width:100%}.tab-btn{flex:1;text-align:center;padding:7px 8px;font-size:0.72rem}.calcs-toolbar{flex-direction:column;align-items:stretch}.calcs-toolbar input[type="text"]{min-width:0;width:100%}.calcs-stats{margin-left:0}.modal{padding:20px 16px 18px}.modal-actions{flex-direction:column-reverse}.calc-detail-grid{grid-template-columns:1fr}}
+@media(max-width:480px){.stats-row{grid-template-columns:1fr 1fr}.stat-card:last-child{grid-column:1/-1}}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="page-header">
+    <div class="page-title">⚙️ <span>Администрирование</span></div>
+    <div id="adminBadge" style="font-size:0.78rem;color:var(--muted);font-weight:600">Загрузка...</div>
+  </div>
+  <div class="stats-row" id="statsRow">
+    <div class="stat-card"><div class="stat-label">Студий всего</div><div class="stat-value" id="sTotal">—</div></div>
+    <div class="stat-card"><div class="stat-label">Активных</div><div class="stat-value" id="sActive" style="color:var(--success)">—</div></div>
+    <div class="stat-card"><div class="stat-label">На триале</div><div class="stat-value" id="sTrial" style="color:var(--primary)">—</div></div>
+    <div class="stat-card"><div class="stat-label">Истёк доступ</div><div class="stat-value" id="sExpired" style="color:var(--danger)">—</div></div>
+    <div class="stat-card"><div class="stat-label">Комиссий к выплате</div><div class="stat-value" id="sCommission" style="color:var(--purple)">—</div></div>
+  </div>
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="requests">📋 Заявки <span id="badgeRequests"></span></button>
+    <button class="tab-btn" data-tab="trial">🧪 На тесте <span id="badgeTrial"></span></button>
+    <button class="tab-btn" data-tab="studios">🏢 Студии</button>
+    <button class="tab-btn" data-tab="referrals">🔗 Рефералы</button>
+    <button class="tab-btn" data-tab="commissions">💰 Комиссии</button>
+    <button class="tab-btn" data-tab="calcs">📊 Расчёты</button>
+    <button class="tab-btn" data-tab="blacklist">🚫 Блок-лист</button>
+  </div>
+  <!-- Заявки -->
+  <div id="tab-requests" style="display:none">
+    <div class="calcs-toolbar"><span class="toolbar-title">📋 Новые заявки</span><div class="calcs-stats" id="statsRequests"></div></div>
+    <div class="card"><div class="table-wrap"><table>
+      <colgroup><col style="width:24%"><col style="width:20%"><col style="width:22%"><col style="width:16%"><col style="width:18%"></colgroup>
+      <thead><tr><th>Студия</th><th>Город / Телефон</th><th>Email</th><th>Дата заявки</th><th>Действие</th></tr></thead>
+      <tbody id="requestsBody"><tr><td colspan="5" style="text-align:center;color:var(--dim)">Загрузка...</td></tr></tbody>
+    </table></div></div>
+  </div>
+  <!-- Триал -->
+  <div id="tab-trial" style="display:none">
+    <div class="calcs-toolbar"><span class="toolbar-title">🧪 Студии на триале</span><div class="calcs-stats" id="statsTrial"></div></div>
+    <div class="card"><div class="table-wrap"><table>
+      <colgroup><col style="width:28%"><col style="width:22%"><col style="width:14%"><col style="width:18%"><col style="width:18%"></colgroup>
+      <thead><tr><th>Студия</th><th>Владелец</th><th>Реф. код</th><th>Триал истекает</th><th>Действия</th></tr></thead>
+      <tbody id="trialBody"><tr><td colspan="5" style="text-align:center;color:var(--dim)">Загрузка...</td></tr></tbody>
+    </table></div></div>
+  </div>
+  <!-- Студии -->
+  <div id="tab-studios" style="display:none">
+    <div class="calcs-toolbar">
+      <span class="toolbar-title">🏢 Список студий</span>
+      <button class="btn btn-primary" id="btnAddStudio">➕ Добавить студию</button>
+      <div class="calcs-stats" id="statsStudios"></div>
+    </div>
+    <div class="card"><div class="table-wrap"><table>
+      <colgroup><col style="width:30%"><col style="width:16%"><col style="width:18%"><col style="width:18%"><col style="width:18%"></colgroup>
+      <thead><tr><th>Студия</th><th>Реф. код</th><th>Подписка</th><th>Истекает</th><th>Действия</th></tr></thead>
+      <tbody id="studiosBody"><tr><td colspan="5"><div class="empty"><div class="empty-icon">⏳</div>Загрузка...</div></td></tr></tbody>
+    </table></div></div>
+  </div>
+  <!-- Рефералы -->
+  <div id="tab-referrals" style="display:none">
+    <div class="calcs-toolbar"><span class="toolbar-title">🔗 Реферальные связи</span><div class="calcs-stats" id="statsReferrals"></div></div>
+    <div class="card"><div class="table-wrap"><table>
+      <colgroup><col style="width:22%"><col style="width:22%"><col style="width:14%"><col style="width:18%"><col style="width:24%"></colgroup>
+      <thead><tr><th>Кто пригласил</th><th>Приглашённая студия</th><th>Реф. код</th><th>Дата регистрации</th><th>Статус подписки</th></tr></thead>
+      <tbody id="referralsBody"><tr><td colspan="5"><div class="empty"><div class="empty-icon">⏳</div>Загрузка...</div></td></tr></tbody>
+    </table></div></div>
+  </div>
+  <!-- Комиссии -->
+  <div id="tab-commissions" style="display:none">
+    <div class="calcs-toolbar">
+      <span class="toolbar-title">💰 Комиссии к выплате</span>
+      <button class="btn btn-success" id="btnMarkAllPaid">✅ Отметить все выплаченными</button>
+      <div class="calcs-stats" id="statsCommissions"></div>
+    </div>
+    <div class="card"><div class="table-wrap"><table>
+      <colgroup><col style="width:18%"><col style="width:18%"><col style="width:14%"><col style="width:14%"><col style="width:13%"><col style="width:12%"><col style="width:11%"></colgroup>
+      <thead><tr><th>Реферрер</th><th>За студию</th><th>Сумма платежа</th><th>Комиссия 20%</th><th>Дата</th><th>Статус</th><th>Действие</th></tr></thead>
+      <tbody id="commissionsBody"><tr><td colspan="7"><div class="empty"><div class="empty-icon">⏳</div>Загрузка...</div></td></tr></tbody>
+    </table></div></div>
+  </div>
+  <!-- Расчёты -->
+  <div id="tab-calcs" style="display:none">
+    <div class="calcs-toolbar">
+      <span class="toolbar-title">📊 Расчёты</span>
+      <select id="calcsStudioFilter"><option value="">Все студии</option></select>
+      <input type="text" id="calcsSearch" placeholder="🔍 Поиск по авто...">
+      <span id="calcsCount" style="color:var(--muted);font-size:0.78rem;font-weight:600;white-space:nowrap"></span>
+      <button class="btn btn-excel" id="btnExcelExport">📥 Скачать все</button>
+      <div class="calcs-stats">
+        <div class="calcs-stat-pill"><div class="s-label">Расчётов</div><div class="s-val" id="calcsStatTotal">—</div></div>
+        <div class="calcs-stat-pill"><div class="s-label">Сумма</div><div class="s-val" id="calcsStatSum" style="color:var(--purple)">—</div></div>
+        <div class="calcs-stat-pill"><div class="s-label">Средний чек</div><div class="s-val" id="calcsStatAvg">—</div></div>
+      </div>
+    </div>
+    <div class="card"><div class="table-wrap"><table>
+      <colgroup><col style="width:16%"><col style="width:14%"><col style="width:10%"><col style="width:10%"><col style="width:9%"><col style="width:10%"><col style="width:10%"><col style="width:11%"><col style="width:10%"></colgroup>
+      <thead><tr><th>Студия</th><th>Авто</th><th>Себест.</th><th>Итог КП</th><th>Выдано</th><th>Статус</th><th>В работу</th><th>Дата</th><th>Действия</th></tr></thead>
+      <tbody id="calcsBody"><tr><td colspan="9" style="text-align:center;color:var(--dim)">Загрузка...</td></tr></tbody>
+    </table></div></div>
+  </div>
+  <!-- Блок-лист -->
+  <div id="tab-blacklist" style="display:none">
+    <div class="calcs-toolbar"><span class="toolbar-title">🚫 Заблокированные студии</span><div class="calcs-stats" id="statsBlacklist"></div></div>
+    <div class="card"><div class="table-wrap"><table>
+      <colgroup><col style="width:28%"><col style="width:36%"><col style="width:18%"><col style="width:18%"></colgroup>
+      <thead><tr><th>Студия</th><th>Причина</th><th>Заблокирована</th><th>Действия</th></tr></thead>
+      <tbody id="blacklistBody"><tr><td colspan="4" style="text-align:center;color:var(--dim)">Загрузка...</td></tr></tbody>
+    </table></div></div>
+  </div>
+</div>
+
+<!-- Модал: подписка -->
+<div class="modal-overlay" id="subModal">
+  <div class="modal">
+    <h3 id="subModalTitle">Управление подпиской</h3>
+    <div style="font-size:0.8rem;color:var(--muted);margin-bottom:14px" id="subModalStudio"></div>
+    <div class="form-group">
+      <label>Действие</label>
+      <select id="subAction">
+        <option value="trial">⏰ Продлить триал +72 часа</option>
+        <option value="month">📅 Оплата месяц (+30 дней) — 4 900</option>
+        <option value="year">🗓 Оплата год (+365 дней) — 51 900</option>
+        <option value="custom">✏️ Произвольный срок</option>
+        <option value="block">🚫 Заблокировать</option>
+      </select>
+    </div>
+    <div class="form-group" id="customDaysGroup" style="display:none">
+      <label>Количество дней</label>
+      <input type="number" id="customDays" placeholder="30" min="1" max="3650">
+    </div>
+    <div id="subModalPayment" style="font-size:0.78rem;color:var(--muted);margin-bottom:4px"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="btnCloseSubModal">Отмена</button>
+      <button class="btn btn-primary" id="subSaveBtn">Применить</button>
+    </div>
+  </div>
+</div>
+
+<!-- Модал: добавить студию -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal">
+    <h3>Добавить студию</h3>
+    <div class="form-group"><label>Название студии</label><input type="text" id="newStudioName" placeholder="Студия оклейки"></div>
+    <div class="form-group"><label>Email владельца</label><input type="email" id="newStudioEmail" placeholder="owner@studio.ru"></div>
+    <div class="form-group">
+      <label>Тариф</label>
+      <select id="newStudioTier"><option value="trial">Триал 72ч</option><option value="active_month">Активный (1 месяц)</option><option value="active_year">Активный (1 год)</option></select>
+    </div>
+    <div id="addError" style="color:var(--danger);font-size:0.78rem;margin-top:8px;display:none"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="btnCloseAddModal">Отмена</button>
+      <button class="btn btn-primary" id="addSaveBtn">Создать</button>
+    </div>
+  </div>
+</div>
+
+<!-- Модал: просмотр расчёта -->
+<div id="calcViewModal">
+  <div class="modal-box">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+      <h2 id="calcViewTitle">Расчёт</h2>
+      <button id="btnCloseCalcView" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--dim);line-height:1;padding:4px 6px;border-radius:6px;transition:background 0.15s">×</button>
+    </div>
+    <div id="calcViewContent">Загрузка...</div>
+  </div>
+</div>
+
+<script src="footer.js"></script>
+<script type="module">
+import { sb }           from './api.js';
+import { requireAuth }  from './auth.js';
+import { escapeHtml }   from './formatters.js';
+import { confirmAction, lockButton } from './ui.js';
+
+const ADMIN_USER_ID = 'c5db87ec-8e4a-4c48-bad3-5747513224d9';
+const e = escapeHtml;
+
+let allStudios     = [];
+let allCalcs       = [];
+let activeStudioId = null;
+let _calcsLoaded   = false;
+
+// ── Format helpers ────────────────────────────────────────────────────────
+function fmt(n)     { return new Intl.NumberFormat('ru-RU').format(n||0); }
+function fmtDate(d) { if(!d) return '—'; return new Date(d).toLocaleDateString('ru-RU',{day:'numeric',month:'short',year:'numeric'}); }
+function subStatus(s) {
+  const tier=s.subscription_tier, exp=s.subscription_expires_at, now=new Date();
+  if(tier==='active') return (!exp||new Date(exp)>now)?'active':'expired';
+  if(tier==='trial')  return (exp&&new Date(exp)>now)?'trial':'expired';
+  return 'expired';
+}
+function subBadge(s) {
+  if(s.subscription_tier==='pending') return '<span class="badge badge-pending">📋 Заявка</span>';
+  const st=subStatus(s);
+  const L={active:'✅ Активна',trial:'⏰ Триал',expired:'❌ Истекла'};
+  const C={active:'badge-active',trial:'badge-trial',expired:'badge-expired'};
+  return `<span class="badge ${C[st]}">${L[st]}</span>`;
+}
+function expireText(s) {
+  if(!s.subscription_expires_at) return '—';
+  const d=new Date(s.subscription_expires_at),days=Math.ceil((d-new Date())/86400000),txt=fmtDate(s.subscription_expires_at);
+  if(days<=7&&days>0) return `<span class="expires-soon">⚠️ ${txt} (${days}д)</span>`;
+  if(days<=0) return `<span style="color:var(--danger);font-size:0.78rem">${txt}</span>`;
+  return `<span class="expires-text">${txt}</span>`;
+}
+function setPills(id,pills) {
+  const el=document.getElementById(id); if(!el) return;
+  el.innerHTML=pills.map(p=>`<div class="calcs-stat-pill"><div class="s-label">${p.label}</div><div class="s-val" style="${p.style||''}">${p.val}</div></div>`).join('');
+}
+
+// ── Tab switching ─────────────────────────────────────────────────────────
+const ALL_TABS=['requests','trial','studios','referrals','commissions','calcs','blacklist'];
+function switchTab(tab) {
+  ALL_TABS.forEach(t => {
+    const el=document.getElementById('tab-'+t); if(el) el.style.display=t===tab?'block':'none';
+  });
+  document.querySelectorAll('.tab-btn[data-tab]').forEach(btn=>btn.classList.toggle('active',btn.dataset.tab===tab));
+  if(tab==='calcs'&&!_calcsLoaded){ _calcsLoaded=true; loadCalcs(); }
+  if(tab==='blacklist') loadBlacklist();
+}
+
+// ── Blacklist ─────────────────────────────────────────────────────────────
+async function loadBlacklist() {
+  const tbody=document.getElementById('blacklistBody');
+  if(tbody) tbody.innerHTML='<tr><td colspan="4" style="text-align:center;color:var(--dim)">Загрузка...</td></tr>';
+  const {data,error}=await sb.from('studios').select('id,name,settings,subscription_expires_at,created_at').eq('subscription_tier','blocked').order('subscription_expires_at',{ascending:false});
+  if(error||!data||!data.length){
+    if(tbody) tbody.innerHTML='<tr><td colspan="4" style="text-align:center;color:var(--dim)">Блок-лист пуст</td></tr>';
+    setPills('statsBlacklist',[{label:'Заблокировано',val:0}]); return;
+  }
+  setPills('statsBlacklist',[{label:'Заблокировано',val:data.length,style:'color:var(--danger)'}]);
+  tbody.innerHTML=data.map(s=>`<tr>
+    <td><strong>${e(s.name||'—')}</strong><br><small style="color:var(--dim)">${e(s.settings?.contact_email||'')}</small></td>
+    <td style="color:var(--muted);font-size:0.8rem">Заблокирован вручную</td>
+    <td style="font-size:0.8rem">${new Date(s.subscription_expires_at).toLocaleDateString('ru')}</td>
+    <td><button class="btn btn-warning btn-sm" data-action="unblock" data-id="${s.id}" data-name="${encodeURIComponent(s.name||'')}">↩ Разблокировать</button></td>
+  </tr>`).join('');
+}
+
+async function unblockStudio(studioId, name) {
+  const ok=await confirmAction({message:`Разблокировать "${name}" и вернуть в заявки?`}); if(!ok) return;
+  const {error}=await sb.from('studios').update({subscription_tier:'pending',subscription_expires_at:null}).eq('id',studioId);
+  if(error){console.error('[admin] unblock:',error);return;}
+  await loadStudios(); await loadRequests(); loadBlacklist();
+}
+
+// ── Calc view modal ───────────────────────────────────────────────────────
+async function openCalcView(calcId) {
+  const modal=document.getElementById('calcViewModal'),content=document.getElementById('calcViewContent'),title=document.getElementById('calcViewTitle');
+  modal.classList.add('active');
+  content.innerHTML='<div style="text-align:center;padding:40px;color:var(--dim)">Загрузка...</div>';
+  const res=await sb.from('calculations').select('*,studios(name)').eq('id',calcId).single();
+  if(res.error||!res.data){content.innerHTML='<p style="color:var(--danger)">Ошибка загрузки</p>';return;}
+  const data=res.data,cd=data.calculation_data||{},sd=data.services_detail||cd.services_detail||{};
+  const statusMap={new:'🆕 Новый',scheduled:'📅 Запись',in_progress:'🔧 В работе',done:'✅ Готово',delivered:'🚗 Выдано'};
+  const sectionNames={arm:'Бронирование',det:'Детейлинг',gl:'Стёкла',ms:'Доп.услуги',wrap:'Оклейка'};
+  title.textContent=(data.car_name||'Расчёт')+' — '+(data.studios?data.studios.name:'');
+  let servicesRows='';
+  if(cd.package){const b=['wrapMat','wrapMot','prepMat','prepMot','armMat','armMot'].reduce((a,k)=>a+(parseFloat(cd.package[k])||0),0);if(b>0)servicesRows+=`<tr><td>Полная защита</td><td>Пакет вкруг</td><td colspan="2">—</td><td><b>${fmt(b)} ₽</b></td></tr>`;}
+  if(cd.impact){const bi=['wrapMat','wrapMot','prepMat','prepMot','armMat','armMot'].reduce((a,k)=>a+(parseFloat(cd.impact[k])||0),0);if(bi>0)servicesRows+=`<tr><td>Ударная часть</td><td>Защита</td><td colspan="2">—</td><td><b>${fmt(bi)} ₽</b></td></tr>`;}
+  Object.keys(sd).forEach(key=>{const items=sd[key];if(!items||!items.length)return;items.forEach(item=>{const base=(item.mat||0)+(item.mot||0);if(base>0)servicesRows+=`<tr><td>${e(sectionNames[key]||key)}</td><td>${e(item.name||'—')}</td><td>${fmt(item.mat||0)}</td><td>${fmt(item.mot||0)}</td><td><b>${fmt(base)} ₽</b></td></tr>`;});});
+  const grid=`<div class="calc-detail-grid">
+    <div class="calc-detail-item"><div class="calc-detail-label">Автомобиль</div><div class="calc-detail-value">${e(data.car_name||'—')}</div></div>
+    <div class="calc-detail-item"><div class="calc-detail-label">Статус</div><div class="calc-detail-value">${e(statusMap[data.status]||data.status||'—')}</div></div>
+    <div class="calc-detail-item"><div class="calc-detail-label">Студия</div><div class="calc-detail-value">${e(data.studios?data.studios.name:'—')}</div></div>
+    <div class="calc-detail-item"><div class="calc-detail-label">Дата</div><div class="calc-detail-value">${new Date(data.created_at).toLocaleDateString('ru')}</div></div>
+    <div class="calc-detail-item"><div class="calc-detail-label">Себестоимость</div><div class="calc-detail-value">${fmt(data.total_price||0)} ₽</div></div>
+    <div class="calc-detail-item"><div class="calc-detail-label">Итог КП</div><div class="calc-detail-value accent">${fmt(data.final_price||data.total_price||0)} ₽</div></div>
+    <div class="calc-detail-item"><div class="calc-detail-label">Сдано</div><div class="calc-detail-value" style="color:var(--success)">${data.final_price?fmt(data.final_price)+' ₽':'—'}</div></div>
+    <div class="calc-detail-item"><div class="calc-detail-label">В работу</div><div class="calc-detail-value">${data.work_assigned?'✅ Да':'—'}</div></div>
+  </div>`;
+  const table=servicesRows
+    ?`<div class="calc-services-list"><table><thead><tr><th>Блок</th><th>Услуга</th><th>Материалы</th><th>Мотивация</th><th>Итого</th></tr></thead><tbody>${servicesRows}</tbody></table></div>`
+    :'<p style="color:var(--dim);font-size:0.85rem;margin-bottom:14px">Детализация недоступна</p>';
+  content.innerHTML=grid+table;
+  const row=document.createElement('div');row.style.cssText='display:flex;justify-content:space-between;align-items:center;margin-top:12px';
+  const openBtn=document.createElement('a');openBtn.className='btn btn-primary';openBtn.href=`calculator.html?load=${calcId}`;openBtn.target='_blank';openBtn.textContent='📂 Открыть в калькуляторе';
+  const closeBtn=document.createElement('button');closeBtn.className='btn btn-ghost';closeBtn.textContent='Закрыть';closeBtn.addEventListener('click',()=>modal.classList.remove('active'));
+  row.appendChild(openBtn);row.appendChild(closeBtn);content.appendChild(row);
+}
+
+// ── Calcs tab ─────────────────────────────────────────────────────────────
+async function loadCalcs() {
+  document.getElementById('calcsBody').innerHTML=`<tr><td colspan="9" style="text-align:center;color:var(--dim)">Загрузка...</td></tr>`;
+  const {data,error}=await sb.from('calculations').select('id,car_name,total_price,final_price,status,work_assigned,created_at,studio_id,studios(name)').order('created_at',{ascending:false}).limit(1000);
+  if(error){console.error('[admin] loadCalcs:',error);return;}
+  allCalcs=data||[];
+  const filter=document.getElementById('calcsStudioFilter');
+  const studios=[...new Map(allCalcs.map(c=>[c.studio_id,c.studios?.name||c.studio_id])).entries()];
+  studios.forEach(([id,name])=>{const o=document.createElement('option');o.value=id;o.textContent=name;filter.appendChild(o);});
+  renderCalcs();
+}
+function renderCalcs() {
+  const sf=document.getElementById('calcsStudioFilter')?.value||'';
+  const sv=(document.getElementById('calcsSearch')?.value||'').toLowerCase();
+  const filtered=allCalcs.filter(c=>{if(sf&&c.studio_id!==sf)return false;if(sv&&!(c.car_name||'').toLowerCase().includes(sv))return false;return true;});
+  const total=filtered.length,sum=filtered.reduce((a,c)=>a+(c.final_price||c.total_price||0),0),avg=total>0?sum/total:0;
+  document.getElementById('calcsStatTotal').textContent=total;
+  document.getElementById('calcsStatSum').textContent=fmt(sum)+' ₽';
+  document.getElementById('calcsStatAvg').textContent=fmt(avg)+' ₽';
+  document.getElementById('calcsCount').textContent=`Показано: ${total}`;
+  const statusLabel={new:'🆕 Новый',scheduled:'📅 Запись',in_progress:'🔧 В работе',done:'✅ Готово',delivered:'🚗 Выдано',draft:'📝 Черновик'};
+  const tbody=document.getElementById('calcsBody'); if(!tbody) return;
+  if(!filtered.length){tbody.innerHTML=`<tr><td colspan="9" style="text-align:center;color:var(--dim)">Расчётов нет</td></tr>`;return;}
+  tbody.innerHTML=filtered.map(c=>`<tr>
+    <td><strong>${e(c.studios?.name||'—')}</strong></td>
+    <td>${e(c.car_name||'—')}</td>
+    <td style="color:var(--muted)">${fmt(c.total_price||0)}</td>
+    <td style="color:var(--purple);font-weight:700">${fmt(c.final_price||c.total_price||0)}</td>
+    <td style="color:var(--success);font-weight:700">${c.final_price?fmt(c.final_price):'—'}</td>
+    <td><span style="font-size:0.75rem">${e(statusLabel[c.status]||c.status||'—')}</span></td>
+    <td style="text-align:center"><input type="checkbox" class="work-check" ${c.work_assigned?'checked':''} title="${c.work_assigned?'Ушло в работу':'Не назначено'}"></td>
+    <td style="color:var(--dim);font-size:0.78rem;white-space:nowrap">${new Date(c.created_at).toLocaleDateString('ru')}</td>
+    <td style="white-space:nowrap">
+      <button class="btn btn-ghost btn-sm" data-action="calc-view" data-id="${c.id}" title="Просмотр">🔍</button>
+      <button class="btn btn-ghost btn-sm" data-action="calc-export" data-id="${c.id}" title="Скачать Excel" style="margin-left:2px">📥</button>
+    </td>
+  </tr>`).join('');
+}
+
+// ── Excel ─────────────────────────────────────────────────────────────────
+function calcToRow(c) {
+  const sm={new:'Новый',scheduled:'Запись',in_progress:'В работе',done:'Готово',delivered:'Выдано',draft:'Черновик',cancelled:'Отказ'};
+  return{'Студия':c.studios?.name||'—','Автомобиль':c.car_name||'—','Себестоимость':c.total_price||0,'Итог КП':c.final_price||c.total_price||0,'Выдано':c.final_price||'','Статус':sm[c.status]||c.status||'—','В работу':c.work_assigned?'Да':'Нет','Дата':new Date(c.created_at).toLocaleDateString('ru-RU'),'ID':c.id};
+}
+function writeXlsx(rows,filename) {
+  if(!rows.length) return;
+  const ws=XLSX.utils.json_to_sheet(rows),wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'Расчёты');
+  ws['!cols']=[{wch:22},{wch:24},{wch:16},{wch:14},{wch:14},{wch:14},{wch:10},{wch:14},{wch:36}];
+  XLSX.writeFile(wb,filename);
+}
+function exportToExcel() {
+  const sf=document.getElementById('calcsStudioFilter')?.value||'';
+  const sv=(document.getElementById('calcsSearch')?.value||'').toLowerCase();
+  const filtered=allCalcs.filter(c=>{if(sf&&c.studio_id!==sf)return false;if(sv&&!(c.car_name||'').toLowerCase().includes(sv))return false;return true;});
+  const studioName=sf?(allCalcs.find(c=>c.studio_id===sf)?.studios?.name||'студия'):'все-студии';
+  writeXlsx(filtered.map(calcToRow),`keep1r-${studioName}-${new Date().toISOString().slice(0,10)}.xlsx`);
+}
+function exportOneCalc(calcId) {
+  const c=allCalcs.find(x=>x.id===calcId); if(!c) return;
+  const carName=(c.car_name||'расчёт').replace(/[^\w\-а-яёА-ЯЁ ]/gi,'').trim();
+  writeXlsx([calcToRow(c)],`keep1r-${carName}-${new Date(c.created_at).toISOString().slice(0,10)}.xlsx`);
+}
+
+// ── Requests ──────────────────────────────────────────────────────────────
+async function loadRequests() {
+  let accessReqs=[],pendingStudios=[];
+  try {
+    const [r1,r2]=await Promise.all([
+      sb.from('access_requests').select('*').order('created_at',{ascending:false}),
+      sb.from('studios').select('*').in('subscription_tier',['pending']).order('created_at',{ascending:false}),
+    ]);
+    accessReqs=r1.data||[]; pendingStudios=r2.data||[];
+  } catch(err) {
+    try{const{data}=await sb.from('studios').select('*').in('subscription_tier',['pending']).order('created_at',{ascending:false});pendingStudios=data||[];}catch(e2){console.error(e2);}
+  }
+  const totalNew=accessReqs.filter(r=>r.status==='new').length+pendingStudios.length;
+  const badge=document.getElementById('badgeRequests'); if(badge) badge.textContent=totalNew>0?`(${totalNew})`:'';
+  setPills('statsRequests',[{label:'Заявок',val:totalNew,style:totalNew>0?'color:var(--warning)':''}]);
+  const tbody=document.getElementById('requestsBody'); if(!tbody) return;
+  if(!accessReqs.length&&!pendingStudios.length){tbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--dim)">Заявок нет</td></tr>';return;}
+  const rows=[];
+  pendingStudios.forEach(s=>rows.push(`<tr>
+    <td><div class="studio-name">${e(s.name||'—')}</div></td>
+    <td style="font-size:0.8rem">${e(s.settings?.city||'—')} / ${e(s.settings?.phone||'—')}</td>
+    <td style="font-size:0.8rem">${e(s.settings?.contact_email||'—')}</td>
+    <td style="font-size:0.78rem;color:var(--dim)">${fmtDate(s.created_at)}</td>
+    <td><div class="actions">
+      <button class="btn btn-success btn-sm" data-action="approve-studio" data-id="${s.id}" data-name="${encodeURIComponent(s.name||'')}">✅ Одобрить</button>
+      <button class="btn btn-danger btn-sm"  data-action="block-studio"   data-id="${s.id}" data-name="${encodeURIComponent(s.name||'')}">🚫 Блок</button>
+    </div></td>
+  </tr>`));
+  accessReqs.filter(r=>r.status==='new').forEach(r=>rows.push(`<tr>
+    <td><div class="studio-name">${e(r.studio_name||'—')}</div></td>
+    <td style="font-size:0.8rem">${e(r.city||'—')} / ${e(r.phone||'—')}</td>
+    <td style="font-size:0.8rem">${e(r.email||'—')}</td>
+    <td style="font-size:0.78rem;color:var(--dim)">${fmtDate(r.created_at)}</td>
+    <td><div class="actions">
+      <button class="btn btn-success btn-sm" data-action="approve-request" data-id="${r.id}">✅ Одобрить</button>
+      <button class="btn btn-danger btn-sm"  data-action="reject-request"  data-id="${r.id}">❌ Отклонить</button>
+    </div></td>
+  </tr>`));
+  tbody.innerHTML=rows.join('');
+}
+
+async function approveRequest(id) {
+  const ok=await confirmAction({message:'Одобрить заявку?'}); if(!ok) return;
+  await sb.from('access_requests').update({status:'approved'}).eq('id',id);
+  const {data:req}=await sb.from('access_requests').select('*').eq('id',id).single();
+  if(req?.supabase_user_id){
+    const refCode=Math.random().toString(36).substring(2,10).toUpperCase();
+    const trialEnds=new Date(Date.now()+72*3600*1000).toISOString();
+    const {data:studio}=await sb.from('studios').insert({name:req.studio_name,owner_id:req.supabase_user_id,subscription_tier:'trial',subscription_expires_at:trialEnds,referral_code:refCode,settings:{phone:req.phone,city:req.city,contact_email:req.email}}).select('id').single();
+    if(studio) await sb.from('studio_members').insert({studio_id:studio.id,user_id:req.supabase_user_id,role:'owner',is_active:true});
+  }
+  loadRequests(); loadStudios();
+}
+async function rejectRequest(id) {
+  const ok=await confirmAction({message:'Отклонить заявку?'}); if(!ok) return;
+  await sb.from('access_requests').update({status:'rejected'}).eq('id',id);
+  loadRequests();
+}
+
+// ── Studios ───────────────────────────────────────────────────────────────
+async function loadStudios() {
+  const {data,error}=await sb.from('studios').select('id,name,owner_id,subscription_tier,subscription_expires_at,referral_code,referred_by_studio_id,created_at,settings').order('created_at',{ascending:false});
+  if(error){console.error('[admin] loadStudios:',error);return;}
+  allStudios=data||[];
+  let active=0,trial=0,expired=0;
+  allStudios.forEach(s=>{const st=subStatus(s);if(st==='active')active++;else if(st==='trial')trial++;else expired++;});
+  const pending=allStudios.filter(s=>s.subscription_tier==='pending').length;
+  document.getElementById('sTotal').textContent=allStudios.length+(pending>0?` (${pending} 📋)`:'');
+  document.getElementById('sActive').textContent=active;
+  document.getElementById('sTrial').textContent=trial;
+  document.getElementById('sExpired').textContent=expired;
+  setPills('statsStudios',[{label:'Всего',val:allStudios.length},{label:'Активных',val:active,style:'color:var(--success)'},{label:'Триал',val:trial,style:'color:var(--primary)'},{label:'Истёк',val:expired,style:expired>0?'color:var(--danger)':''}]);
+  renderStudios(); renderTrialStudios(); renderReferrals();
+}
+
+function renderStudios() {
+  const tbody=document.getElementById('studiosBody');
+  if(!allStudios.length){tbody.innerHTML='<tr><td colspan="5"><div class="empty"><div class="empty-icon">🏢</div>Нет студий</div></td></tr>';return;}
+  tbody.innerHTML=allStudios.map(s=>`<tr>
+    <td>
+      <div class="studio-name">${e(s.name||'—')}</div>
+      <div class="studio-email" id="email-${s.id}">загрузка...</div>
+      ${s.settings?.phone?`<div style="font-size:0.72rem;color:var(--primary);margin-top:1px">${e(s.settings.phone)}</div>`:''}
+      ${s.settings?.city?`<div style="font-size:0.72rem;color:var(--muted)">${e(s.settings.city)}</div>`:''}
+    </td>
+    <td>${s.referral_code?`<span class="ref-code">${e(s.referral_code)}</span>`:`<button class="btn btn-ghost btn-sm" data-action="gen-ref" data-id="${s.id}">Создать</button>`}</td>
+    <td>${subBadge(s)}</td>
+    <td>${expireText(s)}</td>
+    <td><div class="actions">
+      <button class="btn btn-primary btn-sm" data-action="open-sub"    data-id="${s.id}">⚙️ Подписка</button>
+      <button class="btn btn-danger btn-sm"  data-action="block-studio" data-id="${s.id}" data-name="${encodeURIComponent(s.name||'')}">🚫</button>
+    </div></td>
+  </tr>`).join('');
+  allStudios.forEach(async s=>{
+    const {data}=await sb.from('studio_members').select('user_id,role').eq('studio_id',s.id).eq('role','owner').single();
+    const el=document.getElementById(`email-${s.id}`); if(!el) return;
+    el.textContent=data?data.user_id.slice(0,8)+'...':'нет владельца';
+  });
+}
+
+function renderTrialStudios() {
+  const trial=allStudios.filter(s=>s.subscription_tier==='trial');
+  const badge=document.getElementById('badgeTrial'); if(badge) badge.textContent=trial.length>0?`(${trial.length})`:'';
+  const expiringSoon=trial.filter(s=>{const exp=s.subscription_expires_at?new Date(s.subscription_expires_at):null;return exp&&(exp-new Date())/3600000<12;}).length;
+  setPills('statsTrial',[{label:'На тесте',val:trial.length,style:'color:var(--primary)'},{label:'Истекают <12ч',val:expiringSoon,style:expiringSoon>0?'color:var(--danger)':''}]);
+  const tbody=document.getElementById('trialBody'); if(!tbody) return;
+  if(!trial.length){tbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--dim)">Нет студий на тесте</td></tr>';return;}
+  tbody.innerHTML=trial.map(s=>{
+    const exp=s.subscription_expires_at?new Date(s.subscription_expires_at):null,now=new Date(),hoursLeft=exp?Math.round((exp-now)/3600000):null;
+    const expText=exp?(hoursLeft>0?`<span style="color:${hoursLeft<12?'var(--danger)':'var(--warning)'}">⏰ ${hoursLeft}ч осталось</span>`:'<span style="color:var(--danger)">⚠️ Истёк</span>'):'—';
+    return `<tr>
+      <td><strong>${e(s.name||'—')}</strong><br><small style="color:var(--dim)">${e(s.settings?.phone||'')} ${e(s.settings?.city||'')}</small></td>
+      <td style="font-size:0.78rem">${e(s.settings?.contact_email||s.owner_id?.substring(0,8)+'...'||'—')}</td>
+      <td><span class="ref-code">${e(s.referral_code||'—')}</span></td>
+      <td>${expText}</td>
+      <td><div class="actions">
+        <button class="btn btn-success btn-sm" data-action="extend-trial" data-id="${s.id}" data-name="${encodeURIComponent(s.name||'')}">+72ч</button>
+        <button class="btn btn-ghost btn-sm"   data-action="open-sub"     data-id="${s.id}">💳 Подписка</button>
+        <button class="btn btn-danger btn-sm"  data-action="block-studio"  data-id="${s.id}" data-name="${encodeURIComponent(s.name||'')}">🚫</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+async function extendTrial(studioId) {
+  const trialEnds=new Date(Date.now()+72*3600*1000).toISOString();
+  const {error}=await sb.from('studios').update({subscription_expires_at:trialEnds}).eq('id',studioId);
+  if(error){console.error('[admin] extendTrial:',error);return;}
+  await loadStudios();
+}
+
+async function approveStudio(studioId, name) {
+  const ok=await confirmAction({message:`Одобрить заявку студии "${name}" и дать пробный доступ на 72 часа?`}); if(!ok) return;
+  const trialEnds=new Date(Date.now()+72*3600*1000).toISOString();
+  const {error}=await sb.from('studios').update({subscription_tier:'trial',subscription_expires_at:trialEnds}).eq('id',studioId);
+  if(error){console.error('[admin] approveStudio:',error);return;}
+  await loadStudios(); await loadRequests();
+}
+
+async function blockStudio(studioId, name) {
+  const ok=await confirmAction({message:`Заблокировать студию "${name}" и добавить в блок-лист?`}); if(!ok) return;
+  const {error}=await sb.from('studios').update({subscription_tier:'blocked',subscription_expires_at:new Date().toISOString()}).eq('id',studioId);
+  if(error){console.error('[admin] blockStudio:',error);return;}
+  await loadStudios(); await loadRequests();
+}
+
+async function genRefCode(studioId) {
+  const code=Math.random().toString(36).substring(2,10).toUpperCase();
+  await sb.from('studios').update({referral_code:code}).eq('id',studioId);
+  await loadStudios();
+}
+
+function renderReferrals() {
+  const tbody=document.getElementById('referralsBody'),referred=allStudios.filter(s=>s.referred_by_studio_id);
+  setPills('statsReferrals',[{label:'Связей',val:referred.length,style:'color:var(--purple)'}]);
+  if(!referred.length){tbody.innerHTML='<tr><td colspan="5"><div class="empty"><div class="empty-icon">🔗</div>Реферальных регистраций пока нет</div></td></tr>';return;}
+  tbody.innerHTML=referred.map(s=>{
+    const referrer=allStudios.find(r=>r.id===s.referred_by_studio_id);
+    return`<tr>
+      <td><div class="studio-name">${e(referrer?referrer.name:'—')}</div></td>
+      <td><div class="studio-name">${e(s.name||'—')}</div></td>
+      <td>${referrer&&referrer.referral_code?`<span class="ref-code">${e(referrer.referral_code)}</span>`:'—'}</td>
+      <td>${fmtDate(s.created_at)}</td>
+      <td>${subBadge(s)}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ── Commissions ───────────────────────────────────────────────────────────
+async function loadCommissions() {
+  const {data,error}=await sb.from('referral_commissions').select('*,referrer:referrer_studio_id(name),referred:referred_studio_id(name)').order('created_at',{ascending:false});
+  if(error){console.error('[admin] loadCommissions:',error);return;}
+  const comms=data||[],pendingComms=comms.filter(c=>!c.paid_to_referrer),pending=pendingComms.reduce((s,c)=>s+Number(c.amount),0);
+  document.getElementById('sCommission').textContent=fmt(pending)+' ₽';
+  setPills('statsCommissions',[{label:'К выплате',val:pendingComms.length,style:pendingComms.length>0?'color:var(--warning)':''},{label:'Сумма',val:fmt(pending)+' ₽',style:'color:var(--purple)'}]);
+  renderCommissions(comms);
+}
+function renderCommissions(comms) {
+  const tbody=document.getElementById('commissionsBody');
+  if(!comms.length){tbody.innerHTML='<tr><td colspan="7"><div class="empty"><div class="empty-icon">💰</div>Комиссий нет</div></td></tr>';return;}
+  tbody.innerHTML=comms.map(c=>`<tr>
+    <td><div class="studio-name">${e(c.referrer?.name||'—')}</div></td>
+    <td><div class="studio-name">${e(c.referred?.name||'—')}</div></td>
+    <td>${fmt(c.payment_amount)} ₽</td>
+    <td><strong>${fmt(c.amount)} ₽</strong></td>
+    <td>${fmtDate(c.payment_date)}</td>
+    <td>${c.paid_to_referrer?`<span class="badge badge-paid">✅ Выплачено ${fmtDate(c.paid_date)}</span>`:`<span class="badge badge-pending">⏳ Ожидает</span>`}</td>
+    <td>${!c.paid_to_referrer?`<button class="btn btn-success btn-sm" data-action="mark-paid" data-id="${c.id}">Выплатить</button>`:'—'}</td>
+  </tr>`).join('');
+}
+async function markCommissionPaid(id) {
+  await sb.from('referral_commissions').update({paid_to_referrer:true,paid_date:new Date().toISOString().split('T')[0]}).eq('id',id);
+  await loadCommissions();
+}
+async function markAllPaid() {
+  const ok=await confirmAction({message:'Отметить все неоплаченные комиссии как выплаченные?'}); if(!ok) return;
+  await sb.from('referral_commissions').update({paid_to_referrer:true,paid_date:new Date().toISOString().split('T')[0]}).eq('paid_to_referrer',false);
+  await loadCommissions();
+}
+
+// ── Sub modal ─────────────────────────────────────────────────────────────
+function openSubModal(studioId) {
+  activeStudioId=studioId;
+  const studio=allStudios.find(s=>s.id===studioId);
+  document.getElementById('subModalTitle').textContent='Подписка: '+(studio?.name||'');
+  document.getElementById('subModalStudio').textContent='Текущий статус: '+subStatus(studio).toUpperCase()+' · '+expireText(studio).replace(/<[^>]+>/g,'');
+  document.getElementById('subAction').value='month';
+  updatePaymentHint();
+  document.getElementById('subModal').classList.add('active');
+}
+function updatePaymentHint() {
+  const action=document.getElementById('subAction').value;
+  document.getElementById('customDaysGroup').style.display=action==='custom'?'block':'none';
+  const hints={trial:'72 часа бесплатного доступа',month:'Оплата 4 900 ₽',year:'Оплата 51 900 ₽',custom:'Произвольный срок без комиссии',block:'Немедленно заблокирует доступ'};
+  document.getElementById('subModalPayment').textContent=hints[action]||'';
+}
+async function saveSubscription() {
+  const action=document.getElementById('subAction').value;
+  const btn=document.getElementById('subSaveBtn'),release=lockButton(btn,'Сохраняем...');
+  try {
+    const studio=allStudios.find(s=>s.id===activeStudioId),now=new Date();
+    const base=studio.subscription_expires_at&&new Date(studio.subscription_expires_at)>now?new Date(studio.subscription_expires_at):now;
+    let tier,expires,paymentAmount=0;
+    if(action==='trial')      {tier='trial'; expires=new Date(now.getTime()+72*3600*1000).toISOString();}
+    else if(action==='month') {tier='active';expires=new Date(base.getTime()+30*86400000).toISOString();paymentAmount=4900;}
+    else if(action==='year')  {tier='active';expires=new Date(base.getTime()+365*86400000).toISOString();paymentAmount=51900;}
+    else if(action==='custom'){
+      const days=parseInt(document.getElementById('customDays').value);
+      if(!days||days<1){release();return;}
+      tier='active';expires=new Date(base.getTime()+days*86400000).toISOString();
+    } else if(action==='block'){
+      const ok=await confirmAction({message:`Заблокировать студию "${studio.name}"?`});
+      if(!ok){release();return;}
+      tier='expired';expires=now.toISOString();
+    }
+    const {error}=await sb.from('studios').update({subscription_tier:tier,subscription_expires_at:expires}).eq('id',activeStudioId);
+    if(error) throw error;
+    if(paymentAmount>0&&studio.referred_by_studio_id){
+      await sb.from('referral_commissions').insert({referrer_studio_id:studio.referred_by_studio_id,referred_studio_id:activeStudioId,amount:Math.round(paymentAmount*0.2),payment_amount:paymentAmount,payment_date:new Date().toISOString().split('T')[0],paid_to_referrer:false});
+    }
+    document.getElementById('subModal').classList.remove('active');
+    await loadStudios(); await loadCommissions();
+  } catch(err){console.error('[admin] saveSubscription:',err);}
+  finally{release();}
+}
+
+// ── Add studio modal ──────────────────────────────────────────────────────
+function openAddModal() {
+  document.getElementById('newStudioName').value='';
+  document.getElementById('newStudioEmail').value='';
+  document.getElementById('newStudioTier').value='trial';
+  document.getElementById('addError').style.display='none';
+  document.getElementById('addModal').classList.add('active');
+}
+async function saveNewStudio() {
+  const name=document.getElementById('newStudioName').value.trim();
+  const email=document.getElementById('newStudioEmail').value.trim();
+  const tier=document.getElementById('newStudioTier').value;
+  const errEl=document.getElementById('addError');
+  if(!name||!email){errEl.textContent='Заполните все поля';errEl.style.display='block';return;}
+  errEl.style.display='none';
+  const btn=document.getElementById('addSaveBtn'),release=lockButton(btn,'Создаём...');
+  try {
+    const now=new Date(); let expiresAt,subTier;
+    if(tier==='trial')        {subTier='trial'; expiresAt=new Date(now.getTime()+72*3600*1000).toISOString();}
+    else if(tier==='active_month'){subTier='active';expiresAt=new Date(now.getTime()+30*86400000).toISOString();}
+    else                      {subTier='active';expiresAt=new Date(now.getTime()+365*86400000).toISOString();}
+    const refCode=Math.random().toString(36).substring(2,10).toUpperCase();
+    const {data:studio,error:studioErr}=await sb.from('studios').insert({name,subscription_tier:subTier,subscription_expires_at:expiresAt,referral_code:refCode,settings:{contact_email:email}}).select('id').single();
+    if(studioErr) throw studioErr;
+    const inviteLink=`${window.location.origin}/welcome.html?studio=${studio.id}`;
+    // показываем ссылку в div вместо alert
+    errEl.style.color='var(--success)';
+    errEl.textContent=`✅ Студия "${name}" создана! Ссылка: ${inviteLink}`;
+    errEl.style.display='block';
+    await loadStudios();
+  } catch(err){errEl.style.color='var(--danger)';errEl.textContent='Ошибка: '+err.message;errEl.style.display='block';}
+  finally{release();}
+}
+
+// ── Delegation handler ────────────────────────────────────────────────────
+function bindDelegation() {
+  document.body.addEventListener('click', async ev => {
+    const btn=ev.target.closest('[data-action]'); if(!btn) return;
+    const {action,id}=btn.dataset;
+    const name=btn.dataset.name?decodeURIComponent(btn.dataset.name):'';
+    switch(action){
+      case 'approve-studio':  await approveStudio(id,name); break;
+      case 'block-studio':    await blockStudio(id,name); break;
+      case 'approve-request': await approveRequest(id); break;
+      case 'reject-request':  await rejectRequest(id); break;
+      case 'extend-trial':    await extendTrial(id); break;
+      case 'open-sub':        openSubModal(id); break;
+      case 'gen-ref':         await genRefCode(id); break;
+      case 'mark-paid':       await markCommissionPaid(id); break;
+      case 'unblock':         await unblockStudio(id,name); break;
+      case 'calc-view':       await openCalcView(id); break;
+      case 'calc-export':     exportOneCalc(id); break;
+    }
+  });
+}
+
+// ── Static button listeners ───────────────────────────────────────────────
+function bindStaticEvents() {
+  // Tabs
+  document.querySelectorAll('.tab-btn[data-tab]').forEach(btn=>btn.addEventListener('click',()=>switchTab(btn.dataset.tab)));
+  // Toolbar buttons
+  document.getElementById('btnAddStudio').addEventListener('click',openAddModal);
+  document.getElementById('btnMarkAllPaid').addEventListener('click',markAllPaid);
+  document.getElementById('btnExcelExport').addEventListener('click',exportToExcel);
+  // Sub modal
+  document.getElementById('subAction').addEventListener('change',updatePaymentHint);
+  document.getElementById('btnCloseSubModal').addEventListener('click',()=>document.getElementById('subModal').classList.remove('active'));
+  document.getElementById('subSaveBtn').addEventListener('click',saveSubscription);
+  // Add modal
+  document.getElementById('btnCloseAddModal').addEventListener('click',()=>document.getElementById('addModal').classList.remove('active'));
+  document.getElementById('addSaveBtn').addEventListener('click',saveNewStudio);
+  // Calc view modal
+  document.getElementById('btnCloseCalcView').addEventListener('click',()=>document.getElementById('calcViewModal').classList.remove('active'));
+  // Overlay click-outside
+  document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('active');}));
+  document.getElementById('calcViewModal').addEventListener('click',e=>{if(e.target===e.currentTarget)e.currentTarget.classList.remove('active');});
+  // Calcs filters
+  document.getElementById('calcsStudioFilter').addEventListener('change',renderCalcs);
+  document.getElementById('calcsSearch').addEventListener('input',renderCalcs);
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────
+async function initPage() {
+  initNav({hideAction:true});
+  bindStaticEvents();
+  bindDelegation();
+
+  const {data:{session}}=await sb.auth.getSession();
+  if(!session){window.location.href='welcome.html';return;}
+  if(session.user.id!==ADMIN_USER_ID){
+    document.body.innerHTML='<div style="text-align:center;padding:60px;font-family:sans-serif"><h2>🚫 Доступ запрещён</h2><p style="color:#64748b;margin-top:8px">Эта страница только для администратора</p><a href="dashboard.html" style="color:#2563eb">← Вернуться</a></div>';
+    return;
+  }
+  document.getElementById('adminBadge').textContent='👑 '+session.user.email;
+  switchTab('requests');
+  await Promise.all([loadStudios(), loadCommissions()]);
+  await loadRequests();
+}
+
+document.addEventListener('DOMContentLoaded', initPage);
+</script>
+</body>
+</html>

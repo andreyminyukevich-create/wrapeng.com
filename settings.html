@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Настройки — Keep1R CRM</title>
+<link rel="stylesheet" href="nav.css">
+<script src="nav.js"></script>
+<style>
+:root {
+  --font:      -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
+  --bg:        #eef2f9; --surface: #ffffff;
+  --border:    rgba(15,23,42,0.08); --text: #0f172a;
+  --muted:     #64748b; --dim: #94a3b8;
+  --primary:   #2563eb; --primary-dk: #1d4ed8;
+  --success:   #059669; --danger: #dc2626; --warning: #d97706;
+  --radius: 14px; --radius-sm: 9px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 14px rgba(0,0,0,0.06);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font); -webkit-font-smoothing: antialiased; background: var(--bg); color: var(--text); min-height: 100svh; }
+
+.page-wrap  { max-width: 1280px; margin: 0 auto; padding: 24px 18px 60px; }
+.page-title { font-size: 1.3rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 20px; }
+
+.settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+@media (max-width: 900px) { .settings-grid { grid-template-columns: 1fr; } }
+
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px 24px; margin-bottom: 16px; box-shadow: var(--shadow); }
+.card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; gap: 12px; }
+.card-title    { font-size: 0.9rem; font-weight: 800; letter-spacing: -0.1px; display: flex; align-items: center; gap: 7px; }
+.card-subtitle { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+
+.form-grid   { display: grid; gap: 14px; }
+.form-grid-2 { grid-template-columns: 1fr 1fr; }
+.form-group  { display: flex; flex-direction: column; gap: 5px; }
+.form-group label { font-size: 0.67rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+.form-group input, .form-group select, .form-group textarea { padding: 9px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 14px; font-family: var(--font); color: var(--text); outline: none; transition: border-color 0.15s, box-shadow 0.15s; -webkit-appearance: none; width: 100%; }
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.08); background: var(--surface); }
+
+.logo-upload-wrap { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.logo-preview { width: 80px; height: 80px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg); display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
+.logo-preview img { width: 100%; height: 100%; object-fit: contain; padding: 4px; }
+.logo-preview-placeholder { font-size: 1.6rem; opacity: 0.3; }
+.logo-actions  { display: flex; flex-direction: column; gap: 7px; }
+.logo-filename { font-size: 0.75rem; color: var(--muted); max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.sub-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; border: 1px solid; }
+.sub-badge.paid    { background: rgba(5,150,105,0.08); color: var(--success); border-color: rgba(5,150,105,0.2); }
+.sub-badge.trial   { background: rgba(217,119,6,0.08); color: var(--warning); border-color: rgba(217,119,6,0.2); }
+.sub-badge.expired { background: rgba(220,38,38,0.08); color: var(--danger);  border-color: rgba(220,38,38,0.2); }
+
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px; border-radius: var(--radius-sm); font-size: 0.82rem; font-weight: 700; font-family: var(--font); cursor: pointer; border: none; transition: all 0.15s; white-space: nowrap; }
+.btn-primary   { background: var(--primary); color: #fff; }
+.btn-primary:hover  { background: var(--primary-dk); }
+.btn-secondary { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+.btn-secondary:hover { background: var(--bg); color: var(--text); }
+.btn-danger    { background: rgba(220,38,38,0.07); color: var(--danger); border: 1px solid rgba(220,38,38,0.15); }
+.btn-danger:hover { background: var(--danger); color: #fff; }
+.btn-sm { padding: 6px 12px; font-size: 0.75rem; }
+.btn[disabled] { opacity: 0.5; cursor: not-allowed; }
+
+#saveToast { position: fixed; bottom: 24px; right: 24px; background: #0f172a; color: #fff; padding: 10px 18px; border-radius: 10px; font-size: 0.82rem; font-weight: 600; font-family: var(--font); opacity: 0; transform: translateY(8px); transition: all 0.2s; z-index: 100; pointer-events: none; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+#saveToast.show { opacity: 1; transform: translateY(0); }
+
+.members-table { width: 100%; border-collapse: collapse; }
+.members-table th { text-align: left; font-size: 0.67rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); padding: 8px 10px; border-bottom: 1px solid var(--border); background: var(--bg); }
+.members-table td { padding: 10px; font-size: 0.82rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.members-table tr:last-child td { border-bottom: none; }
+.member-avatar { width: 30px; height: 30px; border-radius: 50%; background: rgba(37,99,235,0.1); color: var(--primary); font-size: 0.72rem; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; margin-right: 8px; }
+.role-badge { display: inline-flex; align-items: center; padding: 2px 9px; border-radius: 20px; font-size: 0.68rem; font-weight: 700; border: 1px solid; }
+.role-badge.owner   { background: rgba(37,99,235,0.07); color: var(--primary); border-color: rgba(37,99,235,0.2); }
+.role-badge.manager { background: rgba(5,150,105,0.07); color: var(--success); border-color: rgba(5,150,105,0.2); }
+.role-badge.staff   { background: rgba(148,163,184,0.15); color: var(--muted); border-color: rgba(148,163,184,0.25); }
+
+.kp-preview { border: 1px solid var(--border); border-radius: 10px; padding: 16px; background: var(--bg); margin-top: 14px; }
+.kp-preview-label { font-size: 0.67rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 10px; }
+.kp-header-preview { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.kp-logo-preview    { height: 40px; max-width: 140px; object-fit: contain; }
+.kp-contact-preview { text-align: right; font-size: 0.75rem; color: var(--text); line-height: 1.6; }
+
+.posts-list  { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+.post-row    { display: flex; align-items: center; gap: 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; transition: border-color 0.15s; }
+.post-row:hover { border-color: rgba(37,99,235,0.25); }
+.post-color-dot  { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; cursor: pointer; border: 2px solid rgba(0,0,0,0.1); }
+.post-name-input  { flex: 1; border: none; background: transparent; font-size: 0.88rem; font-weight: 600; font-family: var(--font); color: var(--text); outline: none; min-width: 0; }
+.post-type-select { font-size: 0.75rem; padding: 4px 8px; border: 1px solid var(--border); border-radius: 7px; background: var(--surface); font-family: var(--font); color: var(--muted); outline: none; cursor: pointer; -webkit-appearance: none; }
+.post-cap-input   { width: 44px; text-align: center; border: 1px solid var(--border); border-radius: 7px; padding: 4px 6px; font-size: 0.8rem; font-family: var(--font); background: var(--surface); color: var(--text); outline: none; }
+.post-del-btn { background: none; border: none; cursor: pointer; color: var(--dim); font-size: 1rem; padding: 2px 4px; border-radius: 5px; line-height: 1; transition: all 0.15s; flex-shrink: 0; }
+.post-del-btn:hover { color: var(--danger); background: rgba(220,38,38,0.07); }
+.post-labels { display: flex; gap: 10px; padding: 0 14px 6px; font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--dim); }
+
+.loading { text-align: center; padding: 60px; color: var(--muted); font-size: 0.9rem; }
+
+@media (max-width: 600px) {
+  .page-wrap { padding: 16px 14px 48px; }
+  .card { padding: 16px; }
+  .form-grid-2 { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="page-wrap">
+  <div id="mainContent">
+    <div class="loading">⏳ Загрузка настроек...</div>
+  </div>
+</div>
+<div id="saveToast"></div>
+
+<script src="footer.js"></script>
+<script type="module">
+import { sb }               from './api.js';
+import { requireAuth }      from './auth.js';
+import { getStudioContext }  from './studio-context.js';
+import { escapeHtml }        from './formatters.js';
+import { confirmAction, lockButton } from './ui.js';
+
+// ── State ──────────────────────────────────────────────────────────────
+let currentUser = null;
+let studio      = null;
+let memberRole  = null;
+let logoUrl     = null;
+let postsData   = [];
+
+const LOGO_BUCKET = 'studio-logos';
+const POST_TYPES  = [
+  { value: 'wrap',      label: 'Оклейка / PPF' },
+  { value: 'detailing', label: 'Детейлинг' },
+  { value: 'wash',      label: 'Мойка' },
+  { value: 'chem',      label: 'Химчистка' },
+  { value: 'universal', label: 'Универсальный' },
+];
+const POST_COLORS = [
+  '#2563eb','#7c3aed','#059669','#d97706','#dc2626',
+  '#0891b2','#be185d','#65a30d','#9333ea','#0f172a',
+];
+
+// ── Toast ──────────────────────────────────────────────────────────────
+let _toastTimer = null;
+function toast(msg) {
+  const el = document.getElementById('saveToast');
+  el.textContent = msg;
+  el.classList.add('show');
+  if (_toastTimer) clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+// ── Render main layout ─────────────────────────────────────────────────
+function renderAll() {
+  const s       = studio;
+  const cfg     = s.settings || {};
+  const isOwner = memberRole === 'owner';
+  const e       = escapeHtml;
+
+  logoUrl = cfg.kp_logo || null;
+
+  const subExpires = s.subscription_expires_at ? new Date(s.subscription_expires_at) : null;
+  const now        = new Date();
+  const isPaid     = s.is_paid || (subExpires && subExpires > now);
+  const tierLabel  = isPaid ? 'Pro' : 'Trial';
+  const subClass   = isPaid ? 'paid' : (subExpires && subExpires < now ? 'expired' : 'trial');
+  const subText    = subExpires
+    ? `до ${subExpires.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })}`
+    : 'без ограничений';
+
+  document.getElementById('mainContent').innerHTML = `
+    <div class="page-title">⚙️ Настройки студии</div>
+    <div class="settings-grid">
+
+      <!-- 1. Основная информация -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">🏢 Основная информация</div>
+            <div class="card-subtitle">Название, контакты, город</div>
+          </div>
+          <span class="sub-badge ${subClass}">${isPaid ? '💎' : '🔓'} ${tierLabel} ${e(subText)}</span>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Название студии</label>
+            <input id="studioName" type="text" value="${e(s.name || '')}" placeholder="Детейлинг Студия" ${!isOwner ? 'disabled' : ''}>
+          </div>
+          <div class="form-grid form-grid-2">
+            <div class="form-group"><label>Телефон</label><input id="studioPhone" type="tel" value="${e(cfg.phone || '')}" placeholder="+7 000 000 00 00"></div>
+            <div class="form-group"><label>Город</label><input id="studioCity" type="text" value="${e(cfg.city || '')}" placeholder="Москва"></div>
+          </div>
+          <div class="form-grid form-grid-2">
+            <div class="form-group"><label>Сайт</label><input id="studioWebsite" type="url" value="${e(cfg.website || '')}" placeholder="https://mystudio.ru"></div>
+            <div class="form-group"><label>E-mail</label><input id="studioEmail" type="email" value="${e(cfg.contact_email || '')}" placeholder="info@mystudio.ru"></div>
+          </div>
+          <div class="form-group"><label>Адрес</label><input id="studioAddress" type="text" value="${e(cfg.address || '')}" placeholder="ул. Примерная, д. 1"></div>
+        </div>
+        <div style="margin-top:16px;display:flex;justify-content:flex-end">
+          <button class="btn btn-primary" id="btnSaveMain">💾 Сохранить</button>
+        </div>
+      </div>
+
+      <!-- 2. Брендинг КП -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">🎨 Брендинг коммерческих предложений</div>
+            <div class="card-subtitle">Логотип и контакты в шапке КП</div>
+          </div>
+          ${!isPaid ? '<span class="sub-badge trial">Только Pro</span>' : ''}
+        </div>
+        ${!isPaid ? `
+          <div style="padding:24px;text-align:center;color:var(--muted);font-size:0.85rem;background:var(--bg);border-radius:10px">
+            🔒 Логотип студии в КП доступен только на тарифе <strong>Pro</strong>.<br>
+            На Trial все КП выдаются с брендингом Keep1R.
+          </div>
+        ` : `
+          <div class="form-group" style="margin-bottom:16px">
+            <label>Логотип студии</label>
+            <div class="logo-upload-wrap">
+              <div class="logo-preview" id="logoPreviewBox">
+                ${logoUrl ? `<img src="${e(logoUrl)}" alt="logo">` : '<span class="logo-preview-placeholder">🏢</span>'}
+              </div>
+              <div class="logo-actions">
+                <button class="btn btn-secondary btn-sm" id="btnUploadLogo">📂 Загрузить логотип</button>
+                ${logoUrl ? '<button class="btn btn-danger btn-sm" id="btnRemoveLogo">✕ Удалить</button>' : ''}
+                <div class="logo-filename" id="logoFilename">${logoUrl ? '✅ Логотип загружен' : 'PNG, JPG, WEBP — до 2MB'}</div>
+              </div>
+            </div>
+            <input type="file" id="logoFileInput" accept="image/*" style="display:none">
+          </div>
+          <div class="form-grid form-grid-2">
+            <div class="form-group"><label>Телефон в КП</label><input id="kpPhone" type="tel" value="${e(cfg.kp_phone || cfg.phone || '')}" placeholder="+7 000 000 00 00"></div>
+            <div class="form-group"><label>Сайт в КП</label><input id="kpWebsite" type="url" value="${e(cfg.kp_website || cfg.website || '')}" placeholder="https://mystudio.ru"></div>
+          </div>
+          <div class="kp-preview">
+            <div class="kp-preview-label">Предпросмотр шапки КП</div>
+            <div class="kp-header-preview" id="kpHeaderPreview">
+              ${logoUrl
+                ? `<img src="${e(logoUrl)}" class="kp-logo-preview" alt="logo">`
+                : `<div id="kpNamePreview" style="font-size:1.1rem;font-weight:800;color:var(--text)"></div>`}
+              <div class="kp-contact-preview" id="kpContactPreview"></div>
+            </div>
+          </div>
+          <div style="margin-top:16px;display:flex;justify-content:flex-end">
+            <button class="btn btn-primary" id="btnSaveBranding">💾 Сохранить</button>
+          </div>
+        `}
+      </div>
+
+      <!-- 3. Посты -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">🔧 Рабочие посты</div>
+            <div class="card-subtitle">Боксы, подъёмники и рабочие места студии</div>
+          </div>
+        </div>
+        <div class="post-labels">
+          <span style="flex:0 0 14px"></span>
+          <span style="flex:1">Название</span>
+          <span style="width:110px">Тип</span>
+          <span style="width:44px;text-align:center" title="Вместимость">Авто</span>
+          <span style="width:24px"></span>
+        </div>
+        <div class="posts-list" id="postsList"></div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <button class="btn btn-secondary btn-sm" id="btnAddPost">➕ Добавить пост</button>
+          <button class="btn btn-primary btn-sm"   id="btnSavePosts">💾 Сохранить посты</button>
+        </div>
+      </div>
+
+      <!-- 4. Участники -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">👥 Участники студии</div>
+            <div class="card-subtitle">Пользователи с доступом к CRM</div>
+          </div>
+        </div>
+        <div id="membersBlock"><div class="loading" style="padding:20px">⏳ Загрузка...</div></div>
+      </div>
+
+    </div>
+
+    ${isOwner ? `
+      <div class="card" style="border-color:rgba(220,38,38,0.15);margin-top:0">
+        <div class="card-title" style="color:var(--danger);margin-bottom:10px">⚠️ Опасная зона</div>
+        <div style="font-size:0.82rem;color:var(--muted);margin-bottom:14px">Выход из CRM завершит текущую сессию.</div>
+        <button class="btn btn-danger" id="btnLogout">🚪 Выйти из аккаунта</button>
+      </div>
+    ` : ''}
+  `;
+
+  // После рендера — заполнить динамические части
+  updateKPPreview();
+  const kpNameEl = document.getElementById('kpNamePreview');
+  if (kpNameEl) kpNameEl.textContent = s.name || 'Название студии';
+}
+
+// ── KP Preview ─────────────────────────────────────────────────────────
+function updateKPPreview() {
+  const phone   = document.getElementById('kpPhone')?.value   || '';
+  const website = document.getElementById('kpWebsite')?.value || '';
+  const el      = document.getElementById('kpContactPreview');
+  if (!el) return;
+  el.textContent = '';
+  if (phone)            el.appendChild(document.createTextNode(phone));
+  if (phone && website) el.appendChild(document.createElement('br'));
+  if (website)          el.appendChild(document.createTextNode(website));
+}
+
+function updateKPLogoPreview() {
+  const ph = document.getElementById('kpHeaderPreview');
+  if (!ph) return;
+  const existing = ph.querySelector('img.kp-logo-preview, #kpNamePreview');
+  if (!existing) return;
+  if (logoUrl) {
+    const img = document.createElement('img');
+    img.src = logoUrl; img.className = 'kp-logo-preview'; img.alt = 'logo';
+    existing.replaceWith(img);
+  } else {
+    const div = document.createElement('div');
+    div.id = 'kpNamePreview';
+    div.style.cssText = 'font-size:1.1rem;font-weight:800;color:var(--text)';
+    div.textContent = studio.name || 'Название студии';
+    existing.replaceWith(div);
+  }
+}
+
+// ── Logo ───────────────────────────────────────────────────────────────
+async function handleLogoChange(file) {
+  if (!file) return;
+  if (file.size > 2 * 1024 * 1024) { toast('❌ Файл слишком большой. Максимум — 2MB.'); return; }
+
+  const btn     = document.getElementById('btnUploadLogo');
+  const fn      = document.getElementById('logoFilename');
+  const release = btn ? lockButton(btn, '⏳ Загружаем...') : () => {};
+  if (fn) fn.textContent = 'Загрузка...';
+
+  try {
+    const ext  = file.name.split('.').pop().toLowerCase();
+    const path = `${studio.id}/logo.${ext}`;
+    await sb.storage.from(LOGO_BUCKET).remove([path]);
+    const { error: upErr } = await sb.storage.from(LOGO_BUCKET).upload(path, file, { upsert: true, contentType: file.type });
+    if (upErr) throw upErr;
+
+    const { data: urlData } = sb.storage.from(LOGO_BUCKET).getPublicUrl(path);
+    logoUrl = urlData.publicUrl + '?v=' + Date.now();
+
+    const box = document.getElementById('logoPreviewBox');
+    if (box) { box.innerHTML = ''; const img = document.createElement('img'); img.src = logoUrl; img.alt = 'logo'; box.appendChild(img); }
+    if (fn) fn.textContent = '✅ Логотип загружен';
+    updateKPLogoPreview();
+  } catch (err) {
+    console.error('[settings] logo upload:', err);
+    toast('❌ Ошибка загрузки: ' + err.message);
+    if (fn) fn.textContent = 'Ошибка загрузки';
+  } finally { release(); }
+}
+
+async function removeLogo() {
+  const ok = await confirmAction({ message: 'Удалить логотип?' });
+  if (!ok) return;
+  if (logoUrl) {
+    for (const ext of ['png','jpg','jpeg','webp','svg']) {
+      await sb.storage.from(LOGO_BUCKET).remove([`${studio.id}/logo.${ext}`]);
+    }
+  }
+  logoUrl = null;
+  const box = document.getElementById('logoPreviewBox');
+  if (box) { box.innerHTML = ''; const sp = document.createElement('span'); sp.className = 'logo-preview-placeholder'; sp.textContent = '🏢'; box.appendChild(sp); }
+  const fn = document.getElementById('logoFilename');
+  if (fn) fn.textContent = 'PNG, JPG, WEBP — до 2MB';
+  document.getElementById('btnRemoveLogo')?.remove();
+  updateKPLogoPreview();
+}
+
+// ── Members ────────────────────────────────────────────────────────────
+async function loadMembers() {
+  const el = document.getElementById('membersBlock');
+  const { data: members, error } = await sb
+    .from('studio_members').select('id, role, is_active, user_id')
+    .eq('studio_id', studio.id).eq('is_active', true).order('created_at');
+
+  if (error || !members?.length) {
+    el.textContent = 'Участники не найдены.';
+    el.style.cssText = 'color:var(--muted);font-size:0.82rem;padding:10px 0';
+    return;
+  }
+
+  const ROLE_LABELS = { owner: 'Владелец', manager: 'Менеджер', staff: 'Сотрудник' };
+  el.innerHTML = '';
+  const tbl = document.createElement('table');
+  tbl.className = 'members-table';
+  tbl.innerHTML = '<thead><tr><th>Пользователь</th><th>Роль</th><th>Статус</th></tr></thead>';
+  const tbody = document.createElement('tbody');
+
+  members.forEach(m => {
+    const isMe = m.user_id === currentUser.id;
+    const tr = document.createElement('tr');
+
+    const tdUser = document.createElement('td');
+    const wrap = document.createElement('div');
+    wrap.style.display = 'flex'; wrap.style.alignItems = 'center';
+    const av = document.createElement('span');
+    av.className = 'member-avatar';
+    av.textContent = m.user_id.slice(0, 2).toUpperCase();
+    const uid = document.createElement('span');
+    uid.style.cssText = 'font-size:0.8rem;color:var(--muted)';
+    uid.textContent = m.user_id.slice(0, 8) + '…';
+    if (isMe) { const you = document.createElement('strong'); you.style.color = 'var(--primary)'; you.textContent = ' (вы)'; uid.appendChild(you); }
+    wrap.append(av, uid);
+    tdUser.appendChild(wrap);
+
+    const tdRole = document.createElement('td');
+    const rb = document.createElement('span');
+    rb.className = 'role-badge ' + (m.role || 'staff');
+    rb.textContent = ROLE_LABELS[m.role] || m.role;
+    tdRole.appendChild(rb);
+
+    const tdStatus = document.createElement('td');
+    tdStatus.style.cssText = 'font-size:0.75rem;color:var(--success)';
+    tdStatus.textContent = '● Активен';
+
+    tr.append(tdUser, tdRole, tdStatus);
+    tbody.appendChild(tr);
+  });
+
+  tbl.appendChild(tbody);
+  el.appendChild(tbl);
+  const note = document.createElement('div');
+  note.style.cssText = 'margin-top:12px;font-size:0.75rem;color:var(--muted)';
+  note.textContent = 'Для добавления новых участников обратитесь в поддержку Keep1R.';
+  el.appendChild(note);
+}
+
+// ── Posts ──────────────────────────────────────────────────────────────
+async function loadPosts() {
+  const { data, error } = await sb.from('posts').select('*')
+    .eq('studio_id', studio.id).eq('is_active', true).order('created_at');
+  postsData = (error && error.code !== 'PGRST116') ? [] : (data || []);
+  renderPosts();
+}
+
+function syncPostsFromDOM() {
+  document.querySelectorAll('#postsList .post-row').forEach(row => {
+    const idx = parseInt(row.dataset.idx);
+    if (isNaN(idx) || !postsData[idx]) return;
+    const n = row.querySelector('.post-name-input');
+    const t = row.querySelector('.post-type-select');
+    const c = row.querySelector('.post-cap-input');
+    if (n) postsData[idx].name     = n.value;
+    if (t) postsData[idx].type     = t.value;
+    if (c) postsData[idx].capacity = parseInt(c.value) || 1;
+  });
+}
+
+function renderPosts() {
+  const list = document.getElementById('postsList');
+  if (!list) return;
+  list.innerHTML = '';
+
+  if (!postsData.length) {
+    const msg = document.createElement('div');
+    msg.style.cssText = 'color:var(--muted);font-size:0.82rem;padding:10px 14px';
+    msg.textContent = 'Постов пока нет. Нажмите «Добавить пост».';
+    list.appendChild(msg);
+    return;
+  }
+
+  postsData.forEach((p, i) => {
+    const color = p.color || POST_COLORS[i % POST_COLORS.length];
+    const row   = document.createElement('div');
+    row.className = 'post-row'; row.dataset.idx = i;
+
+    const dot = document.createElement('div');
+    dot.className = 'post-color-dot'; dot.style.background = color;
+    dot.title = 'Сменить цвет'; dot.dataset.action = 'color'; dot.dataset.idx = i;
+
+    const nameInput = document.createElement('input');
+    nameInput.className = 'post-name-input'; nameInput.value = p.name || '';
+    nameInput.placeholder = `Бокс ${i + 1}`;
+
+    const typeSelect = document.createElement('select');
+    typeSelect.className = 'post-type-select';
+    POST_TYPES.forEach(t => {
+      const opt = document.createElement('option');
+      opt.value = t.value; opt.textContent = t.label;
+      if (p.type === t.value) opt.selected = true;
+      typeSelect.appendChild(opt);
+    });
+
+    const capInput = document.createElement('input');
+    capInput.className = 'post-cap-input'; capInput.type = 'number';
+    capInput.min = '1'; capInput.max = '10'; capInput.value = p.capacity || 1;
+    capInput.title = 'Вместимость';
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'post-del-btn'; delBtn.textContent = '✕';
+    delBtn.title = 'Удалить'; delBtn.dataset.action = 'delete'; delBtn.dataset.idx = i;
+
+    row.append(dot, nameInput, typeSelect, capInput, delBtn);
+    list.appendChild(row);
+  });
+}
+
+function addPost() {
+  syncPostsFromDOM();
+  postsData.push({ _new: true, name: '', type: 'universal', color: POST_COLORS[postsData.length % POST_COLORS.length], capacity: 1, is_active: true });
+  renderPosts();
+  const inputs = document.querySelectorAll('.post-name-input');
+  if (inputs.length) inputs[inputs.length - 1].focus();
+}
+
+async function deletePost(idx) {
+  syncPostsFromDOM();
+  const p = postsData[idx];
+  if (!p._new && p.id) {
+    const ok = await confirmAction({ message: `Удалить пост «${p.name || 'без названия'}»?` });
+    if (!ok) return;
+    await sb.from('posts').update({ is_active: false }).eq('id', p.id);
+  }
+  postsData.splice(idx, 1);
+  renderPosts();
+}
+
+function cycleColor(idx) {
+  syncPostsFromDOM();
+  const p = postsData[idx];
+  const cur = POST_COLORS.indexOf(p.color);
+  p.color = POST_COLORS[(cur + 1) % POST_COLORS.length];
+  renderPosts();
+}
+
+async function savePosts() {
+  syncPostsFromDOM();
+  const btn     = document.getElementById('btnSavePosts');
+  const release = lockButton(btn, '⏳ Сохранение...');
+  let hasError  = false;
+
+  for (const p of postsData) {
+    if (!p.name?.trim()) continue;
+    const payload = { studio_id: studio.id, name: p.name.trim(), type: p.type || 'universal', color: p.color || '#2563eb', capacity: p.capacity || 1, is_active: true };
+    const { error } = p._new
+      ? await sb.from('posts').insert(payload)
+      : await sb.from('posts').update(payload).eq('id', p.id);
+    if (error) { hasError = true; console.error('[settings] savePosts:', error); }
+  }
+
+  release();
+  if (hasError) { toast('❌ Ошибка сохранения. Проверьте консоль.'); }
+  else          { toast('✅ Посты сохранены'); await loadPosts(); }
+}
+
+// ── Save main ──────────────────────────────────────────────────────────
+async function saveMain() {
+  const nameEl = document.getElementById('studioName');
+  const name   = nameEl?.value.trim();
+  if (!name) { nameEl?.focus(); return; }
+
+  const btn     = document.getElementById('btnSaveMain');
+  const release = lockButton(btn, '⏳...');
+
+  const newSettings = {
+    ...(studio.settings || {}),
+    phone:         document.getElementById('studioPhone')?.value.trim(),
+    city:          document.getElementById('studioCity')?.value.trim(),
+    website:       document.getElementById('studioWebsite')?.value.trim(),
+    contact_email: document.getElementById('studioEmail')?.value.trim(),
+    address:       document.getElementById('studioAddress')?.value.trim(),
+  };
+
+  const { error } = await sb.from('studios').update({ name, settings: newSettings }).eq('id', studio.id);
+  release();
+  if (error) { console.error(error); toast('❌ Ошибка: ' + error.message); return; }
+  studio.name = name; studio.settings = newSettings;
+  toast('✅ Основная информация сохранена');
+}
+
+// ── Save branding ──────────────────────────────────────────────────────
+async function saveBranding() {
+  const btn     = document.getElementById('btnSaveBranding');
+  const release = lockButton(btn, '⏳...');
+
+  const newSettings = {
+    ...(studio.settings || {}),
+    kp_logo:    logoUrl || null,
+    kp_phone:   document.getElementById('kpPhone')?.value.trim(),
+    kp_website: document.getElementById('kpWebsite')?.value.trim(),
+  };
+
+  const { error } = await sb.from('studios').update({ settings: newSettings }).eq('id', studio.id);
+  release();
+  if (error) { console.error(error); toast('❌ Ошибка: ' + error.message); return; }
+  studio.settings = newSettings;
+  toast('✅ Брендинг сохранён');
+}
+
+// ── Bind events ────────────────────────────────────────────────────────
+function bindPageEvents() {
+  document.getElementById('btnSaveMain')?.addEventListener('click', saveMain);
+  document.getElementById('btnSaveBranding')?.addEventListener('click', saveBranding);
+  document.getElementById('btnUploadLogo')?.addEventListener('click', () => document.getElementById('logoFileInput')?.click());
+  document.getElementById('btnRemoveLogo')?.addEventListener('click', removeLogo);
+  document.getElementById('logoFileInput')?.addEventListener('change', e => handleLogoChange(e.target.files[0]));
+  document.getElementById('kpPhone')?.addEventListener('input', updateKPPreview);
+  document.getElementById('kpWebsite')?.addEventListener('input', updateKPPreview);
+  document.getElementById('btnAddPost')?.addEventListener('click', addPost);
+  document.getElementById('btnSavePosts')?.addEventListener('click', savePosts);
+  document.getElementById('btnLogout')?.addEventListener('click', async () => {
+    const ok = await confirmAction({ message: 'Выйти из аккаунта?' });
+    if (!ok) return;
+    await sb.auth.signOut();
+    window.location.href = 'welcome.html';
+  });
+
+  // Delegation — посты (цвет + удаление)
+  document.getElementById('postsList')?.addEventListener('click', async e => {
+    const target = e.target.closest('[data-action]');
+    if (!target) return;
+    const idx = parseInt(target.dataset.idx);
+    if (target.dataset.action === 'color')  cycleColor(idx);
+    if (target.dataset.action === 'delete') await deletePost(idx);
+  });
+}
+
+// ── Init ───────────────────────────────────────────────────────────────
+async function initPage() {
+  initNav({ actionHref: 'dashboard.html', actionLabel: '← Панель' });
+
+  const user = await requireAuth({ redirectTo: 'welcome.html' });
+  if (!user) return;
+  currentUser = user;
+
+  const ctx = await getStudioContext();
+  if (!ctx?.studioId) {
+    document.getElementById('mainContent').innerHTML = '<div class="loading">❌ Студия не найдена</div>';
+    return;
+  }
+
+  memberRole = ctx.role;
+  studio     = ctx.studio;
+
+  renderAll();
+  bindPageEvents();
+  await Promise.all([loadMembers(), loadPosts()]);
+}
+
+document.addEventListener('DOMContentLoaded', initPage);
+</script>
+</body>
+</html>

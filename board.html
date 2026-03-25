@@ -1,0 +1,1447 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>В работе — Keep1R CRM</title>
+<link rel="stylesheet" href="nav.css">
+<script src="nav.js"></script>
+<style>
+body { visibility: hidden; }
+:root {
+  --font:         -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
+  --bg:           #eef2f9;
+  --surface:      #ffffff;
+  --border:       rgba(15,23,42,0.08);
+  --text:         #0f172a;
+  --text-muted:   #64748b;
+  --text-dim:     #94a3b8;
+  --primary:      #2563eb;
+  --primary-dark: #1d4ed8;
+  --success:      #059669;
+  --warning:      #d97706;
+  --danger:       #dc2626;
+  --purple:       #7c3aed;
+  --shadow:       0 1px 3px rgba(0,0,0,0.05), 0 4px 16px rgba(0,0,0,0.07);
+  --shadow-modal: 0 8px 40px rgba(0,0,0,0.14);
+  --radius:       14px;
+  --radius-sm:    10px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  height: 100%;
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+  background: var(--bg);
+  color: var(--text);
+  overflow-x: hidden;
+}
+
+/* ── Search bar ───────────────────────────── */
+.board-toolbar {
+  padding: 10px 20px 0;
+  display: flex; align-items: center; gap: 10px;
+  flex-wrap: wrap;
+}
+.search-wrap {
+  position: relative; flex: 1; min-width: 180px; max-width: 320px;
+}
+.search-wrap input {
+  width: 100%; padding: 8px 12px 8px 34px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; font-family: var(--font); font-size: 0.83rem;
+  color: var(--text); outline: none; transition: border-color .15s, box-shadow .15s;
+}
+.search-wrap input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,.10); }
+.search-wrap .search-icon {
+  position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+  font-size: .82rem; pointer-events: none;
+}
+.board-count-badge {
+  font-size: 0.72rem; color: var(--text-dim); font-weight: 600; white-space: nowrap;
+}
+.filter-tabs { display: flex; gap: 4px; }
+.filter-btn {
+  padding: 5px 14px; border-radius: 20px; border: 1px solid var(--border);
+  background: transparent; font-size: 0.75rem; font-weight: 700;
+  color: var(--text-dim); cursor: pointer; transition: all .15s; font-family: var(--font);
+}
+.filter-btn:hover  { background: var(--bg); color: var(--text); }
+.filter-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+/* ── Board layout ─────────────────────────── */
+.board-page  { display: flex; flex-direction: column; min-height: 100svh; }
+.board-outer {
+  flex: 1; overflow-x: auto; padding: 14px 20px 32px;
+  -webkit-overflow-scrolling: touch; scrollbar-width: thin;
+  scrollbar-color: rgba(37,99,235,0.2) transparent;
+}
+.board-outer::-webkit-scrollbar       { height: 6px; }
+.board-outer::-webkit-scrollbar-track { background: transparent; }
+.board-outer::-webkit-scrollbar-thumb { background: rgba(37,99,235,0.18); border-radius: 3px; }
+.board-wrap  { display: flex; gap: 14px; align-items: flex-start; min-width: max-content; }
+
+/* ── Column ───────────────────────────────── */
+.column {
+  width: 272px; flex-shrink: 0; background: var(--surface);
+  border-radius: var(--radius); border: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  max-height: calc(100svh - 150px); box-shadow: var(--shadow);
+  transition: background .15s;
+}
+.column.drag-over {
+  background: rgba(37,99,235,0.04);
+  border-color: rgba(37,99,235,0.35);
+  box-shadow: 0 0 0 2px rgba(37,99,235,0.18);
+}
+.column-header {
+  padding: 14px 16px 12px; display: flex; align-items: center;
+  justify-content: space-between; border-bottom: 1px solid var(--border);
+  border-radius: var(--radius) var(--radius) 0 0;
+  position: sticky; top: 0; background: var(--surface); z-index: 1;
+}
+.column-title {
+  display: flex; align-items: center; gap: 7px;
+  font-weight: 700; font-size: 0.82rem; letter-spacing: 0.01em; text-transform: uppercase;
+}
+.column-dot   { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.column-count {
+  font-size: 0.7rem; font-weight: 700; padding: 2px 8px;
+  border-radius: 20px; background: var(--bg); color: var(--text-muted);
+  min-width: 24px; text-align: center;
+}
+.column-sum { font-size: 0.78rem; font-weight: 800; padding: 3px 0 0; letter-spacing: -0.2px; opacity: 0.85; white-space: nowrap; }
+.column-cards {
+  padding: 10px; display: flex; flex-direction: column; gap: 7px;
+  overflow-y: auto; flex: 1; scrollbar-width: thin;
+  scrollbar-color: rgba(0,0,0,0.08) transparent;
+  min-height: 60px;
+}
+
+/* ── Column colours ─────────────────────────── */
+.col-new .column-dot        { background: #94a3b8; }
+.col-new .column-title      { color: #64748b; }
+.col-new .column-count      { background: rgba(148,163,184,0.12); }
+.col-new .column-sum        { color: #64748b; }
+
+.col-scheduled .column-dot   { background: #f59e0b; }
+.col-scheduled .column-title { color: #92400e; }
+.col-scheduled .column-count { background: rgba(245,158,11,0.1); color: #b45309; }
+.col-scheduled .column-sum   { color: #b45309; }
+.col-scheduled               { border-top: 3px solid #f59e0b; }
+
+.col-in_progress .column-dot   { background: var(--primary); }
+.col-in_progress .column-title { color: var(--primary); }
+.col-in_progress .column-count { background: rgba(37,99,235,0.08); color: var(--primary); }
+.col-in_progress               { border-top: 3px solid var(--primary); }
+.col-in_progress .column-sum   { color: var(--primary); }
+
+.col-done .column-dot   { background: var(--purple); }
+.col-done .column-title { color: var(--purple); }
+.col-done .column-count { background: rgba(124,58,237,0.08); color: var(--purple); }
+.col-done               { border-top: 3px solid var(--purple); }
+.col-done .column-sum   { color: var(--purple); }
+
+.col-delivered .column-dot   { background: var(--success); }
+.col-delivered .column-title { color: #065f46; }
+.col-delivered .column-count { background: rgba(5,150,105,0.08); color: var(--success); }
+.col-delivered               { border-top: 3px solid var(--success); }
+.col-delivered .column-sum   { color: var(--success); font-size: 0.9rem; }
+
+.col-accepted .column-dot   { background: #eab308; }
+.col-accepted .column-title { color: #92400e; }
+.col-accepted .column-count { background: rgba(234,179,8,0.10); color: #92400e; }
+.col-accepted               { border-top: 3px solid #eab308; }
+.col-accepted .column-sum   { color: #92400e; }
+
+.col-waiting .column-dot   { background: #6b7280; }
+.col-waiting .column-title { color: #374151; }
+.col-waiting .column-count { background: rgba(107,114,128,0.10); color: #374151; }
+.col-waiting               { border-top: 3px solid #9ca3af; opacity: 0.9; }
+.col-waiting .column-sum   { color: #374151; }
+
+.col-closed .column-dot   { background: #0f172a; }
+.col-closed .column-title { color: #0f172a; }
+.col-closed .column-count { background: rgba(15,23,42,0.08); color: #0f172a; }
+.col-closed               { border-top: 3px solid #334155; opacity: 0.8; }
+.col-closed .column-sum   { color: #334155; }
+
+
+.col-cancelled .column-title { color: #991b1b; }
+.col-cancelled .column-count { background: rgba(220,38,38,0.08); color: #dc2626; }
+.col-cancelled .column-sum   { color: #dc2626; }
+.col-cancelled               { border-top: 3px solid #dc2626; opacity: 0.85; }
+
+/* ── Kanban card ──────────────────────────── */
+.kanban-card {
+  background: #f8fafc; border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 12px 13px;
+  cursor: grab; transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s, background 0.15s, opacity .15s;
+  user-select: none;
+}
+.kanban-card:hover {
+  background: var(--surface); border-color: rgba(37,99,235,0.3);
+  box-shadow: 0 3px 14px rgba(37,99,235,0.09); transform: translateY(-2px);
+}
+.kanban-card.dragging {
+  opacity: 0.45; cursor: grabbing; transform: rotate(1.5deg) scale(1.03);
+}
+.kanban-card.hidden-by-search { display: none; }
+.card-car {
+  font-weight: 700; font-size: 0.88rem; margin-bottom: 5px;
+  letter-spacing: -0.2px; white-space: nowrap; overflow: hidden;
+  text-overflow: ellipsis; color: var(--text);
+}
+.card-checkin {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 0.7rem; font-weight: 700; padding: 2px 7px;
+  border-radius: 5px; background: rgba(217,119,6,0.08); color: #b45309;
+  border: 1px solid rgba(217,119,6,0.18); margin-bottom: 6px;
+}
+.card-note {
+  font-size: 0.72rem; color: var(--text-muted); line-height: 1.4;
+  margin-bottom: 6px; font-style: italic; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis;
+}
+.card-client { font-size: 12px; color: #374151; margin-bottom: 2px; }
+.card-phone { font-size: 12px; color: #2563eb; margin-bottom: 4px; }
+.card-since { font-size: 11px; color: #9ca3af; margin-top: 4px; }
+.card-client { font-size: 12px; color: #374151; margin-bottom: 2px; }
+.card-phone { font-size: 12px; color: #2563eb; margin-bottom: 4px; }
+.card-since { font-size: 11px; color: #9ca3af; margin-top: 4px; }
+.card-price { font-size: 0.98rem; font-weight: 800; color: var(--success); letter-spacing: -0.4px; margin-bottom: 9px; }
+.card-actions { display: flex; flex-direction: column; gap: 5px; }
+
+.card-btn {
+  width: 100%; padding: 7px 10px; border-radius: 7px;
+  font-size: 0.78rem; font-weight: 700; cursor: pointer; border: none;
+  transition: all 0.15s; font-family: var(--font);
+  text-align: center; letter-spacing: -0.1px;
+}
+.card-btn-primary   { background: var(--primary); color: #fff; }
+.card-btn-primary:hover { background: var(--primary-dark); }
+.card-btn-cancel    { background: rgba(220,38,38,0.06); color: #dc2626; border: 1px solid rgba(220,38,38,0.15); }
+.card-btn-cancel:hover  { background: rgba(220,38,38,0.12); }
+.card-btn-secondary { background: var(--bg); color: var(--text-muted); border: 1px solid var(--border); }
+.card-btn-secondary:hover { color: var(--text); border-color: rgba(37,99,235,0.25); background: #fff; }
+
+.empty-col { text-align: center; padding: 28px 12px; color: var(--text-dim); font-size: 0.78rem; }
+.loading { text-align: center; padding: 60px 20px; color: var(--text-muted); font-size: 0.88rem; width: 100%; }
+
+/* ── Модал карточки (центральный) ─────────────── */
+.drawer-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(15,23,42,0.45); backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px); z-index: 500;
+}
+.drawer-overlay.active { display: block; }
+
+.drawer {
+  position: fixed; top: 50%; left: 50%;
+  transform: translate(-50%, -48%) scale(0.97);
+  width: min(560px, 96vw);
+  max-height: 88vh;
+  background: var(--surface);
+  border-radius: 16px;
+  box-shadow: 0 12px 48px rgba(0,0,0,0.18);
+  display: flex; flex-direction: column;
+  z-index: 600;
+  opacity: 0;
+  transition: opacity .2s ease, transform .2s ease;
+  pointer-events: none;
+  overflow: hidden;
+}
+.drawer.active {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+  pointer-events: all;
+}
+
+.drawer-header {
+  padding: 20px 20px 16px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: flex-start; gap: 12px;
+}
+.drawer-close {
+  margin-left: auto; flex-shrink: 0;
+  width: 32px; height: 32px; border-radius: 8px;
+  background: var(--bg); border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; color: var(--text-muted); transition: all .15s;
+}
+.drawer-close:hover { background: rgba(220,38,38,.08); color: var(--danger); }
+.drawer-car { font-size: 1.1rem; font-weight: 800; letter-spacing: -0.3px; margin-bottom: 4px; }
+.drawer-status-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 700;
+}
+.drawer-body {
+  flex: 1; overflow-y: auto; padding: 18px 20px;
+  scrollbar-width: thin; scrollbar-color: rgba(0,0,0,.08) transparent;
+}
+.drawer-section { margin-bottom: 20px; }
+.drawer-section-title {
+  font-size: 0.67rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--text-dim); margin-bottom: 10px;
+}
+.drawer-row {
+  display: flex; justify-content: space-between; align-items: baseline;
+  padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 0.85rem;
+}
+.drawer-row:last-child { border-bottom: none; }
+.drawer-row-label { color: var(--text-muted); font-weight: 500; }
+.drawer-row-value { font-weight: 700; text-align: right; }
+.drawer-note-box {
+  background: var(--bg); border-radius: var(--radius-sm); padding: 10px 13px; margin-top: 8px;
+}
+.drawer-note-text { font-size: 0.83rem; font-style: italic; color: var(--text-muted); line-height: 1.5; }
+
+.drawer-service-list { display: flex; flex-direction: column; gap: 5px; }
+.drawer-service-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 10px; background: var(--bg); border-radius: 8px;
+  font-size: 0.8rem; font-weight: 600; color: var(--text);
+}
+.drawer-service-item::before { content: '•'; color: var(--primary); font-weight: 900; flex-shrink: 0; }
+.drawer-exec-pills { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+.drawer-exec-pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700;
+  background: rgba(37,99,235,0.08); color: var(--primary);
+  border: 1px solid rgba(37,99,235,0.15);
+}
+.drawer-exec-salary {
+  font-size: 0.72rem; color: var(--purple); font-weight: 700;
+  padding: 2px 8px; background: rgba(124,58,237,0.07); border-radius: 5px;
+  border: 1px solid rgba(124,58,237,0.15);
+}
+.drawer-mat-row {
+  display: grid; grid-template-columns: 1fr 70px 70px;
+  gap: 6px; align-items: center; padding: 6px 0;
+  border-bottom: 1px solid var(--border); font-size: 0.8rem;
+}
+.drawer-mat-row:last-child { border-bottom: none; }
+.drawer-mat-name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.drawer-mat-plan { text-align: right; color: var(--text-muted); font-weight: 600; }
+.drawer-mat-fact { text-align: right; font-weight: 700; color: var(--purple); }
+.drawer-loading-inline { color: var(--text-dim); font-size: .78rem; font-style: italic; padding: 8px 0; text-align: center; }
+.drawer-price-big { font-size: 1.6rem; font-weight: 900; color: var(--success); letter-spacing: -0.5px; margin: 4px 0 8px; }
+.drawer-actions { padding: 14px 20px 20px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 7px; }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 10px 18px; border-radius: var(--radius-sm);
+  font-size: 0.83rem; font-weight: 700; font-family: var(--font);
+  cursor: pointer; border: none; transition: all 0.15s;
+  text-decoration: none; white-space: nowrap; width: 100%;
+}
+.btn-primary   { background: var(--primary); color: #fff; }
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-secondary { background: transparent; color: var(--text-muted); border: 1px solid var(--border); }
+.btn-secondary:hover { background: var(--bg); color: var(--text); }
+.btn-danger    { background: rgba(220,38,38,0.07); color: var(--danger); border: 1px solid rgba(220,38,38,0.15); }
+.btn-danger:hover { background: rgba(220,38,38,0.14); }
+
+/* ── Modal ────────────────────────────────── */
+.modal {
+  display: none; position: fixed; inset: 0;
+  background: rgba(15,23,42,0.5); backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px); z-index: 1000;
+  align-items: center; justify-content: center; padding: 20px;
+}
+.modal.active { display: flex; animation: fadeIn 0.15s ease; }
+@keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { transform: translateY(12px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+.modal-content {
+  background: var(--surface); border-radius: var(--radius);
+  border: 1px solid var(--border); padding: 28px 28px 24px;
+  max-width: 440px; width: 100%; box-shadow: var(--shadow-modal);
+  animation: slideUp 0.18s ease;
+}
+.modal-title { font-size: 1.05rem; font-weight: 700; margin-bottom: 4px; letter-spacing: -0.2px; }
+.modal-car   { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 20px; font-weight: 500; }
+.form-group  { margin-bottom: 13px; }
+.form-group label {
+  display: block; font-size: 0.69rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.07em;
+  color: var(--text-muted); margin-bottom: 5px;
+}
+.form-group input,
+.form-group textarea,
+.form-group select {
+  width: 100%; padding: 10px 13px; background: var(--bg);
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  color: var(--text); font-size: 16px; font-family: var(--font);
+  transition: border-color 0.15s, box-shadow 0.15s; outline: none; -webkit-appearance: none;
+}
+.form-group textarea { resize: vertical; min-height: 72px; }
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.10); background: var(--surface); }
+.modal-footer { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+.modal-footer .btn { width: auto; }
+
+@media (max-width: 640px) {
+  .board-outer  { padding: 10px 10px 24px; }
+  .board-toolbar { padding: 10px 10px 0; }
+  .column       { width: 240px; max-height: calc(100svh - 160px); }
+  .modal-content { padding: 22px 18px 20px; }
+  .modal-footer  { flex-direction: column-reverse; gap: 7px; }
+  .modal-footer .btn { width: 100%; }
+  .drawer       { width: 100vw; }
+}
+</style>
+</head>
+<body>
+
+<div class="board-page">
+  <!-- Поиск -->
+  <div class="board-toolbar">
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="searchInput" placeholder="Поиск по авто..." autocomplete="off">
+    </div>
+    <span class="board-count-badge" id="boardCountBadge"></span>
+    <div class="filter-tabs">
+      <button class="filter-btn active" id="filterActive" data-filter="active">Активные</button>
+      <button class="filter-btn" id="filterAll" data-filter="all">Все</button>
+    </div>
+  </div>
+
+  <div class="board-outer">
+    <div class="board-wrap" id="board">
+      <div class="loading">Загрузка...</div>
+    </div>
+  </div>
+</div>
+
+<!-- Drawer: информация о заказе -->
+<div class="drawer-overlay" id="drawerOverlay"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <div>
+      <div class="drawer-car" id="drawerCarName"></div>
+      <div class="drawer-status-badge" id="drawerStatusBadge"></div>
+    </div>
+    <button class="drawer-close" id="drawerClose">✕</button>
+  </div>
+  <div class="drawer-body" id="drawerBody">
+    <!-- заполняется динамически -->
+  </div>
+  <div class="drawer-actions" id="drawerActions">
+    <!-- кнопки действий -->
+  </div>
+</div>
+
+<!-- Modal: Завершить работу (план/факт материалов) -->
+<div class="modal" id="modalDone">
+  <div class="modal-content" style="max-width:540px">
+    <div class="modal-title">Работа выполнена</div>
+    <div class="modal-car" id="doneCarName"></div>
+    <div id="doneMaterialsBlock" style="margin-bottom:16px">
+      <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:10px">Расход материалов</div>
+      <div id="doneMaterialsLoading" style="color:var(--text-muted);font-size:0.82rem;text-align:center;padding:12px 0">Загрузка...</div>
+      <div id="doneMaterialsRows" style="display:none">
+        <div style="display:grid;grid-template-columns:1fr 110px 110px;gap:6px;margin-bottom:6px;padding:0 2px">
+          <div style="font-size:0.67rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted)">Услуга</div>
+          <div style="font-size:0.67rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);text-align:right">План</div>
+          <div style="font-size:0.67rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#7c3aed;text-align:right">Факт</div>
+        </div>
+        <div id="doneMaterialsList" style="display:flex;flex-direction:column;gap:5px"></div>
+        <div style="display:grid;grid-template-columns:1fr 110px 110px;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
+          <div style="font-size:0.8rem;font-weight:700;color:var(--text)">Итого</div>
+          <div id="donePlanTotal" style="font-size:0.88rem;font-weight:700;color:var(--text-muted);text-align:right">—</div>
+          <div id="doneFactTotal" style="font-size:0.88rem;font-weight:700;color:#7c3aed;text-align:right">—</div>
+        </div>
+        <div id="doneDelta" style="margin-top:6px;font-size:0.78rem;text-align:right;color:var(--text-muted)"></div>
+      </div>
+      <div id="doneMaterialsEmpty" style="display:none;color:var(--text-muted);font-size:0.82rem;padding:8px 0">В расчёте нет плановых материалов.</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="btnDoneCancel">Отмена</button>
+      <button class="btn" style="background:var(--purple);color:#fff" id="btnDoneSave">Завершить</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Выдать клиенту -->
+<div class="modal" id="modalDeliver">
+  <div class="modal-content">
+    <div class="modal-title">Выдать клиенту</div>
+    <div class="modal-car" id="deliverCarName"></div>
+    <div class="form-group">
+      <label>Итоговая сумма</label>
+      <input type="number" id="deliverPrice" placeholder="Из расчёта" min="0">
+    </div>
+    <div class="form-group">
+      <label>Форма оплаты</label>
+      <select id="deliverPayment">
+        <option value="cash">💵 Наличные</option>
+        <option value="card">💳 Карта</option>
+        <option value="transfer">🏦 Перевод</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Комментарий</label>
+      <textarea id="deliverNote" placeholder="Пожелания, замечания..."></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="btnDeliverCancel">Отмена</button>
+      <button class="btn" style="background:var(--success);color:#fff" id="btnDeliverSave">Выдать</button>
+    </div>
+  </div>
+</div>
+
+<script src="footer.js"></script>
+<script src="booking-popup.js"></script>
+<script type="module">
+import { sb }               from './api.js';
+import { requireAuth }      from './auth.js';
+import { getStudioContext }  from './studio-context.js';
+import { showToast, showLoading, showError, showEmpty, lockButton, confirmAction } from './ui.js';
+
+// ── Состояние ──────────────────────────────────────────────────────
+let allCalcs       = [];
+let assignmentsMap = {};
+let activeCalcId   = null;
+let studioCtx      = null;
+let _donePlanItems = [];
+let _dragCalcId    = null;
+let _dragStatus    = null;
+let searchTerm     = '';
+let currentFilter  = 'active'; // 'active' | 'all'
+
+// Активные = все кроме delivered, closed, cancelled
+const ACTIVE_KEYS = new Set(['new','scheduled','accepted','in_progress','waiting','done']);
+
+function visibleColumns() {
+  return currentFilter === 'active'
+    ? COLUMNS.filter(c => ACTIVE_KEYS.has(c.key))
+    : COLUMNS;
+}
+
+// ── Константы ──────────────────────────────────────────────────────
+const COLUMNS = [
+  { key: 'scheduled',   label: 'Запись подтверждена', icon: '📅' },
+  { key: 'accepted',    label: 'Авто принято',        icon: '🔑' },
+  { key: 'in_progress', label: 'В работе',            icon: '🔧' },
+  { key: 'done',        label: 'Проверено',           icon: '✅' },
+  { key: 'delivered',   label: 'Выдано',              icon: '🚗' },
+  { key: 'cancelled',   label: 'Запись отменена',     icon: '❌' },
+];
+
+const STATUS_COLORS = {
+  new:         { bg: 'rgba(148,163,184,0.12)', color: '#64748b' },
+  scheduled:   { bg: 'rgba(245,158,11,0.12)',  color: '#b45309' },
+  accepted:    { bg: 'rgba(234,179,8,0.12)',   color: '#92400e' },
+  in_progress: { bg: 'rgba(37,99,235,0.10)',   color: '#2563eb' },
+  waiting:     { bg: 'rgba(107,114,128,0.12)', color: '#374151' },
+  done:        { bg: 'rgba(124,58,237,0.10)',  color: '#7c3aed' },
+  delivered:   { bg: 'rgba(5,150,105,0.10)',   color: '#059669' },
+  closed:      { bg: 'rgba(15,23,42,0.08)',    color: '#0f172a' },
+  cancelled:   { bg: 'rgba(220,38,38,0.10)',   color: '#dc2626' },
+};
+
+// ── Утилиты ────────────────────────────────────────────────────────
+function fmt(n) {
+  return new Intl.NumberFormat('ru-RU', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(n || 0);
+}
+function fmtDate(d) {
+  if (!d) return null;
+  return new Date(d).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
+}
+// normalizeStatus — обратная совместимость со старыми значениями в БД
+function normalizeStatus(status) {
+  if (!status || status === 'draft' || status === 'pending' || status === 'new') return 'scheduled';
+  // Старые значения → новые (данные в БД не меняем, только отображение)
+  if (status === 'Принято в работу') return 'in_progress';
+  if (status === 'Завершено')        return 'done';
+  if (status === 'Отказ')           return 'cancelled';
+  return status;
+}
+
+// ── Обновление статуса в БД ────────────────────────────────────────
+async function updateStatus(calcId, status, extra = {}) {
+  const { error } = await sb
+    .from('calculations')
+    .update({ status, updated_at: new Date().toISOString(), ...extra })
+    .eq('id', calcId)
+    .eq('studio_id', studioCtx.studioId);
+  if (error) {
+    console.error('[board] updateStatus:', error);
+    showToast('error', 'Ошибка обновления статуса');
+    return false;
+  }
+  return true;
+}
+
+// ── Загрузка данных ────────────────────────────────────────────────
+async function loadBoard() {
+  const board = document.getElementById('board');
+  showLoading(board, 'Загрузка доски...');
+
+  const { data, error } = await sb
+    .from('calculations')
+    .select('id, car_name, car_brand, car_model, total_price, final_price, status, checkin_date, checkin_time, schedule_note, work_assigned, created_at, client_name, client_phone, updated_at')
+    .eq('studio_id', studioCtx.studioId)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    showError(board, 'Не удалось загрузить заказы', loadBoard);
+    console.error('[board] loadBoard:', error);
+    return;
+  }
+
+  allCalcs = data || [];
+
+  assignmentsMap = {};
+  if (allCalcs.length > 0) {
+    const { data: assignments } = await sb
+      .from('work_assignments')
+      .select('calculation_id, executor_name, salary, is_admin_sale, admin_percent')
+      .in('calculation_id', allCalcs.map(c => c.id));
+    (assignments || []).forEach(a => {
+      if (!assignmentsMap[a.calculation_id]) assignmentsMap[a.calculation_id] = [];
+      assignmentsMap[a.calculation_id].push(a);
+    });
+  }
+
+  renderBoard();
+}
+
+// ── Рендер доски ───────────────────────────────────────────────────
+function renderBoard() {
+  const board = document.getElementById('board');
+  board.innerHTML = '';
+
+  const frag  = document.createDocumentFragment();
+  let total   = 0;
+
+  visibleColumns().forEach(col => {
+    let cards = allCalcs.filter(c => normalizeStatus(c.status) === col.key);
+    total += cards.length;
+
+    const colEl = document.createElement('div');
+    colEl.className = `column col-${col.key}`;
+    colEl.dataset.status = col.key;
+
+    // Заголовок
+    const header = document.createElement('div');
+    header.className = 'column-header';
+
+    const titleEl = document.createElement('div');
+    titleEl.className = 'column-title';
+    const dot = document.createElement('div');
+    dot.className = 'column-dot';
+    titleEl.appendChild(dot);
+    titleEl.append(` ${col.icon} ${col.label}`);
+
+    const metaEl = document.createElement('div');
+    metaEl.style.cssText = 'display:flex;flex-direction:column;align-items:flex-end;gap:2px';
+    const countEl = document.createElement('div');
+    countEl.className = 'column-count';
+    countEl.textContent = `${cards.length}`;
+    metaEl.appendChild(countEl);
+
+    const colSum = cards.reduce((s, c) => s + (c.final_price || c.total_price || 0), 0);
+    if (colSum > 0) {
+      const sumEl = document.createElement('div');
+      sumEl.className = 'column-sum';
+      sumEl.textContent = fmt(colSum) + ' ₽';
+      metaEl.appendChild(sumEl);
+    }
+    header.append(titleEl, metaEl);
+
+    // Карточки
+    const cardsEl = document.createElement('div');
+    cardsEl.className = 'column-cards';
+    cardsEl.dataset.status = col.key;
+
+    if (cards.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'empty-col';
+      empty.textContent = '📭 Пусто';
+      cardsEl.appendChild(empty);
+    } else {
+      cards.forEach(c => cardsEl.appendChild(buildCard(c, col.key)));
+    }
+
+    // Drag & drop на колонку
+    colEl.addEventListener('dragover', onDragOver);
+    colEl.addEventListener('dragleave', onDragLeave);
+    colEl.addEventListener('drop', onDrop);
+
+    colEl.append(header, cardsEl);
+    frag.appendChild(colEl);
+  });
+
+  board.appendChild(frag);
+  applySearch();
+  updateBadge(total);
+}
+
+// ── Drag & Drop ────────────────────────────────────────────────────
+function onDragStart(e, calcId, fromStatus) {
+  _dragCalcId  = calcId;
+  _dragStatus  = fromStatus;
+  e.dataTransfer.effectAllowed = 'move';
+  e.currentTarget.classList.add('dragging');
+}
+function onDragEnd(e) {
+  e.currentTarget.classList.remove('dragging');
+  document.querySelectorAll('.column.drag-over').forEach(c => c.classList.remove('drag-over'));
+}
+function onDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  e.currentTarget.closest('.column')?.classList.add('drag-over');
+}
+function onDragLeave(e) {
+  if (!e.currentTarget.contains(e.relatedTarget)) {
+    e.currentTarget.closest('.column')?.classList.remove('drag-over');
+  }
+}
+async function onDrop(e) {
+  e.preventDefault();
+  const col = e.currentTarget.closest('.column');
+  col?.classList.remove('drag-over');
+  const toStatus = col?.dataset.status;
+  if (!toStatus || !_dragCalcId || toStatus === _dragStatus) return;
+
+  const calc = allCalcs.find(c => c.id === _dragCalcId);
+
+  // Статусы требующие модала — нельзя просто перетащить
+  if (toStatus === 'done') {
+    openModalDone(_dragCalcId, calc?.car_name || 'Без названия');
+    return;
+  }
+  if (toStatus === 'delivered') {
+    openModalDeliver(_dragCalcId, calc?.car_name || 'Без названия', calc?.total_price || 0);
+    return;
+  }
+
+  const ok = await updateStatus(_dragCalcId, toStatus);
+  if (ok) {
+    const label = COLUMNS.find(c => c.key === toStatus)?.label || toStatus;
+    showToast('success', `→ ${label}`);
+    loadBoard();
+  }
+}
+
+// ── Построение карточки ────────────────────────────────────────────
+function buildCard(calc, status) {
+  const card = document.createElement('div');
+  card.className = 'kanban-card';
+  card.dataset.calcId  = calc.id;
+  card.dataset.status  = status;
+  card.dataset.carName = (calc.car_name || '').toLowerCase();
+  card.draggable = true;
+
+  card.addEventListener('dragstart', e => onDragStart(e, calc.id, status));
+  card.addEventListener('dragend',   onDragEnd);
+
+  const carEl = document.createElement('div');
+  carEl.className = 'card-car';
+  carEl.textContent = calc.car_name || 'Без названия';
+  card.appendChild(carEl);
+
+  if (calc.client_name) {
+    const clientEl = document.createElement('div');
+    clientEl.className = 'card-client';
+    clientEl.textContent = '👤 ' + calc.client_name;
+    card.appendChild(clientEl);
+  }
+  if (calc.client_phone) {
+    const phoneEl = document.createElement('div');
+    phoneEl.className = 'card-phone';
+    phoneEl.textContent = '📞 ' + calc.client_phone;
+    card.appendChild(phoneEl);
+  }
+  const sinceEl = document.createElement('div');
+  sinceEl.className = 'card-since';
+  const since = calc.updated_at ? Math.floor((Date.now() - new Date(calc.updated_at)) / 3600000) : 0;
+  sinceEl.textContent = since < 24 ? `⏱ ${since}ч в статусе` : `⏱ ${Math.floor(since/24)}д в статусе`;
+  card.appendChild(sinceEl);
+
+  if (calc.checkin_date) {
+    const checkinEl = document.createElement('div');
+    checkinEl.className = 'card-checkin';
+    const timeStr = calc.checkin_time ? ', ' + calc.checkin_time.slice(0, 5) : '';
+    checkinEl.textContent = `📅 ${fmtDate(calc.checkin_date)}${timeStr}`;
+    card.appendChild(checkinEl);
+  }
+
+  if (calc.schedule_note) {
+    const noteEl = document.createElement('div');
+    noteEl.className = 'card-note';
+    noteEl.textContent = `💬 ${calc.schedule_note}`;
+    card.appendChild(noteEl);
+  }
+
+  const priceEl = document.createElement('div');
+  priceEl.className = 'card-price';
+  priceEl.textContent = fmt(calc.final_price || calc.total_price) + ' ₽';
+  card.appendChild(priceEl);
+
+  // show executors on all statuses
+if (true) {
+    const execBlock = buildExecutorsBlock(calc, status);
+    if (execBlock) card.appendChild(execBlock);
+  }
+
+  // Клик по карточке → drawer
+  card.addEventListener('click', e => {
+    if (e.target.closest('.card-btn')) return;
+    openDrawer(calc, status);
+  });
+
+  return card;
+}
+
+// ── Блок исполнителей на карточке ─────────────────────────────────
+function buildExecutorsBlock(calc, status) {
+  const asgns = assignmentsMap[calc.id] || [];
+  if (!asgns.length) return null;
+
+  const workers    = asgns.filter(a => !a.is_admin_sale);
+  const adminSales = asgns.filter(a => a.is_admin_sale);
+
+  let adminSalary = 0;
+  if (adminSales.length > 0) {
+    if (status === 'delivered' && calc.final_price) {
+      const pct = parseFloat(adminSales[0].admin_percent) || 0;
+      adminSalary = pct > 0
+        ? Math.round(calc.final_price * pct / 100)
+        : adminSales.reduce((s, a) => s + (parseFloat(a.salary) || 0), 0);
+    } else {
+      adminSalary = adminSales.reduce((s, a) => s + (parseFloat(a.salary) || 0), 0);
+    }
+  }
+
+  const workersSalary = workers.reduce((s, a) => s + (parseFloat(a.salary) || 0), 0);
+  const totalSalary   = workersSalary + adminSalary;
+  const uniqueNames   = [...new Set(asgns.map(a => a.executor_name).filter(Boolean))];
+
+  const block = document.createElement('div');
+  block.style.cssText = 'margin-bottom:8px;padding:7px 9px;background:rgba(37,99,235,0.05);border-radius:7px;border:1px solid rgba(37,99,235,0.12)';
+
+  const label = document.createElement('div');
+  label.style.cssText = 'font-size:0.67rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#64748b;margin-bottom:4px';
+  label.textContent = 'Ответственные';
+  block.appendChild(label);
+
+  uniqueNames.forEach(name => {
+    const el = document.createElement('div');
+    el.style.cssText = 'font-size:0.75rem;color:#0f172a;font-weight:600;line-height:1.5';
+    el.textContent = name;
+    block.appendChild(el);
+  });
+
+  if (!uniqueNames.length) {
+    const el = document.createElement('div');
+    el.style.cssText = 'font-size:0.73rem;color:#94a3b8;font-style:italic';
+    el.textContent = 'Не назначены';
+    block.appendChild(el);
+  }
+
+  if (totalSalary > 0) {
+    const salEl = document.createElement('div');
+    salEl.style.cssText = 'font-size:0.75rem;font-weight:700;color:#7c3aed;margin-top:2px';
+    const lbl = (status === 'delivered' && adminSales.length > 0 && calc.final_price)
+      ? '💸 ЗП (от факта)' : '💸 ЗП (план)';
+    salEl.textContent = `${lbl}: ${fmt(totalSalary)} ₽`;
+    block.appendChild(salEl);
+  }
+
+  return block;
+}
+
+// ── DRAWER ─────────────────────────────────────────────────────────
+function extractServices(cd) {
+  const services = [];
+  const r = n => parseFloat(n) || 0;
+  function add(name) { if (name) services.push(name); }
+
+  const pkg = cd.package || {};
+  if (r(pkg.wrapMat) + r(pkg.wrapMot) > 0) add('Оклейка (Полная защита кузова)');
+  if (r(pkg.prepMat) + r(pkg.prepMot) > 0) add('Подготовка (Полная защита кузова)');
+  if (r(pkg.armMat)  + r(pkg.armMot)  > 0) add('Арматурные работы (Полная защита кузова)');
+
+  const imp = cd.impact || {};
+  if (r(imp.wrapMat) + r(imp.wrapMot) > 0) add('Оклейка (Ударная часть)');
+  if (r(imp.prepMat) + r(imp.prepMot) > 0) add('Подготовка (Ударная часть)');
+  if (r(imp.armMat)  + r(imp.armMot)  > 0) add('Арматурные работы (Ударная часть)');
+
+  const sd = cd.services_detail || {};
+  ['arm', 'det', 'gl', 'ms', 'wrap'].forEach(key => {
+    (sd[key] || []).forEach(svc => {
+      if (r(svc.mat) + r(svc.mot) > 0 && svc.name) add(svc.name);
+    });
+  });
+
+  (cd.additionalCosts || []).forEach(c => { if (r(c.value) > 0 && c.name) add('+ ' + c.name); });
+
+  return services;
+}
+
+async function openDrawer(calc, status) {
+  activeCalcId = calc.id;
+
+  const col     = COLUMNS.find(c => c.key === status);
+  const sc      = STATUS_COLORS[status] || STATUS_COLORS.new;
+  const carName = calc.car_name || 'Без названия';
+
+  document.getElementById('drawerCarName').textContent = carName;
+
+  const badge = document.getElementById('drawerStatusBadge');
+  badge.textContent = `${col?.icon || ''} ${col?.label || status}`;
+  badge.style.cssText = `background:${sc.bg};color:${sc.color}`;
+
+  const body = document.getElementById('drawerBody');
+  body.innerHTML = '<div style="color:var(--text-dim);font-size:.82rem;padding:20px 0;text-align:center">⏳ Загрузка...</div>';
+
+  document.getElementById('drawerOverlay').classList.add('active');
+  document.getElementById('drawer').classList.add('active');
+  buildDrawerActions(calc, status);
+
+  // Грузим полные данные из БД
+  const { data: fullCalc } = await sb
+    .from('calculations')
+    .select('calculation_data, checkin_date, checkin_time, schedule_note, created_at, car_name, total_price, final_price, status')
+    .eq('id', calc.id)
+    .single();
+
+  const cd       = fullCalc?.calculation_data || {};
+  const car      = cd.car || {};
+  const asgns    = assignmentsMap[calc.id] || [];
+  const workers  = asgns.filter(a => !a.is_admin_sale);
+  const admins   = asgns.filter(a =>  a.is_admin_sale);
+  const services = extractServices(cd);
+
+  body.innerHTML = '';
+  const frag = document.createDocumentFragment();
+
+  // ── Блок: авто ───────────────────────────────────────
+  const secCar = mkSection('Автомобиль');
+  const carRows = [
+    ['Название',    calc.car_name || '—'],
+    ['Год',         car.year || '—'],
+    ['Гос. номер',  cd.plate || '—'],
+    ['VIN',         cd.vin   || '—'],
+    ['Клиент',      cd.client_name || cd.clientName || '—'],
+  ].filter(([, v]) => v && v !== '—');
+
+  const price = calc.final_price || calc.total_price;
+  if (price) carRows.push(['💰 Сумма', fmt(price) + ' ₽']);
+
+  if (fullCalc?.checkin_date) {
+    const t = fullCalc.checkin_time ? ', ' + fullCalc.checkin_time.slice(0, 5) : '';
+    carRows.push(['📅 Заезд', fmtDate(fullCalc.checkin_date) + t]);
+  }
+
+  carRows.push(['📆 Создан', new Date(calc.created_at).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: 'numeric' })]);
+
+  carRows.forEach(([label, value]) => {
+    secCar.appendChild(mkRow(label, value, value.startsWith('💰') ? 'var(--success)' : null));
+  });
+  frag.appendChild(secCar);
+
+  // ── Блок: услуги ─────────────────────────────────────
+  if (services.length) {
+    const secSvc = mkSection('Услуги');
+    const list   = document.createElement('div');
+    list.style.cssText = 'display:flex;flex-direction:column;gap:4px;margin-top:4px';
+    services.forEach((svc, i) => {
+      const item = document.createElement('div');
+      item.style.cssText = 'display:flex;align-items:baseline;gap:8px;font-size:.82rem';
+      const num  = document.createElement('span');
+      num.style.cssText = 'flex-shrink:0;font-size:.68rem;color:var(--text-dim);font-weight:700;width:16px';
+      num.textContent = String(i + 1);
+      const name = document.createElement('span');
+      name.style.cssText = 'color:var(--text);font-weight:600;line-height:1.4';
+      name.textContent = svc;
+      item.append(num, name);
+      list.appendChild(item);
+    });
+    secSvc.appendChild(list);
+    frag.appendChild(secSvc);
+  }
+
+  // ── Блок: исполнители ─────────────────────────────────
+  if (asgns.length) {
+    const secExec = mkSection('Ответственные');
+    const workerMap = {};
+    workers.forEach(a => {
+      const n = a.executor_name || '—';
+      if (!workerMap[n]) workerMap[n] = { salary: 0, services: [] };
+      workerMap[n].salary += parseFloat(a.salary) || 0;
+      if (a.service_name) workerMap[n].services.push(a.service_name);
+    });
+
+    Object.entries(workerMap).forEach(([name, data]) => {
+      const row = document.createElement('div');
+      row.style.cssText = 'padding:8px 0;border-bottom:1px solid var(--border)';
+
+      const nameEl = document.createElement('div');
+      nameEl.style.cssText = 'font-size:.85rem;font-weight:700;color:var(--text);margin-bottom:2px';
+      nameEl.textContent = name;
+
+      const meta = document.createElement('div');
+      meta.style.cssText = 'display:flex;justify-content:space-between;align-items:center';
+
+      const svcEl = document.createElement('div');
+      svcEl.style.cssText = 'font-size:.72rem;color:var(--text-muted);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
+      svcEl.textContent = data.services.slice(0, 2).join(', ') + (data.services.length > 2 ? '…' : '');
+
+      const salEl = document.createElement('div');
+      salEl.style.cssText = 'font-size:.78rem;font-weight:700;color:var(--purple);flex-shrink:0;margin-left:8px';
+      salEl.textContent = data.salary > 0 ? fmt(data.salary) + ' ₽' : '';
+
+      meta.append(svcEl, salEl);
+      row.append(nameEl, meta);
+      secExec.appendChild(row);
+    });
+
+    if (admins.length) {
+      const adminEl = document.createElement('div');
+      adminEl.style.cssText = 'padding-top:8px;font-size:.75rem;color:var(--text-muted)';
+      const adminName = admins[0].executor_name;
+      const adminPct  = admins[0].admin_percent;
+      adminEl.textContent = `💼 ${adminName || 'Менеджер'} — продажа${adminPct ? ' (' + adminPct + '%)' : ''}`;
+      secExec.appendChild(adminEl);
+    }
+
+    frag.appendChild(secExec);
+  }
+
+  // ── Блок: комментарий ────────────────────────────────
+  const note = fullCalc?.schedule_note;
+  if (note) {
+    const secNote = mkSection('Комментарий');
+    const noteBox = document.createElement('div');
+    noteBox.className = 'drawer-note-box';
+    const noteText = document.createElement('div');
+    noteText.className = 'drawer-note-text';
+    noteText.textContent = note;
+    noteBox.appendChild(noteText);
+    secNote.appendChild(noteBox);
+    frag.appendChild(secNote);
+  }
+
+  // ── Блок: материалы ──────────────────────────────────
+  const { data: txData } = await sb
+    .from('inventory_transactions')
+    .select('qty, unit_cost, notes, item:item_id(name, unit), roll:roll_id(roll_number)')
+    .eq('studio_id', studioCtx.studioId)
+    .eq('calculation_id', calc.id)
+    .eq('type', 'writeoff');
+
+  if (txData?.length) {
+    const secMat = mkSection('Материалы');
+    txData.forEach(tx => {
+      const qty = Math.abs(tx.qty);
+      const cost = qty * (tx.unit_cost || 0);
+      const roll = tx.roll?.roll_number ? ` · рулон ${tx.roll.roll_number}` : '';
+      const row = mkRow(
+        (tx.item?.name || '—') + roll,
+        `${qty} ${tx.item?.unit || ''}${cost > 0 ? ' · ' + fmt(cost) + ' ₽' : ''}`,
+      );
+      secMat.appendChild(row);
+    });
+    frag.appendChild(secMat);
+  }
+
+  body.appendChild(frag);
+}
+
+function mkSection(title) {
+  const sec = document.createElement('div');
+  sec.className = 'drawer-section';
+  const t = document.createElement('div');
+  t.className = 'drawer-section-title';
+  t.textContent = title;
+  sec.appendChild(t);
+  return sec;
+}
+
+function mkRow(label, value, color = null) {
+  const row = document.createElement('div');
+  row.className = 'drawer-row';
+  const l = document.createElement('span');
+  l.className = 'drawer-row-label';
+  l.textContent = label;
+  const v = document.createElement('span');
+  v.className = 'drawer-row-value';
+  v.textContent = value;
+  if (color) v.style.color = color;
+  row.append(l, v);
+  return row;
+}
+
+function closeDrawer() {
+  document.getElementById('drawer').classList.remove('active');
+  document.getElementById('drawerOverlay').classList.remove('active');
+  setTimeout(() => { activeCalcId = null; }, 300);
+}
+
+function buildDrawerActions(calc, status) {
+  const el = document.getElementById('drawerActions');
+  el.innerHTML = '';
+
+  const btn = (text, fn, cls = 'btn-secondary') => {
+    const b = document.createElement('button');
+    b.className = `btn ${cls}`;
+    b.textContent = text;
+    b.addEventListener('click', fn);
+    return b;
+  };
+
+  const goCalc      = () => { window.location.href = `calculator.html?load=${encodeURIComponent(calc.id)}`; };
+  const goAssign    = () => { window.location.href = `assign-work.html?calc_id=${encodeURIComponent(calc.id)}`; };
+  const goAct       = () => { window.location.href = `acceptance-act.html?calc_id=${encodeURIComponent(calc.id)}`; };
+  const goWorkOrder = () => { window.location.href = `work-order.html?calc_id=${encodeURIComponent(calc.id)}`; };
+
+  const move = async (toStatus, label) => {
+    const ok = await updateStatus(calc.id, toStatus);
+    if (ok) { closeDrawer(); showToast('success', label); loadBoard(); }
+  };
+
+  const doBook = () => {
+    closeDrawer();
+    BookingPopup.open({
+      calcId: calc.id, calcName: calc.car_name || 'Без названия',
+      calcPrice: calc.final_price || calc.total_price || 0,
+      studioId: studioCtx.studioId, onSaved: loadBoard,
+    });
+  };
+
+  const doCancel = async () => {
+    const ok = await confirmAction({ message: `Отменить заказ «${calc.car_name || 'Без названия'}»?` });
+    if (!ok) return;
+    const success = await updateStatus(calc.id, 'cancelled');
+    if (success) { closeDrawer(); showToast('success', 'Заказ отменён'); loadBoard(); }
+  };
+
+  const doRestore = async () => {
+    const ok = await confirmAction({ message: `Вернуть «${calc.car_name || 'Без названия'}» в расчёты?` });
+    if (!ok) return;
+    const success = await updateStatus(calc.id, 'new');
+    if (success) { closeDrawer(); showToast('success', 'Заказ восстановлен'); loadBoard(); }
+  };
+
+  const doDone = () => {
+    closeDrawer();
+    openModalDone(calc.id, calc.car_name || 'Без названия');
+  };
+  const doDeliver = () => {
+    closeDrawer();
+    openModalDeliver(calc.id, calc.car_name || 'Без названия', calc.final_price || calc.total_price || 0);
+  };
+
+  // ── 9-шаговый pipeline ────────────────────────────────────────────
+  if (status === 'new') {
+    el.append(
+      btn('Открыть расчёт', goCalc),
+      btn('Записать на дату', doBook, 'btn-primary'),
+      btn('Отменить заказ', doCancel, 'btn-danger'),
+    );
+  } else if (status === 'scheduled') {
+    el.append(
+      btn('Открыть расчёт',   goCalc),
+      btn('Изменить запись',  doBook),
+      btn('Акт приёмки авто', goAct),
+      btn('Принять авто', () => move('accepted', 'Авто принято'), 'btn-primary'),
+      btn('Отменить заказ', doCancel, 'btn-danger'),
+    );
+  } else if (status === 'accepted') {
+    el.append(
+      btn('Открыть расчёт', goCalc),
+      btn('Акт приёмки',    goAct),
+      btn('Назначить ответственных', goAssign),
+      btn('Взять в работу', () => move('in_progress', 'Статус → В работе'), 'btn-primary'),
+      btn('Отменить заказ', doCancel, 'btn-danger'),
+    );
+  } else if (status === 'in_progress') {
+    el.append(
+      btn('Открыть расчёт', goCalc),
+      btn('Назначить ответственных', goAssign),
+      btn('Работа выполнена', doDone, 'btn-primary'),
+      btn('Отменить заказ', doCancel, 'btn-danger'),
+    );
+  } else if (status === 'waiting') {
+    el.append(
+      btn('Открыть расчёт', goCalc),
+      btn('Назначить ответственных', goAssign),
+      btn('Выдать клиенту', doDeliver, 'btn-primary'),
+    );
+  } else if (status === 'done') {
+    el.append(
+      btn('Открыть расчёт',  goCalc),
+      btn('Акт приёмки',     goAct),
+      btn('Заказ-наряд',     goWorkOrder),
+      btn('Выдать клиенту',  doDeliver, 'btn-primary'),
+    );
+  } else if (status === 'delivered') {
+    el.append(
+      btn('Открыть расчёт', goCalc),
+      btn('Заказ-наряд',    goWorkOrder),
+      btn('Закрыть заказ',  () => move('closed', 'Заказ закрыт'), 'btn-primary'),
+    );
+  } else if (status === 'closed') {
+    el.append(
+      btn('Открыть расчёт', goCalc),
+      btn('Документы',      goWorkOrder),
+    );
+  } else if (status === 'cancelled') {
+    el.append(
+      btn('📂 Открыть расчёт', goCalc),
+      btn('↩️ Восстановить',   doRestore, 'btn-primary'),
+    );
+  }
+}
+
+// ── Поиск ──────────────────────────────────────────────────────────
+function applySearch() {
+  const term = searchTerm.trim().toLowerCase();
+  let visible = 0;
+  document.querySelectorAll('.kanban-card').forEach(card => {
+    const name = card.dataset.carName || '';
+    const match = !term || name.includes(term);
+    card.classList.toggle('hidden-by-search', !match);
+    if (match) visible++;
+  });
+  updateBadge(visible);
+}
+
+function updateBadge(count) {
+  const badge = document.getElementById('boardCountBadge');
+  badge.textContent = count ? `${count} авто` : '';
+}
+
+// ── Модал: завершить работу ────────────────────────────────────────
+function openModalDone(calcId, carName) {
+  activeCalcId = calcId;
+  document.getElementById('doneCarName').textContent = carName;
+  loadDoneMaterials(calcId);
+  document.getElementById('modalDone').classList.add('active');
+}
+
+function extractMaterials(calcData) {
+  const items = [];
+  const d     = calcData || {};
+  const seen  = new Set();
+
+  function add(key, name, mat) {
+    const m = parseFloat(mat) || 0;
+    if (m > 0 && !seen.has(key)) { seen.add(key); items.push({ key, name, plan: m }); }
+  }
+
+  if (d.package) {
+    add('pkg_wrap', 'Оклейка (Полная защита кузова)', d.package.wrapMat);
+    add('pkg_prep', 'Подготовка (Полная защита)',     d.package.prepMat);
+    add('pkg_arm',  'Бронирование (Полная защита)',   d.package.armMat);
+  }
+  if (d.impact) {
+    add('impact_wrap', 'Оклейка (Ударная часть)',     d.impact.wrapMat);
+    add('impact_prep', 'Подготовка (Ударная часть)',  d.impact.prepMat);
+    add('impact_arm',  'Бронирование (Ударная часть)', d.impact.armMat);
+  }
+  if (d.services_detail) {
+    const gn = { arm: 'Бронирование', det: 'Детейлинг', gl: 'Стёкла', ms: 'Доп. услуги', wrap: 'Оклейка' };
+    Object.entries(gn).forEach(([key, gName]) => {
+      (d.services_detail[key] || []).forEach((item, idx) => {
+        const m = parseFloat(item.mat) || 0;
+        if (m > 0) add(`${key}_${idx}`, item.name || gName, m);
+      });
+    });
+  }
+  return items;
+}
+
+async function loadDoneMaterials(calcId) {
+  const loading = document.getElementById('doneMaterialsLoading');
+  const rows    = document.getElementById('doneMaterialsRows');
+  const empty   = document.getElementById('doneMaterialsEmpty');
+  const list    = document.getElementById('doneMaterialsList');
+
+  loading.style.display = 'block';
+  rows.style.display    = 'none';
+  empty.style.display   = 'none';
+
+  const { data } = await sb
+    .from('calculations')
+    .select('calculation_data, fact_materials')
+    .eq('id', calcId).single();
+
+  const items    = extractMaterials(data?.calculation_data || {});
+  const existing = data?.fact_materials || {};
+
+  loading.style.display = 'none';
+  _donePlanItems = items;
+
+  if (!items.length) { empty.style.display = 'block'; return; }
+
+  rows.style.display = 'block';
+  list.innerHTML = '';
+
+  const frag = document.createDocumentFragment();
+  items.forEach(item => {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:grid;grid-template-columns:1fr 110px 110px;gap:6px;align-items:center';
+
+    const nameEl = document.createElement('div');
+    nameEl.style.cssText = 'font-size:0.8rem;color:var(--text);font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
+    nameEl.title = item.name;
+    nameEl.textContent = item.name;
+
+    const planEl = document.createElement('div');
+    planEl.style.cssText = 'font-size:0.82rem;color:var(--text-muted);text-align:right;font-weight:600';
+    planEl.textContent = fmt(item.plan);
+
+    const factWrap = document.createElement('div');
+    const factInput = document.createElement('input');
+    factInput.type  = 'number'; factInput.min = '0'; factInput.step = '1';
+    factInput.dataset.key = item.key;
+    factInput.value = String(existing[item.key] !== undefined ? existing[item.key] : item.plan);
+    factInput.style.cssText = 'width:100%;padding:5px 8px;background:rgba(124,58,237,0.05);border:1px solid rgba(124,58,237,0.25);border-radius:6px;font-size:0.82rem;font-weight:700;color:#7c3aed;outline:none;text-align:right;font-family:var(--font)';
+    factInput.addEventListener('input', updateDoneTotals);
+    factWrap.appendChild(factInput);
+
+    row.append(nameEl, planEl, factWrap);
+    frag.appendChild(row);
+  });
+  list.appendChild(frag);
+  updateDoneTotals();
+}
+
+function updateDoneTotals() {
+  let planSum = 0, factSum = 0;
+  _donePlanItems.forEach(item => { planSum += item.plan; });
+  document.querySelectorAll('#doneMaterialsList input[data-key]').forEach(inp => {
+    factSum += parseFloat(inp.value) || 0;
+  });
+  document.getElementById('donePlanTotal').textContent = fmt(planSum);
+  document.getElementById('doneFactTotal').textContent = fmt(factSum);
+  const delta = factSum - planSum;
+  const deltaEl = document.getElementById('doneDelta');
+  if (delta === 0)      { deltaEl.textContent = 'Факт совпал с планом'; deltaEl.style.color = 'var(--text-muted)'; }
+  else if (delta > 0)   { deltaEl.textContent = `Перерасход: +${fmt(delta)}`; deltaEl.style.color = 'var(--danger)'; }
+  else                  { deltaEl.textContent = `Экономия: ${fmt(Math.abs(delta))}`; deltaEl.style.color = 'var(--success)'; }
+}
+
+// ── Модал: выдать клиенту ──────────────────────────────────────────
+function openModalDeliver(calcId, carName, price) {
+  activeCalcId = calcId;
+  document.getElementById('deliverCarName').textContent = carName;
+  document.getElementById('deliverPrice').value         = price;
+  document.getElementById('deliverNote').value          = '';
+  document.getElementById('modalDeliver').classList.add('active');
+}
+
+function closeModal(id) {
+  document.getElementById(id)?.classList.remove('active');
+}
+
+// ── Привязка событий ───────────────────────────────────────────────
+function bindEvents() {
+  // Drawer
+  document.getElementById('drawerClose').addEventListener('click', closeDrawer);
+  document.getElementById('drawerOverlay').addEventListener('click', closeDrawer);
+
+  // Модал Done
+  document.getElementById('btnDoneCancel').addEventListener('click', () => closeModal('modalDone'));
+  document.getElementById('btnDoneSave').addEventListener('click', async () => {
+    const btn = document.getElementById('btnDoneSave');
+    const release = lockButton(btn, 'Сохранение...');
+    const factMaterials = {};
+    document.querySelectorAll('#doneMaterialsList input[data-key]').forEach(inp => {
+      factMaterials[inp.dataset.key] = parseFloat(inp.value) || 0;
+    });
+    const extra = Object.keys(factMaterials).length > 0 ? { fact_materials: factMaterials } : {};
+    const ok = await updateStatus(activeCalcId, 'waiting', extra);
+    release();
+    if (ok) { closeModal('modalDone'); showToast('success', 'Работа завершена'); loadBoard(); }
+  });
+  document.getElementById('modalDone').addEventListener('click', e => {
+    if (e.target === document.getElementById('modalDone')) closeModal('modalDone');
+  });
+
+  // Модал Deliver
+  document.getElementById('btnDeliverCancel').addEventListener('click', () => closeModal('modalDeliver'));
+  document.getElementById('btnDeliverSave').addEventListener('click', async () => {
+    const btn = document.getElementById('btnDeliverSave');
+    const release = lockButton(btn, 'Сохранение...');
+    const price = parseFloat(document.getElementById('deliverPrice').value) || null;
+    const note  = document.getElementById('deliverNote').value.trim();
+    const ok    = await updateStatus(activeCalcId, 'delivered', { final_price: price, delivery_note: note });
+    release();
+    if (ok) { closeModal('modalDeliver'); showToast('success', 'Автомобиль выдан'); loadBoard(); }
+  });
+  document.getElementById('modalDeliver').addEventListener('click', e => {
+    if (e.target === document.getElementById('modalDeliver')) closeModal('modalDeliver');
+  });
+
+  // Поиск
+  const searchInput = document.getElementById('searchInput');
+  searchInput.addEventListener('input', () => {
+    searchTerm = searchInput.value;
+    applySearch();
+  });
+
+  // Фильтры активные / все
+  document.getElementById('filterActive')?.addEventListener('click', () => {
+    currentFilter = 'active';
+    document.getElementById('filterActive').classList.add('active');
+    document.getElementById('filterAll').classList.remove('active');
+    renderBoard();
+  });
+  document.getElementById('filterAll')?.addEventListener('click', () => {
+    currentFilter = 'all';
+    document.getElementById('filterAll').classList.add('active');
+    document.getElementById('filterActive').classList.remove('active');
+    renderBoard();
+  });
+
+  // ESC закрывает drawer и модалы
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape') return;
+    if (document.getElementById('drawer').classList.contains('active')) { closeDrawer(); return; }
+    ['modalDone', 'modalDeliver'].forEach(id => closeModal(id));
+  });
+}
+
+// ── Точка входа ────────────────────────────────────────────────────
+async function initPage() {
+  initNav({ activePage: 'board.html' });
+  document.body.style.visibility = 'visible';
+
+  const user = await requireAuth({ redirectTo: 'welcome.html' });
+  if (!user) return;
+
+  try {
+    studioCtx = await getStudioContext();
+  } catch (err) {
+    console.error('[board] getStudioContext:', err);
+    showError(document.getElementById('board'), 'Ошибка загрузки данных студии', () => location.reload());
+    return;
+  }
+
+  if (!studioCtx?.studioId) {
+    showError(document.getElementById('board'), 'Студия не найдена. Обратитесь к администратору.');
+    return;
+  }
+
+  if (!studioCtx.hasAccess) {
+    showEmpty(document.getElementById('board'), 'Нет доступа', 'Оформите подписку');
+    window.showPaywall?.(studioCtx.subscriptionStatus === 'expired');
+    return;
+  }
+
+  bindEvents();
+  await loadBoard();
+}
+
+document.addEventListener('DOMContentLoaded', initPage);
+</script>
+</body>
+</html>

@@ -1,0 +1,1293 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Распределение работ — Keep1R CRM</title>
+<link rel="stylesheet" href="nav.css">
+<script src="nav.js"></script>
+<style>
+:root {
+  --font:       -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
+  --bg:         #eef2f9;
+  --surface:    #ffffff;
+  --border:     rgba(15,23,42,0.08);
+  --text:       #0f172a;
+  --muted:      #64748b;
+  --dim:        #94a3b8;
+  --primary:    #2563eb;
+  --primary-dk: #1d4ed8;
+  --success:    #059669;
+  --success-bg: rgba(5,150,105,0.07);
+  --danger:     #dc2626;
+  --danger-bg:  rgba(220,38,38,0.07);
+  --warning:    #d97706;
+  --warning-bg: rgba(217,119,6,0.07);
+  --radius:     14px;
+  --radius-sm:  9px;
+  --shadow:     0 1px 3px rgba(0,0,0,0.04), 0 4px 14px rgba(0,0,0,0.06);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: var(--font); -webkit-font-smoothing: antialiased;
+  background: var(--bg); color: var(--text); min-height: 100svh;
+}
+
+/* ── Субшапка ──────────────────────────────────── */
+.page-subheader {
+  display: flex; align-items: center; padding: 11px 20px;
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  gap: 12px; position: sticky; top: 0; z-index: 10;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.page-subheader-left { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
+.page-subheader-title { font-size: 0.92rem; font-weight: 700; white-space: nowrap; }
+.car-subtitle { font-size: 0.82rem; color: var(--muted); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.btn-back {
+  display: inline-flex; align-items: center; padding: 6px 12px;
+  border-radius: 7px; font-size: 0.78rem; font-weight: 700;
+  color: var(--primary); background: rgba(37,99,235,0.07);
+  border: 1px solid rgba(37,99,235,0.18); cursor: pointer;
+  font-family: var(--font); transition: all 0.15s; white-space: nowrap; flex-shrink: 0;
+}
+.btn-back:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+/* ── Контент ──────────────────────────────────── */
+.container { max-width: 820px; margin: 0 auto; padding: 22px 18px 48px; }
+
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 22px; margin-bottom: 14px; box-shadow: var(--shadow); }
+.card-title { font-size: 0.9rem; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 7px; letter-spacing: -0.1px; }
+
+/* ── Admin sale ───────────────────────────────── */
+.admin-sale-block { background: var(--surface); border: 1px solid rgba(217,119,6,0.22); border-radius: var(--radius); padding: 16px 20px; margin-bottom: 14px; box-shadow: var(--shadow); }
+.admin-sale-row { display: flex; flex-direction: column; gap: 0; }
+.toggle-switch { display: flex; align-items: center; gap: 9px; cursor: pointer; font-weight: 700; font-size: 0.88rem; color: var(--text); user-select: none; }
+.toggle-switch input[type="checkbox"] { width: 17px; height: 17px; accent-color: var(--warning); cursor: pointer; flex-shrink: 0; }
+.admin-details { display: none; flex-wrap: wrap; gap: 12px; margin-top: 14px; padding-top: 14px; border-top: 1px solid rgba(217,119,6,0.15); align-items: flex-end; }
+.admin-details.active { display: flex; }
+
+/* ── Form group ───────────────────────────────── */
+.form-group { display: flex; flex-direction: column; gap: 4px; }
+.form-group label { font-size: 0.67rem; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
+.form-group input, .form-group select {
+  padding: 9px 12px; background: var(--bg); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); color: var(--text); font-size: 16px;
+  font-family: var(--font); transition: border-color 0.15s, box-shadow 0.15s;
+  outline: none; -webkit-appearance: none;
+}
+.form-group input:focus, .form-group select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.08); background: var(--surface); }
+
+/* ── Work list ────────────────────────────────── */
+.work-list { display: flex; flex-direction: column; gap: 10px; }
+.work-item { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; transition: border-color 0.15s; }
+.work-item:hover { border-color: rgba(37,99,235,0.2); }
+.work-item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 10px; flex-wrap: wrap; }
+.work-service-name { font-weight: 700; font-size: 0.88rem; color: var(--text); }
+.work-base-salary { font-size: 0.72rem; font-weight: 700; color: var(--success); background: var(--success-bg); padding: 3px 10px; border-radius: 20px; white-space: nowrap; border: 1px solid rgba(5,150,105,0.18); }
+
+/* ── Executor rows ────────────────────────────── */
+.executor-rows { display: flex; flex-direction: column; gap: 8px; }
+.executor-row { width: 100%; }
+.executor-input-group { display: flex; flex-direction: column; gap: 5px; }
+.executor-mode-switcher { display: flex; gap: 4px; }
+.mode-btn {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 7px;
+  padding: 4px 12px; cursor: pointer; font-size: 0.75rem; font-weight: 700;
+  color: var(--muted); transition: all 0.15s; font-family: var(--font); white-space: nowrap;
+}
+.mode-btn:hover { color: var(--text); }
+.mode-btn.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+.executor-fields-row { display: grid; grid-template-columns: 1fr 130px 34px; gap: 7px; align-items: center; }
+.executor-select-wrap select, .executor-manual-wrap .manual-name-input {
+  width: 100%; padding: 8px 12px; background: var(--surface);
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  color: var(--text); font-size: 16px; font-family: var(--font);
+  outline: none; transition: border-color 0.15s, box-shadow 0.15s; -webkit-appearance: none;
+}
+.executor-select-wrap select:focus, .executor-manual-wrap .manual-name-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.08); }
+.executor-select-wrap, .executor-manual-wrap { min-width: 0; }
+.salary-input {
+  padding: 8px 12px; background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); color: var(--text); font-size: 16px;
+  font-family: var(--font); font-weight: 700; width: 100%;
+  outline: none; transition: border-color 0.15s, box-shadow 0.15s;
+}
+.salary-input:focus { border-color: var(--success); box-shadow: 0 0 0 3px rgba(5,150,105,0.08); }
+.btn-remove-exec {
+  background: var(--danger-bg); border: 1px solid rgba(220,38,38,0.15); color: var(--danger);
+  border-radius: 8px; padding: 0; cursor: pointer; font-size: 0.8rem; transition: all 0.15s;
+  display: flex; align-items: center; justify-content: center;
+  height: 34px; width: 34px; flex-shrink: 0; font-family: var(--font);
+}
+.btn-remove-exec:hover { background: var(--danger); color: #fff; border-color: var(--danger); }
+.executor-manual-save { display: flex; align-items: center; padding-left: 1px; }
+.save-to-list-label { display: inline-flex; align-items: center; gap: 5px; font-size: 0.72rem; font-weight: 700; color: var(--success); cursor: pointer; user-select: none; }
+.save-to-list-label input[type="checkbox"] { accent-color: var(--success); width: 13px; height: 13px; cursor: pointer; }
+.add-executor-btn {
+  margin-top: 8px; font-size: 0.75rem; padding: 6px 12px; color: var(--primary);
+  background: rgba(37,99,235,0.05); border: 1px dashed rgba(37,99,235,0.28);
+  border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;
+  transition: all 0.15s; font-weight: 700; font-family: var(--font);
+}
+.add-executor-btn:hover { background: rgba(37,99,235,0.10); border-color: var(--primary); }
+
+/* ── Добавить вручную ─────────────────────────── */
+.add-work-row { display: grid; grid-template-columns: 1fr 150px; gap: 10px; }
+.add-work-row input {
+  padding: 9px 12px; background: var(--bg); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); color: var(--text); font-size: 16px;
+  font-family: var(--font); outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s; -webkit-appearance: none;
+}
+.add-work-row input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.08); }
+
+/* ── Итого ────────────────────────────────────── */
+.summary-block { background: var(--success-bg); border: 1px solid rgba(5,150,105,0.2); border-radius: 12px; padding: 18px 20px; }
+.summary-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; gap: 20px; }
+.summary-row + .summary-row { border-top: 1px solid rgba(5,150,105,0.12); }
+.summary-label { color: var(--muted); font-size: 0.85rem; font-weight: 600; white-space: nowrap; }
+.summary-value { font-weight: 700; font-size: 0.92rem; }
+.summary-total-value { color: var(--success); font-size: 1.7rem; font-weight: 800; letter-spacing: -1px; text-align: right; line-height: 1.1; min-width: 0; word-break: break-word; }
+
+/* ── Кнопки ───────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px; padding: 10px 20px;
+  border-radius: var(--radius-sm); font-size: 0.85rem; font-weight: 700;
+  font-family: var(--font); cursor: pointer; border: none;
+  transition: all 0.15s; text-decoration: none; white-space: nowrap;
+}
+.btn-primary   { background: var(--primary); color: #fff; }
+.btn-primary:hover   { background: var(--primary-dk); }
+.btn-success   { background: var(--success); color: #fff; font-size: 0.92rem; padding: 12px 24px; }
+.btn-success:hover   { background: #047857; }
+.btn-secondary { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+.btn-secondary:hover { background: var(--bg); color: var(--text); }
+.btn-sm { padding: 7px 14px; font-size: 0.78rem; }
+
+/* ── Кнопка календаря у мастера ─────────────────── */
+
+/* ── Модал календаря мастера ────────────────────── */
+#execCalBox {
+  background: var(--surface); border-radius: 16px;
+  box-shadow: 0 16px 56px rgba(0,0,0,0.2);
+  width: min(520px, 96vw); max-height: 90vh;
+  overflow-y: auto; padding: 24px;
+  animation: calPop .18s ease;
+}
+@keyframes calPop { from { opacity:0; transform:scale(0.96) translateY(8px); } to { opacity:1; transform:none; } }
+
+.exec-dates { display: flex; gap: 8px; align-items: flex-end; margin-top: 6px; flex-wrap: wrap; }
+.exec-dates .exec-date-group label { font-size: 0.7rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; display: block; margin-bottom: 3px; }
+.exec-dates input[type=date] { padding: 5px 8px; font-size: 0.8rem; border: 1.5px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); font-family: var(--font); outline: none; cursor: pointer; width: 140px; }
+.exec-dates input[type=date]:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.08); }
+.exec-conflict { display: none; align-items: center; gap: 5px; font-size: 0.75rem; font-weight: 700; color: var(--warning); background: rgba(217,119,6,0.08); border: 1px solid rgba(217,119,6,0.2); border-radius: 7px; padding: 5px 10px; margin-top: 5px; }
+.exec-conflict.visible { display: flex; }
+
+
+@media (max-width: 640px) {
+  .container { padding: 16px 14px 40px; }
+  .card { padding: 16px 16px; }
+  .executor-fields-row { grid-template-columns: 1fr 100px 34px; }
+  .add-work-row { grid-template-columns: 1fr; }
+  .admin-details { flex-direction: column; align-items: stretch; }
+  .admin-details .form-group { width: 100%; }
+  .summary-total-value { font-size: 1.5rem; }
+  .work-item { padding: 14px 14px; }
+  .work-item-header { flex-direction: column; align-items: flex-start; }
+}
+@media (max-width: 480px) {
+  .executor-fields-row { grid-template-columns: 1fr; gap: 8px; }
+  .btn-remove-exec { width: 100%; height: 40px; }
+  .btn-success { width: 100%; justify-content: center; }
+  .summary-row { flex-direction: column; align-items: flex-start; gap: 2px; }
+  .summary-total-value { align-self: flex-end; }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="page-subheader">
+    <div class="page-subheader-left">
+      <button class="btn-back" id="btnBack">← На доску</button>
+      <div class="page-subheader-title">Назначить ответственных</div>
+      <div class="car-subtitle" id="carSubtitle">Загрузка...</div>
+    </div>
+  </div>
+
+  <div id="mainContent">
+    <div class="loading">Загрузка...</div>
+  </div>
+</div>
+
+<script src="footer.js"></script>
+
+</div>
+
+<script type="module">
+import { sb }               from './api.js';
+import { requireAuth }      from './auth.js';
+import { getStudioContext }  from './studio-context.js';
+import { showToast, showError, showNotFound, showEmpty, lockButton } from './ui.js';
+
+// ── Состояние ───────────────────────────────────────────────────────
+let studioCtx   = null;
+let calculation = null;
+let executors   = [];
+let calcId      = null;
+let rowCounter  = 0;
+let allBookings = [];   // все calendar_bookings студии
+let checkinDate = null; // дата заезда авто
+
+const SERVICE_NAMES = {
+  pkg_wrap:    'Оклейка (Полная защита)',
+  pkg_prep:    'Подготовка (Полная защита)',
+  pkg_arm:     'Арматурные работы (Полная защита)',
+  impact_wrap: 'Оклейка (Ударная часть)',
+  impact_prep: 'Подготовка (Ударная часть)',
+  impact_arm:  'Арматурные работы (Ударная часть)',
+  arm:  'Арматурные работы',
+  wrap: 'Оклейка',
+  det:  'Детейлинг',
+  gl:   'Полировка/Химчистка',
+  ms:   'Прочие услуги',
+};
+
+function fmt(n) {
+  return new Intl.NumberFormat('ru-RU', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(n || 0);
+}
+
+// ── Загрузка исполнителей ───────────────────────────────────────────
+async function loadExecutors() {
+  const { data, error } = await sb
+    .from('executors')
+    .select('id, full_name, role, is_admin')
+    .eq('studio_id', studioCtx.studioId)
+    .eq('is_active', true)
+    .order('full_name');
+  if (error) { console.error('[assign] loadExecutors:', error); return; }
+  executors = data || [];
+}
+
+function roleRu(r) {
+  const m = { wrapper: 'Оклейщик', preparer: 'Детейлер', armature: 'Арматурщик', detailer: 'Детейлер', universal: 'Универсал' };
+  return m[r] || r;
+}
+
+// ── Построение select опций ─────────────────────────────────────────
+// Маппинг ключей услуг → допустимые роли исполнителей
+const SERVICE_ROLES = {
+  wrap:        ['wrapper', 'universal'],
+  pkg_wrap:    ['wrapper', 'universal'],
+  impact_wrap: ['wrapper', 'universal'],
+  arm:         ['armature', 'universal'],
+  pkg_arm:     ['armature', 'universal'],
+  impact_arm:  ['armature', 'universal'],
+  pkg_prep:    ['detailer', 'preparer', 'universal'],
+  impact_prep: ['detailer', 'preparer', 'universal'],
+  det:         ['detailer', 'preparer', 'universal'],
+  gl:          ['detailer', 'preparer', 'universal'],
+};
+
+function buildExecutorSelect(selectedId = '', serviceKey = '') {
+  const sel = document.createElement('select');
+  const defOpt = document.createElement('option');
+  defOpt.value = '';
+  defOpt.textContent = '— Выбрать исполнителя —';
+  sel.appendChild(defOpt);
+
+  const allowedRoles = SERVICE_ROLES[serviceKey] || null; // null = все
+  const filtered = allowedRoles
+    ? executors.filter(e => allowedRoles.includes(e.role))
+    : executors;
+
+  filtered.forEach(e => {
+    const opt = document.createElement('option');
+    opt.value = e.id;
+    opt.textContent = `${e.full_name} (${roleRu(e.role)})`;
+    if (e.id === selectedId) opt.selected = true;
+    sel.appendChild(opt);
+  });
+  return sel;
+}
+
+function buildAdminExecutorSelect(selectedId = '') {
+  const admins = executors.filter(e => e.is_admin);
+  if (admins.length === 0) {
+    const span = document.createElement('span');
+    span.style.cssText = 'color:var(--muted);font-size:0.82rem';
+    span.textContent = 'Нет продавцов. Добавьте в Исполнителях.';
+    return span;
+  }
+  const sel = document.createElement('select');
+  sel.id = 'adminExecutorId';
+  const defOpt = document.createElement('option');
+  defOpt.value = '';
+  defOpt.textContent = '— Выбрать продавца —';
+  sel.appendChild(defOpt);
+  admins.forEach(e => {
+    const opt = document.createElement('option');
+    opt.value = e.id;
+    opt.textContent = e.full_name;
+    if (e.id === selectedId) opt.selected = true;
+    sel.appendChild(opt);
+  });
+  return sel;
+}
+
+// ── Строка исполнителя (DOM) ────────────────────────────────────────
+// serviceKey передаётся через data-attribute на work-item, подтягивается при вызове
+function buildExecutorRow(executorId = '', salary = 0, manualName = '', serviceKey = '', dateFrom = '', dateTo = '') {
+  const id       = `row_${rowCounter++}`;
+  const isManual = !executorId && !!manualName;
+
+  const row = document.createElement('div');
+  row.className = 'executor-row';
+  row.dataset.rowId = id;
+
+  const group = document.createElement('div');
+  group.className = 'executor-input-group';
+
+  // Mode switcher
+  const switcher = document.createElement('div');
+  switcher.className = 'executor-mode-switcher';
+  const btnFromList = document.createElement('button');
+  btnFromList.className = `mode-btn${!isManual ? ' active' : ''}`;
+  btnFromList.dataset.mode = 'select';
+  btnFromList.dataset.rowId = id;
+  btnFromList.textContent = 'Из справочника';
+  const btnManual = document.createElement('button');
+  btnManual.className = `mode-btn${isManual ? ' active' : ''}`;
+  btnManual.dataset.mode = 'manual';
+  btnManual.dataset.rowId = id;
+  btnManual.textContent = 'Вручную';
+  switcher.append(btnFromList, btnManual);
+
+  // Fields row
+  const fieldsRow = document.createElement('div');
+  fieldsRow.className = 'executor-fields-row';
+
+  const selectWrap = document.createElement('div');
+  selectWrap.className = 'executor-select-wrap';
+  selectWrap.dataset.part = 'select-wrap';
+  selectWrap.style.display = isManual ? 'none' : 'block';
+  selectWrap.appendChild(buildExecutorSelect(executorId, serviceKey));
+
+  const manualWrap = document.createElement('div');
+  manualWrap.className = 'executor-manual-wrap';
+  manualWrap.dataset.part = 'manual-wrap';
+  manualWrap.style.display = isManual ? 'block' : 'none';
+  const manualInput = document.createElement('input');
+  manualInput.type = 'text';
+  manualInput.className = 'manual-name-input';
+  manualInput.value = manualName;
+  manualInput.placeholder = 'ФИО исполнителя';
+  manualInput.autocomplete = 'off';
+  manualWrap.appendChild(manualInput);
+
+  const salaryInput = document.createElement('input');
+  salaryInput.type = 'number';
+  salaryInput.className = 'salary-input';
+  salaryInput.value = salary ? String(Math.round(salary)) : '';
+  salaryInput.placeholder = 'Сумма';
+  salaryInput.step = '1';
+  salaryInput.min = '0';
+
+  const removeBtn = document.createElement('button');
+  removeBtn.className = 'btn-remove-exec';
+  removeBtn.dataset.action = 'remove-exec-row';
+  removeBtn.dataset.rowId = id;
+  removeBtn.title = 'Удалить';
+  removeBtn.textContent = '✕';
+
+  fieldsRow.append(selectWrap, manualWrap, salaryInput, removeBtn);
+
+  // Save to list checkbox (manual mode only)
+  const manualSave = document.createElement('div');
+  manualSave.className = 'executor-manual-save';
+  manualSave.dataset.part = 'manual-save';
+  manualSave.style.display = isManual ? 'flex' : 'none';
+  const saveLabel = document.createElement('label');
+  saveLabel.className = 'save-to-list-label';
+  const saveChk = document.createElement('input');
+  saveChk.type = 'checkbox';
+  saveChk.className = 'save-to-list';
+  saveChk.checked = true;
+  const saveSpan = document.createElement('span');
+  saveSpan.textContent = 'Сохранить в справочник';
+  saveLabel.append(saveChk, saveSpan);
+  manualSave.appendChild(saveLabel);
+
+  // Инлайн-даты работы
+  const datesRow = document.createElement('div');
+  datesRow.className = 'exec-dates';
+  datesRow.dataset.part = 'dates-row';
+  datesRow.style.display = isManual ? 'none' : 'flex';
+
+  const defaultDate = dateFrom || checkinDate || '';
+  const defaultTo   = dateTo   || checkinDate || '';
+
+  const grpFrom = document.createElement('div'); grpFrom.className = 'exec-date-group';
+  const lblFrom = document.createElement('label'); lblFrom.textContent = 'Начало работ';
+  const inpFrom = document.createElement('input'); inpFrom.type = 'date'; inpFrom.className = 'exec-date-from'; inpFrom.value = defaultDate;
+  grpFrom.append(lblFrom, inpFrom);
+
+  const grpTo = document.createElement('div'); grpTo.className = 'exec-date-group';
+  const lblTo = document.createElement('label'); lblTo.textContent = 'Конец работ';
+  const inpTo = document.createElement('input'); inpTo.type = 'date'; inpTo.className = 'exec-date-to'; inpTo.value = defaultTo;
+  grpTo.append(lblTo, inpTo);
+
+  datesRow.append(grpFrom, grpTo);
+
+  // Индикатор конфликта
+  const conflictEl = document.createElement('div');
+  conflictEl.className = 'exec-conflict';
+  conflictEl.dataset.part = 'conflict';
+  conflictEl.textContent = '⚠ Мастер занят в эти дни';
+
+  group.append(switcher, fieldsRow, manualSave, datesRow, conflictEl);
+  row.appendChild(group);
+
+  // ── Listeners ──
+  salaryInput.addEventListener('input', updateSummary);
+  manualInput.addEventListener('input', updateSummary);
+
+  const sel = selectWrap.querySelector('select');
+
+  function checkConflict() {
+    const execId = sel.value;
+    const f = inpFrom.value, t = inpTo.value || inpFrom.value;
+    if (!execId || !f) { conflictEl.classList.remove('visible'); return; }
+    const hasConflict = allBookings.some(b => {
+      if (!b.executor_ids?.includes(execId)) return false;
+      if (b.calc_id === calcId) return false; // свой заказ — не конфликт
+      const bf = b.date_from?.slice(0,10), bt = (b.date_to || b.date_from)?.slice(0,10);
+      if (!bf) return false;
+      return f <= bt && t >= bf;
+    });
+    conflictEl.classList.toggle('visible', hasConflict);
+  }
+
+  sel.addEventListener('change', () => { updateSummary(); checkConflict(); });
+  inpFrom.addEventListener('change', () => { if (inpTo.value < inpFrom.value) inpTo.value = inpFrom.value; checkConflict(); });
+  inpTo.addEventListener('change', checkConflict);
+
+  // Проверить конфликт сразу при рендере (если уже выбран исполнитель)
+  if (executorId) setTimeout(checkConflict, 0);
+
+  return row;
+}
+
+
+function setExecutorMode(rowEl, mode) {
+  const selectWrap = rowEl.querySelector('[data-part="select-wrap"]');
+  const manualWrap = rowEl.querySelector('[data-part="manual-wrap"]');
+  const manualSave = rowEl.querySelector('[data-part="manual-save"]');
+  const datesRow   = rowEl.querySelector('[data-part="dates-row"]');
+  const btns       = rowEl.querySelectorAll('.mode-btn');
+
+  if (mode === 'manual') {
+    selectWrap.style.display = 'none';
+    manualWrap.style.display = 'block';
+    manualSave.style.display = 'flex';
+    if (datesRow) datesRow.style.display = 'none';
+    btns[0].classList.remove('active');
+    btns[1].classList.add('active');
+  } else {
+    selectWrap.style.display = 'block';
+    manualWrap.style.display = 'none';
+    manualSave.style.display = 'none';
+    if (datesRow) datesRow.style.display = 'flex';
+    btns[0].classList.add('active');
+    btns[1].classList.remove('active');
+  }
+}
+
+// ── Построение work-item (DOM) ──────────────────────────────────────
+function buildWorkItem(service, existingAssignments = []) {
+  const matched = existingAssignments.filter(a =>
+    a.service_name === service.name || a.service_key === service.key
+  );
+
+  const item = document.createElement('div');
+  item.className = 'work-item';
+  item.dataset.serviceKey  = service.key;
+  item.dataset.serviceName = service.name;
+
+  // Header
+  const header = document.createElement('div');
+  header.className = 'work-item-header';
+  const nameEl = document.createElement('span');
+  nameEl.className = 'work-service-name';
+  nameEl.textContent = service.name;
+
+  // Мотивация — кликабельная если 0
+  const salWrap = document.createElement('div');
+  salWrap.style.cssText = 'display:flex;align-items:center;gap:6px;';
+
+  const salEl = document.createElement('span');
+  salEl.className = 'work-base-salary' + (service.baseSalary > 0 ? '' : ' no-salary');
+  salEl.style.cssText = service.baseSalary > 0 ? '' : 'background:rgba(217,119,6,0.08);color:var(--warning);border-color:rgba(217,119,6,0.25);cursor:pointer;';
+  salEl.title = service.baseSalary > 0 ? '' : 'Нажмите чтобы задать мотивацию';
+
+  const renderSalLabel = (val) => {
+    salEl.textContent = val > 0 ? `Мотивация: ${fmt(val)} ₽` : 'Задать мотивацию';
+    salEl.dataset.baseSalary = String(val);
+  };
+  renderSalLabel(service.baseSalary);
+
+  // Инлайн-редактор мотивации
+  const salEditWrap = document.createElement('div');
+  salEditWrap.style.cssText = 'display:none;align-items:center;gap:6px;';
+  const salInput = document.createElement('input');
+  salInput.type = 'number'; salInput.min = '0'; salInput.step = '1';
+  salInput.value = service.baseSalary || '';
+  salInput.placeholder = 'Сумма ₽';
+  salInput.style.cssText = 'width:110px;padding:5px 8px;font-size:0.82rem;border:1.5px solid var(--warning);border-radius:7px;background:var(--surface);color:var(--text);outline:none;';
+  const salSaveBtn = document.createElement('button');
+  salSaveBtn.textContent = 'Ок';
+  salSaveBtn.style.cssText = 'padding:5px 10px;font-size:0.78rem;font-weight:700;background:var(--warning);color:#fff;border:none;border-radius:7px;cursor:pointer;font-family:var(--font);';
+  salEditWrap.append(salInput, salSaveBtn);
+
+  const openSalEdit = () => {
+    salEl.style.display = 'none';
+    salEditWrap.style.display = 'flex';
+    salInput.focus(); salInput.select();
+  };
+  const closeSalEdit = () => {
+    const val = parseFloat(salInput.value) || 0;
+    renderSalLabel(val);
+    addBtn.dataset.baseSalary = String(val);
+    // Обновить salary-input во всех строках исполнителей
+    rowsEl.querySelectorAll('.salary-input').forEach(inp => {
+      if (!parseFloat(inp.value)) inp.value = val > 0 ? String(Math.round(val)) : '';
+    });
+    salEl.style.display = '';
+    salEditWrap.style.display = 'none';
+    updateSummary();
+  };
+
+  salEl.addEventListener('click', openSalEdit);
+  salSaveBtn.addEventListener('click', closeSalEdit);
+  salInput.addEventListener('keydown', e => { if (e.key === 'Enter') closeSalEdit(); if (e.key === 'Escape') { salEditWrap.style.display='none'; salEl.style.display=''; } });
+
+  salWrap.append(salEl, salEditWrap);
+  header.append(nameEl, salWrap);
+
+  // Executor rows container
+  const rowsEl = document.createElement('div');
+  rowsEl.className = 'executor-rows';
+
+  const rowsData = matched.length > 0 ? matched : [{ executor_id: '', salary: service.baseSalary, executor_name: '' }];
+  rowsData.forEach(a => {
+    rowsEl.appendChild(buildExecutorRow(a.executor_id || '', a.salary || 0, a.executor_name || '', service.key || '', a.date_from || '', a.date_to || ''));
+  });
+
+  // Add executor button
+  const addBtn = document.createElement('button');
+  addBtn.className = 'add-executor-btn';
+  addBtn.dataset.action     = 'add-exec-row';
+  addBtn.dataset.baseSalary = String(service.baseSalary);
+  addBtn.textContent = 'Добавить исполнителя';
+
+  item.append(header, rowsEl, addBtn);
+  return item;
+}
+
+// ── Сводка ──────────────────────────────────────────────────────────
+function updateSummary() {
+  let total = 0, count = 0;
+  document.querySelectorAll('.executor-row').forEach(row => {
+    const sal  = parseFloat(row.querySelector('.salary-input')?.value) || 0;
+    const exec = row.querySelector('select')?.value;
+    const name = row.querySelector('.manual-name-input')?.value?.trim();
+    if ((exec || name) && sal > 0) { total += sal; count++; }
+  });
+  const adminSel = document.getElementById('isAdminSale');
+  if (adminSel?.checked) {
+    const pct   = parseFloat(document.getElementById('adminPercent')?.value) || 0;
+    const price = calculation?.total_price || 0;
+    if (pct > 0) { total += Math.round(price * pct / 100); count++; }
+  }
+  const countEl = document.getElementById('summaryCount');
+  const totalEl = document.getElementById('summaryTotal');
+  if (countEl) countEl.textContent = String(count);
+  if (totalEl) totalEl.textContent = fmt(total);
+}
+
+
+
+function calcAdminSalary() {
+  const adminSel = document.getElementById('isAdminSale');
+  if (!adminSel?.checked) return;
+  const pct      = parseFloat(document.getElementById('adminPercent')?.value) || 0;
+  const adminSal = Math.round((calculation?.total_price || 0) * pct / 100);
+  const el = document.getElementById('adminSalaryCalc');
+  if (el) el.textContent = `ЗП продавца: ${fmt(adminSal)}`;
+  updateSummary();
+}
+
+// ── Построение всего контента ───────────────────────────────────────
+function renderContent(services, existingAssignments = []) {
+  document.getElementById('carSubtitle').textContent = calculation.car_name || 'Без названия';
+
+  const adminSaleRecord = existingAssignments.find(a => a.is_admin_sale);
+  const adminChecked    = !!adminSaleRecord;
+  const adminPercent    = adminSaleRecord?.admin_percent || 3;
+  const adminExecId     = adminSaleRecord?.executor_id || '';
+  const workAssignments = existingAssignments.filter(a => !a.is_admin_sale);
+
+  const main = document.getElementById('mainContent');
+  main.innerHTML = '';
+  const frag = document.createDocumentFragment();
+
+  // ── Admin sale block ──
+  const adminBlock = document.createElement('div');
+  adminBlock.className = 'admin-sale-block';
+
+  const adminRow = document.createElement('div');
+  adminRow.className = 'admin-sale-row';
+
+  const toggleLabel = document.createElement('label');
+  toggleLabel.className = 'toggle-switch';
+  const toggleChk = document.createElement('input');
+  toggleChk.type = 'checkbox';
+  toggleChk.id  = 'isAdminSale';
+  toggleChk.checked = adminChecked;
+  const toggleSpan = document.createElement('span');
+  toggleSpan.textContent = 'Продажу сделал администратор';
+  toggleLabel.append(toggleChk, toggleSpan);
+
+  const adminDetails = document.createElement('div');
+  adminDetails.className = `admin-details${adminChecked ? ' active' : ''}`;
+  adminDetails.id = 'adminDetails';
+
+  // Mode switcher
+  const modeGroup = document.createElement('div');
+  modeGroup.className = 'form-group';
+  const modeLabel = document.createElement('label');
+  modeLabel.textContent = 'Режим';
+  const modeSwitcher = document.createElement('div');
+  modeSwitcher.style.cssText = 'display:flex;gap:5px';
+  const adminBtnSelect = document.createElement('button');
+  adminBtnSelect.id = 'adminModeSelect';
+  adminBtnSelect.className = 'mode-btn active';
+  adminBtnSelect.dataset.adminMode = 'select';
+  adminBtnSelect.textContent = 'Из списка';
+  const adminBtnManual = document.createElement('button');
+  adminBtnManual.id = 'adminModeManual';
+  adminBtnManual.className = 'mode-btn';
+  adminBtnManual.dataset.adminMode = 'manual';
+  adminBtnManual.textContent = 'Вручную';
+  modeSwitcher.append(adminBtnSelect, adminBtnManual);
+  modeGroup.append(modeLabel, modeSwitcher);
+
+  // Select wrap
+  const adminSelectWrap = document.createElement('div');
+  adminSelectWrap.className = 'form-group';
+  adminSelectWrap.id = 'adminSelectWrap';
+  const adminSelectLabel = document.createElement('label');
+  adminSelectLabel.textContent = 'Продавец';
+  adminSelectWrap.append(adminSelectLabel, buildAdminExecutorSelect(adminExecId));
+
+  // Manual wrap
+  const adminManualWrap = document.createElement('div');
+  adminManualWrap.className = 'form-group';
+  adminManualWrap.id = 'adminManualWrap';
+  adminManualWrap.style.display = 'none';
+  const adminManualLabel = document.createElement('label');
+  adminManualLabel.textContent = 'ФИО продавца';
+  const adminManualInput = document.createElement('input');
+  adminManualInput.type = 'text';
+  adminManualInput.id = 'adminManualName';
+  adminManualInput.placeholder = 'Иванов Иван Иванович';
+  adminManualInput.style.width = '220px';
+  adminManualInput.autocomplete = 'off';
+  const adminSaveLabel = document.createElement('label');
+  adminSaveLabel.className = 'save-to-list-label';
+  adminSaveLabel.style.marginTop = '4px';
+  const adminSaveChk = document.createElement('input');
+  adminSaveChk.type = 'checkbox';
+  adminSaveChk.id = 'adminSaveToList';
+  adminSaveChk.checked = true;
+  const adminSaveSpan = document.createElement('span');
+  adminSaveSpan.textContent = 'Сохранить в справочник';
+  adminSaveLabel.append(adminSaveChk, adminSaveSpan);
+  adminManualWrap.append(adminManualLabel, adminManualInput, adminSaveLabel);
+
+  // Percent
+  const pctGroup = document.createElement('div');
+  pctGroup.className = 'form-group';
+  const pctLabel = document.createElement('label');
+  pctLabel.textContent = '% от чека';
+  const pctInput = document.createElement('input');
+  pctInput.type = 'number';
+  pctInput.id = 'adminPercent';
+  pctInput.value = String(adminPercent);
+  pctInput.min = '0'; pctInput.max = '100'; pctInput.step = '0.5';
+  pctInput.style.width = '100px';
+  pctInput.addEventListener('input', calcAdminSalary);
+  pctGroup.append(pctLabel, pctInput);
+
+  // Info
+  const infoEl = document.createElement('div');
+  infoEl.style.cssText = 'font-size:0.8rem;color:var(--muted);line-height:1.5';
+  infoEl.textContent = `Чек: ${fmt(calculation.total_price)}`;
+  const salEl = document.createElement('strong');
+  salEl.id = 'adminSalaryCalc';
+  salEl.style.color = 'var(--warning)';
+  infoEl.appendChild(document.createElement('br'));
+  infoEl.appendChild(salEl);
+
+  adminDetails.append(modeGroup, adminSelectWrap, adminManualWrap, pctGroup, infoEl);
+  adminRow.append(toggleLabel, adminDetails);
+  adminBlock.appendChild(adminRow);
+  frag.appendChild(adminBlock);
+
+  // ── Services card ──
+  const servicesCard = document.createElement('div');
+  servicesCard.className = 'card';
+  const servTitle = document.createElement('div');
+  servTitle.className = 'card-title';
+  servTitle.textContent = 'Услуги из расчёта';
+  servicesCard.appendChild(servTitle);
+
+  if (services.length > 0) {
+    const workList = document.createElement('div');
+    workList.className = 'work-list';
+    workList.id = 'workList';
+    services.forEach(s => workList.appendChild(buildWorkItem(s, workAssignments)));
+    servicesCard.appendChild(workList);
+  } else {
+    const empty = document.createElement('div');
+    empty.style.cssText = 'padding:20px;color:var(--muted);text-align:center;font-size:0.85rem';
+    empty.textContent = 'В расчёте нет услуг с мотивацией. Добавьте услуги вручную ниже.';
+    const workList = document.createElement('div');
+    workList.className = 'work-list';
+    workList.id = 'workList';
+    servicesCard.append(empty, workList);
+  }
+  frag.appendChild(servicesCard);
+
+  // ── Manual work card ──
+  const manualCard = document.createElement('div');
+  manualCard.className = 'card';
+  const manTitle = document.createElement('div');
+  manTitle.className = 'card-title';
+  manTitle.textContent = 'Добавить работу вручную';
+
+  const manRow = document.createElement('div');
+  manRow.className = 'add-work-row';
+  const manNameInput = document.createElement('input');
+  manNameInput.type = 'text';
+  manNameInput.id = 'manualServiceName';
+  manNameInput.placeholder = 'Название работы (напр: Мойка, Полировка)';
+  manNameInput.autocomplete = 'off';
+  const manSalInput = document.createElement('input');
+  manSalInput.type = 'number';
+  manSalInput.id = 'manualSalary';
+  manSalInput.placeholder = 'Сумма';
+  manSalInput.min = '0'; manSalInput.step = '1';
+  manRow.append(manNameInput, manSalInput);
+
+  const manAddBtn = document.createElement('button');
+  manAddBtn.className = 'btn btn-secondary btn-sm';
+  manAddBtn.id = 'btnAddManual';
+  manAddBtn.style.marginTop = '10px';
+  manAddBtn.textContent = 'Добавить';
+
+  manualCard.append(manTitle, manRow, manAddBtn);
+  frag.appendChild(manualCard);
+
+  // ── Summary card ──
+  const sumCard = document.createElement('div');
+  sumCard.className = 'card';
+  const sumTitle = document.createElement('div');
+  sumTitle.className = 'card-title';
+  sumTitle.textContent = 'Итого к выплате';
+
+  const sumBlock = document.createElement('div');
+  sumBlock.className = 'summary-block';
+
+  const row1 = document.createElement('div');
+  row1.className = 'summary-row';
+  const lbl1 = document.createElement('span');
+  lbl1.className = 'summary-label';
+  lbl1.textContent = 'Исполнителей назначено';
+  const val1 = document.createElement('span');
+  val1.className = 'summary-value';
+  val1.id = 'summaryCount';
+  val1.textContent = '0';
+  row1.append(lbl1, val1);
+
+  const row2 = document.createElement('div');
+  row2.className = 'summary-row';
+  const lbl2 = document.createElement('span');
+  lbl2.className = 'summary-label';
+  lbl2.textContent = 'Итого ЗП';
+  const val2 = document.createElement('span');
+  val2.className = 'summary-total-value';
+  val2.id = 'summaryTotal';
+  val2.textContent = '0';
+  row2.append(lbl2, val2);
+
+  sumBlock.append(row1, row2);
+
+  const actRow = document.createElement('div');
+  actRow.style.cssText = 'display:flex;gap:10px;margin-top:16px;justify-content:flex-end;flex-wrap:wrap';
+  const backBtn = document.createElement('button');
+  backBtn.className = 'btn btn-secondary';
+  backBtn.id = 'btnCancelBottom';
+  backBtn.textContent = '← Отмена';
+  const saveBtn = document.createElement('button');
+  saveBtn.className = 'btn btn-success';
+  saveBtn.id = 'btnSave';
+  saveBtn.textContent = 'Сохранить';
+  actRow.append(backBtn, saveBtn);
+
+  // Saved banner (hidden)
+  const banner = document.createElement('div');
+  banner.id = 'savedBanner';
+  banner.style.cssText = 'display:none;margin-top:16px;padding:16px 20px;background:#f0fdf4;border:1.5px solid #86efac;border-radius:12px;align-items:center;gap:12px;flex-wrap:wrap';
+
+  const bannerIcon = document.createElement('div');
+  bannerIcon.style.fontSize = '1.2rem';
+  bannerIcon.textContent = '';
+
+  const bannerText = document.createElement('div');
+  bannerText.style.flex = '1';
+  const bannerTitle = document.createElement('div');
+  bannerTitle.style.cssText = 'font-weight:800;color:#065f46;font-size:0.95rem';
+  const savedCountSpan = document.createElement('span');
+  savedCountSpan.id = 'savedCount';
+  savedCountSpan.textContent = '0';
+  bannerTitle.append('Сохранено! Назначено ', savedCountSpan, ' записей.');
+  const bannerSub = document.createElement('div');
+  bannerSub.style.cssText = 'font-size:0.8rem;color:#059669;margin-top:2px';
+  bannerSub.textContent = 'Статус заказа переведён в «Принято в работу»';
+  bannerText.append(bannerTitle, bannerSub);
+
+  const woLink = document.createElement('a');
+  woLink.id = 'woLink';
+  woLink.href = '#';
+  woLink.style.cssText = 'display:inline-flex;align-items:center;gap:6px;padding:10px 18px;background:#0f172a;color:#fff;border-radius:9px;font-size:0.85rem;font-weight:700;text-decoration:none';
+  woLink.textContent = 'Скачать заказ-наряд';
+
+  const boardLink = document.createElement('a');
+  boardLink.href = 'board.html';
+  boardLink.style.cssText = 'display:inline-flex;align-items:center;gap:6px;padding:10px 18px;background:#f1f5f9;color:#0f172a;border-radius:9px;font-size:0.85rem;font-weight:700;text-decoration:none;border:1px solid rgba(15,23,42,0.10)';
+  boardLink.textContent = '← На доску';
+
+  banner.append(bannerIcon, bannerText, woLink, boardLink);
+
+  sumCard.append(sumTitle, sumBlock, actRow, banner);
+  frag.appendChild(sumCard);
+
+  main.appendChild(frag);
+
+  // Bind events after DOM inserted
+  bindContentEvents();
+  calcAdminSalary();
+  updateSummary();
+}
+
+// ── Event delegation ────────────────────────────────────────────────
+function bindContentEvents() {
+  const main = document.getElementById('mainContent');
+
+  main.addEventListener('click', e => {
+    // mode-btn внутри executor-row
+    const modeBtn = e.target.closest('.executor-row .mode-btn[data-mode]');
+    if (modeBtn) {
+      const rowEl = modeBtn.closest('.executor-row');
+      if (rowEl) setExecutorMode(rowEl, modeBtn.dataset.mode);
+      return;
+    }
+
+    // Кнопка удаления строки исполнителя
+    const removeBtn = e.target.closest('[data-action="remove-exec-row"]');
+    if (removeBtn) {
+      const rowEl = removeBtn.closest('.executor-row');
+      rowEl?.remove();
+      updateSummary();
+      return;
+    }
+
+    // Добавить исполнителя
+    const addExecBtn = e.target.closest('[data-action="add-exec-row"]');
+    if (addExecBtn) {
+      const workItem = addExecBtn.closest('.work-item');
+      const rowsEl   = workItem?.querySelector('.executor-rows');
+      if (rowsEl) {
+        const newRow = buildExecutorRow('', parseFloat(addExecBtn.dataset.baseSalary) || 0, '', workItem?.dataset.serviceKey || '');
+        rowsEl.appendChild(newRow);
+        updateSummary();
+      }
+      return;
+    }
+
+    // Admin mode buttons
+    const adminModeBtn = e.target.closest('[data-admin-mode]');
+    if (adminModeBtn) {
+      setAdminMode(adminModeBtn.dataset.adminMode);
+      return;
+    }
+
+    // Кнопка добавить ручную работу
+    if (e.target.closest('#btnAddManual')) {
+      addManualWork();
+      return;
+    }
+
+    // Сохранить
+    if (e.target.closest('#btnSave')) {
+      saveAssignments(e.target.closest('#btnSave'));
+      return;
+    }
+
+    // Отмена (нижняя)
+    if (e.target.closest('#btnCancelBottom')) {
+      goBack();
+      return;
+    }
+  });
+
+  // Чекбокс admin sale
+  document.getElementById('isAdminSale')?.addEventListener('change', () => {
+    const isChecked = document.getElementById('isAdminSale').checked;
+    document.getElementById('adminDetails').classList.toggle('active', isChecked);
+    calcAdminSalary();
+  });
+}
+
+function setAdminMode(mode) {
+  const selectWrap = document.getElementById('adminSelectWrap');
+  const manualWrap = document.getElementById('adminManualWrap');
+  const btnSel     = document.getElementById('adminModeSelect');
+  const btnMan     = document.getElementById('adminModeManual');
+  if (mode === 'manual') {
+    selectWrap.style.display = 'none';
+    manualWrap.style.display = 'block';
+    btnSel.classList.remove('active');
+    btnMan.classList.add('active');
+  } else {
+    selectWrap.style.display = 'block';
+    manualWrap.style.display = 'none';
+    btnSel.classList.add('active');
+    btnMan.classList.remove('active');
+  }
+}
+
+function addManualWork() {
+  const name   = document.getElementById('manualServiceName').value.trim();
+  const salary = parseFloat(document.getElementById('manualSalary').value) || 0;
+  if (!name) { showToast('warning', 'Введите название работы'); return; }
+
+  const service  = { key: `manual_${Date.now()}`, name, baseSalary: salary };
+  let workList = document.getElementById('workList');
+  if (!workList) {
+    workList = document.createElement('div');
+    workList.className = 'work-list';
+    workList.id = 'workList';
+    document.querySelector('.card')?.appendChild(workList);
+  }
+  workList.appendChild(buildWorkItem(service));
+
+  document.getElementById('manualServiceName').value = '';
+  document.getElementById('manualSalary').value = '';
+  updateSummary();
+}
+
+// ── Сохранение ──────────────────────────────────────────────────────
+async function saveAssignments(btnEl) {
+  const release = lockButton(btnEl, 'Сохранение...');
+  const assignments = [];
+
+  // Admin sale
+  const isAdminSale = document.getElementById('isAdminSale')?.checked;
+  if (isAdminSale) {
+    const isManualMode = document.getElementById('adminManualWrap')?.style.display !== 'none';
+    const pct          = parseFloat(document.getElementById('adminPercent')?.value) || 0;
+    const adminSal     = Math.round((calculation.total_price || 0) * pct / 100);
+    let adminExecId = null, adminExecName = '';
+
+    if (isManualMode) {
+      adminExecName = document.getElementById('adminManualName')?.value?.trim() || '';
+      const saveToList = document.getElementById('adminSaveToList')?.checked;
+      if (adminExecName && saveToList) {
+        const { data: saved } = await sb.from('executors').insert({
+          studio_id: studioCtx.studioId,
+          full_name: adminExecName,
+          role: 'universal', is_active: true, is_admin: true,
+        }).select().single();
+        if (saved) { adminExecId = saved.id; executors.push(saved); }
+      }
+    } else {
+      adminExecId   = document.getElementById('adminExecutorId')?.value || null;
+      adminExecName = executors.find(e => e.id === adminExecId)?.full_name || '';
+    }
+
+    if ((adminExecId || adminExecName) && adminSal > 0) {
+      assignments.push({
+        studio_id: studioCtx.studioId, calculation_id: calcId,
+        car_name: calculation.car_name,
+        service_name: 'Продажа (% от чека)',
+        executor_id: adminExecId || null, executor_name: adminExecName,
+        salary: adminSal, is_admin_sale: true, admin_percent: pct,
+        status: 'pending', payment_month: new Date().toISOString().slice(0, 7),
+      });
+    }
+  }
+
+  // Work items
+  const newExecutorsToSave = [];
+
+  const bookingsByExec = {}; // execId -> { date_from, date_to }
+
+  document.querySelectorAll('.work-item').forEach(item => {
+    const serviceName = item.dataset.serviceName;
+    item.querySelectorAll('.executor-row').forEach(row => {
+      const isManualMode = row.querySelector('[data-part="manual-wrap"]')?.style.display !== 'none';
+      let execId = null, execName = '', saveToList = false;
+
+      if (isManualMode) {
+        execName    = row.querySelector('.manual-name-input')?.value?.trim() || '';
+        saveToList  = row.querySelector('.save-to-list')?.checked;
+        if (!execName) return;
+        if (saveToList) newExecutorsToSave.push(execName);
+      } else {
+        execId   = row.querySelector('select')?.value || null;
+        if (!execId) return;
+        execName = executors.find(e => e.id === execId)?.full_name || '';
+      }
+
+      const salary = parseFloat(row.querySelector('.salary-input')?.value) || 0;
+      if (salary <= 0) return;
+
+      // Читаем даты
+      const dateFrom = row.querySelector('.exec-date-from')?.value || checkinDate || null;
+      const dateTo   = row.querySelector('.exec-date-to')?.value   || dateFrom;
+
+      if (execId && dateFrom) {
+        if (!bookingsByExec[execId]) bookingsByExec[execId] = { date_from: dateFrom, date_to: dateTo };
+        else {
+          // Расширяем диапазон если несколько услуг у одного мастера
+          if (dateFrom < bookingsByExec[execId].date_from) bookingsByExec[execId].date_from = dateFrom;
+          if (dateTo   > bookingsByExec[execId].date_to)   bookingsByExec[execId].date_to   = dateTo;
+        }
+      }
+
+      assignments.push({
+        studio_id: studioCtx.studioId, calculation_id: calcId,
+        car_name: calculation.car_name,
+        service_name: serviceName,
+        executor_id: execId || null, executor_name: execName,
+        salary, is_admin_sale: false, status: 'pending',
+        payment_month: new Date().toISOString().slice(0, 7),
+      });
+    });
+  });
+
+  if (assignments.length === 0) {
+    release();
+    showToast('warning', 'Не назначено ни одного исполнителя с суммой!');
+    return;
+  }
+
+  try {
+    // Сохраняем новых исполнителей
+    if (newExecutorsToSave.length > 0) {
+      const uniqueNames = [...new Set(newExecutorsToSave)];
+      const { data: savedExecs, error: execError } = await sb.from('executors').insert(
+        uniqueNames.map(name => ({ studio_id: studioCtx.studioId, full_name: name, role: 'universal', is_active: true, is_admin: false }))
+      ).select();
+      if (!execError && savedExecs) {
+        savedExecs.forEach(saved => {
+          assignments.forEach(a => { if (a.executor_name === saved.full_name && !a.executor_id) a.executor_id = saved.id; });
+        });
+        executors.push(...savedExecs);
+      }
+    }
+
+    await sb.from('work_assignments').delete().eq('calculation_id', calcId);
+    const { error } = await sb.from('work_assignments').insert(assignments);
+    if (error) {
+      release();
+      showToast('error', 'Ошибка сохранения: ' + error.message);
+      console.error('[assign] save:', error);
+      return;
+    }
+
+    // Сохраняем брони в calendar_bookings
+    if (Object.keys(bookingsByExec).length > 0) {
+      const { data: posts } = await sb.from('calendar_posts').select('id').eq('studio_id', studioCtx.studioId).limit(1);
+      const postId = posts?.[0]?.id || null;
+      // Удаляем старые брони этого заказа
+      await sb.from('calendar_bookings').delete().eq('calc_id', calcId);
+      // Вставляем новые — по одной на каждого исполнителя
+      for (const [execId, dates] of Object.entries(bookingsByExec)) {
+        await sb.from('calendar_bookings').insert({
+          studio_id: studioCtx.studioId, calc_id: calcId,
+          car_name: calculation.car_name || '',
+          executor_ids: [execId],
+          date_from: dates.date_from, date_to: dates.date_to,
+          post_id: postId,
+        });
+      }
+    }
+
+    await sb.from('calculations').update({ work_assigned: true, status: 'in_progress' }).eq('id', calcId);
+
+    release();
+    showSavedBanner(assignments.length);
+  } catch (err) {
+    release();
+    showToast('error', 'Ошибка сохранения');
+    console.error('[assign] save exception:', err);
+  }
+}
+
+function showSavedBanner(count) {
+  const saveBtn = document.getElementById('btnSave');
+  if (saveBtn) saveBtn.style.display = 'none';
+
+  const banner = document.getElementById('savedBanner');
+  if (banner) {
+    document.getElementById('savedCount').textContent = String(count);
+    const woLink = document.getElementById('woLink');
+    if (woLink) woLink.href = `work-order.html?calc_id=${encodeURIComponent(calcId)}`;
+    banner.style.display = 'flex';
+    banner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  showToast('success', `Сохранено! Назначено ${count} записей.`);
+}
+
+// ── Извлечение услуг из calculation_data ───────────────────────────
+function extractServices(calcData) {
+  const services = [];
+  const d        = calcData;
+  const seen     = new Set();
+
+  function addIfHasMot(key, name, mot) {
+    const m = parseFloat(mot) || 0;
+    if (m > 0 && !seen.has(key)) { seen.add(key); services.push({ key, name, baseSalary: m }); }
+  }
+
+  if (d.package) {
+    addIfHasMot('pkg_wrap', SERVICE_NAMES.pkg_wrap, d.package.wrapMot);
+    addIfHasMot('pkg_prep', SERVICE_NAMES.pkg_prep, d.package.prepMot);
+    addIfHasMot('pkg_arm',  SERVICE_NAMES.pkg_arm,  d.package.armMot);
+  }
+  if (d.impact) {
+    addIfHasMot('impact_wrap', SERVICE_NAMES.impact_wrap, d.impact.wrapMot);
+    addIfHasMot('impact_prep', SERVICE_NAMES.impact_prep, d.impact.prepMot);
+    addIfHasMot('impact_arm',  SERVICE_NAMES.impact_arm,  d.impact.armMot);
+  }
+  if (d.services_detail) {
+    const groups = { arm: 'Бронирование', det: 'Детейлинг', gl: 'Стёкла', ms: 'Доп. услуги', wrap: 'Оклейка' };
+    Object.entries(groups).forEach(([key, groupName]) => {
+      (d.services_detail[key] || []).forEach((item, idx) => {
+        const m = parseFloat(item.mot) || 0;
+        if (m > 0) {
+          const k = `${key}_${idx}`;
+          if (!seen.has(k)) { seen.add(k); services.push({ key: k, name: item.name || groupName, baseSalary: m }); }
+        }
+      });
+    });
+  }
+  if (!d.services_detail) {
+    ['arm','wrap','det','gl','ms'].forEach(key => {
+      if (d[key]) addIfHasMot(key, SERVICE_NAMES[key] || key, d[key].mot || d[key].motivation);
+    });
+  }
+  if (d.services && Array.isArray(d.services)) {
+    d.services.forEach((srv, idx) => {
+      const m = parseFloat(srv.mot || srv.motivation) || 0;
+      if (m > 0) addIfHasMot(`service_${idx}`, srv.name || `Услуга ${idx + 1}`, m);
+    });
+  }
+
+  return services;
+}
+
+// ── Навигация ────────────────────────────────────────────────────────
+function goBack() {
+  window.location.href = document.referrer?.includes('board.html') ? 'board.html' : 'dashboard.html';
+}
+
+// ── Точка входа ──────────────────────────────────────────────────────
+async function initPage() {
+  initNav({ actionHref: 'board.html', actionLabel: '← На доску' });
+
+  document.getElementById('btnBack').addEventListener('click', goBack);
+
+  const user = await requireAuth({ redirectTo: 'welcome.html' });
+  if (!user) return;
+
+  try {
+    studioCtx = await getStudioContext();
+  } catch (err) {
+    console.error('[assign] getStudioContext:', err);
+    showError(document.getElementById('mainContent'), 'Ошибка загрузки студии', () => location.reload());
+    return;
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  calcId = params.get('calc_id');
+
+  if (!calcId) {
+    showNotFound(document.getElementById('mainContent'), 'Не указан ID расчёта');
+    return;
+  }
+
+  const { data: calcData, error: calcError } = await sb
+    .from('calculations')
+    .select('*')
+    .eq('id', calcId)
+    .single();
+
+  if (calcError || !calcData) {
+    showNotFound(document.getElementById('mainContent'), 'Расчёт не найден');
+    return;
+  }
+
+  calculation = calcData;
+  checkinDate = calcData.checkin_date || null;
+  await loadExecutors();
+
+  // Загружаем все бронирования студии для мини-календарей
+  const { data: bookingsData } = await sb
+    .from('calendar_bookings')
+    .select('post_id, date_from, date_to, executor_ids, calc_id')
+    .eq('studio_id', studioCtx.studioId);
+  allBookings = bookingsData || [];
+
+  const { data: existingData } = await sb
+    .from('work_assignments')
+    .select('*')
+    .eq('calculation_id', calcId);
+
+  const services = extractServices(calcData.calculation_data || {});
+
+  let assignments = existingData || [];
+  if (!assignments.length) {
+    const bookingAssignments = calcData.calculation_data?.service_assignments || [];
+    assignments = bookingAssignments
+      .filter(a => a.executor_id)
+      .map(a => ({
+        service_key:  a.key,
+        service_name: a.name,
+        executor_id:  a.executor_id,
+        salary: 0,
+      }));
+  }
+
+  renderContent(services, assignments);
+}
+
+document.addEventListener('DOMContentLoaded', initPage);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Акты сверок — Keep1R CRM</title>
+<link rel="stylesheet" href="nav.css">
+<script src="nav.js"></script>
+<style>
+body { visibility: hidden; background: #f5f7fa; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif; }
+.container { max-width: 1100px; margin: 0 auto; padding: 24px; }
+.page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+.page-header h1 { font-size: 1.4rem; font-weight: 800; color: #0f172a; }
+.btn { padding: 10px 18px; border-radius: 8px; border: none; cursor: pointer; font-size: 0.875rem; font-weight: 600; transition: all .15s; }
+.btn-primary { background: #7c3aed; color: #fff; }
+.btn-primary:hover { background: #6d28d9; }
+.btn-secondary { background: #f1f5f9; color: #374151; }
+.btn-secondary:hover { background: #e2e8f0; }
+.btn-danger { background: #fee2e2; color: #dc2626; }
+.btn-sm { padding: 6px 12px; font-size: 0.78rem; }
+.btn-success { background: #059669; color: #fff; }
+.btn-success:hover { background: #047857; }
+.filters { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+.filters select, .filters input { padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.875rem; outline: none; background: #fff; }
+.acts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+.act-card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,.06); border-left: 4px solid #e2e8f0; }
+.act-card.draft { border-left-color: #94a3b8; }
+.act-card.sent { border-left-color: #f59e0b; }
+.act-card.confirmed { border-left-color: #059669; }
+.act-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+.act-name { font-size: 1rem; font-weight: 700; color: #0f172a; }
+.act-period { font-size: 0.78rem; color: #64748b; margin-top: 2px; }
+.badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 600; }
+.badge-draft { background: #f1f5f9; color: #64748b; }
+.badge-sent { background: #fef3c7; color: #92400e; }
+.badge-confirmed { background: #dcfce7; color: #166534; }
+.act-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin: 12px 0; }
+.act-stat { text-align: center; padding: 8px; background: #f8fafc; border-radius: 8px; }
+.act-stat-label { font-size: 0.7rem; color: #64748b; font-weight: 600; text-transform: uppercase; }
+.act-stat-value { font-size: 0.95rem; font-weight: 800; color: #0f172a; margin-top: 2px; }
+.act-stat-value.green { color: #059669; }
+.act-stat-value.red { color: #dc2626; }
+.act-actions { display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap; }
+.empty { text-align: center; padding: 60px 20px; color: #94a3b8; }
+.empty-icon { font-size: 3rem; margin-bottom: 12px; }
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 200; align-items: center; justify-content: center; padding: 16px; }
+.modal-overlay.open { display: flex; }
+.modal { background: #fff; border-radius: 16px; padding: 28px; width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; }
+.modal h2 { font-size: 1.1rem; font-weight: 800; margin-bottom: 20px; }
+.form-group { display: flex; flex-direction: column; gap: 4px; margin-bottom: 14px; }
+.form-group label { font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; }
+.form-group input, .form-group select, .form-group textarea { padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.875rem; outline: none; }
+.form-group input:focus, .form-group select:focus { border-color: #7c3aed; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+.act-detail { background: #f8fafc; border-radius: 10px; padding: 16px; margin-top: 16px; }
+.act-detail h3 { font-size: 0.85rem; font-weight: 700; color: #374151; margin-bottom: 12px; }
+.act-detail-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #e2e8f0; font-size: 0.85rem; }
+.act-detail-row:last-child { border-bottom: none; font-weight: 700; }
+.counterparty-type { font-size: 0.72rem; color: #64748b; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; margin-left: 6px; }
+@media (max-width: 640px) {
+  .acts-grid { grid-template-columns: 1fr; }
+  .form-row { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="page-header">
+    <h1>📑 Акты сверок</h1>
+    <button class="btn btn-primary" onclick="openModal()">+ Создать акт</button>
+  </div>
+
+  <div class="filters">
+    <select id="filterCp" onchange="applyFilters()">
+      <option value="">Все контрагенты</option>
+    </select>
+    <select id="filterStatus" onchange="applyFilters()">
+      <option value="">Все статусы</option>
+      <option value="draft">Черновик</option>
+      <option value="sent">Отправлен</option>
+      <option value="confirmed">Подтверждён</option>
+    </select>
+    <input type="number" id="filterYear" placeholder="Год" style="width:90px" onchange="applyFilters()">
+  </div>
+
+  <div class="acts-grid" id="actsGrid">
+    <div class="empty"><div class="empty-icon">📑</div><div>Загрузка...</div></div>
+  </div>
+</div>
+
+<!-- Create/Edit modal -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h2 id="modalTitle">Создать акт сверки</h2>
+    <div class="form-group">
+      <label>Контрагент *</label>
+      <select id="fCp"></select>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Период с *</label>
+        <input type="date" id="fFrom">
+      </div>
+      <div class="form-group">
+        <label>Период по *</label>
+        <input type="date" id="fTo">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Примечания</label>
+      <textarea id="fNotes" rows="2" placeholder="Доп. информация"></textarea>
+    </div>
+    <div id="actPreview" style="display:none"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">Отмена</button>
+      <button class="btn btn-primary" onclick="previewAct()">Рассчитать →</button>
+      <button class="btn btn-success" id="btnSaveAct" style="display:none" onclick="saveAct()">Сохранить акт</button>
+    </div>
+  </div>
+</div>
+
+<!-- Detail modal -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal" style="max-width:640px">
+    <h2 id="detailTitle">Акт сверки</h2>
+    <div id="detailBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeDetail()">Закрыть</button>
+      <button class="btn btn-primary" id="btnSent" onclick="setStatus('sent')">📤 Отправлен</button>
+      <button class="btn btn-success" id="btnConfirm" onclick="setStatus('confirmed')">✅ Подтвердить</button>
+    </div>
+  </div>
+</div>
+
+<script src="footer.js"></script>
+<script type="module">
+import { sb } from './api.js';
+import { requireAuth } from './auth.js';
+import { getStudioContext } from './studio-context.js';
+import { showToast } from './ui.js';
+
+let studioId, allActs = [], counterparties = [], calcPreview = null, currentActId = null;
+const fmt = n => new Intl.NumberFormat('ru-RU').format(n||0) + ' ₽';
+const typeLabels = {client:'Клиент', supplier:'Поставщик', employee:'Сотрудник', outsource:'Аутсорс'};
+const statusLabels = {draft:'Черновик', sent:'Отправлен', confirmed:'Подтверждён'};
+
+window.openModal = function(id) {
+  calcPreview = null;
+  document.getElementById('actPreview').style.display = 'none';
+  document.getElementById('btnSaveAct').style.display = 'none';
+  document.getElementById('modalTitle').textContent = 'Создать акт сверки';
+  if (!id) {
+    const now = new Date();
+    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0,10);
+    const lastDay  = new Date(now.getFullYear(), now.getMonth()+1, 0).toISOString().slice(0,10);
+    document.getElementById('fFrom').value  = firstDay;
+    document.getElementById('fTo').value    = lastDay;
+    document.getElementById('fNotes').value = '';
+    document.getElementById('fCp').value    = '';
+  }
+  document.getElementById('modal').classList.add('open');
+};
+window.closeModal = function() { document.getElementById('modal').classList.remove('open'); };
+window.closeDetail = function() { document.getElementById('detailModal').classList.remove('open'); };
+
+window.previewAct = async function() {
+  const cpId = document.getElementById('fCp').value;
+  const from = document.getElementById('fFrom').value;
+  const to   = document.getElementById('fTo').value;
+  if (!cpId || !from || !to) { alert('Заполните все поля'); return; }
+
+  const { data: flows } = await sb.from('cash_flow')
+    .select('type, amount, payment_method, debt_status, created_at, description')
+    .eq('studio_id', studioId)
+    .eq('counterparty_id', cpId)
+    .gte('created_at', from)
+    .lte('created_at', to + 'T23:59:59');
+
+  const rows = flows || [];
+  const totalIncome  = rows.filter(r=>r.type==='income').reduce((s,r)=>s+Number(r.amount),0);
+  const totalExpense = rows.filter(r=>r.type==='expense').reduce((s,r)=>s+Number(r.amount),0);
+  const balance = totalIncome - totalExpense;
+  const debtIn  = rows.filter(r=>r.type==='income'&&r.debt_status==='debt').reduce((s,r)=>s+Number(r.amount),0);
+  const debtOut = rows.filter(r=>r.type==='expense'&&r.debt_status==='debt').reduce((s,r)=>s+Number(r.amount),0);
+
+  calcPreview = { totalIncome, totalExpense, balance, cpId, from, to, rows, debtIn, debtOut };
+
+  const cp = counterparties.find(c=>c.id===cpId);
+  const preview = document.getElementById('actPreview');
+  preview.style.display = 'block';
+  preview.innerHTML = `
+    <div class="act-detail">
+      <h3>Расчёт за период ${from} — ${to}</h3>
+      <div class="act-detail-row"><span>Поступлений от контрагента</span><span style="color:#059669">${fmt(totalIncome)}</span></div>
+      <div class="act-detail-row"><span>Расходов на контрагента</span><span style="color:#dc2626">${fmt(totalExpense)}</span></div>
+      <div class="act-detail-row"><span>Долги (нам)</span><span style="color:#d97706">${fmt(debtIn)}</span></div>
+      <div class="act-detail-row"><span>Долги (нам должны вернуть)</span><span style="color:#d97706">${fmt(debtOut)}</span></div>
+      <div class="act-detail-row"><span>Итоговый баланс</span><span style="color:${balance>=0?'#059669':'#dc2626'}">${fmt(balance)}</span></div>
+      <div style="margin-top:8px;font-size:0.78rem;color:#64748b">Операций: ${rows.length}</div>
+    </div>`;
+
+  document.getElementById('btnSaveAct').style.display = 'block';
+};
+
+window.saveAct = async function() {
+  if (!calcPreview) return;
+  const { error } = await sb.from('reconciliation_acts').insert({
+    studio_id: studioId,
+    counterparty_id: calcPreview.cpId,
+    period_start: calcPreview.from,
+    period_end:   calcPreview.to,
+    total_income:  calcPreview.totalIncome,
+    total_expense: calcPreview.totalExpense,
+    balance:       calcPreview.balance,
+    status: 'draft',
+    notes: document.getElementById('fNotes').value || null,
+  });
+  if (error) { alert('Ошибка: ' + error.message); return; }
+  closeModal();
+  await loadData();
+  showToast('success', 'Акт создан');
+};
+
+window.openDetail = async function(id) {
+  currentActId = id;
+  const act = allActs.find(a=>a.id===id);
+  if (!act) return;
+  const cp = counterparties.find(c=>c.id===act.counterparty_id);
+
+  const { data: flows } = await sb.from('cash_flow')
+    .select('type,amount,payment_method,debt_status,created_at,description')
+    .eq('studio_id', studioId)
+    .eq('counterparty_id', act.counterparty_id)
+    .gte('created_at', act.period_start)
+    .lte('created_at', act.period_end + 'T23:59:59')
+    .order('created_at');
+
+  const rows = flows || [];
+
+  document.getElementById('detailTitle').textContent = `Акт сверки — ${cp?.name||'Контрагент'}`;
+  document.getElementById('btnSent').style.display    = act.status === 'draft'     ? 'block' : 'none';
+  document.getElementById('btnConfirm').style.display = act.status !== 'confirmed' ? 'block' : 'none';
+
+  const payL = {cash:'Наличные', bank:'БН', card:'Карта', acquiring:'Эквайринг', transfer:'Перевод'};
+  const rowsHtml = rows.map(r=>`
+    <div class="act-detail-row">
+      <span>${r.created_at?.slice(0,10)} — ${r.type==='income'?'Приход':'Расход'} — ${payL[r.payment_method]||r.payment_method}${r.description?' ('+r.description+')':''}</span>
+      <span style="color:${r.type==='income'?'#059669':'#dc2626'}">${r.type==='income'?'+':'−'}${fmt(r.amount)}</span>
+    </div>`).join('');
+
+  document.getElementById('detailBody').innerHTML = `
+    <div style="margin-bottom:12px">
+      <strong>${cp?.name||'—'}</strong>
+      <span class="counterparty-type">${typeLabels[cp?.type]||cp?.type||''}</span>
+    </div>
+    <div style="font-size:0.85rem;color:#64748b;margin-bottom:16px">Период: ${act.period_start} — ${act.period_end}</div>
+    <div class="act-detail">
+      <h3>Итоги</h3>
+      <div class="act-detail-row"><span>Доходы</span><span style="color:#059669">+${fmt(act.total_income)}</span></div>
+      <div class="act-detail-row"><span>Расходы</span><span style="color:#dc2626">−${fmt(act.total_expense)}</span></div>
+      <div class="act-detail-row"><span>Баланс</span><span style="color:${act.balance>=0?'#059669':'#dc2626'}">${fmt(act.balance)}</span></div>
+    </div>
+    ${rows.length ? `<div class="act-detail" style="margin-top:12px"><h3>Операции (${rows.length})</h3>${rowsHtml}</div>` : ''}
+    ${act.notes ? `<div style="margin-top:12px;font-size:0.875rem;color:#64748b">📝 ${act.notes}</div>` : ''}
+  `;
+
+  document.getElementById('detailModal').classList.add('open');
+};
+
+window.setStatus = async function(status) {
+  if (!currentActId) return;
+  await sb.from('reconciliation_acts').update({status}).eq('id', currentActId);
+  closeDetail();
+  await loadData();
+  showToast('success', status === 'sent' ? 'Статус: Отправлен' : 'Статус: Подтверждён');
+};
+
+window.deleteAct = async function(id) {
+  if (!confirm('Удалить акт?')) return;
+  await sb.from('reconciliation_acts').delete().eq('id', id);
+  await loadData();
+  showToast('success', 'Удалено');
+};
+
+window.applyFilters = function() { renderActs(); };
+
+function renderActs() {
+  const cpF     = document.getElementById('filterCp').value;
+  const statusF = document.getElementById('filterStatus').value;
+  const yearF   = document.getElementById('filterYear').value;
+
+  let acts = allActs.filter(a => {
+    if (cpF     && a.counterparty_id !== cpF) return false;
+    if (statusF && a.status !== statusF) return false;
+    if (yearF   && !a.period_start?.startsWith(yearF)) return false;
+    return true;
+  });
+
+  const grid = document.getElementById('actsGrid');
+  if (!acts.length) {
+    grid.innerHTML = `<div class="empty"><div class="empty-icon">📑</div><div>Актов сверок нет</div></div>`;
+    return;
+  }
+
+  grid.innerHTML = acts.map(a => {
+    const cp = counterparties.find(c=>c.id===a.counterparty_id);
+    const badgeClass = {draft:'badge-draft', sent:'badge-sent', confirmed:'badge-confirmed'}[a.status]||'badge-draft';
+    return `<div class="act-card ${a.status}">
+      <div class="act-header">
+        <div>
+          <div class="act-name">${cp?.name||'—'} <span class="counterparty-type">${typeLabels[cp?.type]||''}</span></div>
+          <div class="act-period">${a.period_start} — ${a.period_end}</div>
+        </div>
+        <span class="badge ${badgeClass}">${statusLabels[a.status]}</span>
+      </div>
+      <div class="act-stats">
+        <div class="act-stat"><div class="act-stat-label">Доходы</div><div class="act-stat-value green">${fmt(a.total_income)}</div></div>
+        <div class="act-stat"><div class="act-stat-label">Расходы</div><div class="act-stat-value red">${fmt(a.total_expense)}</div></div>
+        <div class="act-stat"><div class="act-stat-label">Баланс</div><div class="act-stat-value ${a.balance>=0?'green':'red'}">${fmt(a.balance)}</div></div>
+      </div>
+      <div class="act-actions">
+        <button class="btn btn-secondary btn-sm" onclick="openDetail('${a.id}')">👁 Детали</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteAct('${a.id}')">🗑</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function loadData() {
+  const [actsRes, cpRes] = await Promise.all([
+    sb.from('reconciliation_acts').select('*').eq('studio_id', studioId).order('created_at',{ascending:false}),
+    sb.from('counterparties').select('*').eq('studio_id', studioId).order('name'),
+  ]);
+
+  allActs        = actsRes.data || [];
+  counterparties = cpRes.data   || [];
+
+  // Fill filters
+  const cpFilter = document.getElementById('filterCp');
+  cpFilter.innerHTML = '<option value="">Все контрагенты</option>' +
+    counterparties.map(c=>`<option value="${c.id}">${c.name} (${typeLabels[c.type]||c.type})</option>`).join('');
+
+  const cpSel = document.getElementById('fCp');
+  cpSel.innerHTML = '<option value="">— выберите —</option>' +
+    counterparties.map(c=>`<option value="${c.id}">${c.name} (${typeLabels[c.type]||c.type})</option>`).join('');
+
+  renderActs();
+}
+
+(async () => {
+  initNav();
+  document.body.style.visibility = 'visible';
+  const user = await requireAuth({ redirectTo: 'welcome.html' });
+  if (!user) return;
+  const ctx = await getStudioContext();
+  if (!ctx?.studioId) { window.location.href = 'welcome.html'; return; }
+  studioId = ctx.studioId;
+  document.getElementById('filterYear').value = new Date().getFullYear();
+  await loadData();
+})();
+</script>
+</body>
+</html>

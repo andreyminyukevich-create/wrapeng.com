@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Аналитика — Keep1R CRM</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<link rel="stylesheet" href="nav.css">
+<script src="nav.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif; -webkit-font-smoothing: antialiased; background: #eef2f9; color: #0f172a; min-height: 100svh; }
+.container { max-width: 1280px; margin: 0 auto; padding: 24px 24px 64px; }
+.page-header { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:20px; flex-wrap:wrap; gap:12px; }
+.page-title  { font-size:1.2rem; font-weight:800; color:#0f172a; letter-spacing:-0.4px; }
+.page-sub    { font-size:0.76rem; color:#64748b; margin-top:2px; }
+.header-right { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.period-tabs { display:flex; gap:3px; background:#fff; border:1px solid rgba(15,23,42,0.09); border-radius:10px; padding:3px; }
+.period-tab  { padding:6px 13px; border-radius:7px; font-size:0.78rem; font-weight:700; border:none; cursor:pointer; background:transparent; color:#64748b; font-family:inherit; transition:all 0.15s; white-space:nowrap; }
+.period-tab.active        { background:#2563eb; color:#fff; box-shadow:0 2px 8px rgba(37,99,235,0.25); }
+.period-tab.custom-active { background:#7c3aed; color:#fff; box-shadow:0 2px 8px rgba(124,58,237,0.25); }
+.date-picker-wrap { display:none; align-items:center; gap:6px; background:#fff; border:1px solid rgba(15,23,42,0.09); border-radius:10px; padding:4px 10px; }
+.date-picker-wrap.show { display:flex; }
+.date-picker-wrap input[type=date] { border:none; outline:none; font-size:0.78rem; font-family:inherit; color:#0f172a; background:transparent; cursor:pointer; }
+.date-picker-wrap span { color:#94a3b8; font-size:0.78rem; }
+.btn-apply { padding:4px 10px; border-radius:6px; font-size:0.76rem; font-weight:700; border:none; cursor:pointer; background:#7c3aed; color:#fff; font-family:inherit; }
+.btn-gear { width:36px; height:36px; border-radius:9px; border:1px solid rgba(15,23,42,0.09); background:#fff; cursor:pointer; font-size:1rem; display:flex; align-items:center; justify-content:center; transition:all 0.15s; flex-shrink:0; }
+.btn-gear:hover  { background:#f1f5ff; border-color:rgba(37,99,235,0.3); }
+.btn-gear.active { background:#f1f5ff; border-color:#2563eb; }
+.settings-panel { display:none; position:fixed; top:0; right:0; bottom:0; width:300px; background:#fff; border-left:1px solid rgba(15,23,42,0.09); box-shadow:-8px 0 32px rgba(0,0,0,0.12); z-index:600; overflow-y:auto; padding:24px 20px; }
+.settings-panel.show { display:block; }
+.settings-panel h3 { font-size:0.95rem; font-weight:800; margin-bottom:5px; }
+.settings-panel p  { font-size:0.75rem; color:#64748b; margin-bottom:16px; line-height:1.5; }
+.widget-toggle { display:flex; align-items:center; justify-content:space-between; padding:10px 12px; border-radius:10px; border:1px solid rgba(15,23,42,0.07); margin-bottom:7px; background:#f8fafc; cursor:pointer; transition:all 0.15s; }
+.widget-toggle:hover { background:#f1f5ff; border-color:rgba(37,99,235,0.2); }
+.widget-toggle label { display:flex; align-items:center; gap:8px; font-size:0.82rem; font-weight:600; cursor:pointer; user-select:none; }
+.widget-toggle input[type=checkbox] { accent-color:#2563eb; width:15px; height:15px; cursor:pointer; }
+.panel-close { width:100%; padding:10px; border-radius:9px; border:1px solid rgba(15,23,42,0.1); background:#fff; font-size:0.82rem; font-weight:700; cursor:pointer; font-family:inherit; margin-top:10px; color:#64748b; transition:all 0.15s; }
+.panel-close:hover { background:#f1f5ff; color:#2563eb; }
+.kpi-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:14px; }
+.kpi-card { background:#fff; border-radius:14px; border:1px solid rgba(15,23,42,0.07); padding:18px 18px 14px; position:relative; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,0.04); }
+.kpi-card::after { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:var(--accent,#2563eb); }
+.kpi-card:nth-child(1){--accent:#2563eb} .kpi-card:nth-child(2){--accent:#059669}
+.kpi-card:nth-child(3){--accent:#7c3aed} .kpi-card:nth-child(4){--accent:#d97706}
+.kpi-card:nth-child(5){--accent:#0891b2} .kpi-card:nth-child(6){--accent:#db2777}
+.kpi-card:nth-child(7){--accent:#16a34a} .kpi-card:nth-child(8){--accent:#dc2626}
+.kpi-icon  { font-size:1.2rem; margin-bottom:10px; display:block; }
+.kpi-label { font-size:0.64rem; color:#64748b; font-weight:700; text-transform:uppercase; letter-spacing:0.07em; margin-bottom:4px; }
+.kpi-value { font-size:1.5rem; font-weight:800; color:#0f172a; line-height:1; letter-spacing:-0.5px; margin-bottom:5px; }
+.kpi-change { display:inline-flex; align-items:center; gap:2px; font-size:0.68rem; font-weight:700; padding:2px 6px; border-radius:5px; }
+.kpi-change.up   { background:rgba(5,150,105,0.1); color:#059669; }
+.kpi-change.down { background:rgba(220,38,38,0.08); color:#dc2626; }
+.kpi-change.flat { background:rgba(100,116,139,0.08); color:#64748b; }
+.sc       { background:#fff; border-radius:14px; border:1px solid rgba(15,23,42,0.07); padding:18px 20px 16px; box-shadow:0 1px 3px rgba(0,0,0,0.04); }
+.sc-title { font-size:0.88rem; font-weight:700; color:#0f172a; margin-bottom:14px; letter-spacing:-0.1px; }
+.charts-2col  { display:grid; grid-template-columns:2fr 1fr; gap:14px; }
+.charts-equal { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.cw  { position:relative; height:220px; }
+.cwt { position:relative; height:260px; }
+.f-row     { display:flex; align-items:center; gap:10px; margin-bottom:7px; }
+.f-lbl     { width:140px; flex-shrink:0; font-size:0.77rem; font-weight:600; color:#334155; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.f-bar-wrap{ flex:1; height:20px; background:rgba(15,23,42,0.04); border-radius:5px; overflow:hidden; }
+.f-bar     { height:100%; border-radius:5px; min-width:3px; transition:width 0.5s ease; }
+.f-cnt     { width:32px; text-align:right; font-size:0.78rem; font-weight:800; color:#0f172a; flex-shrink:0; }
+.f-pct     { width:34px; text-align:right; font-size:0.7rem; font-weight:600; color:#64748b; flex-shrink:0; }
+.dt { width:100%; border-collapse:collapse; font-size:0.82rem; }
+.dt th { text-align:left; padding:5px 8px; font-size:0.64rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:#94a3b8; border-bottom:1px solid rgba(15,23,42,0.07); }
+.dt td { padding:8px; color:#334155; border-bottom:1px solid rgba(15,23,42,0.04); font-weight:500; }
+.dt tr:last-child td { border-bottom:none; }
+.dt td.r { text-align:right; font-weight:700; color:#0f172a; }
+.rn    { display:inline-flex; align-items:center; justify-content:center; width:18px; height:18px; border-radius:4px; font-size:0.65rem; font-weight:800; background:rgba(37,99,235,0.08); color:#2563eb; margin-right:4px; }
+.rn.r1 { background:rgba(245,158,11,0.15); color:#b45309; }
+.rn.r2 { background:rgba(148,163,184,0.18); color:#64748b; }
+.rn.r3 { background:rgba(205,127,50,0.15); color:#92400e; }
+.check-cards { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:16px; }
+.cc       { background:#f8fafc; border:1px solid rgba(15,23,42,0.07); border-radius:10px; padding:14px 15px; }
+.cc-icon  { font-size:1.1rem; margin-bottom:6px; }
+.cc-label { font-size:0.62rem; font-weight:700; text-transform:uppercase; letter-spacing:0.07em; color:#94a3b8; margin-bottom:3px; }
+.cc-val   { font-size:1.1rem; font-weight:800; color:#0f172a; letter-spacing:-0.3px; margin-bottom:2px; }
+.cc-sub   { font-size:0.72rem; color:#64748b; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.eff-bar  { height:5px; border-radius:3px; background:#e2e8f0; overflow:hidden; margin-top:3px; }
+.eff-fill { height:100%; border-radius:3px; background:linear-gradient(90deg,#059669,#10b981); }
+.eff-fill.bad { background:linear-gradient(90deg,#ef4444,#f97316); }
+.badge { display:inline-flex; align-items:center; padding:2px 7px; border-radius:20px; font-size:0.68rem; font-weight:700; }
+.bg-g { background:rgba(5,150,105,0.1); color:#059669; }
+.bg-y { background:rgba(245,158,11,0.1); color:#b45309; }
+.bg-r { background:rgba(220,38,38,0.08); color:#dc2626; }
+.bg-b { background:rgba(37,99,235,0.08); color:#2563eb; }
+.gap14         { margin-bottom:14px; }
+.loading-state { text-align:center; padding:40px 20px; color:#94a3b8; font-size:0.85rem; }
+.no-data       { text-align:center; padding:28px 20px; color:#94a3b8; font-size:0.8rem; font-style:italic; }
+.widget-hidden { display:none !important; }
+.bg-profit { background:rgba(5,150,105,0.08); color:#059669; }
+.bg-loss    { background:rgba(220,38,38,0.08); color:#dc2626; }
+.margin-bar-wrap { display:flex; align-items:center; gap:6px; margin-top:4px; }
+.margin-bar-bg { flex:1; height:6px; border-radius:3px; background:#e2e8f0; overflow:hidden; }
+.margin-bar-fill { height:100%; border-radius:3px; transition:width .4s ease; }
+.margin-val { font-size:0.7rem; font-weight:800; width:32px; text-align:right; flex-shrink:0; }
+.profit-positive { color:#059669; font-weight:800; }
+.profit-negative { color:#dc2626; font-weight:800; }
+.dt td.r.green { color:#059669; }
+.dt td.r.red   { color:#dc2626; }
+@media (max-width:1100px) { .charts-2col,.charts-equal { grid-template-columns:1fr; } .check-cards { grid-template-columns:repeat(2,1fr); } }
+@media (max-width:768px)  { .container { padding:14px 14px 48px; } .kpi-grid { grid-template-columns:repeat(2,1fr); gap:10px; } .kpi-value { font-size:1.3rem; } .settings-panel { width:100%; } }
+@media (max-width:480px)  { .check-cards { grid-template-columns:1fr 1fr; } .period-tab { padding:5px 8px; font-size:0.72rem; } }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <div class="page-title">📊 Аналитика</div>
+      <div class="page-sub" id="periodLabel">Загрузка...</div>
+    </div>
+    <div class="header-right">
+      <div class="period-tabs">
+        <button class="period-tab" data-days="7">7 дней</button>
+        <button class="period-tab active" data-days="30">30 дней</button>
+        <button class="period-tab" data-days="90">3 мес.</button>
+        <button class="period-tab" data-days="365">Год</button>
+        <button class="period-tab" data-days="0">Всё</button>
+        <button class="period-tab" data-days="custom">📅 Период</button>
+      </div>
+      <div class="date-picker-wrap" id="datePickerWrap">
+        <input type="date" id="dateFrom">
+        <span>—</span>
+        <input type="date" id="dateTo">
+        <button class="btn-apply" id="btnApplyDate">Применить</button>
+      </div>
+      <button class="btn-gear" id="btnGear" title="Настроить виджеты">⚙️</button>
+    </div>
+  </div>
+  <div class="kpi-grid gap14" id="wKPI">
+    <div class="kpi-card"><span class="kpi-icon">🚗</span><div class="kpi-label">Расчётов</div><div class="kpi-value" id="kpiTotal">—</div><span class="kpi-change flat" id="kpiTotalChg">—</span></div>
+    <div class="kpi-card"><span class="kpi-icon">💰</span><div class="kpi-label">Выручка (выдано)</div><div class="kpi-value" id="kpiRevenue">—</div><span class="kpi-change flat" id="kpiRevChg">—</span></div>
+    <div class="kpi-card"><span class="kpi-icon">📊</span><div class="kpi-label">Средний чек</div><div class="kpi-value" id="kpiAvg">—</div><span class="kpi-change flat" id="kpiAvgChg">—</span></div>
+    <div class="kpi-card"><span class="kpi-icon">✅</span><div class="kpi-label">Конверсия</div><div class="kpi-value" id="kpiConv">—</div><span class="kpi-change flat" id="kpiConvChg">расчёты → выдача</span></div>
+  </div>
+  <div class="kpi-grid gap14" id="wKPI2">
+    <div class="kpi-card"><span class="kpi-icon">📈</span><div class="kpi-label">Макс. чек</div><div class="kpi-value" id="kpiMax">—</div><span class="kpi-change flat" id="kpiMaxSub" style="max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block">—</span></div>
+    <div class="kpi-card"><span class="kpi-icon">📉</span><div class="kpi-label">Мин. чек</div><div class="kpi-value" id="kpiMin">—</div><span class="kpi-change flat" id="kpiMinSub" style="max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block">—</span></div>
+    <div class="kpi-card"><span class="kpi-icon">🔧</span><div class="kpi-label">В работе сейчас</div><div class="kpi-value" id="kpiActive">—</div><span class="kpi-change flat" id="kpiActiveSub">—</span></div>
+    <div class="kpi-card"><span class="kpi-icon">💸</span><div class="kpi-label">ФОТ (зарплаты)</div><div class="kpi-value" id="kpiFOT">—</div><span class="kpi-change flat" id="kpiFOTSub">за период</span></div>
+  </div>
+
+  <!-- Маржа -->
+  <div class="kpi-grid gap14" id="wMargin">
+    <div class="kpi-card" style="--accent:#059669"><span class="kpi-icon">💵</span><div class="kpi-label">Выручка (факт)</div><div class="kpi-value" id="mRevenue">—</div><span class="kpi-change flat" id="mRevSub">по выданным заказам</span></div>
+    <div class="kpi-card" style="--accent:#dc2626"><span class="kpi-icon">💸</span><div class="kpi-label">Расходы (ЗП + закупки)</div><div class="kpi-value" id="mCosts">—</div><span class="kpi-change flat" id="mCostsSub">—</span></div>
+    <div class="kpi-card" style="--accent:#7c3aed"><span class="kpi-icon">📊</span><div class="kpi-label">Валовая прибыль</div><div class="kpi-value" id="mProfit">—</div><span class="kpi-change flat" id="mProfitSub">—</span></div>
+    <div class="kpi-card" style="--accent:#0891b2"><span class="kpi-icon">🎯</span><div class="kpi-label">Маржа %</div><div class="kpi-value" id="mMarginPct">—</div><span class="kpi-change flat" id="mMarginSub">выручка − расходы</span></div>
+  </div>
+
+  <!-- График P&L -->
+  <div class="sc gap14" id="wProfitChart">
+    <div class="sc-title">Выручка / Расходы / Прибыль по месяцам</div>
+    <div class="cwt" style="height:280px"><canvas id="profitChart"></canvas></div>
+  </div>
+
+  <!-- Таблица прибыльности по заказам -->
+  <div class="sc gap14" id="wProfitTable">
+    <div class="sc-title">Прибыльность по закрытым заказам</div>
+    <div id="profitTableWrap"><div class="loading-state">Загрузка...</div></div>
+  </div>
+  <div class="charts-2col gap14" id="wRevChart">
+    <div class="sc"><div class="sc-title">📈 Выручка и расчёты</div><div class="cwt"><canvas id="revenueChart"></canvas></div></div>
+    <div class="sc"><div class="sc-title">🥧 Суммы по статусам</div><div class="cwt" id="statusChartWrap"><canvas id="statusChart"></canvas></div></div>
+  </div>
+  <div class="charts-equal gap14" id="wFunnel">
+    <div class="sc"><div class="sc-title">🔽 Воронка по статусам</div><div id="funnelList"><div class="loading-state">⏳</div></div></div>
+    <div class="sc"><div class="sc-title">🏆 Топ марок по выручке</div><div id="topCarsWrap"><div class="loading-state">⏳</div></div></div>
+  </div>
+  <div class="sc gap14" id="wTopChecks">
+    <div class="sc-title">💎 Топ чеков периода</div>
+    <div class="check-cards" id="checkCards"><div class="loading-state" style="grid-column:1/-1">⏳</div></div>
+    <table class="dt"><thead><tr><th>#</th><th>Авто</th><th>Дата</th><th>Статус</th><th class="r">Сумма</th></tr></thead><tbody id="checkTbody"></tbody></table>
+  </div>
+  <div class="sc gap14" id="wMonthly">
+    <div class="sc-title">📅 Динамика по месяцам (все данные)</div>
+    <div class="cwt"><canvas id="monthlyChart"></canvas></div>
+  </div>
+  <div class="sc gap14" id="wEmployees">
+    <div class="sc-title">👥 Рейтинг сотрудников</div>
+    <div id="employeesContent"><div class="loading-state">⏳</div></div>
+  </div>
+</div>
+
+<div class="settings-panel" id="settingsPanel">
+  <h3>⚙️ Настройка виджетов</h3>
+  <p>Выберите блоки для отображения. Настройки сохраняются в браузере.</p>
+  <div class="widget-toggle"><label><input type="checkbox" data-widget="wKPI">       Основные KPI (4 карточки)</label></div>
+  <div class="widget-toggle"><label><input type="checkbox" data-widget="wKPI2">      Доп. показатели (макс/мин/ФОТ)</label></div>
+  <div class="widget-toggle"><label><input type="checkbox" data-widget="wMargin">    Маржа и прибыль (4 карточки)</label></div>
+  <div class="widget-toggle"><label><input type="checkbox" data-widget="wProfitChart"> График P&amp;L по месяцам</label></div>
+  <div class="widget-toggle"><label><input type="checkbox" data-widget="wProfitTable"> Прибыльность по заказам</label></div>
+  <div class="widget-toggle"><label><input type="checkbox" data-widget="wRevChart">  Графики выручки и статусов</label></div>
+  <div class="widget-toggle"><label><input type="checkbox" data-widget="wFunnel">    Воронка и топ марок</label></div>
+  <div class="widget-toggle"><label><input type="checkbox" data-widget="wTopChecks"> Топ чеков</label></div>
+  <div class="widget-toggle"><label><input type="checkbox" data-widget="wMonthly">   Динамика по месяцам</label></div>
+  <div class="widget-toggle"><label><input type="checkbox" data-widget="wEmployees"> Рейтинг сотрудников</label></div>
+  <button class="panel-close" id="btnPanelClose">✕ Закрыть</button>
+</div>
+
+<script src="footer.js"></script>
+<script type="module">
+import { sb }              from './api.js';
+import { requireAuth }     from './auth.js';
+import { getStudioContext } from './studio-context.js';
+import { escapeHtml }       from './formatters.js';
+
+let allCalcs = [], allAssign = [], allPurchases = [], studioId = null;
+let activeDays = 30, customFrom = null, customTo = null, isCustom = false;
+const charts = {};
+const e = escapeHtml;
+
+const STATUSES = {
+  new:         { label:'Новый',       short:'Новый' },
+  scheduled:   { label:'Запланирован',short:'Запись' },
+  in_progress: { label:'В работе',    short:'В работе' },
+  done:        { label:'Готов',       short:'Готов' },
+  delivered:   { label:'Выдан',       short:'Выдан' },
+  cancelled:   { label:'Отменён',     short:'Отменён' },
+};
+const SC = { new:'#94a3b8', scheduled:'#f59e0b', in_progress:'#2563eb', done:'#7c3aed', delivered:'#059669', cancelled:'#ef4444' };
+const LS_KEY = 'k1r_analytics_widgets';
+
+function loadWidgetSettings() {
+  let saved = {};
+  try { saved = JSON.parse(localStorage.getItem(LS_KEY) || '{}'); } catch(e){}
+  document.querySelectorAll('[data-widget]').forEach(cb => {
+    const wid = cb.dataset.widget, show = saved[wid] !== undefined ? saved[wid] : true;
+    document.getElementById(wid)?.classList.toggle('widget-hidden', !show);
+    cb.checked = show;
+  });
+}
+function saveWidget(wid, show) {
+  try { const s = JSON.parse(localStorage.getItem(LS_KEY)||'{}'); s[wid]=show; localStorage.setItem(LS_KEY,JSON.stringify(s)); } catch(e){}
+}
+function fmt(n) { return new Intl.NumberFormat('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:2}).format(n||0); }
+function ns(s) { return (!s||s===''||s==='draft'||s==='pending')?'new':s; }
+function set(id,v) { const el=document.getElementById(id); if(el) el.textContent=v; }
+
+function getRange() {
+  if (isCustom && customFrom && customTo) return {from:customFrom, to:customTo};
+  if (activeDays===0) return {from:new Date(0), to:new Date()};
+  return {from:new Date(Date.now()-activeDays*86400000), to:new Date()};
+}
+function getPrevRange() {
+  if (isCustom||activeDays===0) return null;
+  return {from:new Date(Date.now()-2*activeDays*86400000), to:new Date(Date.now()-activeDays*86400000)};
+}
+function filterC(r) { return allCalcs.filter(c=>{const d=new Date(c.created_at);return d>=r.from&&d<=r.to;}); }
+function filterA(calcs) { const ids=new Set(calcs.map(c=>c.id)); return allAssign.filter(a=>ids.has(a.calculation_id)); }
+function customDays() { return (!customFrom||!customTo)?30:Math.round((customTo-customFrom)/86400000); }
+function bKey(ds,days) {
+  const d=new Date(ds);
+  if(days!==0&&days<=14) return d.toISOString().split('T')[0];
+  if(days!==0&&days<=90){const day=d.getDay(),diff=d.getDate()-day+(day===0?-6:1);return new Date(new Date(d).setDate(diff)).toISOString().split('T')[0];}
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-01';
+}
+function bLabel(key,days) {
+  const d=new Date(key);
+  if(days!==0&&days<=90) return d.toLocaleDateString('ru-RU',{day:'numeric',month:'short'});
+  return d.toLocaleDateString('ru-RU',{month:'short',year:'2-digit'});
+}
+
+function renderKPI(cur,prev) {
+  const total=cur.length, prevN=prev?prev.length:0;
+  const deliv=cur.filter(c=>ns(c.status)==='delivered');
+  const revenue=deliv.reduce((s,c)=>s+(c.final_price||c.total_price||0),0);
+  const prevDel=prev?prev.filter(c=>ns(c.status)==='delivered'):[];
+  const prevRev=prevDel.reduce((s,c)=>s+(c.final_price||c.total_price||0),0);
+  const prices=cur.map(c=>c.total_price||0).filter(p=>p>0);
+  const avg=total>0?cur.reduce((s,c)=>s+(c.total_price||0),0)/total:0;
+  const prevAvg=prevN>0?prev.reduce((s,c)=>s+(c.total_price||0),0)/prevN:0;
+  const conv=total>0?Math.round(deliv.length/total*100):0;
+  const prevConv=prevN>0?Math.round(prevDel.length/prevN*100):0;
+  const maxP=prices.length?Math.max(...prices):0, minP=prices.length?Math.min(...prices):0;
+  const maxCar=cur.find(c=>(c.total_price||0)===maxP), minCar=cur.find(c=>(c.total_price||0)===minP);
+  const active=allCalcs.filter(c=>['in_progress','scheduled'].includes(ns(c.status))).length;
+  const fot=filterA(cur).filter(a=>!a.is_admin_sale).reduce((s,a)=>s+(a.salary||0),0);
+  set('kpiTotal',total); setChg('kpiTotalChg',total,prevN);
+  set('kpiRevenue',fmt(revenue)); setChg('kpiRevChg',revenue,prevRev);
+  set('kpiAvg',fmt(avg)); setChg('kpiAvgChg',avg,prevAvg);
+  set('kpiConv',conv+'%'); setChg('kpiConvChg',conv,prevConv);
+  set('kpiMax',prices.length?fmt(maxP):'—'); set('kpiMaxSub',maxCar?(maxCar.car_name||'—'):'—');
+  set('kpiMin',prices.length?fmt(minP):'—'); set('kpiMinSub',minCar?(minCar.car_name||'—'):'—');
+  set('kpiActive',active); set('kpiActiveSub','сейчас в работе');
+  set('kpiFOT',fmt(fot));
+}
+function setChg(id,cur,prev) {
+  const el=document.getElementById(id); if(!el) return;
+  if(!prev||activeDays===0||isCustom){el.textContent=cur>0?'Данные есть':'Нет данных';el.className='kpi-change flat';return;}
+  const pct=Math.round((cur-prev)/(prev||1)*100);
+  el.textContent=(pct>=0?'↑ +':'↓ ')+Math.abs(pct)+'% к пред. периоду';
+  el.className='kpi-change '+(pct>=0?'up':'down');
+}
+
+function renderRevenueChart(cur) {
+  const ctx=document.getElementById('revenueChart'); if(!ctx) return;
+  if(charts.rev){charts.rev.destroy();charts.rev=null;}
+  const days=isCustom?customDays():activeDays, bkts={};
+  cur.forEach(c=>{const k=bKey(c.created_at,days);if(!bkts[k])bkts[k]={rev:0,cnt:0};bkts[k].rev+=(c.final_price||c.total_price||0);bkts[k].cnt++;});
+  const keys=Object.keys(bkts).sort();
+  if(!keys.length){ctx.parentElement.innerHTML='<div class="no-data">Нет данных для графика</div>';return;}
+  charts.rev=new Chart(ctx,{type:'bar',data:{labels:keys.map(k=>bLabel(k,days)),datasets:[
+    {label:'Выручка',data:keys.map(k=>bkts[k].rev),backgroundColor:'rgba(37,99,235,0.72)',borderRadius:5,yAxisID:'y',order:2},
+    {label:'Расчётов',data:keys.map(k=>bkts[k].cnt),type:'line',borderColor:'#f59e0b',backgroundColor:'rgba(245,158,11,0.08)',borderWidth:2.5,pointRadius:4,pointBackgroundColor:'#f59e0b',fill:false,yAxisID:'y2',order:1,tension:0.3}
+  ]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+    plugins:{legend:{position:'top',labels:{font:{size:11},padding:10,boxWidth:14}},tooltip:{callbacks:{label:c=>c.dataset.label==='Выручка'?' '+fmt(c.parsed.y):' '+c.parsed.y+' шт.'}}},
+    scales:{y:{position:'left',grid:{color:'rgba(0,0,0,0.04)'},ticks:{callback:v=>v>=1e6?(v/1e6).toFixed(1)+'M':v>=1e3?Math.round(v/1e3)+'K':v,font:{size:10}}},y2:{position:'right',grid:{display:false},ticks:{font:{size:10},precision:0}},x:{ticks:{font:{size:10},maxRotation:45}}}}});
+}
+
+function renderStatusChart(cur) {
+  const wrap=document.getElementById('statusChartWrap'); if(!wrap) return;
+  if(charts.status){charts.status.destroy();charts.status=null;}
+  const g={};
+  cur.forEach(c=>{const s=ns(c.status);g[s]=(g[s]||0)+(c.total_price||0);});
+  const keys=Object.keys(g).filter(k=>g[k]>0);
+  if(!keys.length){wrap.innerHTML='<div class="no-data">Нет данных</div>';return;}
+  if(!wrap.querySelector('canvas')){const cv=document.createElement('canvas');cv.id='statusChart';wrap.innerHTML='';wrap.appendChild(cv);}
+  charts.status=new Chart(wrap.querySelector('canvas'),{type:'doughnut',data:{labels:keys.map(k=>STATUSES[k]?.short||k),datasets:[{data:keys.map(k=>g[k]),backgroundColor:keys.map(k=>SC[k]||'#94a3b8'),borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,cutout:'62%',plugins:{legend:{position:'right',labels:{font:{size:11},padding:8,boxWidth:11}},tooltip:{callbacks:{label:c=>' '+fmt(c.parsed)}}}}});
+}
+
+function renderMonthlyChart() {
+  const ctx=document.getElementById('monthlyChart'); if(!ctx) return;
+  if(charts.monthly){charts.monthly.destroy();charts.monthly=null;}
+  const b={};
+  allCalcs.forEach(c=>{const d=new Date(c.created_at),k=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');if(!b[k])b[k]={cnt:0,all:0,done:0};b[k].cnt++;b[k].all+=(c.total_price||0);if(ns(c.status)==='delivered')b[k].done+=(c.final_price||c.total_price||0);});
+  const keys=Object.keys(b).sort().slice(-18);
+  if(!keys.length){ctx.parentElement.innerHTML='<div class="no-data">Нет данных</div>';return;}
+  const labels=keys.map(k=>{const[y,m]=k.split('-');return new Date(+y,+m-1,1).toLocaleDateString('ru-RU',{month:'short',year:'2-digit'});});
+  charts.monthly=new Chart(ctx,{type:'bar',data:{labels,datasets:[
+    {label:'Расчёты (сумма)',data:keys.map(k=>b[k].all),backgroundColor:'rgba(37,99,235,0.18)',borderColor:'rgba(37,99,235,0.45)',borderWidth:1.5,borderRadius:4},
+    {label:'Выдано (факт)',data:keys.map(k=>b[k].done),backgroundColor:'rgba(5,150,105,0.72)',borderRadius:4},
+    {label:'Кол-во',type:'line',data:keys.map(k=>b[k].cnt),borderColor:'#f59e0b',borderWidth:2.5,pointRadius:3,pointBackgroundColor:'#f59e0b',fill:false,yAxisID:'y2',tension:0.3}
+  ]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+    plugins:{legend:{position:'top',labels:{font:{size:11},padding:10,boxWidth:13}},tooltip:{callbacks:{label:c=>c.dataset.label==='Кол-во'?' '+c.parsed.y+' шт.':' '+fmt(c.parsed.y)}}},
+    scales:{y:{position:'left',grid:{color:'rgba(0,0,0,0.04)'},ticks:{callback:v=>v>=1e6?(v/1e6).toFixed(1)+'M':v>=1e3?Math.round(v/1e3)+'K':v,font:{size:10}}},y2:{position:'right',grid:{display:false},ticks:{font:{size:10},precision:0}},x:{ticks:{font:{size:10}}}}}});
+}
+
+function renderFunnel(cur) {
+  const c=document.getElementById('funnelList'); if(!c) return;
+  const ORDER=['new','scheduled','in_progress','done','delivered','cancelled'],counts={};
+  cur.forEach(x=>{const s=ns(x.status);counts[s]=(counts[s]||0)+1;});
+  const total=cur.length, maxC=Math.max(...ORDER.map(k=>counts[k]||0),1);
+  if(!total){c.innerHTML='<div class="no-data">Нет данных</div>';return;}
+  c.innerHTML=ORDER.map(k=>{
+    const cnt=counts[k]||0,pct=Math.round(cnt/total*100),w=Math.round(cnt/maxC*100),lbl=STATUSES[k]?.label||k;
+    return `<div class="f-row"><div class="f-lbl">${lbl}</div><div class="f-bar-wrap"><div class="f-bar" style="width:${w}%;background:${SC[k]||'#94a3b8'}"></div></div><div class="f-cnt">${cnt}</div><div class="f-pct">${pct}%</div></div>`;
+  }).join('');
+}
+
+function renderTopCars(cur) {
+  const w=document.getElementById('topCarsWrap'); if(!w) return;
+  const b={};
+  cur.forEach(c=>{const br=(c.car_name||'—').split(' ')[0];if(!b[br])b[br]={cnt:0,sum:0};b[br].cnt++;b[br].sum+=(c.total_price||0);});
+  const sorted=Object.entries(b).sort((a,x)=>x[1].sum-a[1].sum).slice(0,8);
+  if(!sorted.length){w.innerHTML='<div class="no-data">Нет данных</div>';return;}
+  w.innerHTML='<table class="dt"><thead><tr><th>#</th><th>Марка</th><th>Шт.</th><th class="r">Сумма</th></tr></thead><tbody>'+
+    sorted.map(([br,d],i)=>`<tr><td><span class="rn ${i<3?'r'+(i+1):''}">${i+1}</span></td><td>${e(br)}</td><td>${d.cnt}</td><td class="r">${fmt(d.sum)}</td></tr>`).join('')+'</tbody></table>';
+}
+
+function renderTopChecks(cur,asgn) {
+  const cc=document.getElementById('checkCards'),tb=document.getElementById('checkTbody'); if(!cc||!tb) return;
+  const priced=cur.filter(c=>(c.total_price||0)>0);
+  if(!priced.length){cc.innerHTML='<div class="no-data" style="grid-column:1/-1">Нет данных</div>';tb.innerHTML='';return;}
+  const sorted=[...priced].sort((a,b)=>(b.total_price||0)-(a.total_price||0));
+  const maxC=sorted[0],minC=sorted[sorted.length-1],median=sorted[Math.floor(sorted.length/2)];
+  const salByCalc={};
+  asgn.forEach(a=>{if(!a.is_admin_sale)salByCalc[a.calculation_id]=(salByCalc[a.calculation_id]||0)+(a.salary||0);});
+  let bestM=null,bestMPct=-Infinity;
+  priced.forEach(c=>{const p=c.final_price||c.total_price||0,sal=salByCalc[c.id]||0;if(p>0&&sal>0){const pct=(p-sal)/p*100;if(pct>bestMPct){bestMPct=pct;bestM=c;}}});
+  const cards=[
+    {icon:'🏆',label:'Самый большой чек',val:fmt(maxC.total_price||0),sub:maxC.car_name||'—'},
+    {icon:'🐣',label:'Самый маленький чек',val:fmt(minC.total_price||0),sub:minC.car_name||'—'},
+    {icon:'📐',label:'Медианный чек',val:fmt(median.total_price||0),sub:sorted.length+' расчётов'},
+    bestM?{icon:'💎',label:'Лучшая рентабельность',val:Math.round(bestMPct)+'%',sub:bestM.car_name||'—'}:{icon:'💎',label:'Лучшая рентабельность',val:'—',sub:'назначьте зарплаты для расчёта'},
+  ];
+  cc.innerHTML=cards.map(x=>`<div class="cc"><div class="cc-icon">${x.icon}</div><div class="cc-label">${x.label}</div><div class="cc-val">${x.val}</div><div class="cc-sub">${e(x.sub)}</div></div>`).join('');
+  function sCls(s){return s==='delivered'?'bg-g':s==='in_progress'?'bg-b':s==='cancelled'?'bg-r':'bg-y';}
+  tb.innerHTML=sorted.slice(0,10).map((c,i)=>{const st=ns(c.status);return`<tr><td><span class="rn ${i<3?'r'+(i+1):''}">${i+1}</span></td><td>${e(c.car_name||'—')}</td><td>${new Date(c.created_at).toLocaleDateString('ru-RU',{day:'numeric',month:'short'})}</td><td><span class="badge ${sCls(st)}">${STATUSES[st]?.short||st}</span></td><td class="r">${fmt(c.total_price||0)}</td></tr>`;}).join('');
+}
+
+function renderEmployees(cur,asgn) {
+  const w=document.getElementById('employeesContent'); if(!w) return;
+  const wa=asgn.filter(a=>!a.is_admin_sale);
+  if(!wa.length){w.innerHTML='<div class="no-data">Нет данных о назначениях сотрудников за период</div>';return;}
+  const stats={};
+  wa.forEach(a=>{const n=a.executor_name||'Неизвестный';if(!stats[n])stats[n]={name:n,salary:0,jobs:0,cars:new Set()};stats[n].salary+=(a.salary||0);stats[n].jobs++;stats[n].cars.add(a.calculation_id);});
+  const priceById={};
+  cur.forEach(c=>{priceById[c.id]=c.final_price||c.total_price||0;});
+  const arr=Object.values(stats);
+  arr.forEach(emp=>{emp.revenue=0;emp.cars.forEach(id=>{emp.revenue+=(priceById[id]||0);});emp.carCnt=emp.cars.size;emp.salShare=emp.revenue>0?Math.round(emp.salary/emp.revenue*100):null;emp.score=emp.salary>0?parseFloat((emp.revenue/emp.salary).toFixed(1)):0;});
+  const sorted=arr.sort((a,b)=>b.score-a.score),maxR=Math.max(...sorted.map(emp=>emp.revenue),1);
+  function stars(s){return s>=10?'⭐⭐⭐':s>=5?'⭐⭐':'⭐';}
+  function shCls(p){return p===null?'':p<20?'bg-g':p<35?'bg-y':'bg-r';}
+  w.innerHTML='<div style="overflow-x:auto"><table class="dt"><thead><tr><th>#</th><th>Сотрудник</th><th>Работ</th><th>Машин</th><th class="r">Зарплата</th><th class="r">Выручка*</th><th class="r">Коэф.</th><th>ЗП/выручка</th><th>Рейтинг</th></tr></thead><tbody>'+
+    sorted.map((emp,i)=>`<tr><td><span class="rn ${i<3?'r'+(i+1):''}">${i+1}</span></td><td style="font-weight:700">${e(emp.name)}</td><td>${emp.jobs}</td><td>${emp.carCnt}</td><td class="r">${fmt(emp.salary)}</td><td class="r">${fmt(emp.revenue)}</td><td class="r">${emp.score>0?emp.score+'x':'—'}</td><td>${emp.salShare!==null?`<span class="badge ${shCls(emp.salShare)}">${emp.salShare}%</span>`:'<span style="color:#94a3b8;font-size:0.7rem">нет данных</span>'}<div class="eff-bar"><div class="eff-fill ${emp.salShare!==null&&emp.salShare>35?'bad':''}" style="width:${Math.round(emp.revenue/maxR*100)}%"></div></div></td><td style="font-size:1rem">${stars(emp.score)}</td></tr>`).join('')+
+    '</tbody></table></div><p style="font-size:0.72rem;color:#94a3b8;margin-top:10px">* Выручка по машинам, в работе над которыми участвовал сотрудник.</p>';
+}
+
+function buildLabel(cur) {
+  let range;
+  if(isCustom) range=customFrom.toLocaleDateString('ru-RU')+' — '+customTo.toLocaleDateString('ru-RU');
+  else { const L={0:'Всё время',7:'7 дней',30:'30 дней',90:'3 месяца',365:'Год'}; range=L[activeDays]||(activeDays+' дней'); }
+  set('periodLabel',range+' · '+cur.length+' расчётов');
+}
+
+function filterPurchases(range) {
+  return allPurchases.filter(p => { const d = new Date(p.purchase_date); return d >= range.from && d <= range.to; });
+}
+
+// Закупки привязанные к заказу (по calc_id) или по дате (без calc_id)
+function getPurchasesByCalc(calcIds, rangePurchases) {
+  const byCalc = {};
+  // Привязанные к конкретному заказу
+  allPurchases.filter(p => p.calculation_id && calcIds.has(p.calculation_id)).forEach(p => {
+    byCalc[p.calculation_id] = (byCalc[p.calculation_id] || 0) + (p.total_amount || 0);
+  });
+  return byCalc;
+}
+
+function renderMarginKPI(cur, asgn, purchases) {
+  const delivered = cur.filter(c => ['delivered','closed'].includes(ns(c.status)));
+  const revenue   = delivered.reduce((s,c) => s + (c.final_price || c.total_price || 0), 0);
+  const salary    = asgn.filter(a => !a.is_admin_sale).reduce((s,a) => s + (a.salary || 0), 0);
+  const purCost   = purchases.reduce((s,p) => s + (p.total_amount || 0), 0);
+  const costs     = salary + purCost;
+  const profit    = revenue - costs;
+  const marginPct = revenue > 0 ? Math.round(profit / revenue * 100) : null;
+
+  set('mRevenue', fmt(revenue));
+  set('mRevSub',  delivered.length + ' выданных заказов');
+  set('mCosts',   fmt(costs));
+  set('mCostsSub', 'ЗП: ' + fmt(salary) + ' + закупки: ' + fmt(purCost));
+  set('mProfit',   fmt(profit));
+
+  const profitEl = document.getElementById('mProfit');
+  if (profitEl) profitEl.style.color = profit >= 0 ? '#059669' : '#dc2626';
+
+  if (marginPct !== null) {
+    set('mMarginPct', marginPct + '%');
+    const el = document.getElementById('mMarginPct');
+    if (el) el.style.color = marginPct >= 30 ? '#059669' : marginPct >= 15 ? '#d97706' : '#dc2626';
+    set('mMarginSub', profit >= 0 ? 'Прибыльно' : 'Убыток за период');
+  } else {
+    set('mMarginPct', '—');
+    set('mMarginSub', 'Нет выданных заказов');
+  }
+}
+
+function renderProfitChart() {
+  const ctx = document.getElementById('profitChart'); if (!ctx) return;
+  if (charts.profit) { charts.profit.destroy(); charts.profit = null; }
+
+  const b = {};
+  allCalcs.filter(c => ['delivered','closed'].includes(ns(c.status))).forEach(c => {
+    const k = c.created_at.slice(0,7);
+    if (!b[k]) b[k] = { rev:0, sal:0, pur:0 };
+    b[k].rev += (c.final_price || c.total_price || 0);
+  });
+  allAssign.filter(a => !a.is_admin_sale).forEach(a => {
+    const m = a.payment_month || new Date().toISOString().slice(0,7);
+    if (!b[m]) b[m] = { rev:0, sal:0, pur:0 };
+    b[m].sal += (a.salary || 0);
+  });
+  allPurchases.forEach(p => {
+    const k = (p.purchase_date || '').slice(0,7);
+    if (!b[k]) b[k] = { rev:0, sal:0, pur:0 };
+    b[k].pur += (p.total_amount || 0);
+  });
+
+  const keys = Object.keys(b).sort().slice(-18);
+  if (!keys.length) { ctx.parentElement.innerHTML = '<div class="no-data">Нет данных</div>'; return; }
+
+  const labels = keys.map(k => { const [y,m]=k.split('-'); return new Date(+y,+m-1,1).toLocaleDateString('ru-RU',{month:'short',year:'2-digit'}); });
+  charts.profit = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label:'Выручка',  data:keys.map(k=>b[k].rev), backgroundColor:'rgba(37,99,235,0.65)', borderRadius:4, stack:'a' },
+        { label:'ЗП',       data:keys.map(k=>b[k].sal), backgroundColor:'rgba(220,38,38,0.55)',  borderRadius:4, stack:'b' },
+        { label:'Закупки',  data:keys.map(k=>b[k].pur), backgroundColor:'rgba(245,158,11,0.6)',  borderRadius:4, stack:'b' },
+        { label:'Прибыль',  data:keys.map(k=>b[k].rev - b[k].sal - b[k].pur),
+          type:'line', borderColor:'#059669', backgroundColor:'rgba(5,150,105,0.1)',
+          borderWidth:2.5, pointRadius:4, pointBackgroundColor:'#059669', fill:true, tension:0.3, yAxisID:'y' }
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
+      plugins:{
+        legend:{position:'top',labels:{font:{size:11},padding:10,boxWidth:13}},
+        tooltip:{callbacks:{label:c=>' '+fmt(c.parsed.y)}}
+      },
+      scales:{
+        y:{position:'left',grid:{color:'rgba(0,0,0,0.04)'},ticks:{callback:v=>v>=1e6?(v/1e6).toFixed(1)+'M':v>=1e3?Math.round(v/1e3)+'K':v,font:{size:10}}},
+        x:{ticks:{font:{size:10}}}
+      }
+    }
+  });
+}
+
+function renderProfitTable(cur, asgn) {
+  const w = document.getElementById('profitTableWrap'); if (!w) return;
+  const closed = cur.filter(c => ['delivered','closed'].includes(ns(c.status)));
+  if (!closed.length) { w.innerHTML = '<div class="no-data">Нет закрытых заказов за период</div>'; return; }
+
+  const salByCalc = {}, purByCalc = {};
+  const calcIds = new Set(closed.map(c => c.id));
+
+  asgn.filter(a => !a.is_admin_sale && calcIds.has(a.calculation_id)).forEach(a => {
+    salByCalc[a.calculation_id] = (salByCalc[a.calculation_id] || 0) + (a.salary || 0);
+  });
+  allPurchases.filter(p => p.calculation_id && calcIds.has(p.calculation_id)).forEach(p => {
+    purByCalc[p.calculation_id] = (purByCalc[p.calculation_id] || 0) + (p.total_amount || 0);
+  });
+
+  const rows = closed.map(c => {
+    const rev  = c.final_price || c.total_price || 0;
+    const sal  = salByCalc[c.id] || 0;
+    const pur  = purByCalc[c.id] || 0;
+    const prof = rev - sal - pur;
+    const pct  = rev > 0 ? Math.round(prof / rev * 100) : null;
+    return { c, rev, sal, pur, prof, pct };
+  }).sort((a,b) => b.prof - a.prof);
+
+  w.innerHTML = '<div style="overflow-x:auto"><table class="dt">' +
+    '<thead><tr><th>#</th><th>Авто</th><th class="r">Выручка</th><th class="r">ЗП</th><th class="r">Закупки</th><th class="r">Прибыль</th><th class="r">Маржа</th></tr></thead><tbody>' +
+    rows.map((r,i) => {
+      const isPro = r.prof >= 0;
+      const pctStr = r.pct !== null ? r.pct + '%' : '—';
+      const pctCls = r.pct === null ? '' : r.pct >= 30 ? 'green' : r.pct >= 15 ? '' : 'red';
+      return `<tr>
+        <td><span class="rn ${i<3?'r'+(i+1):''}">${i+1}</span></td>
+        <td style="font-weight:600">${e(r.c.car_name||'—')}</td>
+        <td class="r">${fmt(r.rev)}</td>
+        <td class="r" style="color:#dc2626">${r.sal > 0 ? fmt(r.sal) : '—'}</td>
+        <td class="r" style="color:#d97706">${r.pur > 0 ? fmt(r.pur) : '—'}</td>
+        <td class="r ${isPro?'green':'red'}">${fmt(r.prof)}</td>
+        <td class="r ${pctCls}">${pctStr}</td>
+      </tr>`;
+    }).join('') +
+    '</tbody></table></div>' +
+    '<p style="font-size:0.72rem;color:#94a3b8;margin-top:8px">Закупки учитываются только если привязаны к заказу. Остальные закупки отражаются в графике P&L по дате.</p>';
+}
+
+function render() {
+  const range=getRange(),prev=getPrevRange(),cur=filterC(range),prevC=prev?filterC(prev):[],asgn=filterA(cur);
+  const purchases = filterPurchases(range);
+  buildLabel(cur);
+  renderKPI(cur,prevC);
+  renderMarginKPI(cur,asgn,purchases);
+  renderRevenueChart(cur);
+  renderStatusChart(cur);
+  renderFunnel(cur);renderTopCars(cur);renderTopChecks(cur,asgn);
+  renderMonthlyChart();
+  renderProfitChart();
+  renderProfitTable(cur,asgn);
+  renderEmployees(cur,asgn);
+}
+
+function bindEvents() {
+  document.querySelectorAll('.period-tab[data-days]').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const d=btn.dataset.days;
+      if(d==='custom'){document.getElementById('datePickerWrap').classList.toggle('show');return;}
+      isCustom=false;activeDays=parseInt(d);
+      document.getElementById('datePickerWrap').classList.remove('show');
+      document.querySelectorAll('.period-tab').forEach(b=>b.classList.remove('active','custom-active'));
+      btn.classList.add('active');render();
+    });
+  });
+  document.getElementById('btnApplyDate').addEventListener('click',()=>{
+    const f=document.getElementById('dateFrom').value,t=document.getElementById('dateTo').value;
+    if(!f||!t) return;
+    customFrom=new Date(f+'T00:00:00');customTo=new Date(t+'T23:59:59');isCustom=true;
+    document.querySelectorAll('.period-tab').forEach(b=>b.classList.remove('active','custom-active'));
+    document.querySelector('[data-days=custom]')?.classList.add('custom-active');render();
+  });
+  const togglePanel=()=>{document.getElementById('settingsPanel').classList.toggle('show');document.getElementById('btnGear').classList.toggle('active');};
+  document.getElementById('btnGear').addEventListener('click',togglePanel);
+  document.getElementById('btnPanelClose').addEventListener('click',togglePanel);
+  document.getElementById('settingsPanel').addEventListener('change',ev=>{
+    const cb=ev.target.closest('[data-widget]'); if(!cb) return;
+    const wid=cb.dataset.widget;
+    document.getElementById(wid)?.classList.toggle('widget-hidden',!cb.checked);
+    saveWidget(wid,cb.checked);
+  });
+}
+
+async function initPage() {
+  initNav();
+  loadWidgetSettings();
+  bindEvents();
+  const user=await requireAuth({redirectTo:'welcome.html'}); if(!user) return;
+  const ctx=await getStudioContext();
+  if(!ctx?.studioId){document.querySelector('.container').innerHTML='<div class="loading-state">⚠️ Студия не найдена</div>';return;}
+  studioId=ctx.studioId;
+  const today=new Date(),month=new Date(Date.now()-30*86400000);
+  document.getElementById('dateTo').value=today.toISOString().split('T')[0];
+  document.getElementById('dateFrom').value=month.toISOString().split('T')[0];
+  const [cr,ar,pr]=await Promise.all([
+    sb.from('calculations').select('id,car_name,total_price,final_price,status,created_at,checkin_date').eq('studio_id',studioId).order('created_at',{ascending:true}),
+    sb.from('work_assignments').select('calculation_id,executor_name,executor_id,salary,is_admin_sale').eq('studio_id',studioId),
+    sb.from('purchases').select('id,calculation_id,total_amount,purchase_date').eq('studio_id',studioId)
+  ]);
+  if(cr.error){document.querySelector('.container').innerHTML=`<div class="loading-state">Ошибка: ${e(cr.error.message)}</div>`;return;}
+  allCalcs=cr.data||[];allAssign=ar.data||[];allPurchases=pr.data||[];
+  render();
+}
+
+document.addEventListener('DOMContentLoaded',initPage);
+</script>
+</body>
+</html>

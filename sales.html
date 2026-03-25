@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Воронка продаж — Keep1R CRM</title>
+<link rel="stylesheet" href="nav.css">
+<script src="nav.js"></script>
+<style>
+body { visibility: hidden; }
+:root {
+  --font:         -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
+  --bg:           #eef2f9;
+  --surface:      #ffffff;
+  --border:       rgba(15,23,42,0.08);
+  --text:         #0f172a;
+  --text-muted:   #64748b;
+  --text-dim:     #94a3b8;
+  --primary:      #2563eb;
+  --primary-dark: #1d4ed8;
+  --success:      #059669;
+  --warning:      #d97706;
+  --danger:       #dc2626;
+  --purple:       #7c3aed;
+  --shadow:       0 1px 3px rgba(0,0,0,0.05), 0 4px 16px rgba(0,0,0,0.07);
+  --shadow-modal: 0 8px 40px rgba(0,0,0,0.14);
+  --radius:       14px;
+  --radius-sm:    10px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  height: 100%;
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+  background: var(--bg);
+  color: var(--text);
+  overflow-x: hidden;
+}
+
+/* ── Toolbar ─────────────────────────────── */
+.board-toolbar {
+  padding: 10px 20px 0;
+  display: flex; align-items: center; gap: 10px;
+  flex-wrap: wrap;
+}
+.search-wrap {
+  position: relative; flex: 1; min-width: 180px; max-width: 320px;
+}
+.search-wrap input {
+  width: 100%; padding: 8px 12px 8px 34px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; font-family: var(--font); font-size: 0.83rem;
+  color: var(--text); outline: none; transition: border-color .15s, box-shadow .15s;
+}
+.search-wrap input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,.10); }
+.search-wrap .search-icon {
+  position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+  font-size: .82rem; pointer-events: none;
+}
+.board-count-badge {
+  font-size: 0.72rem; color: var(--text-dim); font-weight: 600; white-space: nowrap;
+}
+.btn-new-lead {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 18px; border-radius: var(--radius-sm);
+  background: var(--primary); color: #fff; border: none;
+  font-size: 0.83rem; font-weight: 700; font-family: var(--font);
+  cursor: pointer; transition: background .15s; white-space: nowrap;
+}
+.btn-new-lead:hover { background: var(--primary-dark); }
+
+/* ── Board layout ─────────────────────────── */
+.board-page  { display: flex; flex-direction: column; min-height: 100svh; }
+.board-outer {
+  flex: 1; overflow-x: auto; padding: 14px 20px 32px;
+  -webkit-overflow-scrolling: touch; scrollbar-width: thin;
+  scrollbar-color: rgba(37,99,235,0.2) transparent;
+}
+.board-outer::-webkit-scrollbar       { height: 6px; }
+.board-outer::-webkit-scrollbar-track { background: transparent; }
+.board-outer::-webkit-scrollbar-thumb { background: rgba(37,99,235,0.18); border-radius: 3px; }
+.board-wrap  { display: flex; gap: 14px; align-items: flex-start; min-width: max-content; }
+
+/* ── Column ───────────────────────────────── */
+.column {
+  width: 272px; flex-shrink: 0; background: var(--surface);
+  border-radius: var(--radius); border: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  max-height: calc(100svh - 150px); box-shadow: var(--shadow);
+  transition: background .15s;
+}
+.column.drag-over {
+  background: rgba(37,99,235,0.04);
+  border-color: rgba(37,99,235,0.35);
+  box-shadow: 0 0 0 2px rgba(37,99,235,0.18);
+}
+.column-header {
+  padding: 14px 16px 12px; display: flex; align-items: center;
+  justify-content: space-between; border-bottom: 1px solid var(--border);
+  border-radius: var(--radius) var(--radius) 0 0;
+  position: sticky; top: 0; background: var(--surface); z-index: 1;
+}
+.column-title {
+  display: flex; align-items: center; gap: 7px;
+  font-weight: 700; font-size: 0.82rem; letter-spacing: 0.01em; text-transform: uppercase;
+}
+.column-dot   { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.column-count {
+  font-size: 0.7rem; font-weight: 700; padding: 2px 8px;
+  border-radius: 20px; background: var(--bg); color: var(--text-muted);
+  min-width: 24px; text-align: center;
+}
+.column-cards {
+  padding: 10px; display: flex; flex-direction: column; gap: 7px;
+  overflow-y: auto; flex: 1; scrollbar-width: thin;
+  scrollbar-color: rgba(0,0,0,0.08) transparent;
+  min-height: 60px;
+}
+
+/* ── Column colours ─────────────────────── */
+.col-new_lead .column-dot        { background: #94a3b8; }
+.col-new_lead .column-title      { color: #64748b; }
+.col-new_lead .column-count      { background: rgba(148,163,184,0.12); }
+
+.col-negotiation .column-dot     { background: #f59e0b; }
+.col-negotiation .column-title   { color: #92400e; }
+.col-negotiation .column-count   { background: rgba(245,158,11,0.1); color: #b45309; }
+.col-negotiation                 { border-top: 3px solid #f59e0b; }
+
+.col-quote_sent .column-dot      { background: var(--primary); }
+.col-quote_sent .column-title    { color: var(--primary); }
+.col-quote_sent .column-count    { background: rgba(37,99,235,0.08); color: var(--primary); }
+.col-quote_sent                  { border-top: 3px solid var(--primary); }
+
+.col-booked .column-dot          { background: var(--success); }
+.col-booked .column-title        { color: #065f46; }
+.col-booked .column-count        { background: rgba(5,150,105,0.08); color: var(--success); }
+.col-booked                      { border-top: 3px solid var(--success); }
+
+.col-rejected .column-dot        { background: var(--danger); }
+.col-rejected .column-title      { color: #991b1b; }
+.col-rejected .column-count      { background: rgba(220,38,38,0.08); color: #dc2626; }
+.col-rejected                    { border-top: 3px solid #dc2626; opacity: 0.85; }
+
+/* ── Kanban card ──────────────────────────── */
+.kanban-card {
+  background: #f8fafc; border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 12px 13px;
+  cursor: grab; transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s, background 0.15s, opacity .15s;
+  user-select: none;
+}
+.kanban-card:hover {
+  background: var(--surface); border-color: rgba(37,99,235,0.3);
+  box-shadow: 0 3px 14px rgba(37,99,235,0.09); transform: translateY(-2px);
+}
+.kanban-card.dragging {
+  opacity: 0.45; cursor: grabbing; transform: rotate(1.5deg) scale(1.03);
+}
+.kanban-card.hidden-by-search { display: none; }
+.card-name {
+  font-weight: 700; font-size: 0.88rem; margin-bottom: 3px;
+  letter-spacing: -0.2px; white-space: nowrap; overflow: hidden;
+  text-overflow: ellipsis; color: var(--text);
+}
+.card-car {
+  font-size: 0.78rem; color: var(--text-muted); margin-bottom: 4px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.card-phone {
+  font-size: 0.78rem; color: var(--primary); margin-bottom: 2px;
+}
+.card-source {
+  display: inline-block; font-size: 0.68rem; font-weight: 700;
+  padding: 2px 7px; border-radius: 5px;
+  background: rgba(37,99,235,0.08); color: var(--primary);
+  border: 1px solid rgba(37,99,235,0.15); margin-top: 4px;
+}
+.card-amount {
+  font-size: 0.92rem; font-weight: 800; color: var(--success);
+  letter-spacing: -0.4px; margin-top: 4px;
+}
+.card-date {
+  font-size: 0.68rem; color: var(--text-dim); margin-top: 6px;
+}
+.card-reject-reason {
+  font-size: 0.72rem; color: var(--danger); font-style: italic;
+  margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.card-comment {
+  font-size: 0.72rem; color: var(--text-muted); font-style: italic;
+  margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.empty-col { text-align: center; padding: 28px 12px; color: var(--text-dim); font-size: 0.78rem; }
+.loading   { text-align: center; padding: 60px 20px; color: var(--text-muted); font-size: 0.88rem; width: 100%; }
+
+/* ── Modal ────────────────────────────────── */
+.modal {
+  display: none; position: fixed; inset: 0;
+  background: rgba(15,23,42,0.5); backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px); z-index: 1000;
+  align-items: center; justify-content: center; padding: 20px;
+}
+.modal.active { display: flex; animation: fadeIn 0.15s ease; }
+@keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { transform: translateY(12px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+.modal-content {
+  background: var(--surface); border-radius: var(--radius);
+  border: 1px solid var(--border); padding: 28px 28px 24px;
+  max-width: 480px; width: 100%; box-shadow: var(--shadow-modal);
+  animation: slideUp 0.18s ease;
+  max-height: 90vh; overflow-y: auto;
+}
+.modal-title { font-size: 1.05rem; font-weight: 700; margin-bottom: 20px; letter-spacing: -0.2px; }
+.form-group  { margin-bottom: 13px; }
+.form-group label {
+  display: block; font-size: 0.69rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.07em;
+  color: var(--text-muted); margin-bottom: 5px;
+}
+.form-group input,
+.form-group textarea,
+.form-group select {
+  width: 100%; padding: 10px 13px; background: var(--bg);
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  color: var(--text); font-size: 16px; font-family: var(--font);
+  transition: border-color 0.15s, box-shadow 0.15s; outline: none; -webkit-appearance: none;
+}
+.form-group textarea { resize: vertical; min-height: 72px; }
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.10); background: var(--surface); }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.modal-footer { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+.modal-footer .btn { width: auto; }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 10px 18px; border-radius: var(--radius-sm);
+  font-size: 0.83rem; font-weight: 700; font-family: var(--font);
+  cursor: pointer; border: none; transition: all 0.15s;
+  text-decoration: none; white-space: nowrap;
+}
+.btn-primary   { background: var(--primary); color: #fff; }
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-secondary { background: transparent; color: var(--text-muted); border: 1px solid var(--border); }
+.btn-secondary:hover { background: var(--bg); color: var(--text); }
+.btn-danger    { background: rgba(220,38,38,0.07); color: var(--danger); border: 1px solid rgba(220,38,38,0.15); }
+.btn-danger:hover { background: rgba(220,38,38,0.14); }
+
+@media (max-width: 640px) {
+  .board-outer  { padding: 10px 10px 24px; }
+  .board-toolbar { padding: 10px 10px 0; }
+  .column       { width: 240px; max-height: calc(100svh - 160px); }
+  .modal-content { padding: 22px 18px 20px; }
+  .modal-footer  { flex-direction: column-reverse; gap: 7px; }
+  .modal-footer .btn { width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<div class="board-page">
+  <div class="board-toolbar">
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="searchInput" placeholder="Поиск по имени, телефону, авто..." autocomplete="off">
+    </div>
+    <span class="board-count-badge" id="boardCountBadge"></span>
+    <button class="btn-new-lead" id="btnNewLead">+ Новый лид</button>
+  </div>
+
+  <div class="board-outer">
+    <div class="board-wrap" id="board">
+      <div class="loading">Загрузка...</div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Новый / Редактировать лид -->
+<div class="modal" id="modalLead">
+  <div class="modal-content">
+    <div class="modal-title" id="leadModalTitle">Новый лид</div>
+    <div class="form-row">
+      <div class="form-group"><label>Фамилия</label><input id="f-last" placeholder="Иванов"></div>
+      <div class="form-group"><label>Имя</label><input id="f-first" placeholder="Иван"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Телефон</label><input id="f-phone" placeholder="+7 999 000 00 00"></div>
+      <div class="form-group"><label>Источник</label>
+        <select id="f-source">
+          <option value="">Не указан</option>
+          <option value="instagram">Instagram</option>
+          <option value="vk">ВКонтакте</option>
+          <option value="avito">Авито</option>
+          <option value="referral">Рекомендация</option>
+          <option value="walk_in">Сам пришёл</option>
+          <option value="other">Другое</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Марка авто</label><input id="f-brand" placeholder="BMW"></div>
+      <div class="form-group"><label>Модель</label><input id="f-model" placeholder="X5"></div>
+    </div>
+    <div class="form-group"><label>Ожидаемая сумма</label><input id="f-amount" type="number" placeholder="0" min="0"></div>
+    <div class="form-group"><label>Заметки</label><textarea id="f-notes" rows="2" placeholder="Комментарий..."></textarea></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="btnLeadCancel">Отмена</button>
+      <button class="btn btn-danger" id="btnLeadDelete" style="display:none">Удалить</button>
+      <button class="btn btn-primary" id="btnLeadSave">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Комментарий при смене статуса -->
+<div class="modal" id="modalMove">
+  <div class="modal-content">
+    <div class="modal-title" id="moveModalTitle">Перемещение лида</div>
+    <div class="form-group">
+      <label>Комментарий</label>
+      <textarea id="moveComment" rows="3" placeholder="Добавьте комментарий (необязательно)..."></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="btnMoveCancel">Отмена</button>
+      <button class="btn btn-primary" id="btnMoveConfirm">Переместить</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Причина отказа -->
+<div class="modal" id="modalReject">
+  <div class="modal-content">
+    <div class="modal-title">Причина отказа</div>
+    <div class="form-group">
+      <label>Причина</label>
+      <select id="rejectReason">
+        <option value="price">Не устроила цена</option>
+        <option value="timing">Не устроили сроки</option>
+        <option value="competitor">Ушёл к конкуренту</option>
+        <option value="no_response">Не отвечает</option>
+        <option value="changed_mind">Передумал</option>
+        <option value="other">Другое</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Комментарий</label>
+      <textarea id="rejectComment" rows="3" placeholder="Подробности..."></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="btnRejectCancel">Отмена</button>
+      <button class="btn btn-danger" id="btnRejectConfirm">Отказ</button>
+    </div>
+  </div>
+</div>
+
+<script src="footer.js"></script>
+<script type="module">
+import { sb }               from './api.js';
+import { requireAuth }      from './auth.js';
+import { getStudioContext }  from './studio-context.js';
+import { showToast, showLoading, showError, showEmpty } from './ui.js';
+
+// ── State ────────────────────────────────────────────────────────────
+let allLeads   = [];
+let studioCtx  = null;
+let editingId  = null;
+let searchTerm = '';
+
+// Drag state
+let _dragLeadId = null;
+let _dragFrom   = null;
+
+// Move-modal state
+let _pendingMoveId     = null;
+let _pendingMoveTo     = null;
+
+const COLUMNS = [
+  { key: 'new_lead',     label: 'Новый лид',          icon: '📞' },
+  { key: 'negotiation',  label: 'Переговоры',         icon: '🤝' },
+  { key: 'quote_sent',   label: 'Расчёт отправлен',   icon: '📋' },
+  { key: 'booked',       label: 'Запись',              icon: '✅' },
+  { key: 'rejected',     label: 'Отказ',               icon: '❌' },
+];
+
+const SOURCE_LABELS = {
+  instagram: 'Instagram', vk: 'ВКонтакте', avito: 'Авито',
+  referral: 'Рекомендация', walk_in: 'Сам пришёл', other: 'Другое',
+};
+
+const REJECT_LABELS = {
+  price: 'Цена', timing: 'Сроки', competitor: 'Конкурент',
+  no_response: 'Не отвечает', changed_mind: 'Передумал', other: 'Другое',
+};
+
+// ── Init ─────────────────────────────────────────────────────────────
+async function init() {
+  initNav();
+  document.body.style.visibility = 'visible';
+
+  // 1. Проверяем авторизацию
+  const user = await requireAuth({ redirectTo: 'welcome.html' });
+  if (!user) return;
+
+  // 2. Получаем контекст студии
+  try {
+    studioCtx = await getStudioContext();
+  } catch (err) {
+    console.error('[sales] getStudioContext:', err);
+    const board = document.getElementById('board');
+    showError(board, 'Ошибка загрузки данных студии', () => location.reload());
+    return;
+  }
+
+  if (!studioCtx) {
+    window.location.href = 'welcome.html';
+    return;
+  }
+
+  if (!studioCtx.studioId) {
+    const board = document.getElementById('board');
+    showError(board, 'Студия не найдена. Обратитесь к администратору.');
+    return;
+  }
+
+  // 3. Проверяем подписку
+  if (!studioCtx.hasAccess) {
+    const board = document.getElementById('board');
+    showEmpty(board, 'Нет доступа', 'Оформите подписку для доступа к воронке продаж');
+    window.showPaywall?.(studioCtx.subscriptionStatus === 'expired');
+    return;
+  }
+
+  // 4. Привязываем события и грузим данные
+  bindEvents();
+  await loadLeads();
+}
+
+function bindEvents() {
+  document.getElementById('btnNewLead').addEventListener('click', () => openLeadModal());
+  document.getElementById('searchInput').addEventListener('input', e => {
+    searchTerm = e.target.value.toLowerCase();
+    applySearch();
+  });
+
+  // Lead modal
+  document.getElementById('btnLeadCancel').addEventListener('click', closeLeadModal);
+  document.getElementById('btnLeadSave').addEventListener('click', saveLead);
+  document.getElementById('btnLeadDelete').addEventListener('click', deleteLead);
+
+  // Move modal
+  document.getElementById('btnMoveCancel').addEventListener('click', closeMoveModal);
+  document.getElementById('btnMoveConfirm').addEventListener('click', confirmMove);
+
+  // Reject modal
+  document.getElementById('btnRejectCancel').addEventListener('click', closeRejectModal);
+  document.getElementById('btnRejectConfirm').addEventListener('click', confirmReject);
+}
+
+// ── Data ─────────────────────────────────────────────────────────────
+async function loadLeads() {
+  const board = document.getElementById('board');
+  showLoading(board, 'Загрузка воронки...');
+
+  const { data, error } = await sb
+    .from('leads')
+    .select('*')
+    .eq('studio_id', studioCtx.studioId)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    showError(board, 'Не удалось загрузить лиды', loadLeads);
+    console.error('[sales] loadLeads:', error);
+    return;
+  }
+
+  allLeads = data || [];
+  renderBoard();
+}
+
+// ── Render board ─────────────────────────────────────────────────────
+function renderBoard() {
+  const board = document.getElementById('board');
+  board.innerHTML = '';
+
+  const frag = document.createDocumentFragment();
+  let total  = 0;
+
+  COLUMNS.forEach(col => {
+    const cards = allLeads.filter(l => (l.status || 'new_lead') === col.key);
+    total += cards.length;
+
+    const colEl = document.createElement('div');
+    colEl.className = `column col-${col.key}`;
+    colEl.dataset.status = col.key;
+
+    // Header
+    const header = document.createElement('div');
+    header.className = 'column-header';
+
+    const titleEl = document.createElement('div');
+    titleEl.className = 'column-title';
+    const dot = document.createElement('div');
+    dot.className = 'column-dot';
+    titleEl.appendChild(dot);
+    titleEl.append(` ${col.icon} ${col.label}`);
+
+    const countEl = document.createElement('div');
+    countEl.className = 'column-count';
+    countEl.textContent = cards.length;
+    header.append(titleEl, countEl);
+
+    // Cards
+    const cardsEl = document.createElement('div');
+    cardsEl.className = 'column-cards';
+    cardsEl.dataset.status = col.key;
+
+    if (cards.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'empty-col';
+      empty.textContent = '📭 Пусто';
+      cardsEl.appendChild(empty);
+    } else {
+      cards.forEach(l => cardsEl.appendChild(buildCard(l, col.key)));
+    }
+
+    // Drag & drop on column
+    colEl.addEventListener('dragover', onDragOver);
+    colEl.addEventListener('dragleave', onDragLeave);
+    colEl.addEventListener('drop', onDrop);
+
+    colEl.append(header, cardsEl);
+    frag.appendChild(colEl);
+  });
+
+  board.appendChild(frag);
+  applySearch();
+  updateBadge(total);
+}
+
+// ── Build card ───────────────────────────────────────────────────────
+function buildCard(lead, status) {
+  const card = document.createElement('div');
+  card.className = 'kanban-card';
+  card.dataset.leadId = lead.id;
+  card.dataset.status = status;
+  card.dataset.search = [lead.last_name, lead.first_name, lead.phone, lead.brand, lead.model]
+    .filter(Boolean).join(' ').toLowerCase();
+  card.draggable = true;
+
+  card.addEventListener('dragstart', e => onDragStart(e, lead.id, status));
+  card.addEventListener('dragend', onDragEnd);
+
+  // Name
+  const nameEl = document.createElement('div');
+  nameEl.className = 'card-name';
+  nameEl.textContent = [lead.last_name, lead.first_name].filter(Boolean).join(' ') || 'Без имени';
+  card.appendChild(nameEl);
+
+  // Car
+  const carText = [lead.brand, lead.model].filter(Boolean).join(' ');
+  if (carText) {
+    const carEl = document.createElement('div');
+    carEl.className = 'card-car';
+    carEl.textContent = '🚗 ' + carText;
+    card.appendChild(carEl);
+  }
+
+  // Phone
+  if (lead.phone) {
+    const phoneEl = document.createElement('div');
+    phoneEl.className = 'card-phone';
+    phoneEl.textContent = '📞 ' + lead.phone;
+    card.appendChild(phoneEl);
+  }
+
+  // Source
+  if (lead.source && SOURCE_LABELS[lead.source]) {
+    const srcEl = document.createElement('span');
+    srcEl.className = 'card-source';
+    srcEl.textContent = SOURCE_LABELS[lead.source];
+    card.appendChild(srcEl);
+  }
+
+  // Amount
+  if (lead.deal_amount) {
+    const amtEl = document.createElement('div');
+    amtEl.className = 'card-amount';
+    amtEl.textContent = Number(lead.deal_amount).toLocaleString('ru') + ' ₽';
+    card.appendChild(amtEl);
+  }
+
+  // Last comment
+  if (lead.last_comment) {
+    const cmtEl = document.createElement('div');
+    cmtEl.className = 'card-comment';
+    cmtEl.textContent = '💬 ' + lead.last_comment;
+    card.appendChild(cmtEl);
+  }
+
+  // Reject reason
+  if (status === 'rejected' && lead.reject_reason) {
+    const rejEl = document.createElement('div');
+    rejEl.className = 'card-reject-reason';
+    rejEl.textContent = '❌ ' + (REJECT_LABELS[lead.reject_reason] || lead.reject_reason);
+    if (lead.reject_comment) rejEl.textContent += ': ' + lead.reject_comment;
+    card.appendChild(rejEl);
+  }
+
+  // Date
+  const dateEl = document.createElement('div');
+  dateEl.className = 'card-date';
+  dateEl.textContent = new Date(lead.created_at).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
+  card.appendChild(dateEl);
+
+  // Click to edit
+  card.addEventListener('click', () => openLeadModal(lead));
+
+  return card;
+}
+
+// ── Search ───────────────────────────────────────────────────────────
+function applySearch() {
+  document.querySelectorAll('.kanban-card').forEach(card => {
+    if (!searchTerm) {
+      card.classList.remove('hidden-by-search');
+    } else {
+      const match = (card.dataset.search || '').includes(searchTerm);
+      card.classList.toggle('hidden-by-search', !match);
+    }
+  });
+}
+
+function updateBadge(total) {
+  document.getElementById('boardCountBadge').textContent = `${total} лид${pluralLeads(total)}`;
+}
+
+function pluralLeads(n) {
+  const mod10 = n % 10, mod100 = n % 100;
+  if (mod10 === 1 && mod100 !== 11) return '';
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return 'а';
+  return 'ов';
+}
+
+// ── Drag & Drop ──────────────────────────────────────────────────────
+function onDragStart(e, leadId, fromStatus) {
+  _dragLeadId = leadId;
+  _dragFrom   = fromStatus;
+  e.dataTransfer.effectAllowed = 'move';
+  e.currentTarget.classList.add('dragging');
+}
+
+function onDragEnd(e) {
+  e.currentTarget.classList.remove('dragging');
+  document.querySelectorAll('.column.drag-over').forEach(c => c.classList.remove('drag-over'));
+}
+
+function onDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  e.currentTarget.closest('.column')?.classList.add('drag-over');
+}
+
+function onDragLeave(e) {
+  if (!e.currentTarget.contains(e.relatedTarget)) {
+    e.currentTarget.closest('.column')?.classList.remove('drag-over');
+  }
+}
+
+function onDrop(e) {
+  e.preventDefault();
+  const col = e.currentTarget.closest('.column');
+  col?.classList.remove('drag-over');
+  const toStatus = col?.dataset.status;
+  if (!toStatus || !_dragLeadId || toStatus === _dragFrom) return;
+
+  if (toStatus === 'rejected') {
+    openRejectModal(_dragLeadId);
+  } else {
+    openMoveModal(_dragLeadId, toStatus);
+  }
+}
+
+// ── Move modal ───────────────────────────────────────────────────────
+function openMoveModal(leadId, toStatus) {
+  _pendingMoveId = leadId;
+  _pendingMoveTo = toStatus;
+  const lead = allLeads.find(l => l.id === leadId);
+  const colLabel = COLUMNS.find(c => c.key === toStatus)?.label || toStatus;
+  const leadName = [lead?.last_name, lead?.first_name].filter(Boolean).join(' ') || 'лид';
+  document.getElementById('moveModalTitle').textContent = `${leadName} → ${colLabel}`;
+  document.getElementById('moveComment').value = '';
+  document.getElementById('modalMove').classList.add('active');
+}
+
+function closeMoveModal() {
+  document.getElementById('modalMove').classList.remove('active');
+  _pendingMoveId = null;
+  _pendingMoveTo = null;
+}
+
+async function confirmMove() {
+  if (!_pendingMoveId || !_pendingMoveTo) return;
+  const comment = document.getElementById('moveComment').value.trim();
+  const body = {
+    status: _pendingMoveTo,
+    updated_at: new Date().toISOString(),
+  };
+  if (comment) body.last_comment = comment;
+
+  const { error } = await sb
+    .from('leads')
+    .update(body)
+    .eq('id', _pendingMoveId)
+    .eq('studio_id', studioCtx.studioId);
+
+  if (error) {
+    showToast('error', 'Ошибка перемещения');
+    console.error('[sales] confirmMove:', error);
+  } else {
+    const colLabel = COLUMNS.find(c => c.key === _pendingMoveTo)?.label || _pendingMoveTo;
+    showToast('success', `→ ${colLabel}`);
+  }
+
+  closeMoveModal();
+  await loadLeads();
+}
+
+// ── Reject modal ─────────────────────────────────────────────────────
+function openRejectModal(leadId) {
+  _pendingMoveId = leadId;
+  _pendingMoveTo = 'rejected';
+  document.getElementById('rejectReason').value = 'price';
+  document.getElementById('rejectComment').value = '';
+  document.getElementById('modalReject').classList.add('active');
+}
+
+function closeRejectModal() {
+  document.getElementById('modalReject').classList.remove('active');
+  _pendingMoveId = null;
+  _pendingMoveTo = null;
+}
+
+async function confirmReject() {
+  if (!_pendingMoveId) return;
+  const reason  = document.getElementById('rejectReason').value;
+  const comment = document.getElementById('rejectComment').value.trim();
+
+  const { error } = await sb
+    .from('leads')
+    .update({
+      status: 'rejected',
+      reject_reason: reason,
+      reject_comment: comment || null,
+      last_comment: comment || (REJECT_LABELS[reason] || reason),
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', _pendingMoveId)
+    .eq('studio_id', studioCtx.studioId);
+
+  if (error) {
+    showToast('error', 'Ошибка обновления');
+    console.error('[sales] confirmReject:', error);
+  } else {
+    showToast('success', '→ Отказ');
+  }
+
+  closeRejectModal();
+  await loadLeads();
+}
+
+// ── Lead modal (create / edit) ───────────────────────────────────────
+function openLeadModal(lead = null) {
+  editingId = lead?.id || null;
+  document.getElementById('leadModalTitle').textContent = lead ? 'Редактировать лид' : 'Новый лид';
+  document.getElementById('f-last').value    = lead?.last_name || '';
+  document.getElementById('f-first').value   = lead?.first_name || '';
+  document.getElementById('f-phone').value   = lead?.phone || '';
+  document.getElementById('f-source').value  = lead?.source || '';
+  document.getElementById('f-brand').value   = lead?.brand || '';
+  document.getElementById('f-model').value   = lead?.model || '';
+  document.getElementById('f-amount').value  = lead?.deal_amount || '';
+  document.getElementById('f-notes').value   = lead?.notes || '';
+  document.getElementById('btnLeadDelete').style.display = lead ? 'inline-flex' : 'none';
+  document.getElementById('modalLead').classList.add('active');
+}
+
+function closeLeadModal() {
+  document.getElementById('modalLead').classList.remove('active');
+  editingId = null;
+}
+
+async function saveLead() {
+  const body = {
+    last_name:   document.getElementById('f-last').value.trim(),
+    first_name:  document.getElementById('f-first').value.trim(),
+    phone:       document.getElementById('f-phone').value.trim(),
+    source:      document.getElementById('f-source').value,
+    brand:       document.getElementById('f-brand').value.trim(),
+    model:       document.getElementById('f-model').value.trim(),
+    deal_amount: parseFloat(document.getElementById('f-amount').value) || null,
+    notes:       document.getElementById('f-notes').value.trim(),
+    updated_at:  new Date().toISOString(),
+  };
+
+  let error;
+  if (editingId) {
+    ({ error } = await sb.from('leads').update(body).eq('id', editingId).eq('studio_id', studioCtx.studioId));
+  } else {
+    body.studio_id = studioCtx.studioId;
+    body.status = 'new_lead';
+    ({ error } = await sb.from('leads').insert(body));
+  }
+
+  if (error) {
+    showToast('error', 'Ошибка сохранения');
+    console.error('[sales] saveLead:', error);
+  } else {
+    showToast('success', editingId ? 'Лид обновлён' : 'Лид создан');
+  }
+
+  closeLeadModal();
+  await loadLeads();
+}
+
+async function deleteLead() {
+  if (!editingId) return;
+  if (!confirm('Удалить лид?')) return;
+
+  const { error } = await sb
+    .from('leads')
+    .delete()
+    .eq('id', editingId)
+    .eq('studio_id', studioCtx.studioId);
+
+  if (error) {
+    showToast('error', 'Ошибка удаления');
+    console.error('[sales] deleteLead:', error);
+  } else {
+    showToast('success', 'Лид удалён');
+  }
+
+  closeLeadModal();
+  await loadLeads();
+}
+
+// ── Go ───────────────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>

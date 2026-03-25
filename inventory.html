@@ -1,0 +1,1562 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Склад — Keep1R CRM</title>
+<link rel="stylesheet" href="nav.css">
+<script src="nav.js"></script>
+<style>
+:root {
+  --bg: #f0f4fb; --surface: #fff;
+  --border: rgba(15,23,42,0.09); --text: #0f172a; --muted: #64748b;
+  --primary: #2563eb; --primary-light: rgba(37,99,235,0.08);
+  --success: #059669; --success-bg: rgba(5,150,105,0.09);
+  --warning: #d97706; --warning-bg: rgba(217,119,6,0.10);
+  --danger: #dc2626;  --danger-bg: rgba(220,38,38,0.08);
+  --radius: 12px; --shadow: 0 1px 4px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.06);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); min-height: 100dvh; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif; -webkit-font-smoothing: antialiased; }
+
+.page-wrap { max-width: 1280px; margin: 0 auto; padding: 24px 24px 48px; }
+.page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; gap: 12px; flex-wrap: wrap; }
+.page-title { font-size: 1.35rem; font-weight: 800; letter-spacing: -0.4px; }
+.page-title span { color: var(--primary); }
+.header-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.tabs { display: flex; gap: 4px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 4px; width: fit-content; margin-bottom: 20px; }
+.tab-btn { padding: 7px 18px; border-radius: 7px; border: none; background: transparent; font-size: 0.83rem; font-weight: 600; color: var(--muted); cursor: pointer; transition: all 0.15s; font-family: inherit; white-space: nowrap; }
+.tab-btn.active { background: var(--primary); color: #fff; box-shadow: 0 2px 8px rgba(37,99,235,0.22); }
+.tab-btn:hover:not(.active) { background: var(--bg); color: var(--text); }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+.stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; height: 84px; display: flex; flex-direction: column; justify-content: space-between; }
+.stat-label { font-size: 0.68rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+.stat-value { font-size: 1.5rem; font-weight: 800; color: var(--text); line-height: 1; }
+
+.items-grid { display: flex; flex-direction: column; gap: 14px; }
+.item-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.04); transition: box-shadow 0.15s; }
+.item-card:hover { box-shadow: var(--shadow); }
+.item-header { display: flex; align-items: center; gap: 14px; padding: 18px 20px; cursor: pointer; user-select: none; }
+.item-icon { font-size: 1.6rem; flex-shrink: 0; }
+.item-meta { flex: 1; min-width: 0; }
+.item-name { font-size: 1rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.item-sku { font-size: 0.75rem; color: var(--muted); margin-top: 3px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.item-stats { display: flex; gap: 24px; flex-shrink: 0; align-items: center; }
+.item-stat { text-align: right; }
+.item-stat-val  { font-size: 1.1rem; font-weight: 800; color: var(--primary); line-height: 1.1; }
+.item-stat-unit { font-size: 0.7rem; color: var(--muted); margin-top: 1px; }
+.item-qty { text-align: right; flex-shrink: 0; }
+.item-qty-val  { font-size: 1.1rem; font-weight: 800; color: var(--primary); }
+.item-qty-unit { font-size: 0.72rem; color: var(--muted); }
+.item-actions { display: flex; gap: 6px; flex-shrink: 0; }
+.item-body { border-top: 1px solid var(--border); padding: 16px 20px; display: none; }
+.item-body.open { display: block; }
+
+.rolls-table { width: 100%; border-collapse: collapse; font-size: 0.84rem; margin-bottom: 14px; }
+.rolls-table th { text-align: left; padding: 8px 12px; font-size: 0.69rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--border); background: var(--bg); }
+.rolls-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.rolls-table tr:last-child td { border-bottom: none; }
+.rolls-table tr:hover td { background: var(--bg); }
+
+/* ── История ─────────────────────────────────────────────── */
+.history-filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; align-items: center; }
+.history-table { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+.history-table th { text-align: left; padding: 8px 12px; font-size: 0.69rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--border); background: var(--bg); }
+.history-table td { padding: 9px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.history-table tr:last-child td { border-bottom: none; }
+.history-table tr:hover td { background: var(--bg); }
+.hist-type { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+.hist-type.purchase   { background: #dcfce7; color: #15803d; }
+.hist-type.writeoff   { background: #fee2e2; color: #b91c1c; }
+.hist-type.adjustment { background: #dbeafe; color: #1d4ed8; }
+.hist-qty-pos { color: var(--success, #16a34a); font-weight: 600; }
+.hist-qty-neg { color: var(--danger, #dc2626); font-weight: 600; }
+.roll-bar-wrap { width: 100px; background: rgba(0,0,0,0.06); border-radius: 4px; height: 7px; display: inline-block; vertical-align: middle; }
+.roll-bar { height: 7px; border-radius: 4px; background: var(--primary); transition: width 0.3s; }
+.roll-bar.low   { background: var(--warning); }
+.roll-bar.empty { background: var(--danger); }
+
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; white-space: nowrap; }
+.badge-active     { background: var(--success-bg);  color: var(--success); }
+.badge-low        { background: var(--warning-bg);  color: var(--warning); }
+.badge-empty      { background: var(--danger-bg);   color: var(--danger);  }
+.badge-repair     { background: var(--warning-bg);  color: var(--warning); }
+.badge-written_off { background: var(--bg);         color: var(--muted); }
+.badge-roll       { background: var(--primary-light); color: var(--primary); }
+.badge-cut        { background: rgba(124,58,237,0.08); color: #7c3aed; }
+
+.btn { display: inline-flex; align-items: center; gap: 5px; padding: 7px 14px; border-radius: 8px; border: 1px solid transparent; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.15s; font-family: inherit; white-space: nowrap; text-decoration: none; }
+.btn-primary   { background: var(--primary); color: #fff; border-color: var(--primary); }
+.btn-primary:hover { background: #1d4ed8; }
+.btn-secondary { background: var(--surface); color: var(--text); border-color: var(--border); }
+.btn-secondary:hover { background: var(--bg); }
+.btn-ghost  { background: var(--primary-light); color: var(--primary); }
+.btn-ghost:hover { background: rgba(37,99,235,0.14); }
+.btn-danger { background: var(--danger-bg); color: var(--danger); }
+.btn-danger:hover { background: var(--danger); color: #fff; }
+.btn-sm   { padding: 4px 10px; font-size: 0.75rem; }
+.btn-icon { padding: 5px 8px; }
+.btn[disabled] { opacity: 0.5; cursor: not-allowed; }
+
+.empty-state { text-align: center; padding: 48px 24px; color: var(--muted); }
+.empty-icon  { font-size: 2.5rem; margin-bottom: 10px; }
+.empty-title { font-size: 0.95rem; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+.empty-desc  { font-size: 0.82rem; line-height: 1.5; }
+
+.equip-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; padding: 4px 0; border-bottom: 1px solid var(--border); }
+.equip-row:last-child { border-bottom: none; }
+.equip-row-label { color: var(--muted); }
+
+.modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.45); backdrop-filter: blur(4px); z-index: 1000; display: flex; align-items: flex-start; justify-content: center; padding: 24px 16px; overflow-y: auto; }
+.modal { background: var(--surface); border-radius: 16px; width: 100%; max-width: 560px; box-shadow: 0 16px 48px rgba(0,0,0,0.18); margin: auto; }
+.modal-header { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px 0; }
+.modal-title { font-size: 1rem; font-weight: 800; }
+.modal-close { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--muted); padding: 4px; line-height: 1; border-radius: 6px; }
+.modal-close:hover { background: var(--bg); color: var(--text); }
+.modal-body { padding: 16px 20px 20px; }
+
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.form-row.single { grid-template-columns: 1fr; }
+.form-row.triple { grid-template-columns: 1fr 1fr 1fr; }
+.form-group { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
+label { font-size: 0.75rem; font-weight: 700; color: var(--muted); }
+input, select, textarea { padding: 8px 10px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 0.85rem; font-family: inherit; color: var(--text); background: var(--bg); transition: border-color 0.15s; outline: none; width: 100%; box-sizing: border-box; }
+input:focus, select:focus, textarea:focus { border-color: var(--primary); background: #fff; }
+textarea { resize: vertical; min-height: 64px; }
+.form-divider { height: 1px; background: var(--border); margin: 14px 0; }
+.form-section-title { font-size: 0.72rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; }
+
+.purchase-lines { width: 100%; margin-bottom: 10px; }
+.purchase-lines-table { width: 100%; border-collapse: collapse; font-size: 0.84rem; table-layout: fixed; }
+.purchase-lines-table th { text-align: left; padding: 6px 8px; font-size: 0.69rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1.5px solid var(--border); white-space: nowrap; }
+.purchase-lines-table td { padding: 4px 6px; border-bottom: 1px solid var(--border); vertical-align: middle; overflow: hidden; }
+.purchase-lines-table tr:last-child td { border-bottom: none; }
+.purchase-lines-table input, .purchase-lines-table select { padding: 6px 8px; font-size: 0.83rem; width: 100%; box-sizing: border-box; min-width: 0; }
+.purchase-lines-table .col-type { width: 120px; }
+.purchase-lines-table .col-name { width: auto; }
+.purchase-lines-table .col-num  { width: 88px; }
+.purchase-lines-table .col-del  { width: 30px; text-align: center; }
+.pline-del { background: none; border: none; cursor: pointer; color: var(--muted); font-size: 1rem; padding: 2px 6px; border-radius: 4px; line-height: 1; }
+.pline-del:hover { color: var(--danger); background: var(--danger-bg); }
+.purchase-history-block { margin-top: 14px; }
+.purchase-history-row { display: flex; align-items: center; justify-content: space-between; padding: 7px 10px; background: var(--bg); border-radius: 7px; margin-bottom: 5px; font-size: 0.82rem; }
+.purchase-history-row:last-child { margin-bottom: 0; }
+.purchase-history-date { color: var(--muted); min-width: 70px; }
+.purchase-history-supplier { flex: 1; padding: 0 10px; font-weight: 500; }
+.purchase-history-amount { color: var(--primary); font-weight: 700; white-space: nowrap; }
+
+.assigned-to { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; background: rgba(124,58,237,0.08); color: #7c3aed; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+
+#toast { position: fixed; bottom: 24px; right: 24px; z-index: 9999; background: #0f172a; color: #fff; padding: 10px 18px; border-radius: 10px; font-size: 0.85rem; font-weight: 600; box-shadow: 0 4px 16px rgba(0,0,0,0.2); transform: translateY(80px); opacity: 0; transition: all 0.25s; pointer-events: none; }
+#toast.show { transform: translateY(0); opacity: 1; }
+.loader { text-align: center; padding: 40px; color: var(--muted); font-size: 0.9rem; }
+
+@media (max-width: 640px) {
+  .page-wrap { padding: 16px 12px 48px; }
+  .form-row, .form-row.triple { grid-template-columns: 1fr; }
+  .stats-row { grid-template-columns: repeat(2, 1fr); }
+  .stat-card { height: auto; min-height: 72px; }
+}
+</style>
+</head>
+<body>
+
+<div class="page-wrap">
+  <div class="page-header">
+    <div class="page-title"><span>Склад</span></div>
+    <div class="header-actions">
+      <button class="btn btn-secondary" id="btnNewItem">Новая позиция</button>
+      <button class="btn btn-primary"   id="btnNewPurchase">Новая закупка</button>
+    </div>
+  </div>
+
+  <div class="tabs" id="tabsBar">
+    <button class="tab-btn active" data-tab="film">🎞 Плёнка</button>
+    <button class="tab-btn"        data-tab="consumable">🧴 Расходники</button>
+    <button class="tab-btn"        data-tab="equipment">🔧 Оборудование</button>
+    <button class="tab-btn"        data-tab="history">📋 История</button>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-label">Позиций на складе</div><div class="stat-value" id="statTotal">—</div></div>
+    <div class="stat-card"><div class="stat-label">Заканчивается</div><div class="stat-value" id="statLow" style="color:var(--warning)">—</div></div>
+    <div class="stat-card"><div class="stat-label">Закупок в этом месяце</div><div class="stat-value" id="statPurchases">—</div></div>
+    <div class="stat-card"><div class="stat-label">Сумма закупок (мес)</div><div class="stat-value" id="statAmount">—</div></div>
+  </div>
+
+  <div id="lowStockAlert" style="display:none;background:var(--warning-bg,#fff8e1);border:1px solid var(--warning,#f59e0b);border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:0.88rem;color:var(--text);">
+    ⚠ <strong>Заканчиваются:</strong> <span id="lowStockList"></span>
+  </div>
+
+  <div class="tab-panel active" id="tab-film">
+    <div id="filmList" class="items-grid"><div class="loader">⏳ Загрузка...</div></div>
+  </div>
+  <div class="tab-panel" id="tab-consumable">
+    <div id="consumableList" class="items-grid"><div class="loader">⏳ Загрузка...</div></div>
+  </div>
+  <div class="tab-panel" id="tab-equipment">
+    <div id="equipList" class="items-grid"><div class="loader">⏳ Загрузка...</div></div>
+  </div>
+  <div class="tab-panel" id="tab-history">
+    <div class="history-filters">
+      <select id="histFilterType" class="form-control" style="width:auto;">
+        <option value="">Все типы</option>
+        <option value="purchase">Закупка</option>
+        <option value="writeoff">Списание</option>
+        <option value="adjustment">Корректировка</option>
+      </select>
+      <select id="histFilterItem" class="form-control" style="width:auto;">
+        <option value="">Все позиции</option>
+      </select>
+      <input type="date" id="histFilterFrom" class="form-control" style="width:auto;" placeholder="От">
+      <input type="date" id="histFilterTo"   class="form-control" style="width:auto;" placeholder="До">
+      <button class="btn btn-sm btn-secondary" id="btnHistLoad">Показать</button>
+    </div>
+    <div id="historyList"><div class="loader">Выберите фильтры и нажмите «Показать»</div></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<!-- ═══ МОДАЛЬНЫЕ ОКНА ═══ -->
+
+<!-- Позиция -->
+<div class="modal-overlay" id="itemModal" style="display:none">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="itemModalTitle">Новая позиция</div>
+      <button class="modal-close" data-close="itemModal">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="itemId">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Тип *</label>
+          <select id="itemType">
+            <option value="film">Плёнка</option>
+            <option value="consumable">Расходник</option>
+            <option value="equipment">Оборудование</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Артикул (SKU)</label>
+          <input type="text" id="itemSku" placeholder="PPF-001">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Название *</label>
+        <input type="text" id="itemName" placeholder="XPEL Ultimate Plus 1.52м">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Бренд / Производитель</label>
+          <input type="text" id="itemBrand" placeholder="XPEL">
+        </div>
+        <div class="form-group">
+          <label>Единица измерения *</label>
+          <select id="itemUnit">
+            <option value="м">м (метры)</option>
+            <option value="л">л (литры)</option>
+            <option value="шт">шт</option>
+            <option value="кг">кг</option>
+          </select>
+        </div>
+      </div>
+      <div id="filmFields" style="display:none">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Ширина рулона (см)</label>
+            <input type="number" id="itemFilmWidth" placeholder="152">
+          </div>
+          <div class="form-group">
+            <label>Мин. остаток (м)</label>
+            <input type="number" id="itemMinAlert" placeholder="10">
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Заметки</label>
+        <textarea id="itemNotes" placeholder="Дополнительная информация..."></textarea>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
+        <button class="btn btn-secondary" data-close="itemModal">Отмена</button>
+        <button class="btn btn-primary" id="btnSaveItem">Сохранить</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Закупка -->
+<div class="modal-overlay" id="purchaseModal" style="display:none">
+  <div class="modal" style="max-width:700px">
+    <div class="modal-header">
+      <div class="modal-title">Новая закупка</div>
+      <button class="modal-close" data-close="purchaseModal">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Поставщик</label>
+          <input type="text" id="pSupplier" placeholder="">
+        </div>
+        <div class="form-group">
+          <label>Номер счёта / накладной</label>
+          <input type="text" id="pInvoice" placeholder="">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Дата закупки</label>
+          <input type="date" id="pDate">
+        </div>
+        <div class="form-group">
+          <label>Форма оплаты</label>
+          <select id="pPayment">
+            <option value="cash">Наличные</option>
+            <option value="no_vat">Безналичные без НДС</option>
+            <option value="vat">Безналичные с НДС</option>
+          </select>
+        </div>
+      </div>
+      <div id="vatRow" style="display:none" class="form-group">
+        <label>Ставка НДС (%)</label>
+        <input type="number" id="pVat" placeholder="20" min="0" max="100" step="1" style="max-width:120px;width:120px">
+      </div>
+
+      <div class="form-divider"></div>
+      <div class="form-section-title">Позиции закупки</div>
+
+      <div class="purchase-lines" id="purchaseLinesWrap">
+        <table class="purchase-lines-table">
+          <thead>
+            <tr>
+              <th class="col-type">Тип</th>
+              <th class="col-name">Наименование</th>
+              <th class="col-num">Кол-во</th>
+              <th class="col-num">Цена / ед.</th>
+              <th class="col-num">Сумма</th>
+              <th class="col-del"></th>
+            </tr>
+          </thead>
+          <tbody id="purchaseLines"></tbody>
+        </table>
+      </div>
+      <button class="btn btn-ghost btn-sm" id="btnAddPurchaseLine" style="margin-bottom:4px">+ Добавить строку</button>
+
+      <div class="form-divider"></div>
+      <div class="form-row triple">
+        <div class="form-group">
+          <label>Доставка (руб)</label>
+          <input type="number" id="pDelivery" placeholder="0" min="0">
+        </div>
+        <div class="form-group">
+          <label>Доп. расходы (руб)</label>
+          <input type="number" id="pOther" placeholder="0" min="0">
+        </div>
+        <div class="form-group">
+          <label>Итого</label>
+          <input type="text" id="pTotal" readonly style="font-weight:800;color:var(--primary);background:var(--primary-light,#eff6ff)">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Заметки</label>
+        <textarea id="pNotes" placeholder=""></textarea>
+      </div>
+      <div class="form-group">
+        <label>Привязать к заказу <span style="font-weight:400;color:var(--muted)">(необязательно)</span></label>
+        <select id="pCalcId">
+          <option value="">— Без привязки —</option>
+        </select>
+      </div>
+
+      <div id="purchaseHistoryBlock" class="purchase-history-block" style="display:none">
+        <div class="form-divider"></div>
+        <div class="form-section-title">Последние закупки</div>
+        <div id="purchaseHistoryList"></div>
+      </div>
+
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
+        <button class="btn btn-secondary" data-close="purchaseModal">Отмена</button>
+        <button class="btn btn-primary" id="btnSavePurchase">Провести закупку</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Списание -->
+<div class="modal-overlay" id="writeoffModal" style="display:none">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Списание материала</div>
+      <button class="modal-close" data-close="writeoffModal">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="writeoffItemName" style="font-weight:700;margin-bottom:12px;font-size:0.95rem"></div>
+      <div id="writeoffRollSection" style="display:none">
+        <div class="form-group">
+          <label>Выбрать рулон / отрез</label>
+          <select id="writeoffRoll"></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Количество *</label>
+          <input type="number" id="writeoffQty" placeholder="0" min="0.01" step="0.01">
+        </div>
+        <div class="form-group">
+          <label>Привязка к заказу (ID)</label>
+          <input type="text" id="writeoffCalcId" placeholder="Опционально">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Причина / заметка</label>
+        <input type="text" id="writeoffNotes" placeholder="Расход на авто, порча...">
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
+        <button class="btn btn-secondary" data-close="writeoffModal">Отмена</button>
+        <button class="btn btn-danger"    id="btnSaveWriteoff">Списать</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Оборудование -->
+<div class="modal-overlay" id="equipModal" style="display:none">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-header">
+      <div class="modal-title" id="equipModalTitle">Новое оборудование</div>
+      <button class="modal-close" data-close="equipModal">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="equipId">
+      <div class="form-row">
+        <div class="form-group"><label>Инвентарный номер</label><input type="text" id="equipSku" placeholder="EQ-001"></div>
+        <div class="form-group"><label>Категория</label><input type="text" id="equipCategory" placeholder="Инструмент, Техника..."></div>
+      </div>
+      <div class="form-group"><label>Название *</label><input type="text" id="equipName" placeholder="Плоттер Graphtec CE7000"></div>
+      <div class="form-row">
+        <div class="form-group"><label>Бренд</label><input type="text" id="equipBrand"></div>
+        <div class="form-group"><label>Модель</label><input type="text" id="equipModel"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Серийный номер</label><input type="text" id="equipSerial"></div>
+        <div class="form-group">
+          <label>Состояние</label>
+          <select id="equipCondition">
+            <option value="excellent">Отличное</option>
+            <option value="good">Хорошее</option>
+            <option value="fair">Требует обслуживания</option>
+            <option value="poor">Плохое</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-divider"></div>
+      <div class="form-section-title">Финансы и амортизация</div>
+      <div class="form-row triple">
+        <div class="form-group"><label>Дата покупки</label><input type="date" id="equipPurchaseDate"></div>
+        <div class="form-group"><label>Стоимость (руб)</label><input type="number" id="equipPrice" placeholder="0"></div>
+        <div class="form-group"><label>Срок службы (мес)</label><input type="number" id="equipLife" placeholder="60"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Поставщик</label><input type="text" id="equipSupplier"></div>
+        <div class="form-group"><label>Место хранения</label><input type="text" id="equipLocation" placeholder="Стеллаж А"></div>
+      </div>
+      <div class="form-group"><label>Заметки</label><textarea id="equipNotes"></textarea></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
+        <button class="btn btn-secondary" data-close="equipModal">Отмена</button>
+        <button class="btn btn-primary" id="btnSaveEquip">Сохранить</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Выдача оборудования -->
+<div class="modal-overlay" id="assignModal" style="display:none">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">👤 Выдача оборудования</div>
+      <button class="modal-close" data-close="assignModal">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="assignEquipId">
+      <div id="assignEquipName" style="font-weight:700;margin-bottom:12px;font-size:0.95rem"></div>
+      <div class="form-group"><label>Кому выдаётся *</label><input type="text" id="assignName" placeholder="Имя сотрудника"></div>
+      <div class="form-row">
+        <div class="form-group"><label>Дата выдачи</label><input type="date" id="assignIssued"></div>
+        <div class="form-group"><label>Плановый возврат</label><input type="date" id="assignReturn"></div>
+      </div>
+      <div class="form-group"><label>Цель / назначение</label><input type="text" id="assignPurpose" placeholder="Для заказа, постоянное использование..."></div>
+      <div class="form-group"><label>Состояние при выдаче</label><input type="text" id="assignCondition" placeholder="Отличное, рабочее..."></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
+        <button class="btn btn-secondary" data-close="assignModal">Отмена</button>
+        <button class="btn btn-primary" id="btnSaveAssign">Выдать</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="footer.js"></script>
+<script type="module">
+import { sb }              from './api.js';
+import { requireAuth }      from './auth.js';
+import { getStudioContext }  from './studio-context.js';
+import { showToast }         from './ui.js';
+
+// ── Состояние ─────────────────────────────────────────────────────────
+let studioId       = null;
+let currentUser    = null;
+let allItems       = [];
+let allRolls       = [];
+let allEquipment   = [];
+let writeoffItemId = null;
+let purchaseLineCount = 0;
+
+const fmt = n => Number(n || 0).toLocaleString('ru-RU', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+const conditionLabel = { excellent: 'Отличное', good: 'Хорошее', fair: 'Требует обслуживания', poor: 'Плохое' };
+
+// ── Toast (локальный, совместим со страницей) ─────────────────────────
+function toast(msg, type = 'success') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+// ── Загрузка данных ───────────────────────────────────────────────────
+async function loadItems() {
+  const { data, error } = await sb.from('inventory_items').select('*')
+    .eq('studio_id', studioId).eq('is_active', true).order('name');
+  if (error) { console.error(error); return; }
+  allItems = data || [];
+  renderFilm();
+  renderConsumables();
+}
+
+async function loadRolls() {
+  const { data, error } = await sb.from('film_rolls').select('*')
+    .eq('studio_id', studioId).eq('status', 'active').order('created_at');
+  if (error) { console.error(error); return; }
+  allRolls = data || [];
+}
+
+async function loadEquipment() {
+  const { data, error } = await sb.from('equipment')
+    .select('*, equipment_assignments(id, executor_name, issued_at, returned_at)')
+    .eq('studio_id', studioId).order('name');
+  if (error) { console.error(error); return; }
+  allEquipment = data || [];
+  renderEquipment();
+}
+
+async function loadStats() {
+  const now = new Date();
+  const monthStart = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-01`;
+  const { data: purchases } = await sb.from('purchases').select('total_amount')
+    .eq('studio_id', studioId).gte('purchase_date', monthStart);
+  const lowItems   = allItems.filter(i => i.qty_min_alert && i.qty_current <= i.qty_min_alert);
+  const monthTotal = (purchases || []).reduce((s, p) => s + Number(p.total_amount || 0), 0);
+  document.getElementById('statTotal').textContent     = String(allItems.length);
+  document.getElementById('statLow').textContent       = String(lowItems.length);
+  document.getElementById('statPurchases').textContent = String((purchases || []).length);
+  document.getElementById('statAmount').textContent    = fmt(monthTotal) + ' ₽';
+
+  // Алерт-баннер заканчивающихся позиций
+  const alertEl = document.getElementById('lowStockAlert');
+  if (lowItems.length) {
+    document.getElementById('lowStockList').textContent = lowItems.map(i => `${i.name} (${fmt(i.qty_current)} ${i.unit})`).join(' · ');
+    alertEl.style.display = 'block';
+  } else {
+    alertEl.style.display = 'none';
+  }
+  // Заполняем селект позиций в фильтре истории
+  const sel = document.getElementById('histFilterItem');
+  sel.innerHTML = '<option value="">Все позиции</option>';
+  allItems.forEach(i => {
+    const opt = document.createElement('option');
+    opt.value = i.id; opt.textContent = i.name;
+    sel.appendChild(opt);
+  });
+}
+
+// ── История движений ──────────────────────────────────────────────────
+const histTypeLabel = { purchase: '📥 Закупка', writeoff: '📤 Списание', adjustment: '🔧 Корр-ка' };
+const histTypeKey   = { purchase: 'purchase', writeoff: 'writeoff', adjustment: 'adjustment' };
+
+async function loadHistory() {
+  const container = document.getElementById('historyList');
+  container.innerHTML = '<div class="loader">⏳ Загрузка...</div>';
+  const type   = document.getElementById('histFilterType').value;
+  const itemId = document.getElementById('histFilterItem').value;
+  const from   = document.getElementById('histFilterFrom').value;
+  const to     = document.getElementById('histFilterTo').value;
+
+  let q = sb.from('inventory_transactions')
+    .select('*, inventory_items(name, unit)')
+    .eq('studio_id', studioId)
+    .order('created_at', { ascending: false })
+    .limit(200);
+  if (type)   q = q.eq('type', type);
+  if (itemId) q = q.eq('item_id', itemId);
+  if (from)   q = q.gte('created_at', from + 'T00:00:00');
+  if (to)     q = q.lte('created_at', to + 'T23:59:59');
+
+  const { data, error } = await q;
+  if (error) { container.innerHTML = '<div style="padding:20px;color:var(--danger)">❌ Ошибка загрузки</div>'; return; }
+  renderHistory(data || [], container);
+}
+
+function renderHistory(rows, container) {
+  if (!rows.length) {
+    container.innerHTML = '<div style="padding:20px;color:var(--muted);text-align:center">Движений не найдено</div>';
+    return;
+  }
+  const tbl = document.createElement('table');
+  tbl.className = 'history-table';
+  tbl.innerHTML = `<thead><tr>
+    <th>Дата</th><th>Тип</th><th>Позиция</th><th>Количество</th><th>Цена / ед</th><th>Сумма</th><th>Примечание</th>
+  </tr></thead>`;
+  const tbody = document.createElement('tbody');
+  rows.forEach(r => {
+    const item = r.inventory_items;
+    const unit = item?.unit || '';
+    const qty  = Number(r.qty || 0);
+    const cost = Number(r.unit_cost || 0);
+    const dateStr = new Date(r.created_at).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    const typeKey = histTypeKey[r.type] || r.type;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="color:var(--muted);font-size:0.8rem;white-space:nowrap">${dateStr}</td>
+      <td><span class="hist-type ${typeKey}">${histTypeLabel[r.type] || r.type}</span></td>
+      <td>${item?.name || '—'}</td>
+      <td class="${qty >= 0 ? 'hist-qty-pos' : 'hist-qty-neg'}">${qty >= 0 ? '+' : ''}${fmt(qty)} ${unit}</td>
+      <td style="color:var(--muted)">${cost ? fmt(cost) + ' ₽' : '—'}</td>
+      <td>${cost && qty ? fmt(Math.abs(qty * cost)) + ' ₽' : '—'}</td>
+      <td style="color:var(--muted);font-size:0.82rem">${r.notes || '—'}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+  tbl.appendChild(tbody);
+  container.innerHTML = '';
+  container.appendChild(tbl);
+}
+
+async function openItemHistory(itemId) {
+  // Переключаемся на вкладку История и фильтруем по позиции
+  switchTab('history');
+  document.getElementById('histFilterItem').value = itemId;
+  document.getElementById('histFilterType').value = '';
+  document.getElementById('histFilterFrom').value = '';
+  document.getElementById('histFilterTo').value   = '';
+  await loadHistory();
+}
+
+// ── Рендер: Плёнка ────────────────────────────────────────────────────
+function renderFilm() {
+  const items = allItems.filter(i => i.type === 'film');
+  const el    = document.getElementById('filmList');
+  el.innerHTML = '';
+  if (!items.length) { el.appendChild(emptyState('🎞', 'Плёнок пока нет', 'Добавьте позицию и проведите первую закупку')); return; }
+  items.forEach(item => el.appendChild(buildFilmCard(item)));
+}
+
+function buildFilmCard(item) {
+  const rolls = allRolls.filter(r => r.item_id === item.id);
+  const isLow = item.qty_min_alert && item.qty_current <= item.qty_min_alert;
+
+  const card = document.createElement('div');
+  card.className = 'item-card';
+
+  // Header
+  const header = document.createElement('div');
+  header.className = 'item-header';
+  header.dataset.action = 'toggle';
+  header.dataset.bodyId = `item-body-${item.id}`;
+
+  const icon = el('div', 'item-icon', '🎞');
+  const meta = document.createElement('div');
+  meta.className = 'item-meta';
+  const nameEl = el('div', 'item-name');
+  nameEl.textContent = item.name;
+  const skuEl = document.createElement('div');
+  skuEl.className = 'item-sku';
+  if (item.sku)           skuEl.appendChild(el('span', '', `#${item.sku}`));
+  if (item.brand)         skuEl.appendChild(el('span', '', item.brand));
+  if (item.film_width_cm) skuEl.appendChild(el('span', '', `ширина ${item.film_width_cm} см`));
+  skuEl.appendChild(badgeEl(isLow ? 'low' : 'active', isLow ? '⚠ Заканчивается' : '✓ В наличии'));
+  meta.append(nameEl, skuEl);
+
+  const stats = document.createElement('div');
+  stats.className = 'item-stats';
+  stats.append(
+    statEl(fmt(item.qty_current), `${item.unit} в наличии`),
+    statEl(fmt(item.avg_cost) + ' ₽', `за ${item.unit}`, 'var(--muted)', '0.95rem'),
+    statEl(fmt(item.qty_current * item.avg_cost) + ' ₽', 'сумма', 'var(--success)'),
+  );
+
+  const actions = document.createElement('div');
+  actions.className = 'item-actions';
+  actions.addEventListener('click', e => e.stopPropagation());
+  actions.append(
+    actionBtn('btn btn-sm btn-ghost', 'Списать', 'writeoff', item.id),
+    actionBtn('btn btn-sm btn-ghost', '📋', 'history', item.id),
+    actionBtn('btn btn-sm btn-secondary btn-icon', '✏️', 'edit-item', item.id),
+  );
+
+  header.append(icon, meta, stats, actions);
+
+  // Body
+  const body = document.createElement('div');
+  body.className = 'item-body';
+  body.id = `item-body-${item.id}`;
+
+  if (rolls.length) {
+    const tbl = buildRollsTable(rolls, item.id);
+    body.appendChild(tbl);
+  } else {
+    body.appendChild(el('div', '', 'Рулонов нет. Проведите закупку.', 'color:var(--muted);font-size:0.84rem;padding:10px 0'));
+  }
+  body.appendChild(actionBtn('btn btn-sm btn-ghost', 'Закупить', 'purchase', item.id));
+
+  card.append(header, body);
+  return card;
+}
+
+function buildRollsTable(rolls, itemId) {
+  const tbl = document.createElement('table');
+  tbl.className = 'rolls-table';
+  tbl.innerHTML = '<thead><tr><th>Метка</th><th>Тип</th><th>Остаток</th><th>Прогресс</th><th>Ширина</th><th>Цена / м</th><th>Сумма</th><th>Дата</th><th></th></tr></thead>';
+  const tbody = document.createElement('tbody');
+  rolls.forEach(r => {
+    const pct = r.qty_initial > 0 ? Math.round(r.qty_remaining / r.qty_initial * 100) : 0;
+    const barClass = pct < 20 ? 'empty' : pct < 40 ? 'low' : '';
+    const dateStr  = r.created_at ? new Date(r.created_at).toLocaleDateString('ru-RU', {day:'2-digit',month:'2-digit',year:'numeric'}) : '—';
+    const sumVal   = r.cost_per_unit ? fmt(r.qty_remaining * r.cost_per_unit) + ' ₽' : '—';
+    const tr = document.createElement('tr');
+    // roll_number может быть пользовательским
+    const tdNum  = document.createElement('td');
+    const strong = document.createElement('strong');
+    strong.textContent = r.roll_number || '—';
+    tdNum.appendChild(strong);
+
+    const tdType = document.createElement('td');
+    tdType.appendChild(badgeEl(r.roll_type, r.roll_type === 'roll' ? 'Рулон' : 'Отрез'));
+
+    const tdQty = document.createElement('td');
+    tdQty.innerHTML = `<strong>${fmt(r.qty_remaining)} м</strong> <span style="color:var(--muted);font-size:0.75rem">/ ${fmt(r.qty_initial)}</span>`;
+
+    const tdBar = document.createElement('td');
+    tdBar.innerHTML = `<span class="roll-bar-wrap"><span class="roll-bar ${barClass}" style="width:${pct}%"></span></span> <span style="font-size:0.72rem;color:var(--muted)">${pct}%</span>`;
+
+    const tdW   = el('td', '', r.width_cm ? r.width_cm + ' см' : '—');
+    const tdP   = el('td', '', r.cost_per_unit ? fmt(r.cost_per_unit) + ' ₽' : '—');
+    const tdSum = el('td', '', sumVal);
+    const tdDt  = el('td', '', dateStr, 'color:var(--muted);font-size:0.78rem');
+    const tdBtn = document.createElement('td');
+    tdBtn.appendChild(actionBtn('btn btn-sm btn-secondary', 'Списать', 'writeoff-roll', itemId, r.id));
+
+    tr.append(tdNum, tdType, tdQty, tdBar, tdW, tdP, tdSum, tdDt, tdBtn);
+    tbody.appendChild(tr);
+  });
+  tbl.appendChild(tbody);
+  return tbl;
+}
+
+// ── Рендер: Расходники ────────────────────────────────────────────────
+function renderConsumables() {
+  const items = allItems.filter(i => i.type === 'consumable');
+  const el    = document.getElementById('consumableList');
+  el.innerHTML = '';
+  if (!items.length) { el.appendChild(emptyState('🧴', 'Расходников пока нет', 'Добавьте позицию — химия, праймер, расходные материалы')); return; }
+  items.forEach(item => el.appendChild(buildConsumableCard(item)));
+}
+
+function buildConsumableCard(item) {
+  const isLow = item.qty_min_alert && item.qty_current <= item.qty_min_alert;
+  const badge = isLow ? badgeEl('low', '⚠ Заканчивается')
+    : item.qty_current > 0 ? badgeEl('active', '✓ В наличии')
+    : badgeEl('empty', '✗ Нет');
+
+  const card = document.createElement('div');
+  card.className = 'item-card';
+
+  const header = document.createElement('div');
+  header.className = 'item-header';
+  header.dataset.action = 'toggle';
+  header.dataset.bodyId = `item-body-${item.id}`;
+
+  const icon = el('div', 'item-icon', '🧴');
+  const meta = document.createElement('div');
+  meta.className = 'item-meta';
+  const nameEl = el('div', 'item-name');
+  nameEl.textContent = item.name;
+  const skuEl = document.createElement('div');
+  skuEl.className = 'item-sku';
+  if (item.sku)   skuEl.appendChild(el('span', '', `#${item.sku}`));
+  if (item.brand) skuEl.appendChild(el('span', '', item.brand));
+  skuEl.appendChild(badge);
+  meta.append(nameEl, skuEl);
+
+  const stats = document.createElement('div');
+  stats.className = 'item-stats';
+  stats.append(
+    statEl(fmt(item.qty_current), `${item.unit} в наличии`),
+    statEl(fmt(item.avg_cost) + ' ₽', `за ${item.unit}`, 'var(--muted)', '0.95rem'),
+    statEl(fmt(item.qty_current * item.avg_cost) + ' ₽', 'сумма', 'var(--success)'),
+  );
+
+  const actions = document.createElement('div');
+  actions.className = 'item-actions';
+  actions.addEventListener('click', e => e.stopPropagation());
+  actions.append(
+    actionBtn('btn btn-sm btn-ghost', 'Списать', 'writeoff', item.id),
+    actionBtn('btn btn-sm btn-ghost', '📋', 'history', item.id),
+    actionBtn('btn btn-sm btn-secondary btn-icon', '✏️', 'edit-item', item.id),
+  );
+
+  header.append(icon, meta, stats, actions);
+
+  const body = document.createElement('div');
+  body.className = 'item-body';
+  body.id = `item-body-${item.id}`;
+  if (item.notes) {
+    const notes = document.createElement('div');
+    notes.style.cssText = 'font-size:0.84rem;color:var(--muted);margin-bottom:12px';
+    notes.textContent = item.notes;
+    body.appendChild(notes);
+  }
+  body.appendChild(actionBtn('btn btn-sm btn-ghost', 'Закупить', 'purchase', item.id));
+
+  card.append(header, body);
+  return card;
+}
+
+// ── Рендер: Оборудование ──────────────────────────────────────────────
+function renderEquipment() {
+  const container = document.getElementById('equipList');
+  container.innerHTML = '';
+  if (!allEquipment.length) { container.appendChild(emptyState('🔧', 'Оборудования пока нет', 'Добавьте инструменты, технику, инвентарь')); return; }
+  allEquipment.forEach(eq => container.appendChild(buildEquipCard(eq)));
+}
+
+function buildEquipCard(eq) {
+  const activeAssign = (eq.equipment_assignments || []).find(a => !a.returned_at);
+  const monthlyDepr  = (eq.purchase_price && eq.useful_life_months)
+    ? Math.round((eq.purchase_price - (eq.residual_value || 0)) / eq.useful_life_months) : null;
+  const statusMap = { active: ['badge-active', '✓ Активно'], repair: ['badge-repair', '🔧 Ремонт'], written_off: ['badge-written_off', '✗ Списано'] };
+  const [badgeCls, statusLabel] = statusMap[eq.status] || statusMap.active;
+
+  const card = document.createElement('div');
+  card.className = 'item-card';
+
+  const header = document.createElement('div');
+  header.className = 'item-header';
+  header.dataset.action = 'toggle';
+  header.dataset.bodyId = `item-body-eq-${eq.id}`;
+
+  const icon = el('div', 'item-icon', '🔧');
+  const meta = document.createElement('div');
+  meta.className = 'item-meta';
+  const nameEl = el('div', 'item-name');
+  nameEl.textContent = eq.name;
+  const skuEl = document.createElement('div');
+  skuEl.className = 'item-sku';
+  const skuText = [eq.sku ? `# ${eq.sku}` : '', eq.brand || '', eq.model ? eq.model : ''].filter(Boolean).join(' · ');
+  if (skuText) skuEl.appendChild(el('span', '', skuText));
+  skuEl.appendChild(badgeEl(badgeCls.replace('badge-',''), statusLabel));
+  if (activeAssign) {
+    const at = el('span', 'assigned-to');
+    at.textContent = '👤 ' + activeAssign.executor_name;
+    skuEl.appendChild(at);
+  }
+  meta.append(nameEl, skuEl);
+
+  const qtyEl = document.createElement('div');
+  qtyEl.className = 'item-qty';
+  if (monthlyDepr) {
+    qtyEl.appendChild(el('div', 'item-qty-val', fmt(monthlyDepr) + ' ₽'));
+    qtyEl.appendChild(el('div', 'item-qty-unit', 'аморт./мес'));
+  } else {
+    qtyEl.appendChild(el('div', 'item-qty-val', '—', 'color:var(--muted)'));
+  }
+
+  const actions = document.createElement('div');
+  actions.className = 'item-actions';
+  actions.addEventListener('click', e => e.stopPropagation());
+  if (!activeAssign) {
+    actions.appendChild(actionBtn('btn btn-sm btn-ghost', '👤 Выдать', 'assign', eq.id));
+  } else {
+    const retBtn = actionBtn('btn btn-sm btn-secondary', '↩ Вернуть', 'return', eq.id);
+    retBtn.dataset.assignId = activeAssign.id;
+    actions.appendChild(retBtn);
+  }
+  actions.appendChild(actionBtn('btn btn-sm btn-secondary btn-icon', '✏️', 'edit-equip', eq.id));
+
+  header.append(icon, meta, qtyEl, actions);
+
+  // Body
+  const body = document.createElement('div');
+  body.className = 'item-body';
+  body.id = `item-body-eq-${eq.id}`;
+
+  const grid = document.createElement('div');
+  grid.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:0 24px';
+
+  const rows = [
+    eq.purchase_price    ? ['Стоимость покупки',    fmt(eq.purchase_price) + ' ₽'] : null,
+    eq.purchase_date     ? ['Дата покупки',          eq.purchase_date]              : null,
+    monthlyDepr          ? ['Амортизация в мес',     fmt(monthlyDepr) + ' ₽']      : null,
+    eq.useful_life_months? ['Срок службы',           eq.useful_life_months + ' мес']: null,
+    eq.condition         ? ['Состояние',             conditionLabel[eq.condition] || eq.condition] : null,
+    eq.serial_number     ? ['Серийный номер',        eq.serial_number]              : null,
+    eq.location          ? ['Местонахождение',       eq.location]                   : null,
+    eq.supplier_name     ? ['Поставщик',             eq.supplier_name]              : null,
+  ].filter(Boolean);
+
+  rows.forEach(([label, value]) => {
+    const row = document.createElement('div');
+    row.className = 'equip-row';
+    const lbl = el('span', 'equip-row-label', label);
+    const val = document.createElement('span');
+    val.textContent = value; // textContent — безопасно
+    row.append(lbl, val);
+    grid.appendChild(row);
+  });
+
+  body.appendChild(grid);
+
+  if (eq.notes) {
+    const notes = document.createElement('div');
+    notes.style.cssText = 'margin-top:8px;font-size:0.82rem;color:var(--muted)';
+    notes.textContent = eq.notes;
+    body.appendChild(notes);
+  }
+
+  card.append(header, body);
+  return card;
+}
+
+// ── DOM-хелперы ───────────────────────────────────────────────────────
+function el(tag, cls, text, style) {
+  const e = document.createElement(tag);
+  if (cls)   e.className = cls;
+  if (text !== undefined) e.textContent = text;
+  if (style) e.style.cssText = style;
+  return e;
+}
+function badgeEl(type, text) {
+  const b = document.createElement('span');
+  b.className = `badge badge-${type}`;
+  b.textContent = text;
+  return b;
+}
+function statEl(val, unit, color, fontSize) {
+  const s = document.createElement('div');
+  s.className = 'item-stat';
+  const v = el('div', 'item-stat-val', val);
+  if (color)    v.style.color    = color;
+  if (fontSize) v.style.fontSize = fontSize;
+  s.append(v, el('div', 'item-stat-unit', unit));
+  return s;
+}
+function actionBtn(cls, text, action, id, rollId) {
+  const b = document.createElement('button');
+  b.className = cls;
+  b.textContent = text;
+  b.dataset.action = action;
+  b.dataset.id = id;
+  if (rollId) b.dataset.rollId = rollId;
+  return b;
+}
+function emptyState(icon, title, desc) {
+  const d = document.createElement('div');
+  d.className = 'empty-state';
+  d.append(el('div', 'empty-icon', icon), el('div', 'empty-title', title), el('div', 'empty-desc', desc));
+  return d;
+}
+
+// ── Табы ──────────────────────────────────────────────────────────────
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'tab-' + tab));
+}
+
+// ── Модальные окна ────────────────────────────────────────────────────
+function openModal(id)  { document.getElementById(id).style.display = 'flex'; }
+function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+// ── Позиция: открыть/сохранить ────────────────────────────────────────
+function onItemTypeChange() {
+  const type = document.getElementById('itemType').value;
+  document.getElementById('filmFields').style.display = type === 'film' ? 'block' : 'none';
+  document.getElementById('itemUnit').value = type === 'film' ? 'м' : type === 'consumable' ? 'л' : 'шт';
+}
+
+function openItemModal(id, e) {
+  if (e) e.stopPropagation();
+  document.getElementById('itemModalTitle').textContent = id ? 'Редактировать позицию' : 'Новая позиция';
+  if (id) {
+    const item = allItems.find(i => i.id === id);
+    if (!item) return;
+    document.getElementById('itemId').value         = item.id;
+    document.getElementById('itemType').value       = item.type;
+    document.getElementById('itemSku').value        = item.sku || '';
+    document.getElementById('itemName').value       = item.name;
+    document.getElementById('itemBrand').value      = item.brand || '';
+    document.getElementById('itemUnit').value       = item.unit;
+    document.getElementById('itemFilmWidth').value  = item.film_width_cm || '';
+    document.getElementById('itemMinAlert').value   = item.qty_min_alert || '';
+    document.getElementById('itemNotes').value      = item.notes || '';
+  } else {
+    document.getElementById('itemId').value = '';
+    document.getElementById('itemType').value = 'film';
+    ['itemSku','itemName','itemBrand','itemFilmWidth','itemMinAlert','itemNotes'].forEach(f => { document.getElementById(f).value = ''; });
+    document.getElementById('itemUnit').value = 'м';
+  }
+  onItemTypeChange();
+  openModal('itemModal');
+}
+
+async function saveItem() {
+  const id   = document.getElementById('itemId').value;
+  const name = document.getElementById('itemName').value.trim();
+  if (!name) { toast('⚠ Введите название'); return; }
+  const payload = {
+    studio_id:     studioId,
+    type:          document.getElementById('itemType').value,
+    sku:           document.getElementById('itemSku').value.trim() || null,
+    name,
+    brand:         document.getElementById('itemBrand').value.trim() || null,
+    unit:          document.getElementById('itemUnit').value,
+    film_width_cm: parseFloat(document.getElementById('itemFilmWidth').value) || null,
+    qty_min_alert: parseFloat(document.getElementById('itemMinAlert').value) || null,
+    notes:         document.getElementById('itemNotes').value.trim() || null,
+  };
+  const btn = document.getElementById('btnSaveItem');
+  btn.disabled = true;
+  const { error } = id
+    ? await sb.from('inventory_items').update(payload).eq('id', id)
+    : await sb.from('inventory_items').insert(payload);
+  btn.disabled = false;
+  if (error) { toast('❌ Ошибка: ' + error.message); return; }
+  closeModal('itemModal');
+  toast('✅ Позиция сохранена');
+  await loadItems();
+}
+
+// ── Закупка ───────────────────────────────────────────────────────────
+function openPurchaseModal(presetItemId) {
+  purchaseLineCount = 0;
+  document.getElementById('purchaseLines').innerHTML = '';
+  document.getElementById('pSupplier').value  = '';
+  document.getElementById('pInvoice').value   = '';
+  document.getElementById('pDate').value      = new Date().toISOString().split('T')[0];
+  document.getElementById('pPayment').value   = 'cash';
+  document.getElementById('pVat').value       = '';
+  document.getElementById('vatRow').style.display = 'none';
+  document.getElementById('pDelivery').value  = '';
+  document.getElementById('pOther').value     = '';
+  document.getElementById('pNotes').value     = '';
+  document.getElementById('pTotal').value     = '';
+  document.getElementById('pCalcId').value    = '';
+  addPurchaseLine(presetItemId);
+  loadActiveCalcs();
+  openModal('purchaseModal');
+  loadPurchaseHistory(presetItemId);
+}
+
+async function loadActiveCalcs() {
+  const sel = document.getElementById('pCalcId');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">— Без привязки —</option>';
+  const { data } = await sb.from('calculations')
+    .select('id, car_name, status, checkin_date')
+    .eq('studio_id', studioId)
+    .in('status', ['new','scheduled','accepted','in_progress','waiting','done'])
+    .order('checkin_date', { ascending: false })
+    .limit(50);
+  (data || []).forEach(c => {
+    const o = document.createElement('option');
+    o.value = c.id;
+    const d = c.checkin_date ? new Date(c.checkin_date + 'T00:00:00').toLocaleDateString('ru-RU', { day:'numeric', month:'short' }) : '';
+    o.textContent = (c.car_name || 'Без названия') + (d ? ' — ' + d : '');
+    if (c.id === cur) o.selected = true;
+    sel.appendChild(o);
+  });
+}
+
+async function loadPurchaseHistory(itemId) {
+  const block = document.getElementById('purchaseHistoryBlock');
+  const list  = document.getElementById('purchaseHistoryList');
+  if (!itemId) {
+    // Показать последние 5 закупок студии
+    const { data } = await sb.from('purchases').select('purchase_date, supplier_name, total_amount')
+      .eq('studio_id', studioId).order('purchase_date', { ascending: false }).limit(5);
+    if (!data?.length) { block.style.display = 'none'; return; }
+    list.innerHTML = '';
+    data.forEach(p => {
+      const row = document.createElement('div');
+      row.className = 'purchase-history-row';
+      const d = new Date(p.purchase_date).toLocaleDateString('ru-RU', { day: '2-digit', month: 'long' });
+      row.innerHTML = `<span class="purchase-history-date">${d}</span>
+        <span class="purchase-history-supplier">${p.supplier_name || '—'}</span>
+        <span class="purchase-history-amount">${fmt(p.total_amount)} ₽</span>`;
+      list.appendChild(row);
+    });
+    block.style.display = 'block';
+  } else {
+    // Последние закупки по этой позиции
+    const { data } = await sb.from('inventory_transactions')
+      .select('created_at, unit_cost, qty, purchases(supplier_name)')
+      .eq('studio_id', studioId).eq('item_id', itemId).eq('type', 'purchase')
+      .order('created_at', { ascending: false }).limit(5);
+    if (!data?.length) { block.style.display = 'none'; return; }
+    list.innerHTML = '';
+    data.forEach(t => {
+      const row = document.createElement('div');
+      row.className = 'purchase-history-row';
+      const d = new Date(t.created_at).toLocaleDateString('ru-RU', { day: '2-digit', month: 'long' });
+      const item = allItems.find(i => i.id === itemId);
+      row.innerHTML = `<span class="purchase-history-date">${d}</span>
+        <span class="purchase-history-supplier">${t.purchases?.supplier_name || '—'}</span>
+        <span class="purchase-history-amount">${fmt(t.unit_cost)} ₽ / ${item?.unit || 'ед.'}</span>`;
+      list.appendChild(row);
+    });
+    block.style.display = 'block';
+  }
+}
+
+function addPurchaseLine(presetItemId) {
+  purchaseLineCount++;
+  const idx  = purchaseLineCount;
+  const tbody = document.getElementById('purchaseLines');
+  const tr   = document.createElement('tr');
+  tr.id = `pline-${idx}`;
+
+  const datalistId = `pNameList-${idx}`;
+
+  // Тип
+  const typeSelect = document.createElement('select');
+  typeSelect.id = `pType-${idx}`;
+  [['film', 'Плёнка'], ['consumable', 'Расходник'], ['equipment', 'Оборудование']].forEach(([v, l]) => {
+    const o = document.createElement('option'); o.value = v; o.textContent = l;
+    typeSelect.appendChild(o);
+  });
+
+  // Наименование
+  const nameInput = document.createElement('input');
+  nameInput.type = 'text'; nameInput.id = `pName-${idx}`;
+  nameInput.setAttribute('list', datalistId);
+  nameInput.autocomplete = 'off'; nameInput.style.width = '100%';
+  const datalist = document.createElement('datalist');
+  datalist.id = datalistId;
+
+  function refreshNamelist() {
+    const t = typeSelect.value;
+    // все позиции выбранного типа + оборудование для equipment
+    let items = allItems.filter(i => i.type === t);
+    if (t === 'equipment') {
+      items = (allEquipment || []);
+    }
+    datalist.innerHTML = '';
+    items.forEach(i => {
+      const opt = document.createElement('option'); opt.value = i.name;
+      datalist.appendChild(opt);
+    });
+  }
+  typeSelect.addEventListener('change', refreshNamelist);
+  refreshNamelist();
+
+  // Числовые поля
+  function numInput(prefix, ph) {
+    const inp = document.createElement('input');
+    inp.type = 'number'; inp.id = `${prefix}-${idx}`;
+    inp.placeholder = ph; inp.min = '0'; inp.step = '0.01';
+    inp.style.width = '100%';
+    inp.addEventListener('input', () => {
+      if (prefix === 'pQty' || prefix === 'pPrice') {
+        const qty   = parseFloat(document.getElementById(`pQty-${idx}`)?.value)   || 0;
+        const price = parseFloat(document.getElementById(`pPrice-${idx}`)?.value) || 0;
+        if (qty && price) document.getElementById(`pSum-${idx}`).value = (qty * price).toFixed(2);
+      } else {
+        const qty = parseFloat(document.getElementById(`pQty-${idx}`)?.value) || 0;
+        const sum = parseFloat(document.getElementById(`pSum-${idx}`)?.value) || 0;
+        if (qty && sum) document.getElementById(`pPrice-${idx}`).value = (sum / qty).toFixed(2);
+      }
+      calcPurchaseTotal();
+    });
+    return inp;
+  }
+
+  const delBtn = document.createElement('button');
+  delBtn.className = 'pline-del'; delBtn.textContent = '×';
+  delBtn.addEventListener('click', () => { tr.remove(); calcPurchaseTotal(); });
+
+  const tdType = document.createElement('td'); tdType.className = 'col-type'; tdType.appendChild(typeSelect);
+  const tdName = document.createElement('td'); tdName.className = 'col-name'; tdName.append(nameInput, datalist);
+  const tdQty  = document.createElement('td'); tdQty.className  = 'col-num';  tdQty.appendChild(numInput('pQty', '0'));
+  const tdPrc  = document.createElement('td'); tdPrc.className  = 'col-num';  tdPrc.appendChild(numInput('pPrice', '0'));
+  const tdSum  = document.createElement('td'); tdSum.className  = 'col-num';  tdSum.appendChild(numInput('pSum', '0'));
+  const tdDel  = document.createElement('td'); tdDel.className  = 'col-del';  tdDel.appendChild(delBtn);
+
+  tr.append(tdType, tdName, tdQty, tdPrc, tdSum, tdDel);
+  tbody.appendChild(tr);
+
+  // Если открыли с presetItemId — подставляем тип и имя
+  if (presetItemId) {
+    const item = allItems.find(i => i.id === presetItemId);
+    if (item) {
+      typeSelect.value = item.type;
+      refreshNamelist();
+      nameInput.value = item.name;
+    }
+  }
+}
+
+function calcPurchaseTotal() {
+  let total = 0;
+  document.querySelectorAll('#purchaseLines tr').forEach(tr => {
+    const idx   = tr.id.replace('pline-', '');
+    const sum   = parseFloat(document.getElementById(`pSum-${idx}`)?.value)   || 0;
+    const qty   = parseFloat(document.getElementById(`pQty-${idx}`)?.value)   || 0;
+    const price = parseFloat(document.getElementById(`pPrice-${idx}`)?.value) || 0;
+    total += sum || (qty * price);
+  });
+  total += parseFloat(document.getElementById('pDelivery').value) || 0;
+  total += parseFloat(document.getElementById('pOther').value)    || 0;
+  const vatPct = parseFloat(document.getElementById('pVat').value) || 0;
+  const vatAmt = vatPct > 0 ? Math.round(total * vatPct / 100 * 100) / 100 : 0;
+  total += vatAmt;
+  document.getElementById('pTotal').value = fmt(total) + ' ₽' + (vatAmt ? ` (в т.ч. НДС ${fmt(vatAmt)} ₽)` : '');
+}
+
+async function savePurchase() {
+  const lines = [];
+  document.querySelectorAll('#purchaseLines tr').forEach(tr => {
+    const idx   = tr.id.replace('pline-', '');
+    const name  = document.getElementById(`pName-${idx}`)?.value.trim();
+    const type  = document.getElementById(`pType-${idx}`)?.value || 'consumable';
+    const qty   = parseFloat(document.getElementById(`pQty-${idx}`)?.value)   || 0;
+    const price = parseFloat(document.getElementById(`pPrice-${idx}`)?.value) || 0;
+    const sum   = parseFloat(document.getElementById(`pSum-${idx}`)?.value)   || (qty * price);
+    if (!name && !sum) return;
+    lines.push({ name: name || '—', type, qty, price: price || (qty ? sum / qty : 0), sum });
+  });
+  if (!lines.length) { toast('⚠ Добавьте хотя бы одну позицию'); return; }
+
+  const delivery = parseFloat(document.getElementById('pDelivery').value) || 0;
+  const other    = parseFloat(document.getElementById('pOther').value) || 0;
+  const vatPct   = parseFloat(document.getElementById('pVat').value) || 0;
+  const goods    = lines.reduce((s, l) => s + l.sum, 0);
+  const vatAmt   = vatPct > 0 ? Math.round((goods + delivery + other) * vatPct / 100 * 100) / 100 : 0;
+
+  const btn = document.getElementById('btnSavePurchase');
+  btn.disabled = true;
+
+  const { data: purchase, error: pErr } = await sb.from('purchases').insert({
+    studio_id:       studioId,
+    supplier_name:   document.getElementById('pSupplier').value.trim() || null,
+    invoice_number:  document.getElementById('pInvoice').value.trim() || null,
+    payment_method:  document.getElementById('pPayment').value,
+    purchase_date:   document.getElementById('pDate').value,
+    total_goods:     goods, total_delivery: delivery,
+    total_other:     other + vatAmt,
+    total_amount:    goods + delivery + other + vatAmt,
+    notes:           document.getElementById('pNotes').value.trim() || null,
+    calculation_id:  document.getElementById('pCalcId').value || null,
+    created_by:      currentUser.id,
+  }).select().single();
+
+  if (pErr) { btn.disabled = false; toast('❌ Ошибка: ' + pErr.message); return; }
+
+  for (const line of lines) {
+    let item = allItems.find(i => i.name.toLowerCase() === line.name.toLowerCase());
+    if (!item && line.name !== '—') {
+      const unit = line.type === 'film' ? 'м' : line.type === 'equipment' ? 'шт' : 'шт';
+      const { data: newItem } = await sb.from('inventory_items').insert({ studio_id: studioId, name: line.name, type: line.type || 'consumable', unit }).select().single();
+      if (newItem) { item = newItem; allItems.push(newItem); }
+    }
+    await sb.from('purchase_items').insert({ purchase_id: purchase.id, item_id: item?.id || null, qty: line.qty || 1, unit_price: line.price, notes: line.name });
+    if (item) {
+      await sb.from('inventory_transactions').insert({ studio_id: studioId, item_id: item.id, purchase_id: purchase.id, type: 'purchase', qty: line.qty || 1, unit_cost: line.price, created_by: currentUser.id });
+    }
+  }
+
+  btn.disabled = false;
+  closeModal('purchaseModal');
+  toast('✅ Закупка проведена');
+  await Promise.all([loadItems(), loadRolls(), loadStats()]);
+}
+
+// ── Списание ──────────────────────────────────────────────────────────
+function openWriteoff(itemId, rollId) {
+  writeoffItemId = itemId;
+  const item = allItems.find(i => i.id === itemId);
+  document.getElementById('writeoffItemName').textContent = item?.name || ''; // textContent — безопасно
+  document.getElementById('writeoffQty').value    = '';
+  document.getElementById('writeoffCalcId').value = '';
+  document.getElementById('writeoffNotes').value  = '';
+
+  const rollSection = document.getElementById('writeoffRollSection');
+  const rollSelect  = document.getElementById('writeoffRoll');
+  rollSelect.innerHTML = '';
+
+  if (item?.type === 'film') {
+    rollSection.style.display = 'block';
+    const rolls = allRolls.filter(r => r.item_id === itemId);
+    if (rolls.length) {
+      rolls.forEach(r => {
+        const opt = document.createElement('option');
+        opt.value = r.id;
+        opt.textContent = `${r.roll_number} — ${fmt(r.qty_remaining)} м`;
+        if (r.id === rollId) opt.selected = true;
+        rollSelect.appendChild(opt);
+      });
+    } else {
+      const opt = document.createElement('option');
+      opt.value = '';
+      opt.textContent = 'Рулонов нет';
+      rollSelect.appendChild(opt);
+    }
+  } else {
+    rollSection.style.display = 'none';
+  }
+  openModal('writeoffModal');
+}
+
+async function saveWriteoff() {
+  const qty = parseFloat(document.getElementById('writeoffQty').value);
+  if (!qty || qty <= 0) { toast('⚠ Укажите количество'); return; }
+  const rollId = document.getElementById('writeoffRoll').value || null;
+  const calcId = document.getElementById('writeoffCalcId').value.trim() || null;
+  const notes  = document.getElementById('writeoffNotes').value.trim() || null;
+  const item   = allItems.find(i => i.id === writeoffItemId);
+
+  const btn = document.getElementById('btnSaveWriteoff');
+  btn.disabled = true;
+  const { error } = await sb.from('inventory_transactions').insert({
+    studio_id: studioId, item_id: writeoffItemId, roll_id: rollId, calculation_id: calcId,
+    type: 'writeoff', qty: -qty, unit_cost: item?.avg_cost || 0, notes, created_by: currentUser.id,
+  });
+  btn.disabled = false;
+  if (error) { toast('❌ Ошибка: ' + error.message); return; }
+  closeModal('writeoffModal');
+  toast('✅ Списано');
+  await Promise.all([loadItems(), loadRolls()]);
+}
+
+// ── Оборудование ──────────────────────────────────────────────────────
+function openEquipModal(id) {
+  document.getElementById('equipModalTitle').textContent = id ? 'Редактировать оборудование' : 'Новое оборудование';
+  if (id) {
+    const eq = allEquipment.find(e => e.id === id);
+    if (!eq) return;
+    document.getElementById('equipId').value           = eq.id;
+    document.getElementById('equipSku').value          = eq.sku || '';
+    document.getElementById('equipCategory').value     = eq.category || '';
+    document.getElementById('equipName').value         = eq.name;
+    document.getElementById('equipBrand').value        = eq.brand || '';
+    document.getElementById('equipModel').value        = eq.model || '';
+    document.getElementById('equipSerial').value       = eq.serial_number || '';
+    document.getElementById('equipCondition').value    = eq.condition || 'good';
+    document.getElementById('equipPurchaseDate').value = eq.purchase_date || '';
+    document.getElementById('equipPrice').value        = eq.purchase_price || '';
+    document.getElementById('equipLife').value         = eq.useful_life_months || '';
+    document.getElementById('equipSupplier').value     = eq.supplier_name || '';
+    document.getElementById('equipLocation').value     = eq.location || '';
+    document.getElementById('equipNotes').value        = eq.notes || '';
+  } else {
+    document.getElementById('equipId').value = '';
+    ['equipSku','equipCategory','equipName','equipBrand','equipModel','equipSerial','equipPurchaseDate','equipPrice','equipLife','equipSupplier','equipLocation','equipNotes'].forEach(f => { document.getElementById(f).value = ''; });
+    document.getElementById('equipCondition').value = 'good';
+  }
+  openModal('equipModal');
+}
+
+async function saveEquipment() {
+  const id   = document.getElementById('equipId').value;
+  const name = document.getElementById('equipName').value.trim();
+  if (!name) { toast('⚠ Введите название'); return; }
+  const payload = {
+    studio_id: studioId, name,
+    sku:                document.getElementById('equipSku').value.trim() || null,
+    category:           document.getElementById('equipCategory').value.trim() || null,
+    brand:              document.getElementById('equipBrand').value.trim() || null,
+    model:              document.getElementById('equipModel').value.trim() || null,
+    serial_number:      document.getElementById('equipSerial').value.trim() || null,
+    condition:          document.getElementById('equipCondition').value || null,
+    purchase_date:      document.getElementById('equipPurchaseDate').value || null,
+    purchase_price:     parseFloat(document.getElementById('equipPrice').value) || null,
+    useful_life_months: parseInt(document.getElementById('equipLife').value) || null,
+    supplier_name:      document.getElementById('equipSupplier').value.trim() || null,
+    location:           document.getElementById('equipLocation').value.trim() || null,
+    notes:              document.getElementById('equipNotes').value.trim() || null,
+  };
+  const btn = document.getElementById('btnSaveEquip');
+  btn.disabled = true;
+  const { error } = id
+    ? await sb.from('equipment').update({ ...payload, updated_at: new Date().toISOString() }).eq('id', id)
+    : await sb.from('equipment').insert(payload);
+  btn.disabled = false;
+  if (error) { toast('❌ Ошибка: ' + error.message); return; }
+  closeModal('equipModal');
+  toast('✅ Оборудование сохранено');
+  await loadEquipment();
+}
+
+// ── Выдача / возврат оборудования ─────────────────────────────────────
+function openAssignModal(equipId) {
+  document.getElementById('assignEquipId').value = equipId;
+  const eq = allEquipment.find(e => e.id === equipId);
+  document.getElementById('assignEquipName').textContent = eq?.name || ''; // textContent
+  document.getElementById('assignName').value    = '';
+  document.getElementById('assignIssued').value  = new Date().toISOString().split('T')[0];
+  document.getElementById('assignReturn').value  = '';
+  document.getElementById('assignPurpose').value = '';
+  document.getElementById('assignCondition').value = eq?.condition ? conditionLabel[eq.condition] || '' : '';
+  openModal('assignModal');
+}
+
+async function saveAssignment() {
+  const equipId = document.getElementById('assignEquipId').value;
+  const name    = document.getElementById('assignName').value.trim();
+  if (!name) { toast('⚠ Укажите сотрудника'); return; }
+  const btn = document.getElementById('btnSaveAssign');
+  btn.disabled = true;
+  const { error } = await sb.from('equipment_assignments').insert({
+    studio_id:        studioId, equipment_id: equipId, executor_name: name,
+    issued_at:        document.getElementById('assignIssued').value || new Date().toISOString(),
+    expected_return:  document.getElementById('assignReturn').value || null,
+    purpose:          document.getElementById('assignPurpose').value.trim() || null,
+    condition_issued: document.getElementById('assignCondition').value.trim() || null,
+    created_by:       currentUser.id,
+  });
+  btn.disabled = false;
+  if (error) { toast('❌ Ошибка: ' + error.message); return; }
+  closeModal('assignModal');
+  toast('✅ Оборудование выдано');
+  await loadEquipment();
+}
+
+async function returnEquipment(assignmentId) {
+  const { error } = await sb.from('equipment_assignments').update({
+    returned_at: new Date().toISOString(),
+  }).eq('id', assignmentId);
+  if (error) { toast('❌ Ошибка: ' + error.message); return; }
+  toast('✅ Оборудование возвращено');
+  await loadEquipment();
+}
+
+// ── Делегирование событий ─────────────────────────────────────────────
+function bindEvents() {
+  // Табы
+  document.getElementById('tabsBar').addEventListener('click', e => {
+    const btn = e.target.closest('.tab-btn');
+    if (btn?.dataset.tab) switchTab(btn.dataset.tab);
+  });
+
+  // Шапка
+  document.getElementById('btnNewItem').addEventListener('click', () => openItemModal(null));
+  document.getElementById('btnNewPurchase').addEventListener('click', () => openPurchaseModal());
+
+  // Закрытие модалок по data-close и по клику на оверлей
+  document.addEventListener('click', e => {
+    const closeTarget = e.target.closest('[data-close]');
+    if (closeTarget) { closeModal(closeTarget.dataset.close); return; }
+    // клик на overlay
+    if (e.target.classList.contains('modal-overlay')) {
+      e.target.style.display = 'none';
+    }
+  });
+
+  // Списки — делегирование
+  ['filmList', 'consumableList', 'equipList'].forEach(listId => {
+    document.getElementById(listId).addEventListener('click', e => {
+      const btn = e.target.closest('[data-action]');
+      if (!btn) return;
+      const { action, id, rollId, assignId } = btn.dataset;
+      if (action === 'toggle') {
+        const bodyEl = document.getElementById(btn.dataset.bodyId || id);
+        if (bodyEl) bodyEl.classList.toggle('open');
+        return;
+      }
+      const header = e.target.closest('.item-header');
+      if (header?.dataset.action === 'toggle') {
+        const bodyEl = document.getElementById(header.dataset.bodyId);
+        if (bodyEl) bodyEl.classList.toggle('open');
+        return;
+      }
+      if (action === 'writeoff')      openWriteoff(id, null);
+      if (action === 'writeoff-roll') openWriteoff(id, rollId);
+      if (action === 'edit-item')     openItemModal(id, e);
+      if (action === 'purchase')      openPurchaseModal(id);
+      if (action === 'assign')        openAssignModal(id);
+      if (action === 'return')        returnEquipment(btn.dataset.assignId);
+      if (action === 'edit-equip')    openEquipModal(id);
+      if (action === 'history')       openItemHistory(id);
+    });
+
+    // toggle по клику на header (без data-action на самом header-е)
+    document.getElementById(listId).addEventListener('click', e => {
+      const header = e.target.closest('.item-header');
+      if (!header) return;
+      const bodyId = header.dataset.bodyId;
+      if (bodyId) { const b = document.getElementById(bodyId); if (b) b.classList.toggle('open'); }
+    });
+  });
+
+  // Модал позиции
+  document.getElementById('itemType').addEventListener('change', onItemTypeChange);
+  document.getElementById('btnSaveItem').addEventListener('click', saveItem);
+
+  // Закупка
+  document.getElementById('btnAddPurchaseLine').addEventListener('click', addPurchaseLine);
+  document.getElementById('btnSavePurchase').addEventListener('click', savePurchase);
+  document.getElementById('pPayment').addEventListener('change', () => {
+    const val = document.getElementById('pPayment').value;
+    document.getElementById('vatRow').style.display = val === 'vat' ? 'block' : 'none';
+    calcPurchaseTotal();
+  });
+  document.getElementById('pVat').addEventListener('input', calcPurchaseTotal);
+  document.getElementById('pDelivery').addEventListener('input', calcPurchaseTotal);
+  document.getElementById('pOther').addEventListener('input', calcPurchaseTotal);
+
+  // Списание / оборудование / выдача
+  document.getElementById('btnSaveWriteoff').addEventListener('click', saveWriteoff);
+  document.getElementById('btnSaveEquip').addEventListener('click', saveEquipment);
+  document.getElementById('btnSaveAssign').addEventListener('click', saveAssignment);
+  document.getElementById('btnHistLoad').addEventListener('click', loadHistory);
+}
+
+// ── Init ──────────────────────────────────────────────────────────────
+async function initPage() {
+  initNav({ actionHref: 'calculator.html', actionLabel: 'Новый расчёт' });
+  bindEvents();
+
+  const user = await requireAuth({ redirectTo: 'welcome.html' });
+  if (!user) return;
+  currentUser = user;
+
+  let ctx;
+  try {
+    ctx = await getStudioContext();
+  } catch (err) {
+    console.error('[inventory] getStudioContext:', err);
+    toast('❌ Ошибка загрузки студии');
+    return;
+  }
+  if (!ctx?.studioId) { toast('⚠ Студия не найдена'); return; }
+  studioId = ctx.studioId;
+  window._studioId = studioId;
+
+  await Promise.all([loadItems(), loadRolls(), loadEquipment()]);
+  await loadStats();
+}
+
+document.addEventListener('DOMContentLoaded', initPage);
+</script>
+</body>
+</html>

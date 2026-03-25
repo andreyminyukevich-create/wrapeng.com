@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Контрагенты — Keep1R CRM</title>
+  <link rel="stylesheet" href="nav.css">
+  <style>
+    body { background: #f5f7fa; }
+    .page { padding: 24px; max-width: 1200px; }
+    .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+    .page-header h1 { font-size: 22px; font-weight: 700; margin: 0; }
+    .btn { padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-size: 14px; font-weight: 600; transition: background .15s; }
+    .btn-primary { background: #2563eb; color: #fff; }
+    .btn-primary:hover { background: #1d4ed8; }
+    .btn-secondary { background: #f3f4f6; color: #374151; }
+    .btn-secondary:hover { background: #e5e7eb; }
+    .btn-danger { background: #fee2e2; color: #dc2626; }
+    .btn-sm { padding: 6px 12px; font-size: 12px; }
+    .toolbar { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+    .toolbar input { flex: 1; min-width: 200px; padding: 9px 14px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; outline: none; }
+    .toolbar input:focus { border-color: #2563eb; }
+    .type-tabs { display: flex; gap: 6px; }
+    .type-tab { padding: 8px 14px; border-radius: 8px; border: 1px solid #e5e7eb; background: #fff; cursor: pointer; font-size: 13px; font-weight: 600; color: #6b7280; }
+    .type-tab.active { background: #2563eb; color: #fff; border-color: #2563eb; }
+    table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
+    th { text-align: left; padding: 12px 16px; font-size: 11px; font-weight: 700; text-transform: uppercase; color: #9ca3af; background: #f9fafb; border-bottom: 1px solid #f3f4f6; }
+    td { padding: 12px 16px; font-size: 14px; border-bottom: 1px solid #f9fafb; vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #f9fafb; }
+    .type-badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+    .type-client    { background: #eff6ff; color: #2563eb; }
+    .type-supplier  { background: #f0fdf4; color: #16a34a; }
+    .type-employee  { background: #faf5ff; color: #7c3aed; }
+    .type-outsource { background: #fff7ed; color: #ea580c; }
+    .actions { display: flex; gap: 6px; }
+    .empty { text-align: center; padding: 60px; color: #9ca3af; }
+    /* Modal */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 200; align-items: center; justify-content: center; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: #fff; border-radius: 16px; padding: 28px; width: 100%; max-width: 500px; }
+    .modal h2 { margin: 0 0 20px; font-size: 20px; }
+    .form-group { display: flex; flex-direction: column; gap: 4px; margin-bottom: 14px; }
+    .form-group label { font-size: 12px; font-weight: 600; color: #6b7280; text-transform: uppercase; }
+    .form-group input, .form-group select, .form-group textarea { padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; outline: none; }
+    .form-group input:focus, .form-group select:focus { border-color: #2563eb; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+  </style>
+</head>
+<body>
+<div class="page">
+  <div class="page-header">
+    <h1>🤝 Контрагенты</h1>
+    <button class="btn btn-primary" onclick="openModal()">+ Добавить</button>
+  </div>
+  <div class="toolbar">
+    <input type="text" id="search" placeholder="🔍 Поиск по имени, ИНН, телефону..." oninput="render()">
+    <div class="type-tabs">
+      <div class="type-tab active" data-type="" onclick="setType(this, '')">Все</div>
+      <div class="type-tab" data-type="client" onclick="setType(this, 'client')">Клиенты</div>
+      <div class="type-tab" data-type="supplier" onclick="setType(this, 'supplier')">Поставщики</div>
+      <div class="type-tab" data-type="employee" onclick="setType(this, 'employee')">Сотрудники</div>
+      <div class="type-tab" data-type="outsource" onclick="setType(this, 'outsource')">Аутсорс</div>
+    </div>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>Название</th>
+        <th>Тип</th>
+        <th>Телефон</th>
+        <th>ИНН</th>
+        <th>Email</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+  </table>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h2 id="modalTitle">Новый контрагент</h2>
+    <div class="form-row">
+      <div class="form-group" style="grid-column:1/-1">
+        <label>Название *</label>
+        <input type="text" id="fName" placeholder="ООО Ромашка / Иванов Иван">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Тип</label>
+      <select id="fType">
+        <option value="supplier">Поставщик</option>
+        <option value="client">Клиент</option>
+        <option value="employee">Сотрудник</option>
+        <option value="outsource">Аутсорс</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Телефон</label>
+        <input type="text" id="fPhone" placeholder="+7 999 000 00 00">
+      </div>
+      <div class="form-group">
+        <label>ИНН</label>
+        <input type="text" id="fInn" placeholder="7700000000">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" id="fEmail" placeholder="info@company.ru">
+    </div>
+    <div class="form-group">
+      <label>Примечание</label>
+      <textarea id="fNotes" rows="2" style="resize:none"></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">Отмена</button>
+      <button class="btn btn-primary" onclick="save()">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<script src="nav.js"></script>
+<script type="module">
+import { sb } from './api.js';
+
+let all = [], filterType = '', editId = null;
+
+async function load() {
+  const ctx = window._studioCtx || await new Promise(r => { const t = setInterval(() => { if (window._studioCtx) { clearInterval(t); r(window._studioCtx); } }, 50); });
+  const { data } = await sb.from('counterparties').eq('studio_id', ctx.studioId).order('name');
+  all = data || [];
+  render();
+}
+
+window.render = function() {
+  const q = document.getElementById('search').value.toLowerCase();
+  let rows = all.filter(r => {
+    if (filterType && r.type !== filterType) return false;
+    if (q) return (r.name + r.inn + r.phone + r.email).toLowerCase().includes(q);
+    return true;
+  });
+  const tbody = document.getElementById('tbody');
+  if (!rows.length) { tbody.innerHTML = `<tr><td colspan="6"><div class="empty">Нет контрагентов</div></td></tr>`; return; }
+  const TYPE = { client: ['Клиент','type-client'], supplier: ['Поставщик','type-supplier'], employee: ['Сотрудник','type-employee'], outsource: ['Аутсорс','type-outsource'] };
+  tbody.innerHTML = rows.map(r => {
+    const [label, cls] = TYPE[r.type] || [r.type, ''];
+    return `<tr>
+      <td><b>${r.name}</b></td>
+      <td><span class="type-badge ${cls}">${label}</span></td>
+      <td>${r.phone || '—'}</td>
+      <td>${r.inn || '—'}</td>
+      <td>${r.email || '—'}</td>
+      <td><div class="actions">
+        <button class="btn btn-sm btn-secondary" onclick="openModal('${r.id}')">✏️</button>
+        <button class="btn btn-sm btn-danger" onclick="del('${r.id}')">🗑️</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+};
+
+window.setType = function(el, type) {
+  document.querySelectorAll('.type-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  filterType = type;
+  render();
+};
+
+window.openModal = function(id) {
+  editId = id || null;
+  document.getElementById('modalTitle').textContent = id ? 'Редактировать' : 'Новый контрагент';
+  if (id) {
+    const r = all.find(x => x.id === id);
+    document.getElementById('fName').value = r.name || '';
+    document.getElementById('fType').value = r.type || 'supplier';
+    document.getElementById('fPhone').value = r.phone || '';
+    document.getElementById('fInn').value = r.inn || '';
+    document.getElementById('fEmail').value = r.email || '';
+    document.getElementById('fNotes').value = r.notes || '';
+  } else {
+    ['fName','fPhone','fInn','fEmail','fNotes'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('fType').value = 'supplier';
+  }
+  document.getElementById('modal').classList.add('open');
+};
+
+window.closeModal = function() { document.getElementById('modal').classList.remove('open'); };
+
+window.save = async function() {
+  const name = document.getElementById('fName').value.trim();
+  if (!name) { alert('Введите название'); return; }
+  const ctx = window._studioCtx;
+  const body = { name, type: document.getElementById('fType').value, phone: document.getElementById('fPhone').value.trim() || null, inn: document.getElementById('fInn').value.trim() || null, email: document.getElementById('fEmail').value.trim() || null, notes: document.getElementById('fNotes').value.trim() || null, studio_id: ctx.studioId };
+  if (editId) {
+    await sb.from('counterparties').update(body).eq('id', editId);
+  } else {
+    await sb.from('counterparties').insert(body);
+  }
+  closeModal();
+  load();
+};
+
+window.del = async function(id) {
+  if (!confirm('Удалить контрагента?')) return;
+  await sb.from('counterparties').delete().eq('id', id);
+  load();
+};
+
+document.addEventListener('DOMContentLoaded', load);
+</script>
+</body>
+</html>

@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Поступления — Keep1R CRM</title>
+<link rel="stylesheet" href="nav.css">
+<script src="nav.js"></script>
+<style>
+body { visibility: hidden; background: #f5f7fa; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif; }
+.container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+.page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+.page-header h1 { font-size: 1.4rem; font-weight: 800; color: #0f172a; }
+.btn { padding: 10px 18px; border-radius: 8px; border: none; cursor: pointer; font-size: 0.875rem; font-weight: 600; transition: all .15s; }
+.btn-primary { background: #059669; color: #fff; }
+.btn-primary:hover { background: #047857; }
+.btn-secondary { background: #f1f5f9; color: #374151; }
+.btn-secondary:hover { background: #e2e8f0; }
+.btn-danger { background: #fee2e2; color: #dc2626; }
+.btn-sm { padding: 6px 12px; font-size: 0.78rem; }
+.summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 24px; }
+.summary-card { background: #fff; border-radius: 12px; padding: 16px; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
+.summary-label { font-size: 0.75rem; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 6px; }
+.summary-value { font-size: 1.3rem; font-weight: 800; color: #059669; }
+.summary-value.gray { color: #374151; }
+.summary-value.orange { color: #d97706; }
+.filters { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+.filters select, .filters input { padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.875rem; outline: none; background: #fff; }
+.filters select:focus, .filters input:focus { border-color: #059669; }
+.table-wrap { background: #fff; border-radius: 12px; box-shadow: 0 1px 4px rgba(0,0,0,.06); overflow: hidden; }
+.table-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid #f1f5f9; }
+.table-title { font-size: 0.95rem; font-weight: 700; color: #0f172a; }
+table { width: 100%; border-collapse: collapse; }
+th { padding: 12px 16px; text-align: left; font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: .04em; border-bottom: 1px solid #f1f5f9; background: #f8fafc; }
+td { padding: 12px 16px; font-size: 0.875rem; color: #374151; border-bottom: 1px solid #f8fafc; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: #f8fafc; }
+.amount { color: #059669; font-weight: 700; }
+.badge { display: inline-block; padding: 3px 8px; border-radius: 20px; font-size: 0.72rem; font-weight: 600; }
+.badge-paid { background: #dcfce7; color: #166534; }
+.badge-debt { background: #fef3c7; color: #92400e; }
+.badge-cash { background: #f0fdf4; color: #166534; }
+.badge-bank { background: #eff6ff; color: #1d4ed8; }
+.badge-card { background: #fdf4ff; color: #7e22ce; }
+.empty { text-align: center; padding: 60px 20px; color: #94a3b8; }
+.empty-icon { font-size: 3rem; margin-bottom: 12px; }
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 200; align-items: center; justify-content: center; padding: 16px; }
+.modal-overlay.open { display: flex; }
+.modal { background: #fff; border-radius: 16px; padding: 28px; width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; }
+.modal h2 { font-size: 1.1rem; font-weight: 800; margin-bottom: 20px; }
+.form-group { display: flex; flex-direction: column; gap: 4px; margin-bottom: 14px; }
+.form-group label { font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; }
+.form-group input, .form-group select, .form-group textarea { padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.875rem; outline: none; }
+.form-group input:focus, .form-group select:focus { border-color: #059669; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+.payments-section { border-top: 1px solid #f1f5f9; margin-top: 16px; padding-top: 16px; }
+.payments-section h3 { font-size: 0.875rem; font-weight: 700; margin-bottom: 12px; color: #374151; }
+.payment-row { display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; margin-bottom: 8px; align-items: end; }
+.payment-row input, .payment-row select { padding: 8px 10px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.8rem; outline: none; }
+.btn-add-payment { width: 100%; background: #f0fdf4; border: 1px dashed #86efac; border-radius: 8px; padding: 8px; color: #059669; cursor: pointer; font-size: 0.8rem; font-weight: 600; margin-top: 4px; }
+.btn-add-payment:hover { background: #dcfce7; }
+.entity-section { border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; margin-bottom: 14px; background: #f8fafc; }
+.entity-section h3 { font-size: 0.8rem; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 10px; }
+@media (max-width: 640px) {
+  .form-row { grid-template-columns: 1fr; }
+  .payment-row { grid-template-columns: 1fr 1fr; }
+  table { font-size: 0.8rem; }
+  th, td { padding: 8px 10px; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="page-header">
+    <h1>💰 Поступления</h1>
+    <button class="btn btn-primary" onclick="openModal()">+ Добавить</button>
+  </div>
+
+  <div class="summary-grid" id="summaryGrid">
+    <div class="summary-card"><div class="summary-label">За месяц</div><div class="summary-value" id="sumMonth">—</div></div>
+    <div class="summary-card"><div class="summary-label">Наличные</div><div class="summary-value gray" id="sumCash">—</div></div>
+    <div class="summary-card"><div class="summary-label">БН (QR и счёт)</div><div class="summary-value gray" id="sumBank">—</div></div>
+    <div class="summary-card"><div class="summary-label">Карта / Эквайринг</div><div class="summary-value gray" id="sumCard">—</div></div>
+    <div class="summary-card"><div class="summary-label">Ожидаем (долги)</div><div class="summary-value orange" id="sumDebt">—</div></div>
+    <div class="summary-card"><div class="summary-label">Операций</div><div class="summary-value gray" id="sumCount">—</div></div>
+  </div>
+
+  <div class="filters">
+    <select id="filterPayment" onchange="applyFilters()">
+      <option value="">Все формы оплаты</option>
+      <option value="cash">Наличные</option>
+      <option value="bank">БН (QR и счёт)</option>
+      <option value="card">Карта</option>
+      <option value="acquiring">Эквайринг</option>
+      <option value="transfer">Перевод</option>
+    </select>
+    <select id="filterStatus" onchange="applyFilters()">
+      <option value="">Все статусы</option>
+      <option value="paid">Оплачено</option>
+      <option value="debt">Ожидается</option>
+    </select>
+    <input type="month" id="filterMonth" onchange="applyFilters()">
+    <input type="text" id="filterSearch" placeholder="🔍 Поиск..." oninput="applyFilters()" style="min-width:180px">
+  </div>
+
+  <div class="table-wrap">
+    <div class="table-header">
+      <span class="table-title">История поступлений</span>
+      <span id="tableCount" style="font-size:.8rem;color:#64748b"></span>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Дата</th>
+          <th>Сумма</th>
+          <th>Форма оплаты</th>
+          <th>Клиент / Юр.лицо</th>
+          <th>Заказ</th>
+          <th>Статус</th>
+          <th>Описание</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="incomeTable">
+        <tr><td colspan="8" class="empty"><div>Загрузка...</div></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h2 id="modalTitle">Новое поступление</h2>
+
+    <div class="entity-section">
+      <h3>👤 Плательщик</h3>
+      <div class="form-group">
+        <label>Клиент</label>
+        <select id="fClient" onchange="onClientChange()">
+          <option value="">— физ.лицо / не выбран —</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Юр.лицо (контрагент)</label>
+        <select id="fCounterparty">
+          <option value="">— не выбрано —</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:4px">
+        <button class="btn btn-secondary btn-sm" onclick="openNewCounterparty()">+ Новое юр.лицо</button>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Связать с заказом</label>
+      <select id="fCalculation">
+        <option value="">— не выбран —</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Дата *</label>
+      <input type="date" id="fDate">
+    </div>
+
+    <div class="form-group">
+      <label>Описание</label>
+      <input type="text" id="fDescription" placeholder="Комментарий">
+    </div>
+
+    <!-- Payments block -->
+    <div class="payments-section">
+      <h3>💳 Оплаты (можно добавить несколько)</h3>
+      <div id="paymentsContainer"></div>
+      <button class="btn-add-payment" onclick="addPaymentRow()">+ Добавить форму оплаты</button>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">Отмена</button>
+      <button class="btn btn-primary" onclick="saveIncome()">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- New counterparty modal -->
+<div class="modal-overlay" id="cpModal">
+  <div class="modal">
+    <h2>Новое юр.лицо</h2>
+    <div class="form-group"><label>Название *</label><input type="text" id="cpName" placeholder="ООО Рога и Копыта"></div>
+    <div class="form-row">
+      <div class="form-group"><label>ИНН</label><input type="text" id="cpInn" placeholder="123456789012"></div>
+      <div class="form-group"><label>Телефон</label><input type="text" id="cpPhone" placeholder="+7..."></div>
+    </div>
+    <div class="form-group"><label>Email</label><input type="email" id="cpEmail"></div>
+    <div class="form-group">
+      <label>Тип</label>
+      <select id="cpType">
+        <option value="client">Клиент</option>
+        <option value="supplier">Поставщик</option>
+        <option value="outsource">Аутсорс</option>
+        <option value="employee">Сотрудник</option>
+      </select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeCpModal()">Отмена</button>
+      <button class="btn btn-primary" onclick="saveCounterparty()">Создать</button>
+    </div>
+  </div>
+</div>
+
+<script src="footer.js"></script>
+<script type="module">
+import { sb } from './api.js';
+import { requireAuth } from './auth.js';
+import { getStudioContext } from './studio-context.js';
+import { showToast } from './ui.js';
+
+let studioId, allRows = [], clients = [], counterparties = [], calculations = [], editId = null;
+const fmt = n => new Intl.NumberFormat('ru-RU').format(n||0) + ' ₽';
+const payLabels = {cash:'Наличные', bank:'БН (QR и счёт)', card:'Карта', acquiring:'Эквайринг', transfer:'Перевод'};
+const payBadge  = {cash:'badge-cash', bank:'badge-bank', card:'badge-card', acquiring:'badge-card', transfer:'badge-bank'};
+
+window.addPaymentRow = function(amount='', method='cash', status='paid') {
+  const c = document.getElementById('paymentsContainer');
+  const div = document.createElement('div');
+  div.className = 'payment-row';
+  div.innerHTML = `
+    <input type="number" placeholder="Сумма" value="${amount}" min="0" step="0.01" class="pay-amount">
+    <select class="pay-method">
+      <option value="cash" ${method==='cash'?'selected':''}>💵 Наличные</option>
+      <option value="bank" ${method==='bank'?'selected':''}>🏦 БН (QR и счёт)</option>
+      <option value="card" ${method==='card'?'selected':''}>💳 Карта</option>
+      <option value="acquiring" ${method==='acquiring'?'selected':''}>📱 Эквайринг</option>
+      <option value="transfer" ${method==='transfer'?'selected':''}>📲 Перевод</option>
+    </select>
+    <select class="pay-status">
+      <option value="paid" ${status==='paid'?'selected':''}>✅ Оплачено</option>
+      <option value="debt" ${status==='debt'?'selected':''}>⏳ Долг</option>
+    </select>
+    <button onclick="this.parentElement.remove()" style="background:#fee2e2;border:none;border-radius:6px;padding:6px 10px;cursor:pointer;color:#dc2626;font-size:1rem">✕</button>
+  `;
+  c.appendChild(div);
+};
+
+window.onClientChange = function() {
+  const clientId = document.getElementById('fClient').value;
+  const calcSel = document.getElementById('fCalculation');
+  if (clientId) {
+    const filtered = calculations.filter(c => c.client_id === clientId || !c.client_id);
+    calcSel.innerHTML = '<option value="">— не выбран —</option>' +
+      filtered.map(c=>`<option value="${c.id}">${c.car_name||'Без названия'}</option>`).join('');
+  }
+};
+
+window.openModal = function(id) {
+  editId = id || null;
+  document.getElementById('modalTitle').textContent = id ? 'Редактировать поступление' : 'Новое поступление';
+  document.getElementById('paymentsContainer').innerHTML = '';
+  if (!id) {
+    document.getElementById('fDate').value = new Date().toISOString().slice(0,10);
+    document.getElementById('fDescription').value = '';
+    document.getElementById('fClient').value = '';
+    document.getElementById('fCounterparty').value = '';
+    document.getElementById('fCalculation').value = '';
+    addPaymentRow();
+  } else {
+    const row = allRows.find(r => r.id === id);
+    if (!row) return;
+    document.getElementById('fDate').value = row.created_at?.slice(0,10)||'';
+    document.getElementById('fDescription').value = row.description||'';
+    document.getElementById('fClient').value = row.client_id||'';
+    document.getElementById('fCounterparty').value = row.counterparty_id||'';
+    document.getElementById('fCalculation').value = row.calculation_id||'';
+    addPaymentRow(row.amount, row.payment_method, row.debt_status);
+  }
+  document.getElementById('modal').classList.add('open');
+};
+
+window.closeModal = function() { document.getElementById('modal').classList.remove('open'); };
+
+window.openNewCounterparty = function() {
+  document.getElementById('cpModal').classList.add('open');
+};
+window.closeCpModal = function() { document.getElementById('cpModal').classList.remove('open'); };
+
+window.saveCounterparty = async function() {
+  const name = document.getElementById('cpName').value.trim();
+  if (!name) { alert('Укажите название'); return; }
+  const { data, error } = await sb.from('counterparties').insert({
+    studio_id: studioId,
+    name,
+    type: document.getElementById('cpType').value,
+    inn: document.getElementById('cpInn').value || null,
+    phone: document.getElementById('cpPhone').value || null,
+    email: document.getElementById('cpEmail').value || null,
+  }).select().single();
+  if (error) { alert('Ошибка: ' + error.message); return; }
+  counterparties.push(data);
+  fillCounterparties();
+  document.getElementById('fCounterparty').value = data.id;
+  closeCpModal();
+  showToast('success', 'Юр.лицо добавлено');
+};
+
+window.saveIncome = async function() {
+  const rows = document.querySelectorAll('.payment-row');
+  if (!rows.length) { alert('Добавьте хотя бы одну форму оплаты'); return; }
+
+  const date = document.getElementById('fDate').value;
+  const desc = document.getElementById('fDescription').value;
+  const clientId = document.getElementById('fClient').value || null;
+  const cpId = document.getElementById('fCounterparty').value || null;
+  const calcId = document.getElementById('fCalculation').value || null;
+
+  // Get income category id
+  const { data: cats } = await sb.from('cash_flow_categories').select('id').eq('studio_id', studioId).eq('type','income').limit(1);
+  const catId = cats?.[0]?.id || null;
+
+  const inserts = [];
+  for (const row of rows) {
+    const amount = parseFloat(row.querySelector('.pay-amount').value);
+    if (!amount || amount <= 0) continue;
+    inserts.push({
+      studio_id: studioId,
+      type: 'income',
+      category_id: catId,
+      amount,
+      payment_method: row.querySelector('.pay-method').value,
+      debt_status: row.querySelector('.pay-status').value,
+      counterparty_id: cpId,
+      calculation_id: calcId,
+      description: desc || null,
+      created_at: date,
+      paid_at: row.querySelector('.pay-status').value === 'paid' ? new Date().toISOString() : null,
+    });
+  }
+
+  if (!inserts.length) { alert('Укажите суммы'); return; }
+
+  if (editId && inserts.length === 1) {
+    const { error } = await sb.from('cash_flow').update(inserts[0]).eq('id', editId);
+    if (error) { alert('Ошибка: ' + error.message); return; }
+  } else {
+    if (editId) await sb.from('cash_flow').delete().eq('id', editId);
+    const { error } = await sb.from('cash_flow').insert(inserts);
+    if (error) { alert('Ошибка: ' + error.message); return; }
+  }
+
+  closeModal();
+  await loadData();
+  showToast('success', 'Поступление сохранено');
+};
+
+window.deleteOp = async function(id) {
+  if (!confirm('Удалить?')) return;
+  await sb.from('cash_flow').delete().eq('id', id);
+  await loadData();
+  showToast('success', 'Удалено');
+};
+
+window.applyFilters = function() { renderTable(); };
+
+function fillCounterparties() {
+  const sel = document.getElementById('fCounterparty');
+  sel.innerHTML = '<option value="">— не выбрано —</option>' +
+    counterparties.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+}
+
+function renderSummary() {
+  const month = new Date().toISOString().slice(0,7);
+  const monthRows = allRows.filter(r=>r.created_at?.startsWith(month));
+  const total = monthRows.reduce((s,r)=>s+Number(r.amount),0);
+  const cash  = allRows.filter(r=>r.payment_method==='cash'&&r.debt_status==='paid').reduce((s,r)=>s+Number(r.amount),0);
+  const bank  = allRows.filter(r=>r.payment_method==='bank'&&r.debt_status==='paid').reduce((s,r)=>s+Number(r.amount),0);
+  const card  = allRows.filter(r=>['card','acquiring'].includes(r.payment_method)&&r.debt_status==='paid').reduce((s,r)=>s+Number(r.amount),0);
+  const debt  = allRows.filter(r=>r.debt_status==='debt').reduce((s,r)=>s+Number(r.amount),0);
+  document.getElementById('sumMonth').textContent  = fmt(total);
+  document.getElementById('sumCash').textContent   = fmt(cash);
+  document.getElementById('sumBank').textContent   = fmt(bank);
+  document.getElementById('sumCard').textContent   = fmt(card);
+  document.getElementById('sumDebt').textContent   = fmt(debt);
+  document.getElementById('sumCount').textContent  = allRows.length;
+}
+
+function renderTable() {
+  const payment = document.getElementById('filterPayment').value;
+  const status  = document.getElementById('filterStatus').value;
+  const month   = document.getElementById('filterMonth').value;
+  const search  = document.getElementById('filterSearch').value.toLowerCase();
+
+  let rows = allRows.filter(r => {
+    if (payment && r.payment_method !== payment) return false;
+    if (status  && r.debt_status !== status) return false;
+    if (month   && !r.created_at?.startsWith(month)) return false;
+    if (search) {
+      const text = [r.description, r.counterparty?.name, r.calculation?.car_name].join(' ').toLowerCase();
+      if (!text.includes(search)) return false;
+    }
+    return true;
+  });
+
+  document.getElementById('tableCount').textContent = `${rows.length} операций`;
+  const tb = document.getElementById('incomeTable');
+  if (!rows.length) {
+    tb.innerHTML = `<tr><td colspan="8" class="empty"><div class="empty-icon">💰</div><div>Нет поступлений</div></td></tr>`;
+    return;
+  }
+
+  tb.innerHTML = rows.map(r => {
+    const badge = payBadge[r.payment_method]||'badge-cash';
+    const statusBadge = r.debt_status==='debt'
+      ? '<span class="badge badge-debt">⏳ Ожидается</span>'
+      : '<span class="badge badge-paid">✅ Оплачено</span>';
+    return `<tr>
+      <td>${r.created_at?.slice(0,10)||''}</td>
+      <td class="amount">+${fmt(r.amount)}</td>
+      <td><span class="badge ${badge}">${payLabels[r.payment_method]||r.payment_method}</span></td>
+      <td>${r.counterparty?.name || '—'}</td>
+      <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.calculation?.car_name||'—'}</td>
+      <td>${statusBadge}</td>
+      <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.description||'—'}</td>
+      <td>
+        <button class="btn btn-secondary btn-sm" onclick="openModal('${r.id}')">✏️</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteOp('${r.id}')">🗑</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function loadData() {
+  const [cfRes, cpRes, clientRes, calcRes] = await Promise.all([
+    sb.from('cash_flow').select('*, counterparty:counterparties(name), calculation:calculations(car_name)').eq('studio_id', studioId).eq('type','income').order('created_at',{ascending:false}),
+    sb.from('counterparties').select('id,name,type').eq('studio_id', studioId).order('name'),
+    sb.from('clients').select('id,first_name,last_name').eq('studio_id', studioId).order('last_name'),
+    sb.from('calculations').select('id,car_name,client_id').eq('studio_id', studioId).order('created_at',{ascending:false}).limit(100),
+  ]);
+
+  allRows        = cfRes.data   || [];
+  counterparties = cpRes.data   || [];
+  clients        = clientRes.data || [];
+  calculations   = calcRes.data || [];
+
+  fillCounterparties();
+
+  const clientSel = document.getElementById('fClient');
+  clientSel.innerHTML = '<option value="">— физ.лицо / не выбран —</option>' +
+    clients.map(c=>`<option value="${c.id}">${c.last_name||''} ${c.first_name||''}</option>`).join('');
+
+  const calcSel = document.getElementById('fCalculation');
+  calcSel.innerHTML = '<option value="">— не выбран —</option>' +
+    calculations.map(c=>`<option value="${c.id}">${c.car_name||'Без названия'}</option>`).join('');
+
+  renderSummary();
+  renderTable();
+}
+
+(async () => {
+  initNav();
+  document.body.style.visibility = 'visible';
+  const user = await requireAuth({ redirectTo: 'welcome.html' });
+  if (!user) return;
+  const ctx = await getStudioContext();
+  if (!ctx?.studioId) { window.location.href = 'welcome.html'; return; }
+  studioId = ctx.studioId;
+  document.getElementById('filterMonth').value = new Date().toISOString().slice(0,7);
+  await loadData();
+})();
+</script>
+</body>
+</html>
