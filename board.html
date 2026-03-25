@@ -439,65 +439,6 @@ html, body {
   </div>
 </div>
 
-<!-- Modal: Завершить работу (план/факт материалов) -->
-<div class="modal" id="modalDone">
-  <div class="modal-content" style="max-width:540px">
-    <div class="modal-title">Работа выполнена</div>
-    <div class="modal-car" id="doneCarName"></div>
-    <div id="doneMaterialsBlock" style="margin-bottom:16px">
-      <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:10px">Расход материалов</div>
-      <div id="doneMaterialsLoading" style="color:var(--text-muted);font-size:0.82rem;text-align:center;padding:12px 0">Загрузка...</div>
-      <div id="doneMaterialsRows" style="display:none">
-        <div style="display:grid;grid-template-columns:1fr 110px 110px;gap:6px;margin-bottom:6px;padding:0 2px">
-          <div style="font-size:0.67rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted)">Услуга</div>
-          <div style="font-size:0.67rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);text-align:right">План</div>
-          <div style="font-size:0.67rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#7c3aed;text-align:right">Факт</div>
-        </div>
-        <div id="doneMaterialsList" style="display:flex;flex-direction:column;gap:5px"></div>
-        <div style="display:grid;grid-template-columns:1fr 110px 110px;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
-          <div style="font-size:0.8rem;font-weight:700;color:var(--text)">Итого</div>
-          <div id="donePlanTotal" style="font-size:0.88rem;font-weight:700;color:var(--text-muted);text-align:right">—</div>
-          <div id="doneFactTotal" style="font-size:0.88rem;font-weight:700;color:#7c3aed;text-align:right">—</div>
-        </div>
-        <div id="doneDelta" style="margin-top:6px;font-size:0.78rem;text-align:right;color:var(--text-muted)"></div>
-      </div>
-      <div id="doneMaterialsEmpty" style="display:none;color:var(--text-muted);font-size:0.82rem;padding:8px 0">В расчёте нет плановых материалов.</div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-secondary" id="btnDoneCancel">Отмена</button>
-      <button class="btn" style="background:var(--purple);color:#fff" id="btnDoneSave">Завершить</button>
-    </div>
-  </div>
-</div>
-
-<!-- Modal: Выдать клиенту -->
-<div class="modal" id="modalDeliver">
-  <div class="modal-content">
-    <div class="modal-title">Выдать клиенту</div>
-    <div class="modal-car" id="deliverCarName"></div>
-    <div class="form-group">
-      <label>Итоговая сумма</label>
-      <input type="number" id="deliverPrice" placeholder="Из расчёта" min="0">
-    </div>
-    <div class="form-group">
-      <label>Форма оплаты</label>
-      <select id="deliverPayment">
-        <option value="cash">💵 Наличные</option>
-        <option value="card">💳 Карта</option>
-        <option value="transfer">🏦 Перевод</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label>Комментарий</label>
-      <textarea id="deliverNote" placeholder="Пожелания, замечания..."></textarea>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-secondary" id="btnDeliverCancel">Отмена</button>
-      <button class="btn" style="background:var(--success);color:#fff" id="btnDeliverSave">Выдать</button>
-    </div>
-  </div>
-</div>
-
 <script src="footer.js"></script>
 <script src="booking-popup.js"></script>
 <script src="pipeline-forms.js"></script>
@@ -512,7 +453,6 @@ let allCalcs       = [];
 let assignmentsMap = {};
 let activeCalcId   = null;
 let studioCtx      = null;
-let _donePlanItems = [];
 let _dragCalcId    = null;
 let _dragStatus    = null;
 let _loading       = false;
@@ -584,6 +524,7 @@ function normalizeStatus(status) {
   if (status === 'Принято в работу') return 'in_progress';
   if (status === 'Завершено')        return 'done';
   if (status === 'Отказ')           return 'cancelled';
+  if (status === 'waiting') return 'done';
   return status;
 }
 
@@ -783,11 +724,11 @@ async function onDrop(e) {
     return;
   }
   if (toStatus === 'done') {
-    openModalDone(_dragCalcId, carName);
+    PipelineForms.openModalDone(_dragCalcId, carName);
     return;
   }
   if (toStatus === 'delivered') {
-    openModalDeliver(_dragCalcId, carName, calc?.total_price || 0);
+    PipelineForms.openModalDeliver(_dragCalcId, carName, calc?.total_price || 0);
     return;
   }
   if (toStatus === 'cancelled') {
@@ -1205,11 +1146,11 @@ function buildDrawerActions(calc, status) {
 
   const doDone = () => {
     closeDrawer();
-    openModalDone(calc.id, calc.car_name || 'Без названия');
+    PipelineForms.openModalDone(calc.id, calc.car_name || 'Без названия');
   };
   const doDeliver = () => {
     closeDrawer();
-    openModalDeliver(calc.id, calc.car_name || 'Без названия', calc.final_price || calc.total_price || 0);
+    PipelineForms.openModalDeliver(calc.id, calc.car_name || 'Без названия', calc.final_price || calc.total_price || 0);
   };
 
   // ── 9-шаговый pipeline ────────────────────────────────────────────
@@ -1249,12 +1190,6 @@ function buildDrawerActions(calc, status) {
       btn('Вернуть в работу', () => { closeDrawer(); PipelineForms.openModalReturn(calc.id, calc.car_name || 'Без названия'); }),
       btn('Работа выполнена', doDone, 'btn-primary'),
       btn('Отменить заказ', doCancel, 'btn-danger'),
-    );
-  } else if (status === 'waiting') {
-    el.append(
-      btn('Открыть расчёт', goCalc),
-      btn('Назначить ответственных', goAssign),
-      btn('Выдать клиенту', doDeliver, 'btn-primary'),
     );
   } else if (status === 'done') {
     el.append(
@@ -1300,126 +1235,6 @@ function updateBadge(count) {
   badge.textContent = count ? `${count} авто` : '';
 }
 
-// ── Модал: завершить работу ────────────────────────────────────────
-function openModalDone(calcId, carName) {
-  activeCalcId = calcId;
-  document.getElementById('doneCarName').textContent = carName;
-  loadDoneMaterials(calcId);
-  document.getElementById('modalDone').classList.add('active');
-}
-
-function extractMaterials(calcData) {
-  const items = [];
-  const d     = calcData || {};
-  const seen  = new Set();
-
-  function add(key, name, mat) {
-    const m = parseFloat(mat) || 0;
-    if (m > 0 && !seen.has(key)) { seen.add(key); items.push({ key, name, plan: m }); }
-  }
-
-  if (d.package) {
-    add('pkg_wrap', 'Оклейка (Полная защита кузова)', d.package.wrapMat);
-    add('pkg_prep', 'Подготовка (Полная защита)',     d.package.prepMat);
-    add('pkg_arm',  'Бронирование (Полная защита)',   d.package.armMat);
-  }
-  if (d.impact) {
-    add('impact_wrap', 'Оклейка (Ударная часть)',     d.impact.wrapMat);
-    add('impact_prep', 'Подготовка (Ударная часть)',  d.impact.prepMat);
-    add('impact_arm',  'Бронирование (Ударная часть)', d.impact.armMat);
-  }
-  if (d.services_detail) {
-    const gn = { arm: 'Бронирование', det: 'Детейлинг', gl: 'Стёкла', ms: 'Доп. услуги', wrap: 'Оклейка' };
-    Object.entries(gn).forEach(([key, gName]) => {
-      (d.services_detail[key] || []).forEach((item, idx) => {
-        const m = parseFloat(item.mat) || 0;
-        if (m > 0) add(`${key}_${idx}`, item.name || gName, m);
-      });
-    });
-  }
-  return items;
-}
-
-async function loadDoneMaterials(calcId) {
-  const loading = document.getElementById('doneMaterialsLoading');
-  const rows    = document.getElementById('doneMaterialsRows');
-  const empty   = document.getElementById('doneMaterialsEmpty');
-  const list    = document.getElementById('doneMaterialsList');
-
-  loading.style.display = 'block';
-  rows.style.display    = 'none';
-  empty.style.display   = 'none';
-
-  const { data } = await sb
-    .from('calculations')
-    .select('calculation_data, fact_materials')
-    .eq('id', calcId).single();
-
-  const items    = extractMaterials(data?.calculation_data || {});
-  const existing = data?.fact_materials || {};
-
-  loading.style.display = 'none';
-  _donePlanItems = items;
-
-  if (!items.length) { empty.style.display = 'block'; return; }
-
-  rows.style.display = 'block';
-  list.innerHTML = '';
-
-  const frag = document.createDocumentFragment();
-  items.forEach(item => {
-    const row = document.createElement('div');
-    row.style.cssText = 'display:grid;grid-template-columns:1fr 110px 110px;gap:6px;align-items:center';
-
-    const nameEl = document.createElement('div');
-    nameEl.style.cssText = 'font-size:0.8rem;color:var(--text);font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
-    nameEl.title = item.name;
-    nameEl.textContent = item.name;
-
-    const planEl = document.createElement('div');
-    planEl.style.cssText = 'font-size:0.82rem;color:var(--text-muted);text-align:right;font-weight:600';
-    planEl.textContent = fmt(item.plan);
-
-    const factWrap = document.createElement('div');
-    const factInput = document.createElement('input');
-    factInput.type  = 'number'; factInput.min = '0'; factInput.step = '1';
-    factInput.dataset.key = item.key;
-    factInput.value = String(existing[item.key] !== undefined ? existing[item.key] : item.plan);
-    factInput.style.cssText = 'width:100%;padding:5px 8px;background:rgba(124,58,237,0.05);border:1px solid rgba(124,58,237,0.25);border-radius:6px;font-size:0.82rem;font-weight:700;color:#7c3aed;outline:none;text-align:right;font-family:var(--font)';
-    factInput.addEventListener('input', updateDoneTotals);
-    factWrap.appendChild(factInput);
-
-    row.append(nameEl, planEl, factWrap);
-    frag.appendChild(row);
-  });
-  list.appendChild(frag);
-  updateDoneTotals();
-}
-
-function updateDoneTotals() {
-  let planSum = 0, factSum = 0;
-  _donePlanItems.forEach(item => { planSum += item.plan; });
-  document.querySelectorAll('#doneMaterialsList input[data-key]').forEach(inp => {
-    factSum += parseFloat(inp.value) || 0;
-  });
-  document.getElementById('donePlanTotal').textContent = fmt(planSum);
-  document.getElementById('doneFactTotal').textContent = fmt(factSum);
-  const delta = factSum - planSum;
-  const deltaEl = document.getElementById('doneDelta');
-  if (delta === 0)      { deltaEl.textContent = 'Факт совпал с планом'; deltaEl.style.color = 'var(--text-muted)'; }
-  else if (delta > 0)   { deltaEl.textContent = `Перерасход: +${fmt(delta)}`; deltaEl.style.color = 'var(--danger)'; }
-  else                  { deltaEl.textContent = `Экономия: ${fmt(Math.abs(delta))}`; deltaEl.style.color = 'var(--success)'; }
-}
-
-// ── Модал: выдать клиенту ──────────────────────────────────────────
-function openModalDeliver(calcId, carName, price) {
-  activeCalcId = calcId;
-  document.getElementById('deliverCarName').textContent = carName;
-  document.getElementById('deliverPrice').value         = price;
-  document.getElementById('deliverNote').value          = '';
-  document.getElementById('modalDeliver').classList.add('active');
-}
-
 function closeModal(id) {
   document.getElementById(id)?.classList.remove('active');
 }
@@ -1429,39 +1244,6 @@ function bindEvents() {
   // Drawer
   document.getElementById('drawerClose').addEventListener('click', closeDrawer);
   document.getElementById('drawerOverlay').addEventListener('click', closeDrawer);
-
-  // Модал Done
-  document.getElementById('btnDoneCancel').addEventListener('click', () => closeModal('modalDone'));
-  document.getElementById('btnDoneSave').addEventListener('click', async () => {
-    const btn = document.getElementById('btnDoneSave');
-    const release = lockButton(btn, 'Сохранение...');
-    const factMaterials = {};
-    document.querySelectorAll('#doneMaterialsList input[data-key]').forEach(inp => {
-      factMaterials[inp.dataset.key] = parseFloat(inp.value) || 0;
-    });
-    const extra = Object.keys(factMaterials).length > 0 ? { fact_materials: factMaterials } : {};
-    const ok = await updateStatus(activeCalcId, 'waiting', extra);
-    release();
-    if (ok) { closeModal('modalDone'); showToast('success', 'Работа завершена'); loadBoard(); }
-  });
-  document.getElementById('modalDone').addEventListener('click', e => {
-    if (e.target === document.getElementById('modalDone')) closeModal('modalDone');
-  });
-
-  // Модал Deliver
-  document.getElementById('btnDeliverCancel').addEventListener('click', () => closeModal('modalDeliver'));
-  document.getElementById('btnDeliverSave').addEventListener('click', async () => {
-    const btn = document.getElementById('btnDeliverSave');
-    const release = lockButton(btn, 'Сохранение...');
-    const price = parseFloat(document.getElementById('deliverPrice').value) || null;
-    const note  = document.getElementById('deliverNote').value.trim();
-    const ok    = await updateStatus(activeCalcId, 'delivered', { final_price: price, delivery_note: note });
-    release();
-    if (ok) { closeModal('modalDeliver'); showToast('success', 'Автомобиль выдан'); loadBoard(); }
-  });
-  document.getElementById('modalDeliver').addEventListener('click', e => {
-    if (e.target === document.getElementById('modalDeliver')) closeModal('modalDeliver');
-  });
 
   // Поиск
   const searchInput = document.getElementById('searchInput');
