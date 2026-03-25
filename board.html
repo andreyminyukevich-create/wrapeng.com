@@ -765,9 +765,13 @@ async function onDrop(e) {
   const calc = allCalcs.find(c => c.id === _dragCalcId);
   const carName = calc?.car_name || 'Без названия';
 
-  // Modal-requiring transitions
+  // Modal/page-requiring transitions
   if (toStatus === 'accepted') {
     PipelineForms.openModalAccept(_dragCalcId, carName);
+    return;
+  }
+  if (toStatus === 'in_progress') {
+    window.location.href = `assign-work.html?calc_id=${encodeURIComponent(_dragCalcId)}`;
     return;
   }
   if (toStatus === 'done') {
@@ -1218,7 +1222,7 @@ function buildDrawerActions(calc, status) {
       btn('Открыть расчёт', goCalc),
       btn('Акт приёмки',    goAct),
       btn('Назначить ответственных', goAssign),
-      btn('Взять в работу', () => move('in_progress', 'Статус → В работе'), 'btn-primary'),
+      btn('Взять в работу', () => { closeDrawer(); window.location.href = `assign-work.html?calc_id=${encodeURIComponent(calc.id)}`; }, 'btn-primary'),
       btn('Отменить заказ', doCancel, 'btn-danger'),
     );
   } else if (status === 'in_progress') {
