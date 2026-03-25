@@ -396,7 +396,7 @@ async function loadCalculationFromUrl() {
     // Ждём пока api.js инициализируется
     await new Promise(r => { const t = setInterval(() => { if (window._crmApi || window._crmSb) { clearInterval(t); r(); } }, 50); });
     const sb = window._crmApi || window._crmSb;
-    const sb = window._crmApi; const { data: calculation, error } = await sb
+    const { data: calculation, error } = await sb
       .from('calculations')
       .select('*')
       .eq('id', calcId)
