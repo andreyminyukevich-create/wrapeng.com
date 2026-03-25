@@ -2,708 +2,714 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Keep1R CRM — Главная</title>
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Акт приёмки — Keep1R CRM</title>
 <link rel="stylesheet" href="nav.css">
 <script src="nav.js"></script>
 <style>
 body { visibility: hidden; }
-
+:root {
+  --font:         -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
+  --bg:           #eef2f9;
+  --surface:      #ffffff;
+  --border:       rgba(15,23,42,0.08);
+  --text:         #0f172a;
+  --text-muted:   #64748b;
+  --text-dim:     #94a3b8;
+  --primary:      #2563eb;
+  --primary-dark: #1d4ed8;
+  --success:      #059669;
+  --warning:      #d97706;
+  --danger:       #dc2626;
+  --purple:       #7c3aed;
+  --shadow:       0 1px 3px rgba(0,0,0,0.05), 0 4px 16px rgba(0,0,0,0.07);
+  --radius:       14px;
+  --radius-sm:    10px;
+}
 * { box-sizing: border-box; margin: 0; padding: 0; }
-
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
+html, body {
+  font-family: var(--font);
   -webkit-font-smoothing: antialiased;
-  background: #eef2f9;
-  color: #0f172a;
+  background: var(--bg);
+  color: var(--text);
   min-height: 100svh;
 }
 
-.container {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 28px 24px 48px;
-}
-
-/* ── Шапка страницы ─────────────────────────────── */
-.page-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 24px;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-.page-greeting { display: flex; flex-direction: column; }
-
-.studio-name {
-  font-size: 1.25rem;
-  font-weight: 800;
-  color: #0f172a;
-  letter-spacing: -0.3px;
-  line-height: 1.2;
-}
-
-.studio-sub {
-  font-size: 0.78rem;
-  color: #64748b;
-  margin-top: 2px;
-  font-weight: 500;
-}
-
-.btn-logout {
-  padding: 8px 16px;
-  background: #fff;
-  color: #64748b;
-  border: 1px solid rgba(15,23,42,0.10);
-  border-radius: 9px;
-  font-size: 0.81rem;
-  font-weight: 700;
-  cursor: pointer;
-  font-family: inherit;
-  transition: all 0.15s;
-  white-space: nowrap;
-}
-.btn-logout:hover { background: #fee2e2; color: #dc2626; border-color: rgba(220,38,38,0.2); }
-
-/* ── Стат-карточки ──────────────────────────────── */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
-  margin-bottom: 20px;
-}
-
-.stat-card {
-  background: #fff;
-  border-radius: 16px;
-  border: 1px solid rgba(15,23,42,0.07);
-  padding: 22px 20px 18px;
-  position: relative;
-  overflow: hidden;
-  transition: box-shadow 0.18s, transform 0.18s;
-  text-decoration: none;
-  display: block;
-  color: inherit;
+/* ── Субшапка ──────────────────────────────────── */
+.page-subheader {
+  display: flex; align-items: center; padding: 11px 20px;
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  gap: 12px; position: sticky; top: 0; z-index: 10;
   box-shadow: 0 1px 3px rgba(0,0,0,0.04);
 }
-.stat-card::after {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 3px;
-  background: var(--accent, #2563eb);
-  opacity: 0.7;
-}
-.stat-card:hover { box-shadow: 0 6px 24px rgba(37,99,235,0.10); transform: translateY(-2px); }
-
-.stat-icon    { font-size: 1.5rem; line-height: 1; margin-bottom: 14px; display: block; }
-.stat-label   { font-size: 0.7rem; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
-.stat-value   { font-size: 1.75rem; font-weight: 800; color: #0f172a; line-height: 1; margin-bottom: 6px; letter-spacing: -0.5px; }
-.stat-change  { font-size: 0.75rem; color: #64748b; font-weight: 500; }
-
-.stat-card:nth-child(1) { --accent: #2563eb; }
-.stat-card:nth-child(2) { --accent: #059669; }
-.stat-card:nth-child(3) { --accent: #7c3aed; }
-.stat-card:nth-child(4) { --accent: #d97706; }
-
-/* ── Карточка-контейнер ─────────────────────────── */
-.card {
-  background: #fff;
-  border-radius: 16px;
-  border: 1px solid rgba(15,23,42,0.07);
-  padding: 20px 22px;
-  margin-bottom: 16px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-}
-.card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 16px;
-}
-.card-title   { font-size: 0.95rem; font-weight: 700; color: #0f172a; letter-spacing: -0.1px; }
-.card-link {
-  font-size: 0.78rem; font-weight: 700; color: #2563eb;
-  text-decoration: none; padding: 5px 12px; border-radius: 8px;
-  border: 1px solid rgba(37,99,235,0.25); background: rgba(37,99,235,0.04);
-  transition: all 0.15s; white-space: nowrap;
-}
-.card-link:hover { background: #2563eb; color: #fff; border-color: #2563eb; }
-
-/* ── Поиск ──────────────────────────────────────── */
-.search-wrap { margin-bottom: 16px; }
-.search-input {
-  width: 100%; max-width: 400px;
-  padding: 10px 16px;
-  border: 1px solid rgba(15,23,42,0.10);
-  border-radius: 10px;
-  font-size: 0.88rem; font-family: inherit; color: #0f172a;
-  background: #fff; outline: none;
-  transition: border-color 0.15s, box-shadow 0.15s;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.03);
-}
-.search-input::placeholder { color: #94a3b8; }
-.search-input:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.08); }
-
-/* ── Мини-канбан ────────────────────────────────── */
-.mini-kanban {
-  display: grid;
-  grid-template-columns: repeat(6, minmax(130px, 1fr));
-  gap: 10px;
-  overflow-x: auto;
-  padding-bottom: 4px;
-}
-.mini-col { min-width: 130px; }
-.mini-col-header {
-  display: flex; align-items: center; gap: 6px;
-  margin-bottom: 8px; font-size: 0.7rem; font-weight: 700;
-  text-transform: uppercase; letter-spacing: 0.06em; color: #64748b;
-  padding-bottom: 8px; border-bottom: 2px solid rgba(15,23,42,0.06);
-}
-.mini-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
-.mini-cards { display: flex; flex-direction: column; gap: 5px; }
-.mini-card {
-  background: #f8fafc; border: 1px solid rgba(15,23,42,0.07);
-  border-radius: 10px; padding: 10px 11px;
-  cursor: pointer; transition: all 0.15s;
-}
-.mini-card:hover {
-  border-color: #2563eb; background: #fff;
-  box-shadow: 0 2px 10px rgba(37,99,235,0.08);
-  transform: translateY(-1px);
-}
-.mini-card-car {
-  font-size: 0.82rem; font-weight: 600;
+.page-subheader-left { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
+.page-subheader-title { font-size: 0.92rem; font-weight: 700; white-space: nowrap; }
+.car-subtitle {
+  font-size: 0.82rem; color: var(--text-muted); font-weight: 600;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  color: #0f172a; margin-bottom: 3px;
 }
-.mini-card-price { font-size: 0.78rem; color: #059669; font-weight: 700; }
-.mini-col-more {
-  font-size: 0.68rem; color: #94a3b8; text-align: center;
-  padding: 5px; cursor: pointer; border-radius: 7px;
-  border: 1px dashed rgba(15,23,42,0.1); margin-top: 2px; transition: all 0.15s;
+.btn-back {
+  display: inline-flex; align-items: center; padding: 6px 12px;
+  border-radius: 7px; font-size: 0.78rem; font-weight: 700;
+  color: var(--primary); background: rgba(37,99,235,0.07);
+  border: 1px solid rgba(37,99,235,0.18); cursor: pointer;
+  font-family: var(--font); transition: all 0.15s; white-space: nowrap; flex-shrink: 0;
+  text-decoration: none;
 }
-.mini-col-more:hover { color: #2563eb; border-color: rgba(37,99,235,0.3); background: rgba(37,99,235,0.03); }
-.mini-col-empty { font-size: 0.7rem; color: #94a3b8; text-align: center; padding: 16px 4px; }
-
-.mini-col-new         .mini-dot { background: #94a3b8; }
-.mini-col-new         .mini-col-header { color: #64748b; border-bottom-color: #94a3b8; }
-.mini-col-scheduled   .mini-dot { background: #f59e0b; }
-.mini-col-scheduled   .mini-col-header { color: #92400e; border-bottom-color: #f59e0b; }
-.mini-col-in_progress .mini-dot { background: #2563eb; }
-.mini-col-in_progress .mini-col-header { color: #1e40af; border-bottom-color: #2563eb; }
-.mini-col-done        .mini-dot { background: #7c3aed; }
-.mini-col-done        .mini-col-header { color: #5b21b6; border-bottom-color: #7c3aed; }
-.mini-col-delivered   .mini-dot { background: #059669; }
-.mini-col-delivered   .mini-col-header { color: #065f46; border-bottom-color: #059669; }
-.mini-col-cancelled   .mini-dot { background: #dc2626; }
-.mini-col-cancelled   .mini-col-header { color: #991b1b; border-bottom-color: #dc2626; }
-
-/* ── Результаты поиска ──────────────────────────── */
-.calc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
-.calc-card {
-  background: #f8fafc; border: 1px solid rgba(15,23,42,0.07);
-  border-radius: 12px; padding: 15px; cursor: pointer; transition: all 0.15s;
+.btn-back:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+.btn-print {
+  display: inline-flex; align-items: center; gap: 5px; padding: 6px 14px;
+  border-radius: 7px; font-size: 0.78rem; font-weight: 700;
+  background: var(--surface); color: var(--text-muted);
+  border: 1px solid var(--border); cursor: pointer;
+  font-family: var(--font); transition: all 0.15s; white-space: nowrap; flex-shrink: 0;
 }
-.calc-card:hover { border-color: #2563eb; box-shadow: 0 4px 16px rgba(37,99,235,0.08); transform: translateY(-1px); }
-.calc-card h3   { font-size: 0.9rem; font-weight: 700; margin-bottom: 4px; color: #0f172a; }
-.calc-price     { font-size: 1.1rem; font-weight: 800; color: #059669; margin-bottom: 12px; letter-spacing: -0.3px; }
-.calc-actions   { display: flex; gap: 7px; }
+.btn-print:hover { background: var(--text); color: #fff; border-color: var(--text); }
 
-/* ── Кнопки ─────────────────────────────────────── */
-.btn {
+/* ── Контент ──────────────────────────────────── */
+.container { max-width: 820px; margin: 0 auto; padding: 22px 18px 48px; }
+
+/* ── Карточки ─────────────────────────────────── */
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 20px 22px; margin-bottom: 14px;
+  box-shadow: var(--shadow);
+}
+.card-title {
+  font-size: 0.9rem; font-weight: 700; margin-bottom: 16px;
+  display: flex; align-items: center; gap: 7px; letter-spacing: -0.1px;
+}
+
+/* ── Строки данных ────────────────────────────── */
+.data-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px 20px;
+}
+.data-row { display: flex; flex-direction: column; gap: 3px; }
+.data-row.full { grid-column: 1 / -1; }
+.data-label {
+  font-size: 0.67rem; color: var(--text-muted); font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.06em;
+}
+.data-value { font-size: 0.9rem; font-weight: 600; color: var(--text); line-height: 1.4; }
+.data-value.muted { color: var(--text-dim); font-style: italic; font-weight: 400; }
+
+/* ── Чеклист комплектации ─────────────────────── */
+.checklist {
+  display: flex; flex-wrap: wrap; gap: 8px 14px; margin-top: 4px;
+}
+.checklist-item {
   display: inline-flex; align-items: center; gap: 5px;
-  padding: 7px 12px; border-radius: 8px;
-  font-size: 0.78rem; font-weight: 700;
-  font-family: inherit; cursor: pointer;
-  border: none; transition: all 0.15s; text-decoration: none;
+  font-size: 0.84rem; font-weight: 500;
 }
-.btn-primary { background: #2563eb; color: #fff; }
-.btn-primary:hover { background: #1d4ed8; }
-.btn-success { background: rgba(5,150,105,0.08); color: #059669; border: 1px solid rgba(5,150,105,0.2); }
-.btn-success:hover { background: #059669; color: #fff; }
+.checklist-item.checked { color: var(--success); }
+.checklist-item.unchecked { color: var(--text-dim); }
+.check-icon { font-size: 0.75rem; font-weight: 900; }
 
-/* ── Состояния загрузки ─────────────────────────── */
-.loading { text-align: center; padding: 40px; color: #64748b; font-size: 0.88rem; }
-.empty-state { text-align: center; padding: 48px 20px; color: #64748b; }
-.empty-state-icon { font-size: 2.2rem; margin-bottom: 10px; opacity: 0.35; }
-.empty-state h3 { font-size: 0.95rem; color: #0f172a; font-weight: 700; }
+/* ── Бейдж согласия клиента ───────────────────── */
+.agreed-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: 700;
+}
+.agreed-badge.yes { background: rgba(5,150,105,0.1); color: var(--success); }
+.agreed-badge.no  { background: rgba(220,38,38,0.1); color: var(--danger); }
 
-/* ── Адаптив ────────────────────────────────────── */
-@media (max-width: 1100px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 768px) {
-  .container { padding: 16px 14px 40px; }
-  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-  .stat-value { font-size: 1.4rem; }
-  .mini-kanban { grid-template-columns: repeat(6, minmax(120px, 1fr)); }
+/* ── Таймлайн статусов ────────────────────────── */
+.timeline { display: flex; flex-direction: column; gap: 0; }
+.timeline-item {
+  display: flex; gap: 14px; position: relative;
+  padding-bottom: 20px;
 }
-/* ── Quick actions ──────────────────────────── */
-.quick-actions {
-  display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap;
+.timeline-item:last-child { padding-bottom: 0; }
+.timeline-left {
+  display: flex; flex-direction: column; align-items: center;
+  flex-shrink: 0; width: 28px;
 }
-.qa-btn {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 9px 16px; border-radius: 10px; font-size: 0.82rem;
-  font-weight: 700; font-family: inherit; cursor: pointer;
-  border: none; text-decoration: none; transition: all .15s; white-space: nowrap;
+.timeline-dot {
+  width: 12px; height: 12px; border-radius: 50%;
+  background: var(--primary); border: 2px solid var(--surface);
+  outline: 2px solid var(--primary); flex-shrink: 0; margin-top: 2px;
 }
-.qa-primary { background: #2563eb; color: #fff; }
-.qa-primary:hover { background: #1d4ed8; }
-.qa-secondary { background: #fff; color: #64748b; border: 1px solid rgba(15,23,42,.1); }
-.qa-secondary:hover { color: #0f172a; border-color: rgba(37,99,235,.3); }
+.timeline-dot.done    { background: var(--success); outline-color: var(--success); }
+.timeline-dot.cancel  { background: var(--danger); outline-color: var(--danger); }
+.timeline-dot.outsrc  { background: var(--purple); outline-color: var(--purple); }
+.timeline-line {
+  flex: 1; width: 2px; background: var(--border);
+  margin-top: 4px; min-height: 100%;
+}
+.timeline-item:last-child .timeline-line { display: none; }
+.timeline-body { flex: 1; min-width: 0; }
+.timeline-transition {
+  font-size: 0.85rem; font-weight: 700; color: var(--text);
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+}
+.timeline-arrow { color: var(--text-dim); font-size: 0.78rem; }
+.status-pill {
+  display: inline-block; padding: 2px 8px; border-radius: 5px;
+  font-size: 0.73rem; font-weight: 700;
+}
+.pill-scheduled   { background: rgba(245,158,11,0.12);  color: #92400e; }
+.pill-accepted    { background: rgba(37,99,235,0.10);   color: #1e40af; }
+.pill-in_progress { background: rgba(37,99,235,0.10);   color: #1e40af; }
+.pill-outsourced  { background: rgba(124,58,237,0.10);  color: #5b21b6; }
+.pill-done        { background: rgba(5,150,105,0.10);   color: #065f46; }
+.pill-delivered   { background: rgba(5,150,105,0.10);   color: #065f46; }
+.pill-cancelled   { background: rgba(220,38,38,0.10);   color: #991b1b; }
+.timeline-date {
+  font-size: 0.73rem; color: var(--text-dim); font-weight: 500; margin-top: 3px;
+}
+.timeline-comment {
+  font-size: 0.82rem; color: var(--text-muted); font-style: italic;
+  margin-top: 4px; line-height: 1.4;
+}
 
-/* ── Mobile active list ─────────────────────── */
-.mobile-active { display: none; }
-.mobile-active-item {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 11px 14px; background: #f8fafc;
-  border: 1px solid rgba(15,23,42,.07); border-radius: 11px;
-  text-decoration: none; color: inherit; transition: all .15s;
-  margin-bottom: 6px;
-}
-.mobile-active-item:hover { border-color: #2563eb; background: #fff; }
-.mobile-active-left { flex: 1; min-width: 0; }
-.mobile-active-car { font-size: .88rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #0f172a; margin-bottom: 2px; }
-.mobile-active-meta { font-size: .72rem; color: #64748b; font-weight: 500; }
-.mobile-active-price { font-size: .9rem; font-weight: 800; color: #059669; flex-shrink: 0; margin-left: 10px; }
-.mobile-status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-right: 8px; }
+/* ── Состояния ────────────────────────────────── */
+.loading-state { text-align: center; padding: 60px 20px; color: var(--text-muted); font-size: 0.88rem; }
+.error-state   { text-align: center; padding: 60px 20px; }
+.error-state h2 { font-size: 1rem; font-weight: 700; color: var(--danger); margin-bottom: 8px; }
+.error-state p  { font-size: 0.85rem; color: var(--text-muted); }
 
-@media (max-width: 640px) {
-  .container { padding: 14px 12px 24px; }
-  .page-header-actions { display: none !important; }
-  .page-header { margin-bottom: 10px; }
-  .studio-name { font-size: 1.05rem; }
-  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 12px; }
-  .stat-card  { padding: 14px 14px 12px; border-radius: 14px; }
-  .stat-icon  { font-size: 1.1rem; margin-bottom: 8px; }
-  .stat-value { font-size: 1.35rem; }
-  .stat-label { font-size: 0.62rem; }
-  .search-input { max-width: 100%; font-size: 0.9rem; }
-  .card-kanban { display: none; }
-  .mobile-active { display: block; }
-  .quick-actions { gap: 6px; }
-  .qa-btn { padding: 9px 13px; font-size: .79rem; }
+/* ── Печатный заголовок (скрыт на экране) ─────── */
+.print-header { display: none; }
+
+/* ── Подпись (скрыта на экране) ──────────────── */
+.signature-line { display: none; }
+
+/* ── Адаптив ──────────────────────────────────── */
+@media (max-width: 600px) {
+  .container { padding: 14px 12px 32px; }
+  .data-grid  { grid-template-columns: 1fr; }
+  .data-row.full { grid-column: 1; }
+  .page-subheader { padding: 10px 14px; }
+  .page-subheader-title { font-size: 0.84rem; }
+  .car-subtitle { display: none; }
 }
-@media (max-width: 480px) {
-  .search-input { max-width: 100%; }
-  .stats-grid   { gap: 8px; }
+
+/* ── @media print ─────────────────────────────── */
+@media print {
+  body { background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; visibility: visible !important; }
+  .page-subheader, .no-print { display: none !important; }
+  /* Nav sidebar is hidden by nav.css print styles or explicitly: */
+  #navSidebar, .nav-sidebar, .nav-overlay { display: none !important; }
+  .container { max-width: 100%; padding: 0; margin: 0; }
+  .card { box-shadow: none; border: 1px solid #ddd; break-inside: avoid; margin-bottom: 12px; }
+  .card-title { margin-bottom: 12px; }
+  .print-header { display: block !important; text-align: center; margin-bottom: 20px; }
+  .print-header h1 { font-size: 16pt; font-weight: 800; color: #0f172a; margin-bottom: 4px; }
+  .print-header .studio-name { font-size: 12pt; color: #666; margin-bottom: 2px; }
+  .print-header .print-date  { font-size: 10pt; color: #888; }
+  .signature-line { display: flex !important; justify-content: space-between; margin-top: 40px; padding-top: 20px; }
+  .signature-line div { width: 45%; border-top: 1px solid #000; padding-top: 8px; font-size: 10pt; color: #333; }
+  .timeline-dot { outline: 2px solid currentColor !important; }
 }
 </style>
 </head>
 <body>
 
-<div class="container">
-
-  <!-- Шапка -->
-  <div class="page-header">
-    <div class="page-greeting">
-      <div class="studio-name" id="studioNameHeader">Загрузка...</div>
-      <div class="studio-sub"  id="studioSubheader">Keep1R CRM</div>
-    </div>
-    <div style="display:flex;gap:8px;align-items:center" class="page-header-actions">
-      <a href="settings.html" class="btn-logout" style="display:inline-flex;align-items:center;gap:5px;text-decoration:none;color:#64748b">⚙️ Настройки</a>
-      <button class="btn-logout" id="btnLogout">Выйти →</button>
-    </div>
+<!-- Субшапка -->
+<div class="page-subheader no-print">
+  <div class="page-subheader-left">
+    <a href="board.html" class="btn-back">← Доска</a>
+    <span class="page-subheader-title">Акт приёмки автомобиля</span>
+    <span class="car-subtitle" id="carSubtitle"></span>
   </div>
+  <button class="btn-print" id="btnPrint" onclick="window.print()">Печать</button>
+</div>
 
-  <!-- Стат-карточки -->
-  <div class="stats-grid" id="statsGrid">
-    <a class="stat-card" href="analytics.html">
-      <span class="stat-icon">🚗</span>
-      <div class="stat-label">Расчётов за месяц</div>
-      <div class="stat-value" id="statMonthTotal">—</div>
-      <div class="stat-change" id="statMonthTotalChange">Текущий месяц</div>
-    </a>
-    <a class="stat-card" href="analytics.html">
-      <span class="stat-icon">💰</span>
-      <div class="stat-label">Сумма расчётов</div>
-      <div class="stat-value" id="statMonthSum">—</div>
-      <div class="stat-change">Текущий месяц</div>
-    </a>
-    <a class="stat-card" href="analytics.html">
-      <span class="stat-icon">✅</span>
-      <div class="stat-label">Завершённые работы</div>
-      <div class="stat-value" id="statMonthDone">—</div>
-      <div class="stat-change" id="statMonthDoneCount">0 машин</div>
-    </a>
-    <a class="stat-card" href="analytics.html">
-      <span class="stat-icon">📊</span>
-      <div class="stat-label">Средний чек</div>
-      <div class="stat-value" id="statMonthAvg">—</div>
-      <div class="stat-change">За месяц</div>
-    </a>
-  </div>
+<!-- Печатный заголовок (показывается только при печати) -->
+<div class="print-header">
+  <div class="studio-name" id="printStudioName"></div>
+  <h1>АКТ ПРИЁМКИ АВТОМОБИЛЯ</h1>
+  <div id="printCarName" style="font-size:13pt;font-weight:700;margin-bottom:4px"></div>
+  <div class="print-date" id="printDate"></div>
+</div>
 
-  <!-- Быстрые действия -->
-  <div class="quick-actions">
-    <a href="calculator.html" class="qa-btn qa-primary">➕ Новый расчёт</a>
-    <a href="board.html"      class="qa-btn qa-secondary">📋 Доска</a>
-    <a href="calendar.html"   class="qa-btn qa-secondary">🗓 Календарь</a>
-    <a href="analytics.html"  class="qa-btn qa-secondary">📊 Аналитика</a>
-  </div>
+<div class="container" id="pageContainer">
+  <div class="loading-state" id="loadingState">Загрузка акта приёмки...</div>
+</div>
 
-  <!-- Активные заказы (только мобиле) -->
-  <div class="card mobile-active" id="mobileActiveCard">
-    <div class="card-header">
-      <span class="card-title">🔧 Активные заказы</span>
-      <a href="board.html" class="card-link">Все →</a>
-    </div>
-    <div id="mobileActiveList"><div class="loading">⏳</div></div>
-  </div>
-
-  <!-- Поиск -->
-  <div class="search-wrap">
-    <input
-      type="text"
-      class="search-input"
-      id="searchInput"
-      placeholder="🔍 Поиск по машине..."
-      autocomplete="off"
-    >
-  </div>
-
-  <!-- Результаты поиска -->
-  <div class="card" id="searchResultsCard" style="display:none">
-    <div class="card-header">
-      <span class="card-title">🔍 Результаты поиска</span>
-    </div>
-    <div id="searchResults"></div>
-  </div>
-
-  <!-- Мини-канбан -->
-  <div class="card card-kanban">
-    <div class="card-header">
-      <span class="card-title">📋 В работе</span>
-      <a href="board.html" class="card-link">Открыть всё →</a>
-    </div>
-    <div class="mini-kanban" id="miniKanban">
-      <div class="loading">⏳ Загрузка...</div>
-    </div>
-  </div>
-
+<!-- Подпись (показывается только при печати) -->
+<div class="signature-line">
+  <div>Представитель студии ___________________</div>
+  <div>Клиент ___________________</div>
 </div>
 
 <script src="footer.js"></script>
 <script type="module">
-import { sb }               from './api.js';
-import { requireAuth }      from './auth.js';
+import { sb }                from './api.js';
+import { requireAuth }       from './auth.js';
 import { getStudioContext }  from './studio-context.js';
 import { escapeHtml, fmtMoney } from './formatters.js';
-import { showLoading, showError, showEmpty, showToast } from './ui.js';
+import { showToast }         from './ui.js';
 
-// ── Состояние страницы ────────────────────────────────────────────
-let allCalcsForSearch = [];
-let searchTimeout     = null;
-
-// ── Форматирование ────────────────────────────────────────────────
-function fmt(n) {
-  return new Intl.NumberFormat('ru-RU', {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(n || 0);
-}
-
-function normalizeStatus(status) {
-  if (!status || status === 'draft' || status === 'pending') return 'new';
-  return status;
-}
-
-// ── Статистика ────────────────────────────────────────────────────
-function renderStats(calculations) {
-  const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
-  const month      = calculations.filter(c => new Date(c.created_at) >= monthStart);
-  const total      = month.length;
-  const sum        = month.reduce((a, c) => a + (c.total_price || 0), 0);
-  const done       = month.filter(c => ['done', 'delivered'].includes(normalizeStatus(c.status)));
-  const doneSum    = done.reduce((a, c) => a + (c.final_price || c.total_price || 0), 0);
-  const avg        = total > 0 ? Math.round(sum / total) : 0;
-
-  document.getElementById('statMonthTotal').textContent      = total;
-  document.getElementById('statMonthSum').textContent        = fmt(sum);
-  document.getElementById('statMonthDone').textContent       = fmt(doneSum);
-  document.getElementById('statMonthAvg').textContent        = fmt(avg);
-  document.getElementById('statMonthDoneCount').textContent  = done.length + ' машин';
-  document.getElementById('statMonthTotalChange').textContent = 'Текущий месяц';
-}
-
-function resetStats() {
-  ['statMonthTotal', 'statMonthSum', 'statMonthDone', 'statMonthAvg'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.textContent = '—';
-  });
-}
-
-const ACTIVE_STATUSES = ['new', 'scheduled', 'in_progress', 'done'];
-const STATUS_DOT = {
-  new:         '#94a3b8',
-  scheduled:   '#f59e0b',
-  in_progress: '#2563eb',
-  done:        '#7c3aed',
-};
-const STATUS_SHORT = {
-  new:         'Расчёт',
+// ── Константы ──────────────────────────────────────────────────────
+const STATUS_LABEL = {
   scheduled:   'Запись',
+  accepted:    'Принят',
   in_progress: 'В работе',
+  outsourced:  'Аутсорсинг',
   done:        'Готово',
+  delivered:   'Выдан',
+  cancelled:   'Отменён',
 };
 
-function renderMobileActive(data) {
-  const el = document.getElementById('mobileActiveList');
-  if (!el) return;
+const EQUIPMENT_LABELS = {
+  spare_tire:  'Запасное колесо',
+  jack:        'Домкрат',
+  first_aid:   'Аптечка',
+  fire_ext:    'Огнетушитель',
+  docs:        'Документы',
+  keys:        'Ключи',
+};
 
-  const active = data
-    .filter(c => ACTIVE_STATUSES.includes(normalizeStatus(c.status)))
-    .slice(0, 8);
+const PHOTO_ZONE_LABELS = {
+  front:        'Перед',
+  rear:         'Зад',
+  left:         'Левый бок',
+  right:        'Правый бок',
+  roof:         'Крыша',
+  interior:     'Салон',
+  engine:       'Мотор',
+  trunk:        'Багажник',
+  wheel_fl:     'Колесо ПЛ',
+  wheel_fr:     'Колесо ПП',
+  wheel_rl:     'Колесо ЗЛ',
+  wheel_rr:     'Колесо ЗП',
+};
 
-  if (!active.length) {
-    el.innerHTML = '<div style="color:#94a3b8;font-size:.82rem;text-align:center;padding:18px 0">Активных заказов нет</div>';
-    return;
-  }
-
-  const frag = document.createDocumentFragment();
-  active.forEach(c => {
-    const st    = normalizeStatus(c.status);
-    const link  = document.createElement('a');
-    link.className = 'mobile-active-item';
-    link.href = `board.html`;
-
-    const dot = document.createElement('div');
-    dot.className = 'mobile-status-dot';
-    dot.style.background = STATUS_DOT[st] || '#94a3b8';
-
-    const left = document.createElement('div');
-    left.className = 'mobile-active-left';
-
-    const car = document.createElement('div');
-    car.className = 'mobile-active-car';
-    car.textContent = c.car_name || 'Без названия';
-
-    const meta = document.createElement('div');
-    meta.className = 'mobile-active-meta';
-    meta.textContent = STATUS_SHORT[st] || st;
-
-    left.append(car, meta);
-
-    const price = document.createElement('div');
-    price.className = 'mobile-active-price';
-    price.textContent = fmt(c.final_price || c.total_price || 0) + ' ₽';
-
-    link.append(dot, left, price);
-    frag.appendChild(link);
-  });
-
-  el.innerHTML = '';
-  el.appendChild(frag);
+// ── Форматирование ─────────────────────────────────────────────────
+/**
+ * Форматирует дату/время в русской локали.
+ * @param {string} iso - ISO-строка даты
+ * @returns {string}
+ */
+function fmtDateTime(iso) {
+  if (!iso) return '—';
+  return new Intl.DateTimeFormat('ru-RU', {
+    day:    '2-digit',
+    month:  'long',
+    year:   'numeric',
+    hour:   '2-digit',
+    minute: '2-digit',
+  }).format(new Date(iso));
 }
 
-// ── Мини-канбан ───────────────────────────────────────────────────
-const MINI_COLS = [
-  { key: 'new',         label: 'Расчёт',    icon: '📋' },
-  { key: 'scheduled',   label: 'Дата',      icon: '📅' },
-  { key: 'in_progress', label: 'В работе',  icon: '🔧' },
-  { key: 'done',        label: 'Готово',    icon: '✅' },
-  { key: 'delivered',   label: 'Выдано',    icon: '🚗' },
-  { key: 'cancelled',   label: 'Отказ',     icon: '❌' },
-];
-
-function renderKanban(data) {
-  const container = document.getElementById('miniKanban');
-  if (!data || data.length === 0) {
-    showEmpty(container, 'Заказов пока нет', 'Создайте первый расчёт');
-    return;
-  }
-
-  // Строим через DOM — безопасно, без innerHTML с данными
-  const frag = document.createDocumentFragment();
-
-  MINI_COLS.forEach(col => {
-    const cards   = data.filter(c => normalizeStatus(c.status) === col.key);
-    const visible = cards.slice(0, 5);
-    const rest    = cards.length - 5;
-
-    const colEl = document.createElement('div');
-    colEl.className = `mini-col mini-col-${col.key}`;
-
-    // Заголовок колонки
-    const header = document.createElement('div');
-    header.className = 'mini-col-header';
-    const dot = document.createElement('div');
-    dot.className = 'mini-dot';
-    header.appendChild(dot);
-    header.append(` ${col.icon} ${col.label}`);
-    colEl.appendChild(header);
-
-    const cardsEl = document.createElement('div');
-    cardsEl.className = 'mini-cards';
-
-    if (cards.length === 0) {
-      const empty = document.createElement('div');
-      empty.className = 'mini-col-empty';
-      empty.textContent = 'Нет';
-      cardsEl.appendChild(empty);
-    } else {
-      visible.forEach(c => {
-        const card = document.createElement('div');
-        card.className = 'mini-card';
-        card.dataset.calcId = c.id;
-
-        const carName = document.createElement('div');
-        carName.className = 'mini-card-car';
-        carName.textContent = c.car_name || 'Без названия'; // textContent — безопасно
-
-        const price = document.createElement('div');
-        price.className = 'mini-card-price';
-        price.textContent = fmt(c.final_price || c.total_price || 0);
-
-        card.append(carName, price);
-        cardsEl.appendChild(card);
-      });
-
-      if (rest > 0) {
-        const more = document.createElement('div');
-        more.className = 'mini-col-more';
-        more.textContent = `+ ещё ${rest}`;
-        more.dataset.href = 'board.html';
-        cardsEl.appendChild(more);
-      }
-    }
-
-    colEl.appendChild(cardsEl);
-    frag.appendChild(colEl);
-  });
-
-  container.innerHTML = '';
-  container.appendChild(frag);
+/**
+ * Форматирует дату без времени.
+ * @param {string} iso
+ * @returns {string}
+ */
+function fmtDate(iso) {
+  if (!iso) return '—';
+  return new Intl.DateTimeFormat('ru-RU', {
+    day:   '2-digit',
+    month: 'long',
+    year:  'numeric',
+  }).format(new Date(iso));
 }
 
-// ── Поиск ─────────────────────────────────────────────────────────
-function renderSearchResults(term) {
-  const card = document.getElementById('searchResultsCard');
-  const box  = document.getElementById('searchResults');
+// ── Рендер чеклиста (JSONB boolean-объект) ─────────────────────────
+/**
+ * Строит checklist-разметку из JSONB-объекта с булевыми значениями.
+ * Использует textContent для всех пользовательских меток — безопасно.
+ * @param {Object|null} jsonbObj - объект вида { key: boolean }
+ * @param {Object} labelMap - словарь { key: 'Метка' }
+ * @returns {HTMLElement}
+ */
+function buildChecklist(jsonbObj, labelMap) {
+  const wrap = document.createElement('div');
+  wrap.className = 'checklist';
 
-  if (!term) {
-    card.style.display = 'none';
-    return;
+  if (!jsonbObj || typeof jsonbObj !== 'object') {
+    const empty = document.createElement('span');
+    empty.className = 'data-value muted';
+    empty.textContent = 'Нет данных';
+    wrap.appendChild(empty);
+    return wrap;
   }
 
-  const found = allCalcsForSearch.filter(c =>
-    (c.car_name || '').toLowerCase().includes(term)
-  );
+  // Сначала показываем известные ключи в определённом порядке, затем неизвестные
+  const knownKeys = Object.keys(labelMap);
+  const allKeys   = Array.from(new Set([...knownKeys, ...Object.keys(jsonbObj)]));
 
-  card.style.display = 'block';
+  allKeys.forEach(key => {
+    if (!(key in jsonbObj)) return;
+    const checked = Boolean(jsonbObj[key]);
+    const item = document.createElement('span');
+    item.className = `checklist-item ${checked ? 'checked' : 'unchecked'}`;
 
-  if (found.length === 0) {
-    showEmpty(box, 'Ничего не найдено', `Нет расчётов по запросу «${term}»`);
-    return;
+    const icon = document.createElement('span');
+    icon.className = 'check-icon';
+    icon.textContent = checked ? '✓' : '✗';
+
+    const label = document.createElement('span');
+    label.textContent = labelMap[key] || key;
+
+    item.append(icon, label);
+    wrap.appendChild(item);
+  });
+
+  if (wrap.children.length === 0) {
+    const empty = document.createElement('span');
+    empty.className = 'data-value muted';
+    empty.textContent = 'Нет данных';
+    wrap.appendChild(empty);
   }
 
-  // Сетка через DOM — escapeHtml для всех данных из БД
+  return wrap;
+}
+
+// ── Получить CSS-класс цвета точки таймлайна ──────────────────────
+function dotClass(status) {
+  if (status === 'done' || status === 'delivered') return 'done';
+  if (status === 'cancelled') return 'cancel';
+  if (status === 'outsourced') return 'outsrc';
+  return '';
+}
+
+// ── Рендер карточки с авто ─────────────────────────────────────────
+function renderVehicleCard(calc) {
+  const card = document.createElement('div');
+  card.className = 'card';
+
+  const title = document.createElement('div');
+  title.className = 'card-title';
+  title.textContent = 'Автомобиль';
+
   const grid = document.createElement('div');
-  grid.className = 'calc-grid';
+  grid.className = 'data-grid';
 
-  found.forEach(c => {
-    const calcCard = document.createElement('div');
-    calcCard.className = 'calc-card';
-    calcCard.dataset.calcId = c.id;
-
-    const title = document.createElement('h3');
-    title.textContent = c.car_name || 'Без названия';
-
-    const priceEl = document.createElement('div');
-    priceEl.className = 'calc-price';
-    priceEl.textContent = fmt(c.final_price || c.total_price || 0);
-
-    const actions = document.createElement('div');
-    actions.className = 'calc-actions';
-
-    const openLink = document.createElement('a');
-    openLink.className = 'btn btn-primary';
-    openLink.href = `calculator.html?load=${encodeURIComponent(c.id)}`;
-    openLink.textContent = '📂 Открыть';
-    openLink.addEventListener('click', e => e.stopPropagation());
-
-    const workLink = document.createElement('a');
-    workLink.className = 'btn btn-success';
-    workLink.href = `assign-work.html?calc_id=${encodeURIComponent(c.id)}`;
-    workLink.textContent = '👥 Работы';
-    workLink.addEventListener('click', e => e.stopPropagation());
-
-    actions.append(openLink, workLink);
-    calcCard.append(title, priceEl, actions);
-    grid.appendChild(calcCard);
-  });
-
-  box.innerHTML = '';
-  box.appendChild(grid);
-}
-
-// ── Экран без подписки ────────────────────────────────────────────
-function showLockedState() {
-  // Статы — сбрасываем в нейтральное состояние без фейковых данных
-  resetStats();
-  ['statMonthTotal', 'statMonthSum', 'statMonthDone', 'statMonthAvg'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.textContent = '—';
-  });
-
-  // Канбан — нейтральный empty state
-  const kanban = document.getElementById('miniKanban');
-  showEmpty(kanban, 'Нет доступа', 'Оформите подписку, чтобы увидеть доску заказов');
-
-  // Поиск — отключить
-  const searchEl = document.getElementById('searchInput');
-  if (searchEl) {
-    searchEl.disabled = true;
-    searchEl.placeholder = '🔒 Доступно после оформления подписки';
+  function addRow(label, value, full) {
+    const row = document.createElement('div');
+    row.className = 'data-row' + (full ? ' full' : '');
+    const lbl = document.createElement('div');
+    lbl.className = 'data-label';
+    lbl.textContent = label;
+    const val = document.createElement('div');
+    val.className = value ? 'data-value' : 'data-value muted';
+    val.textContent = value || 'Не указано';
+    row.append(lbl, val);
+    grid.appendChild(row);
   }
+
+  addRow('Автомобиль', calc.car_name);
+  addRow('Статус', STATUS_LABEL[calc.status] || calc.status || '—');
+  if (calc.client_name) addRow('Клиент', calc.client_name);
+  if (calc.client_phone) addRow('Телефон', calc.client_phone);
+
+  card.append(title, grid);
+  return card;
 }
 
-// ── Загрузка данных ───────────────────────────────────────────────
-async function loadData(studioId) {
-  const kanban = document.getElementById('miniKanban');
-  showLoading(kanban, 'Загрузка данных...');
+// ── Рендер карточки акта приёмки ──────────────────────────────────
+function renderActCard(act) {
+  const card = document.createElement('div');
+  card.className = 'card';
 
-  const { data, error } = await sb
+  const title = document.createElement('div');
+  title.className = 'card-title';
+  title.textContent = 'Данные приёмки';
+
+  const grid = document.createElement('div');
+  grid.className = 'data-grid';
+
+  // Пробег
+  const mileageRow = document.createElement('div');
+  mileageRow.className = 'data-row';
+  const mileageLbl = document.createElement('div');
+  mileageLbl.className = 'data-label';
+  mileageLbl.textContent = 'Пробег';
+  const mileageVal = document.createElement('div');
+  mileageVal.className = act.mileage != null ? 'data-value' : 'data-value muted';
+  mileageVal.textContent = act.mileage != null ? act.mileage.toLocaleString('ru-RU') + ' км' : 'Не указано';
+  mileageRow.append(mileageLbl, mileageVal);
+  grid.appendChild(mileageRow);
+
+  // Уровень топлива
+  const fuelRow = document.createElement('div');
+  fuelRow.className = 'data-row';
+  const fuelLbl = document.createElement('div');
+  fuelLbl.className = 'data-label';
+  fuelLbl.textContent = 'Уровень топлива';
+  const fuelVal = document.createElement('div');
+  fuelVal.className = act.fuel_level ? 'data-value' : 'data-value muted';
+  fuelVal.textContent = act.fuel_level || 'Не указано';
+  fuelRow.append(fuelLbl, fuelVal);
+  grid.appendChild(fuelRow);
+
+  // Согласие клиента
+  const agreedRow = document.createElement('div');
+  agreedRow.className = 'data-row';
+  const agreedLbl = document.createElement('div');
+  agreedLbl.className = 'data-label';
+  agreedLbl.textContent = 'Клиент согласен';
+  const agreedBadge = document.createElement('div');
+  agreedBadge.className = `agreed-badge ${act.client_agreed ? 'yes' : 'no'}`;
+  agreedBadge.textContent = act.client_agreed ? 'Да, согласен' : 'Не подтверждено';
+  agreedRow.append(agreedLbl, agreedBadge);
+  grid.appendChild(agreedRow);
+
+  // Дата приёмки
+  const dateRow = document.createElement('div');
+  dateRow.className = 'data-row';
+  const dateLbl = document.createElement('div');
+  dateLbl.className = 'data-label';
+  dateLbl.textContent = 'Дата приёмки';
+  const dateVal = document.createElement('div');
+  dateVal.className = 'data-value';
+  dateVal.textContent = fmtDateTime(act.created_at);
+  dateRow.append(dateLbl, dateVal);
+  grid.appendChild(dateRow);
+
+  // Повреждения
+  const dmgRow = document.createElement('div');
+  dmgRow.className = 'data-row full';
+  const dmgLbl = document.createElement('div');
+  dmgLbl.className = 'data-label';
+  dmgLbl.textContent = 'Повреждения и замечания при приёмке';
+  const dmgVal = document.createElement('div');
+  dmgVal.className = act.damages ? 'data-value' : 'data-value muted';
+  dmgVal.textContent = act.damages || 'Повреждений не зафиксировано';
+  dmgRow.append(dmgLbl, dmgVal);
+  grid.appendChild(dmgRow);
+
+  // Примечания
+  if (act.notes) {
+    const notesRow = document.createElement('div');
+    notesRow.className = 'data-row full';
+    const notesLbl = document.createElement('div');
+    notesLbl.className = 'data-label';
+    notesLbl.textContent = 'Примечания';
+    const notesVal = document.createElement('div');
+    notesVal.className = 'data-value';
+    notesVal.textContent = act.notes;
+    notesRow.append(notesLbl, notesVal);
+    grid.appendChild(notesRow);
+  }
+
+  card.append(title, grid);
+
+  // Комплектация
+  const equipCard = buildChecklistCard('Комплектация', act.equipment, EQUIPMENT_LABELS);
+  const photoCard  = buildChecklistCard('Фотофиксация по зонам', act.photo_checks, PHOTO_ZONE_LABELS);
+
+  return [card, equipCard, photoCard];
+}
+
+/**
+ * Строит карточку с чеклистом.
+ * @param {string} titleText
+ * @param {Object|null} jsonbObj
+ * @param {Object} labelMap
+ * @returns {HTMLElement}
+ */
+function buildChecklistCard(titleText, jsonbObj, labelMap) {
+  const card = document.createElement('div');
+  card.className = 'card';
+
+  const title = document.createElement('div');
+  title.className = 'card-title';
+  title.textContent = titleText;
+
+  const list = buildChecklist(jsonbObj, labelMap);
+  card.append(title, list);
+  return card;
+}
+
+// ── Рендер таймлайна статусов ──────────────────────────────────────
+function renderTimelineCard(history) {
+  const card = document.createElement('div');
+  card.className = 'card';
+
+  const title = document.createElement('div');
+  title.className = 'card-title';
+  title.textContent = 'История переходов';
+
+  if (!history || history.length === 0) {
+    const empty = document.createElement('div');
+    empty.className = 'data-value muted';
+    empty.style.paddingTop = '4px';
+    empty.textContent = 'История переходов пуста';
+    card.append(title, empty);
+    return card;
+  }
+
+  const timeline = document.createElement('div');
+  timeline.className = 'timeline';
+
+  history.forEach(entry => {
+    const item = document.createElement('div');
+    item.className = 'timeline-item';
+
+    // Левая часть: точка + линия
+    const left = document.createElement('div');
+    left.className = 'timeline-left';
+
+    const dot = document.createElement('div');
+    dot.className = `timeline-dot ${dotClass(entry.to_status)}`;
+
+    const line = document.createElement('div');
+    line.className = 'timeline-line';
+
+    left.append(dot, line);
+
+    // Правая часть: переход + дата + комментарий
+    const body = document.createElement('div');
+    body.className = 'timeline-body';
+
+    const transition = document.createElement('div');
+    transition.className = 'timeline-transition';
+
+    if (entry.from_status) {
+      const fromPill = document.createElement('span');
+      fromPill.className = `status-pill pill-${entry.from_status}`;
+      fromPill.textContent = STATUS_LABEL[entry.from_status] || entry.from_status;
+      transition.appendChild(fromPill);
+
+      const arrow = document.createElement('span');
+      arrow.className = 'timeline-arrow';
+      arrow.textContent = '→';
+      transition.appendChild(arrow);
+    }
+
+    const toPill = document.createElement('span');
+    toPill.className = `status-pill pill-${entry.to_status}`;
+    toPill.textContent = STATUS_LABEL[entry.to_status] || entry.to_status;
+    transition.appendChild(toPill);
+
+    const dateEl = document.createElement('div');
+    dateEl.className = 'timeline-date';
+    dateEl.textContent = fmtDateTime(entry.created_at);
+
+    body.append(transition, dateEl);
+
+    if (entry.comment) {
+      const commentEl = document.createElement('div');
+      commentEl.className = 'timeline-comment';
+      commentEl.textContent = entry.comment;
+      body.appendChild(commentEl);
+    }
+
+    item.append(left, body);
+    timeline.appendChild(item);
+  });
+
+  card.append(title, timeline);
+  return card;
+}
+
+// ── Показать ошибку ────────────────────────────────────────────────
+function showPageError(message, detail) {
+  const container = document.getElementById('pageContainer');
+  container.innerHTML = '';
+  const state = document.createElement('div');
+  state.className = 'error-state';
+
+  const h2 = document.createElement('h2');
+  h2.textContent = message;
+
+  const backLink = document.createElement('a');
+  backLink.href = 'board.html';
+  backLink.style.cssText = 'display:inline-block;margin-top:14px;font-size:.82rem;color:var(--primary);font-weight:700;text-decoration:none';
+  backLink.textContent = '← Вернуться на доску';
+
+  state.appendChild(h2);
+
+  if (detail) {
+    const p = document.createElement('p');
+    p.textContent = detail;
+    state.appendChild(p);
+  }
+
+  state.appendChild(backLink);
+  container.appendChild(state);
+}
+
+// ── Главная функция загрузки ───────────────────────────────────────
+async function loadPage(calcId, studioId, studioName) {
+  const container = document.getElementById('pageContainer');
+
+  // 1. Загружаем расчёт
+  const { data: calcArr, error: calcErr } = await sb
     .from('calculations')
-    .select('id, car_name, total_price, final_price, status, created_at')
-    .eq('studio_id', studioId)
-    .order('created_at', { ascending: false });
+    .select('*')
+    .eq('id', calcId);
 
-  if (error) {
-    showError(kanban, 'Не удалось загрузить расчёты', () => loadData(studioId));
-    console.error('[dashboard] loadData:', error);
+  if (calcErr) {
+    console.error('[acceptance-act] fetch calculation:', calcErr);
+    showPageError('Ошибка загрузки расчёта', calcErr.message || String(calcErr));
     return;
   }
 
-  allCalcsForSearch = data || [];
-  renderStats(allCalcsForSearch);
-  renderKanban(allCalcsForSearch);
-  renderMobileActive(allCalcsForSearch);
-}
+  const calc = calcArr && calcArr[0];
+  if (!calc) {
+    showPageError('Расчёт не найден', 'Проверьте правильность ссылки');
+    return;
+  }
 
-// ── Привязка событий ──────────────────────────────────────────────
-function bindEvents() {
-  // Выход
-  document.getElementById('btnLogout')?.addEventListener('click', window._navLogout);
+  // 2. Загружаем акт приёмки
+  const { data: actArr, error: actErr } = await sb
+    .from('acceptance_acts')
+    .select('*')
+    .eq('calc_id', calcId);
 
-  // Поиск
-  document.getElementById('searchInput')?.addEventListener('input', e => {
-    clearTimeout(searchTimeout);
-    const term = e.target.value.trim().toLowerCase();
-    searchTimeout = setTimeout(() => renderSearchResults(term), 300);
-  });
+  if (actErr) {
+    console.error('[acceptance-act] fetch acceptance_acts:', actErr);
+  }
 
-  // Event delegation для канбана — клик по карточке → board.html
-  document.getElementById('miniKanban')?.addEventListener('click', e => {
-    const card = e.target.closest('.mini-card');
-    const more = e.target.closest('.mini-col-more');
-    if (card || more) {
-      window.location.href = 'board.html';
-    }
-  });
+  const act = actArr && actArr[0];
+
+  // 3. Загружаем историю статусов
+  const { data: history, error: histErr } = await sb
+    .from('status_history')
+    .select('*')
+    .eq('calc_id', calcId)
+    .order('created_at', { ascending: true });
+
+  if (histErr) {
+    console.error('[acceptance-act] fetch status_history:', histErr);
+  }
+
+  // 4. Заполняем печатный заголовок
+  const printStudio = document.getElementById('printStudioName');
+  const printCar    = document.getElementById('printCarName');
+  const printDate   = document.getElementById('printDate');
+  if (printStudio) printStudio.textContent = studioName || '';
+  if (printCar)    printCar.textContent    = calc.car_name || 'Без названия';
+  if (printDate)   printDate.textContent   = fmtDate(act ? act.created_at : calc.created_at);
+
+  // 5. Subtitle в субшапке
+  const subtitle = document.getElementById('carSubtitle');
+  if (subtitle) subtitle.textContent = calc.car_name || '';
+
+  // 6. Сборка страницы
+  container.innerHTML = '';
+  const frag = document.createDocumentFragment();
+
+  // Карточка: автомобиль
+  frag.appendChild(renderVehicleCard(calc));
+
+  // Карточки: акт приёмки или заглушка
+  if (!act) {
+    const noActCard = document.createElement('div');
+    noActCard.className = 'card';
+    const noActTitle = document.createElement('div');
+    noActTitle.className = 'card-title';
+    noActTitle.textContent = 'Акт приёмки';
+    const noActMsg = document.createElement('div');
+    noActMsg.className = 'data-value muted';
+    noActMsg.style.paddingTop = '4px';
+    noActMsg.textContent = 'Акт приёмки не найден для этого расчёта';
+    noActCard.append(noActTitle, noActMsg);
+    frag.appendChild(noActCard);
+  } else {
+    const actCards = renderActCard(act);
+    actCards.forEach(c => frag.appendChild(c));
+  }
+
+  // Карточка: история переходов
+  frag.appendChild(renderTimelineCard(history || []));
+
+  container.appendChild(frag);
 }
 
 // ── Точка входа ───────────────────────────────────────────────────
@@ -711,48 +717,40 @@ async function initPage() {
   initNav();
   document.body.style.visibility = 'visible';
 
-  // 1. Проверяем авторизацию
+  // Параметр calc_id
+  const calcId = new URLSearchParams(location.search).get('calc_id');
+  if (!calcId) {
+    document.body.style.visibility = 'visible';
+    showPageError('Не указан расчёт', 'Передайте параметр calc_id в URL');
+    return;
+  }
+
+  // Авторизация
   const user = await requireAuth({ redirectTo: 'welcome.html' });
   if (!user) return;
 
-  // 2. Получаем контекст студии
+  // Контекст студии
   let ctx;
   try {
     ctx = await getStudioContext();
   } catch (err) {
-    console.error('[dashboard] getStudioContext:', err);
-    const kanban = document.getElementById('miniKanban');
-    showError(kanban, 'Ошибка загрузки данных студии', () => location.reload());
+    console.error('[acceptance-act] getStudioContext:', err);
+    showPageError('Ошибка загрузки контекста студии', err.message);
     return;
   }
 
-  if (!ctx) {
+  if (!ctx || !ctx.studioId) {
     window.location.href = 'welcome.html';
     return;
   }
 
-  if (!ctx.studioId) {
-    const kanban = document.getElementById('miniKanban');
-    showError(kanban, 'Студия не найдена. Обратитесь к администратору.');
-    return;
-  }
+  const studioName = ctx.studio?.name || '';
 
-  // 3. Показываем название студии
-  const nameEl = document.getElementById('studioNameHeader');
-  const subEl  = document.getElementById('studioSubheader');
-  if (nameEl) nameEl.textContent = ctx.studio?.name || 'Студия';
-  if (subEl)  subEl.textContent  = 'Keep1R CRM';
+  // Убираем заглушку загрузки
+  const loadingEl = document.getElementById('loadingState');
+  if (loadingEl) loadingEl.remove();
 
-  // 4. Проверяем подписку
-  if (!ctx.hasAccess) {
-    showLockedState();
-    window.showPaywall?.(ctx.subscriptionStatus === 'expired');
-    return;
-  }
-
-  // 5. Привязываем события и грузим данные
-  bindEvents();
-  await loadData(ctx.studioId);
+  await loadPage(calcId, ctx.studioId, studioName);
 }
 
 document.addEventListener('DOMContentLoaded', initPage);
