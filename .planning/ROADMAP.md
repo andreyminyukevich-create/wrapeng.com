@@ -28,7 +28,10 @@
   3. Dragging or clicking a "scheduled" card to "accepted" opens the acceptance modal, the user fills in mileage, damage checkboxes, equipment checklist, and client-agreed checkbox, clicks Save, and the card moves to the accepted column with an `acceptance_acts` record written to the database
   4. Only permitted status transitions are reachable from the board — attempting an illegal transition (e.g. scheduled directly to done) is blocked client-side before any modal opens
   5. Rapidly saving a modal multiple times does not cause duplicate board reloads or double-submit race conditions (the `_loading` guard prevents concurrent `loadBoard()` calls)
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 01-01-PLAN.md — SQL migration (4 tables) + outsourced column config + loadBoard guard
+- [ ] 01-02-PLAN.md — Transition guards + status history hook + acceptance modal
 **UI hint**: yes
 
 ### Phase 2: Pipeline Transitions
@@ -63,11 +66,11 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 0/? | Not started | - |
+| 1. Foundation | 0/2 | Planned | - |
 | 2. Pipeline Transitions | 0/? | Not started | - |
 | 3. Document Pages | 0/? | Not started | - |
 
 ---
 
 *Roadmap created: 2026-03-25*
-*Last updated: 2026-03-25 after initial creation*
+*Last updated: 2026-03-25 after Phase 1 planning*
