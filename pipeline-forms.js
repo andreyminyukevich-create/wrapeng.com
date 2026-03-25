@@ -919,6 +919,77 @@ async function saveDeliver() {
   }
 }
 
+// -- Модал назначения (assign / in_progress) ──────────────────────
+
+let _assignCalcId = null;
+
+const ASSIGN_HTML = `
+<div class="modal" id="modalAssign">
+  <div class="modal-content" style="max-width:540px;max-height:90vh;overflow-y:auto">
+    <div class="modal-title">Взять в работу</div>
+    <div class="modal-car" id="assignCarName"></div>
+    <div class="form-group">
+      <label>Ответственный мастер</label>
+      <input type="text" id="assignMaster" placeholder="ФИО мастера">
+    </div>
+    <div class="form-group">
+      <label>Комментарий</label>
+      <textarea id="assignComment" rows="2" placeholder="Примечания к работе..."></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="btnAssignCancel">Отмена</button>
+      <button class="btn btn-primary" id="btnAssignSave">Взять в работу</button>
+    </div>
+  </div>
+</div>
+`;
+
+function injectAssign() {
+  if (document.getElementById('modalAssign')) return;
+  document.body.insertAdjacentHTML('beforeend', ASSIGN_HTML);
+  document.getElementById('btnAssignCancel').addEventListener('click', () => window._closeModal('modalAssign'));
+  document.getElementById('btnAssignSave').addEventListener('click', saveAssign);
+  document.getElementById('modalAssign').addEventListener('click', e => {
+    if (e.target.id === 'modalAssign') window._closeModal('modalAssign');
+  });
+}
+
+function openModalAssign(calcId, carName) {
+  injectAssign();
+  _assignCalcId = calcId;
+  document.getElementById('assignCarName').textContent = carName || '';
+  document.getElementById('assignMaster').value = '';
+  document.getElementById('assignComment').value = '';
+  document.getElementById('modalAssign').classList.add('active');
+}
+
+async function saveAssign() {
+  const btn = document.getElementById('btnAssignSave');
+  btn.disabled = true;
+  const origText = btn.textContent;
+  btn.textContent = 'Сохранение...';
+  try {
+    const master = document.getElementById('assignMaster').value.trim();
+    const comment = document.getElementById('assignComment').value.trim();
+    if (!master) {
+      window._showToast('warning', 'Укажите ответственного мастера');
+      return;
+    }
+    const parts = ['Мастер: ' + master];
+    if (comment) parts.push(comment);
+    const extra = { _historyComment: parts.join('; '), assigned_master: master };
+    const ok = await window._updateStatus(_assignCalcId, 'in_progress', extra);
+    if (ok) {
+      window._closeModal('modalAssign');
+      window._showToast('success', 'Взято в работу');
+      window._loadBoard();
+    }
+  } finally {
+    btn.disabled = false;
+    btn.textContent = origText;
+  }
+}
+
 // ── Публичный API ─────────────────────────────────────────────────
-window.PipelineForms = { openModalAccept, openModalOutsource, openModalReturn, openModalCancel, openModalDone, openModalDeliver };
+window.PipelineForms = { openModalAccept, openModalOutsource, openModalReturn, openModalCancel, openModalDone, openModalDeliver, openModalAssign };
 })();

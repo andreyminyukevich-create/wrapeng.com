@@ -716,7 +716,7 @@ async function onDrop(e) {
     return;
   }
   if (toStatus === 'in_progress') {
-    window.location.href = `assign-work.html?calc_id=${encodeURIComponent(_dragCalcId)}`;
+    PipelineForms.openModalAssign(_dragCalcId, carName);
     return;
   }
   if (toStatus === 'outsourced') {
@@ -1173,7 +1173,7 @@ function buildDrawerActions(calc, status) {
       btn('Открыть расчёт', goCalc),
       btn('Акт приёмки',    goAct),
       btn('Назначить ответственных', goAssign),
-      btn('Взять в работу', () => { closeDrawer(); window.location.href = `assign-work.html?calc_id=${encodeURIComponent(calc.id)}`; }, 'btn-primary'),
+      btn('Взять в работу', () => { closeDrawer(); PipelineForms.openModalAssign(calc.id, calc.car_name || 'Без названия'); }, 'btn-primary'),
       btn('Отменить заказ', doCancel, 'btn-danger'),
     );
   } else if (status === 'in_progress') {
@@ -1270,7 +1270,7 @@ function bindEvents() {
   document.addEventListener('keydown', e => {
     if (e.key !== 'Escape') return;
     if (document.getElementById('drawer').classList.contains('active')) { closeDrawer(); return; }
-    ['modalDone', 'modalDeliver', 'modalAccept', 'modalOutsource', 'modalReturn', 'modalCancel'].forEach(id => closeModal(id));
+    ['modalDone', 'modalDeliver', 'modalAccept', 'modalOutsource', 'modalReturn', 'modalCancel', 'modalAssign'].forEach(id => closeModal(id));
   });
 }
 
