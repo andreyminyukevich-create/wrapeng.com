@@ -1,8 +1,14 @@
 // pipeline-forms.js
 // Модальные формы воронки цеха — приём, аутсорсинг, проверка, выдача, отмена
 // Phase 1: acceptance modal (scheduled -> accepted)
+// Phase 2: done modal (FORM-03) + delivery modal (FORM-04)
 (function () {
 'use strict';
+
+// ── Локальная утилита форматирования числа ────────────────────────
+function _fmt(n) {
+  return new Intl.NumberFormat('ru-RU', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(n || 0);
+}
 
 let _acceptCalcId = null;
 
@@ -488,6 +494,431 @@ async function saveCancel() {
   }
 }
 
+// -- Модал проверки (done) ----------------------------------------
+
+let _doneCalcId = null;
+let _donePlanItems = [];
+
+const DONE_HTML = `
+<div class="modal" id="modalDone">
+  <div class="modal-content" style="max-width:540px;max-height:90vh;overflow-y:auto">
+    <div class="modal-title">Работа выполнена</div>
+    <div class="modal-car" id="doneCarName"></div>
+
+    <div style="font-size:0.69rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--text-muted);margin-bottom:8px;margin-top:4px">Проверка</div>
+    <div class="form-group">
+      <label>Кто проверил</label>
+      <input type="text" id="doneCheckedBy" placeholder="ФИО проверяющего">
+    </div>
+    <div class="form-group">
+      <label>Замечания / дефекты</label>
+      <textarea id="doneRemarks" rows="2" placeholder="Замечания по качеству работы..."></textarea>
+    </div>
+
+    <div id="doneMaterialsBlock" style="margin-bottom:16px">
+      <div style="font-size:0.69rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--text-muted);margin-bottom:10px;margin-top:12px">Расход материалов</div>
+      <div id="doneMaterialsLoading" style="color:var(--text-muted);font-size:0.82rem;text-align:center;padding:12px 0">Загрузка...</div>
+      <div id="doneMaterialsRows" style="display:none">
+        <div style="display:grid;grid-template-columns:1fr 110px 110px;gap:6px;margin-bottom:6px;padding:0 2px">
+          <div style="font-size:0.67rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted)">Услуга</div>
+          <div style="font-size:0.67rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);text-align:right">План</div>
+          <div style="font-size:0.67rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#7c3aed;text-align:right">Факт</div>
+        </div>
+        <div id="doneMaterialsList" style="display:flex;flex-direction:column;gap:5px"></div>
+        <div style="display:grid;grid-template-columns:1fr 110px 110px;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
+          <div style="font-size:0.8rem;font-weight:700;color:var(--text)">Итого</div>
+          <div id="donePlanTotal" style="font-size:0.88rem;font-weight:700;color:var(--text-muted);text-align:right">—</div>
+          <div id="doneFactTotal" style="font-size:0.88rem;font-weight:700;color:#7c3aed;text-align:right">—</div>
+        </div>
+        <div id="doneDelta" style="margin-top:6px;font-size:0.78rem;text-align:right;color:var(--text-muted)"></div>
+      </div>
+      <div id="doneMaterialsEmpty" style="display:none;color:var(--text-muted);font-size:0.82rem;padding:8px 0">В расчёте нет плановых материалов.</div>
+    </div>
+
+    <div class="form-group">
+      <label>Примечания</label>
+      <textarea id="doneNotes" rows="2" placeholder="Дополнительные заметки..."></textarea>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="btnDoneCancel">Отмена</button>
+      <button class="btn" style="background:var(--purple);color:#fff" id="btnDoneSave">Завершить</button>
+    </div>
+  </div>
+</div>
+`;
+
+function injectDone() {
+  if (document.getElementById('modalDone')) return;
+  document.body.insertAdjacentHTML('beforeend', DONE_HTML);
+
+  document.getElementById('btnDoneCancel').addEventListener('click', () => {
+    document.getElementById('modalDone').classList.remove('active');
+  });
+  document.getElementById('btnDoneSave').addEventListener('click', saveDone);
+  document.getElementById('modalDone').addEventListener('click', e => {
+    if (e.target === document.getElementById('modalDone')) {
+      document.getElementById('modalDone').classList.remove('active');
+    }
+  });
+}
+
+function extractMaterials(calcData) {
+  const items = [];
+  const d     = calcData || {};
+  const seen  = new Set();
+
+  function add(key, name, mat) {
+    const m = parseFloat(mat) || 0;
+    if (m > 0 && !seen.has(key)) { seen.add(key); items.push({ key, name, plan: m }); }
+  }
+
+  if (d.package) {
+    add('pkg_wrap', 'Оклейка (Полная защита кузова)', d.package.wrapMat);
+    add('pkg_prep', 'Подготовка (Полная защита)',     d.package.prepMat);
+    add('pkg_arm',  'Бронирование (Полная защита)',   d.package.armMat);
+  }
+  if (d.impact) {
+    add('impact_wrap', 'Оклейка (Ударная часть)',     d.impact.wrapMat);
+    add('impact_prep', 'Подготовка (Ударная часть)',  d.impact.prepMat);
+    add('impact_arm',  'Бронирование (Ударная часть)', d.impact.armMat);
+  }
+  if (d.services_detail) {
+    const gn = { arm: 'Бронирование', det: 'Детейлинг', gl: 'Стёкла', ms: 'Доп. услуги', wrap: 'Оклейка' };
+    Object.entries(gn).forEach(([key, gName]) => {
+      (d.services_detail[key] || []).forEach((item, idx) => {
+        const m = parseFloat(item.mat) || 0;
+        if (m > 0) add(`${key}_${idx}`, item.name || gName, m);
+      });
+    });
+  }
+  return items;
+}
+
+async function loadDoneMaterials(calcId) {
+  const loading = document.getElementById('doneMaterialsLoading');
+  const rows    = document.getElementById('doneMaterialsRows');
+  const empty   = document.getElementById('doneMaterialsEmpty');
+  const list    = document.getElementById('doneMaterialsList');
+
+  loading.style.display = 'block';
+  rows.style.display    = 'none';
+  empty.style.display   = 'none';
+
+  const { data } = await window._sb
+    .from('calculations')
+    .select('calculation_data, fact_materials')
+    .eq('id', calcId).single();
+
+  const items    = extractMaterials(data?.calculation_data || {});
+  const existing = data?.fact_materials || {};
+
+  loading.style.display = 'none';
+  _donePlanItems = items;
+
+  if (!items.length) { empty.style.display = 'block'; return; }
+
+  rows.style.display = 'block';
+  list.innerHTML = '';
+
+  const frag = document.createDocumentFragment();
+  items.forEach(item => {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:grid;grid-template-columns:1fr 110px 110px;gap:6px;align-items:center';
+
+    const nameEl = document.createElement('div');
+    nameEl.style.cssText = 'font-size:0.8rem;color:var(--text);font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
+    nameEl.title = item.name;
+    nameEl.textContent = item.name;
+
+    const planEl = document.createElement('div');
+    planEl.style.cssText = 'font-size:0.82rem;color:var(--text-muted);text-align:right;font-weight:600';
+    planEl.textContent = _fmt(item.plan);
+
+    const factWrap = document.createElement('div');
+    const factInput = document.createElement('input');
+    factInput.type  = 'number'; factInput.min = '0'; factInput.step = '1';
+    factInput.dataset.key = item.key;
+    factInput.value = String(existing[item.key] !== undefined ? existing[item.key] : item.plan);
+    factInput.style.cssText = 'width:100%;padding:5px 8px;background:rgba(124,58,237,0.05);border:1px solid rgba(124,58,237,0.25);border-radius:6px;font-size:0.82rem;font-weight:700;color:#7c3aed;outline:none;text-align:right;font-family:var(--font)';
+    factInput.addEventListener('input', updateDoneTotals);
+    factWrap.appendChild(factInput);
+
+    row.append(nameEl, planEl, factWrap);
+    frag.appendChild(row);
+  });
+  list.appendChild(frag);
+  updateDoneTotals();
+}
+
+function updateDoneTotals() {
+  let planSum = 0, factSum = 0;
+  _donePlanItems.forEach(item => { planSum += item.plan; });
+  document.querySelectorAll('#doneMaterialsList input[data-key]').forEach(inp => {
+    factSum += parseFloat(inp.value) || 0;
+  });
+  document.getElementById('donePlanTotal').textContent = _fmt(planSum);
+  document.getElementById('doneFactTotal').textContent = _fmt(factSum);
+  const delta = factSum - planSum;
+  const deltaEl = document.getElementById('doneDelta');
+  if (delta === 0)      { deltaEl.textContent = 'Факт совпал с планом'; deltaEl.style.color = 'var(--text-muted)'; }
+  else if (delta > 0)   { deltaEl.textContent = `Перерасход: +${_fmt(delta)}`; deltaEl.style.color = 'var(--danger)'; }
+  else                  { deltaEl.textContent = `Экономия: ${_fmt(Math.abs(delta))}`; deltaEl.style.color = 'var(--success)'; }
+}
+
+function openModalDone(calcId, carName) {
+  injectDone();
+  _doneCalcId = calcId;
+
+  document.getElementById('doneCarName').textContent = carName;
+  document.getElementById('doneCheckedBy').value = '';
+  document.getElementById('doneRemarks').value = '';
+  document.getElementById('doneNotes').value = '';
+  loadDoneMaterials(calcId);
+
+  document.getElementById('modalDone').classList.add('active');
+}
+
+async function saveDone() {
+  const btn = document.getElementById('btnDoneSave');
+  btn.disabled = true;
+  const origText = btn.textContent;
+  btn.textContent = 'Сохранение...';
+
+  try {
+    // Gather fact_materials from inputs
+    const factMaterials = {};
+    document.querySelectorAll('#doneMaterialsList input[data-key]').forEach(inp => {
+      factMaterials[inp.dataset.key] = parseFloat(inp.value) || 0;
+    });
+
+    // Gather check data
+    const checkedBy = document.getElementById('doneCheckedBy').value.trim();
+    const remarks   = document.getElementById('doneRemarks').value.trim();
+    const notes     = document.getElementById('doneNotes').value.trim();
+
+    // Build extra object
+    const extra = {};
+    if (Object.keys(factMaterials).length > 0) extra.fact_materials = factMaterials;
+
+    // Build history comment with check info
+    const parts = [];
+    if (checkedBy) parts.push('Проверил: ' + checkedBy);
+    if (remarks)   parts.push('Замечания: ' + remarks);
+    if (notes)     parts.push(notes);
+    if (parts.length) extra._historyComment = parts.join('; ');
+
+    // CRITICAL: Use status 'done' NOT 'waiting'
+    const ok = await window._updateStatus(_doneCalcId, 'done', extra);
+    if (ok) {
+      document.getElementById('modalDone').classList.remove('active');
+      window._showToast('success', 'Работа завершена');
+      window._loadBoard();
+    }
+  } finally {
+    btn.disabled = false;
+    btn.textContent = origText;
+  }
+}
+
+// -- Модал выдачи (deliver) ----------------------------------------
+
+let _deliverCalcId = null;
+
+const PAYMENT_METHODS = [
+  { value: 'cash',     label: 'Наличные' },
+  { value: 'card',     label: 'Карта / перевод' },
+  { value: 'transfer', label: 'Безналичный р/с' },
+  { value: 'deferred', label: 'Отложенная оплата (долг)' },
+  { value: 'mixed',    label: 'Смешанная оплата' },
+];
+
+const DELIVER_HTML = `
+<div class="modal" id="modalDeliver">
+  <div class="modal-content" style="max-width:540px;max-height:90vh;overflow-y:auto">
+    <div class="modal-title">Выдать клиенту</div>
+    <div class="modal-car" id="deliverCarName"></div>
+
+    <div class="form-group">
+      <label>Итоговая сумма</label>
+      <input type="number" id="deliverPrice" placeholder="Итого к оплате" min="0">
+    </div>
+
+    <div class="form-group">
+      <label>Форма оплаты</label>
+      <select id="deliverPayment"></select>
+    </div>
+
+    <div id="deliverVatBlock" style="display:none">
+      <div class="form-group">
+        <label>НДС %</label>
+        <input type="number" id="deliverVat" placeholder="напр. 20" min="0" max="100" step="0.01">
+      </div>
+    </div>
+
+    <div id="deliverMixedBlock" style="display:none">
+      <div style="font-size:0.69rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--text-muted);margin-bottom:8px;margin-top:4px">Разбивка по методам</div>
+      <div class="form-group">
+        <label>Наличные</label>
+        <input type="number" id="mixedCash" placeholder="0" min="0" class="mixed-input">
+      </div>
+      <div class="form-group">
+        <label>Карта / перевод</label>
+        <input type="number" id="mixedCard" placeholder="0" min="0" class="mixed-input">
+      </div>
+      <div class="form-group">
+        <label>Безналичный р/с</label>
+        <input type="number" id="mixedTransfer" placeholder="0" min="0" class="mixed-input">
+      </div>
+      <div class="form-group">
+        <label>Долг</label>
+        <input type="number" id="mixedDeferred" placeholder="0" min="0" class="mixed-input">
+      </div>
+      <div id="mixedTotal" style="font-size:0.82rem;font-weight:700;color:var(--text);text-align:right;margin-top:4px"></div>
+    </div>
+
+    <div class="form-group">
+      <label>Кто выдал</label>
+      <input type="text" id="deliverBy" placeholder="ФИО">
+    </div>
+
+    <div class="form-group">
+      <label>Комментарий</label>
+      <textarea id="deliverNote" rows="2" placeholder="Пожелания, замечания..."></textarea>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="btnDeliverCancel">Отмена</button>
+      <button class="btn" style="background:var(--success);color:#fff" id="btnDeliverSave">Выдать</button>
+    </div>
+  </div>
+</div>
+`;
+
+function updateMixedTotal() {
+  const cash     = parseFloat(document.getElementById('mixedCash').value) || 0;
+  const card     = parseFloat(document.getElementById('mixedCard').value) || 0;
+  const transfer = parseFloat(document.getElementById('mixedTransfer').value) || 0;
+  const deferred = parseFloat(document.getElementById('mixedDeferred').value) || 0;
+  const total    = cash + card + transfer + deferred;
+  document.getElementById('mixedTotal').textContent = 'Итого: ' + _fmt(total);
+}
+
+function injectDeliver() {
+  if (document.getElementById('modalDeliver')) return;
+  document.body.insertAdjacentHTML('beforeend', DELIVER_HTML);
+
+  // Populate payment method select dynamically from PAYMENT_METHODS
+  const sel = document.getElementById('deliverPayment');
+  PAYMENT_METHODS.forEach(m => {
+    const opt = document.createElement('option');
+    opt.value = m.value;
+    opt.textContent = m.label;
+    sel.appendChild(opt);
+  });
+
+  // Bind payment method change handler to show/hide VAT and mixed blocks
+  sel.addEventListener('change', function () {
+    const val = this.value;
+    document.getElementById('deliverVatBlock').style.display   = val === 'transfer' ? 'block' : 'none';
+    document.getElementById('deliverMixedBlock').style.display = val === 'mixed'    ? 'block' : 'none';
+  });
+
+  // Bind mixed-input change handlers to update mixedTotal
+  document.querySelectorAll('.mixed-input').forEach(inp => {
+    inp.addEventListener('input', updateMixedTotal);
+  });
+
+  document.getElementById('btnDeliverCancel').addEventListener('click', () => {
+    document.getElementById('modalDeliver').classList.remove('active');
+  });
+  document.getElementById('btnDeliverSave').addEventListener('click', saveDeliver);
+  document.getElementById('modalDeliver').addEventListener('click', e => {
+    if (e.target === document.getElementById('modalDeliver')) {
+      document.getElementById('modalDeliver').classList.remove('active');
+    }
+  });
+}
+
+function gatherDeliverForm() {
+  const method      = document.getElementById('deliverPayment').value;
+  const totalAmount = parseFloat(document.getElementById('deliverPrice').value) || 0;
+  const vatPercent  = method === 'transfer' ? (parseFloat(document.getElementById('deliverVat').value) || null) : null;
+  const notes       = document.getElementById('deliverNote').value.trim() || null;
+  const deliveredBy = document.getElementById('deliverBy').value.trim() || null;
+
+  let paymentBreakdown = {};
+  if (method === 'mixed') {
+    paymentBreakdown = {
+      cash:     parseFloat(document.getElementById('mixedCash').value) || 0,
+      card:     parseFloat(document.getElementById('mixedCard').value) || 0,
+      transfer: parseFloat(document.getElementById('mixedTransfer').value) || 0,
+      deferred: parseFloat(document.getElementById('mixedDeferred').value) || 0,
+    };
+  } else {
+    paymentBreakdown = { [method]: totalAmount };
+  }
+
+  return { payment_method: method, payment_breakdown: paymentBreakdown, total_amount: totalAmount, vat_percent: vatPercent, notes, delivered_by: deliveredBy };
+}
+
+function openModalDeliver(calcId, carName, price) {
+  injectDeliver();
+  _deliverCalcId = calcId;
+
+  document.getElementById('deliverCarName').textContent = carName;
+  document.getElementById('deliverPrice').value = price;
+  document.getElementById('deliverPayment').selectedIndex = 0;
+  document.getElementById('deliverVatBlock').style.display   = 'none';
+  document.getElementById('deliverMixedBlock').style.display = 'none';
+  document.getElementById('mixedCash').value     = '';
+  document.getElementById('mixedCard').value     = '';
+  document.getElementById('mixedTransfer').value = '';
+  document.getElementById('mixedDeferred').value = '';
+  document.getElementById('mixedTotal').textContent = '';
+  document.getElementById('deliverBy').value   = '';
+  document.getElementById('deliverNote').value = '';
+
+  document.getElementById('modalDeliver').classList.add('active');
+}
+
+async function saveDeliver() {
+  const btn = document.getElementById('btnDeliverSave');
+  btn.disabled = true;
+  const origText = btn.textContent;
+  btn.textContent = 'Сохранение...';
+
+  try {
+    const payload = gatherDeliverForm();
+
+    // Step 1: INSERT delivery_acts
+    const { error: insertErr } = await window._sb
+      .from('delivery_acts')
+      .insert({
+        calc_id:  _deliverCalcId,
+        studio_id: window._boardCtx.studioId,
+        ...payload,
+      });
+
+    if (insertErr) {
+      console.error('[pipeline] delivery insert:', insertErr);
+      window._showToast('error', 'Ошибка сохранения акта выдачи');
+      return;
+    }
+
+    // Step 2: CRITICAL — mirror total to final_price and patch status to 'delivered'
+    const ok = await window._updateStatus(_deliverCalcId, 'delivered', { final_price: payload.total_amount, delivery_note: payload.notes });
+    if (ok) {
+      document.getElementById('modalDeliver').classList.remove('active');
+      window._showToast('success', 'Автомобиль выдан');
+      window._loadBoard();
+    }
+  } finally {
+    btn.disabled = false;
+    btn.textContent = origText;
+  }
+}
+
 // ── Публичный API ─────────────────────────────────────────────────
-window.PipelineForms = { openModalAccept, openModalOutsource, openModalReturn, openModalCancel };
+window.PipelineForms = { openModalAccept, openModalOutsource, openModalReturn, openModalCancel, openModalDone, openModalDeliver };
 })();
