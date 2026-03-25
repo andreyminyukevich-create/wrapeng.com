@@ -10,17 +10,17 @@
 body { visibility: hidden; }
 :root {
   --font:         -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
-  --bg:           #eef2f9;
+  --bg:           #f5f3ff;
   --surface:      #ffffff;
-  --border:       rgba(15,23,42,0.08);
-  --text:         #0f172a;
+  --border:       rgba(124,58,237,0.10);
+  --text:         #1e1b4b;
   --text-muted:   #64748b;
   --text-dim:     #94a3b8;
-  --primary:      #2563eb;
-  --primary-dark: #1d4ed8;
+  --primary:      #7c3aed;
+  --primary-dark: #6d28d9;
   --success:      #059669;
   --warning:      #d97706;
-  --danger:       #dc2626;
+  --danger:       #ef4444;
   --purple:       #7c3aed;
   --shadow:       0 1px 3px rgba(0,0,0,0.05), 0 4px 16px rgba(0,0,0,0.07);
   --shadow-modal: 0 8px 40px rgba(0,0,0,0.14);
@@ -52,7 +52,7 @@ html, body {
   border-radius: 10px; font-family: var(--font); font-size: 0.83rem;
   color: var(--text); outline: none; transition: border-color .15s, box-shadow .15s;
 }
-.search-wrap input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,.10); }
+.search-wrap input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(124,58,237,.10); }
 .search-wrap .search-icon {
   position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
   font-size: .82rem; pointer-events: none;
@@ -74,11 +74,11 @@ html, body {
 .board-outer {
   flex: 1; overflow-x: auto; padding: 14px 20px 32px;
   -webkit-overflow-scrolling: touch; scrollbar-width: thin;
-  scrollbar-color: rgba(37,99,235,0.2) transparent;
+  scrollbar-color: rgba(124,58,237,0.2) transparent;
 }
 .board-outer::-webkit-scrollbar       { height: 6px; }
 .board-outer::-webkit-scrollbar-track { background: transparent; }
-.board-outer::-webkit-scrollbar-thumb { background: rgba(37,99,235,0.18); border-radius: 3px; }
+.board-outer::-webkit-scrollbar-thumb { background: rgba(124,58,237,0.18); border-radius: 3px; }
 .board-wrap  { display: flex; gap: 14px; align-items: flex-start; min-width: max-content; }
 
 /* ── Column ───────────────────────────────── */
@@ -90,9 +90,9 @@ html, body {
   transition: background .15s;
 }
 .column.drag-over {
-  background: rgba(37,99,235,0.04);
-  border-color: rgba(37,99,235,0.35);
-  box-shadow: 0 0 0 2px rgba(37,99,235,0.18);
+  background: rgba(124,58,237,0.04);
+  border-color: rgba(124,58,237,0.35);
+  box-shadow: 0 0 0 2px rgba(124,58,237,0.18);
 }
 .column-header {
   padding: 14px 16px 12px; display: flex; align-items: center;
@@ -129,7 +129,7 @@ html, body {
 
 .col-quote_sent .column-dot      { background: var(--primary); }
 .col-quote_sent .column-title    { color: var(--primary); }
-.col-quote_sent .column-count    { background: rgba(37,99,235,0.08); color: var(--primary); }
+.col-quote_sent .column-count    { background: rgba(124,58,237,0.08); color: var(--primary); }
 .col-quote_sent                  { border-top: 3px solid var(--primary); }
 
 .col-booked .column-dot          { background: var(--success); }
@@ -139,8 +139,8 @@ html, body {
 
 .col-rejected .column-dot        { background: var(--danger); }
 .col-rejected .column-title      { color: #991b1b; }
-.col-rejected .column-count      { background: rgba(220,38,38,0.08); color: #dc2626; }
-.col-rejected                    { border-top: 3px solid #dc2626; opacity: 0.85; }
+.col-rejected .column-count      { background: rgba(220,38,38,0.08); color: #ef4444; }
+.col-rejected                    { border-top: 3px solid #ef4444; opacity: 0.85; }
 
 /* ── Kanban card ──────────────────────────── */
 .kanban-card {
@@ -150,8 +150,8 @@ html, body {
   user-select: none;
 }
 .kanban-card:hover {
-  background: var(--surface); border-color: rgba(37,99,235,0.3);
-  box-shadow: 0 3px 14px rgba(37,99,235,0.09); transform: translateY(-2px);
+  background: var(--surface); border-color: rgba(124,58,237,0.3);
+  box-shadow: 0 3px 14px rgba(124,58,237,0.09); transform: translateY(-2px);
 }
 .kanban-card.dragging {
   opacity: 0.45; cursor: grabbing; transform: rotate(1.5deg) scale(1.03);
@@ -172,8 +172,8 @@ html, body {
 .card-source {
   display: inline-block; font-size: 0.68rem; font-weight: 700;
   padding: 2px 7px; border-radius: 5px;
-  background: rgba(37,99,235,0.08); color: var(--primary);
-  border: 1px solid rgba(37,99,235,0.15); margin-top: 4px;
+  background: rgba(124,58,237,0.08); color: var(--primary);
+  border: 1px solid rgba(124,58,237,0.15); margin-top: 4px;
 }
 .card-amount {
   font-size: 0.92rem; font-weight: 800; color: var(--success);
@@ -230,7 +230,7 @@ html, body {
 .form-group textarea { resize: vertical; min-height: 72px; }
 .form-group input:focus,
 .form-group textarea:focus,
-.form-group select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.10); background: var(--surface); }
+.form-group select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(124,58,237,0.10); background: var(--surface); }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .modal-footer { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
 .modal-footer .btn { width: auto; }

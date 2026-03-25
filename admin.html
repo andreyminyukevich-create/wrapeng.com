@@ -10,10 +10,10 @@
 <style>
 :root {
   --font:-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica Neue',Arial,sans-serif;
-  --bg:#eef2f9; --surface:#ffffff; --border:rgba(15,23,42,0.08);
-  --text:#0f172a; --muted:#64748b; --dim:#94a3b8;
-  --primary:#2563eb; --primary-dk:#1d4ed8;
-  --success:#059669; --warning:#d97706; --danger:#dc2626; --purple:#7c3aed;
+  --bg: #f5f3ff; --surface:#ffffff; --border:rgba(124,58,237,0.10);
+  --text: #1e1b4b; --muted:#64748b; --dim:#94a3b8;
+  --primary: #7c3aed; --primary-dk: #6d28d9;
+  --success:#059669; --warning:#d97706; --danger: #ef4444; --purple:#7c3aed;
   --radius:14px; --radius-sm:9px;
   --shadow:0 1px 3px rgba(0,0,0,0.04),0 4px 14px rgba(0,0,0,0.06);
   --shadow-lg:0 8px 40px rgba(0,0,0,0.14);
@@ -31,7 +31,7 @@ body{font-family:var(--font);-webkit-font-smoothing:antialiased;background:var(-
 .tabs{display:flex;gap:3px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:3px;margin-bottom:18px;width:fit-content;max-width:100%;flex-wrap:wrap;box-shadow:0 1px 2px rgba(0,0,0,0.03)}
 .tab-btn{padding:7px 15px;border-radius:7px;font-size:0.8rem;font-weight:700;cursor:pointer;border:none;background:transparent;color:var(--muted);font-family:var(--font);transition:all 0.15s;white-space:nowrap}
 .tab-btn:hover{background:var(--bg);color:var(--text)}
-.tab-btn.active{background:var(--primary);color:#fff;box-shadow:0 2px 8px rgba(37,99,235,0.22)}
+.tab-btn.active{background:var(--primary);color:#fff;box-shadow:0 2px 8px rgba(124,58,237,0.22)}
 .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:16px;box-shadow:var(--shadow)}
 .card-head{display:flex;align-items:center;justify-content:space-between;padding:15px 20px;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:10px}
 .card-head h2{font-size:0.9rem;font-weight:700}
@@ -44,7 +44,7 @@ tbody tr:last-child td{border-bottom:none} tbody tr:hover{background:#f8fafc}
 .studio-name{font-weight:700;font-size:0.85rem} .studio-email{font-size:0.75rem;color:var(--muted);margin-top:2px}
 .badge{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:20px;font-size:0.7rem;font-weight:700;white-space:nowrap}
 .badge-active {background:rgba(5,150,105,0.10);color:var(--success);border:1px solid rgba(5,150,105,0.2)}
-.badge-trial  {background:rgba(37,99,235,0.10);color:var(--primary);border:1px solid rgba(37,99,235,0.2)}
+.badge-trial  {background:rgba(124,58,237,0.10);color:var(--primary);border:1px solid rgba(124,58,237,0.2)}
 .badge-expired{background:rgba(220,38,38,0.08);color:var(--danger);border:1px solid rgba(220,38,38,0.15)}
 .badge-ref    {background:rgba(124,58,237,0.08);color:var(--purple);border:1px solid rgba(124,58,237,0.15)}
 .badge-pending{background:rgba(217,119,6,0.08);color:var(--warning);border:1px solid rgba(217,119,6,0.2)}
@@ -56,16 +56,16 @@ tbody tr:last-child td{border-bottom:none} tbody tr:hover{background:#f8fafc}
 .btn-success{background:var(--success);color:#fff} .btn-success:hover{background:#047857}
 .btn-warning{background:rgba(217,119,6,0.10);color:var(--warning);border:1px solid rgba(217,119,6,0.2)} .btn-warning:hover{background:var(--warning);color:#fff}
 .btn-danger{background:rgba(220,38,38,0.07);color:var(--danger);border:1px solid rgba(220,38,38,0.15)} .btn-danger:hover{background:var(--danger);color:#fff}
-.btn-ghost{background:rgba(37,99,235,0.06);color:var(--primary);border:1px solid rgba(37,99,235,0.18)} .btn-ghost:hover{background:var(--primary);color:#fff}
+.btn-ghost{background:rgba(124,58,237,0.06);color:var(--primary);border:1px solid rgba(124,58,237,0.18)} .btn-ghost:hover{background:var(--primary);color:#fff}
 .btn-excel{background:rgba(5,150,105,0.08);color:var(--success);border:1px solid rgba(5,150,105,0.2)} .btn-excel:hover{background:var(--success);color:#fff}
 .btn-sm{padding:4px 9px;font-size:0.7rem}
-.ref-code{font-family:monospace;font-size:0.82rem;font-weight:700;background:rgba(37,99,235,0.06);color:var(--primary);padding:2px 7px;border-radius:5px;letter-spacing:0.08em;border:1px solid rgba(37,99,235,0.15)}
+.ref-code{font-family:monospace;font-size:0.82rem;font-weight:700;background:rgba(124,58,237,0.06);color:var(--primary);padding:2px 7px;border-radius:5px;letter-spacing:0.08em;border:1px solid rgba(124,58,237,0.15)}
 .expires-text{font-size:0.78rem;color:var(--muted)} .expires-soon{color:var(--warning);font-weight:700;font-size:0.78rem}
 .empty{text-align:center;padding:40px;color:var(--muted)} .empty-icon{font-size:2rem;margin-bottom:8px;opacity:0.35}
 .calcs-toolbar{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
 .toolbar-title{font-size:0.95rem;font-weight:800;color:var(--text);letter-spacing:-0.2px;white-space:nowrap;margin-right:4px}
 .calcs-toolbar select,.calcs-toolbar input[type="text"]{padding:8px 12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:0.82rem;font-family:var(--font);color:var(--text);outline:none;transition:border-color 0.15s,box-shadow 0.15s;box-shadow:0 1px 2px rgba(0,0,0,0.03)}
-.calcs-toolbar select:focus,.calcs-toolbar input[type="text"]:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(37,99,235,0.08)}
+.calcs-toolbar select:focus,.calcs-toolbar input[type="text"]:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(124,58,237,0.08)}
 .calcs-toolbar input[type="text"]{min-width:200px}
 .calcs-stats{display:flex;gap:8px;margin-left:auto;flex-wrap:wrap}
 .calcs-stat-pill{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:6px 14px;text-align:center}
@@ -81,7 +81,7 @@ tbody tr:last-child td{border-bottom:none} tbody tr:hover{background:#f8fafc}
 .form-group{margin-bottom:12px}
 .form-group label{display:block;font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:5px}
 .form-group select,.form-group input{width:100%;padding:9px 12px;background:var(--bg);border:1.5px solid var(--border);border-radius:8px;font-size:16px;font-family:var(--font);color:var(--text);outline:none;-webkit-appearance:none;transition:border-color 0.15s}
-.form-group select:focus,.form-group input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(37,99,235,0.08);background:var(--surface)}
+.form-group select:focus,.form-group input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(124,58,237,0.08);background:var(--surface)}
 #calcViewModal{display:none;position:fixed;inset:0;background:rgba(15,23,42,0.5);backdrop-filter:blur(5px);z-index:9000;align-items:center;justify-content:center;padding:20px}
 #calcViewModal.active{display:flex}
 #calcViewModal .modal-box{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);padding:26px 28px;max-width:680px;width:100%;max-height:88svh;overflow-y:auto;box-shadow:var(--shadow-lg)}
@@ -775,7 +775,7 @@ async function initPage() {
   const {data:{session}}=await sb.auth.getSession();
   if(!session){window.location.href='welcome.html';return;}
   if(session.user.id!==ADMIN_USER_ID){
-    document.body.innerHTML='<div style="text-align:center;padding:60px;font-family:sans-serif"><h2>🚫 Доступ запрещён</h2><p style="color:#64748b;margin-top:8px">Эта страница только для администратора</p><a href="dashboard.html" style="color:#2563eb">← Вернуться</a></div>';
+    document.body.innerHTML='<div style="text-align:center;padding:60px;font-family:sans-serif"><h2>🚫 Доступ запрещён</h2><p style="color:#64748b;margin-top:8px">Эта страница только для администратора</p><a href="dashboard.html" style="color: #7c3aed">← Вернуться</a></div>';
     return;
   }
   document.getElementById('adminBadge').textContent='👑 '+session.user.email;

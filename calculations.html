@@ -10,17 +10,17 @@
 body { visibility: hidden; }
 :root {
   --font:         -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
-  --bg:           #eef2f9;
+  --bg:           #f5f3ff;
   --surface:      #ffffff;
-  --border:       rgba(15,23,42,0.08);
-  --text:         #0f172a;
+  --border:       rgba(124,58,237,0.10);
+  --text:         #1e1b4b;
   --text-muted:   #64748b;
   --text-dim:     #94a3b8;
-  --primary:      #2563eb;
-  --primary-dark: #1d4ed8;
+  --primary:      #7c3aed;
+  --primary-dark: #6d28d9;
   --success:      #059669;
   --warning:      #d97706;
-  --danger:       #dc2626;
+  --danger:       #ef4444;
   --purple:       #7c3aed;
   --shadow:       0 1px 3px rgba(0,0,0,0.05), 0 4px 16px rgba(0,0,0,0.07);
   --shadow-modal: 0 8px 40px rgba(0,0,0,0.14);
@@ -54,7 +54,7 @@ body {
 .btn-secondary { background: transparent; color: var(--text-muted); border: 1px solid var(--border); }
 .btn-secondary:hover { background: var(--bg); color: var(--text); }
 .btn-sm { padding: 6px 11px; font-size: 0.75rem; border-radius: 8px; }
-.btn-sales { background: rgba(37,99,235,0.07); color: var(--primary); border: 1px solid rgba(37,99,235,0.18); }
+.btn-sales { background: rgba(124,58,237,0.07); color: var(--primary); border: 1px solid rgba(124,58,237,0.18); }
 .btn-sales:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
 .btn-workshop { background: rgba(124,58,237,0.07); color: var(--purple); border: 1px solid rgba(124,58,237,0.18); }
 .btn-workshop:hover { background: var(--purple); color: #fff; border-color: var(--purple); }
@@ -70,7 +70,7 @@ body {
   border: 1px solid var(--border); cursor: pointer;
   font-family: var(--font); transition: all 0.15s;
 }
-.filter-tab:hover { color: var(--text); border-color: rgba(37,99,235,0.3); }
+.filter-tab:hover { color: var(--text); border-color: rgba(124,58,237,0.3); }
 .filter-tab.active { background: var(--primary); color: #fff; border-color: var(--primary); }
 
 /* ── Сетка карточек ────────────────────────────── */
@@ -100,8 +100,8 @@ body {
 }
 .status-badge.s-draft       { background: rgba(148,163,184,0.12); color: #64748b; }
 .status-badge.s-scheduled   { background: rgba(245,158,11,0.10); color: #b45309; }
-.status-badge.s-accepted    { background: rgba(37,99,235,0.08); color: #1e40af; }
-.status-badge.s-in_progress { background: rgba(37,99,235,0.10); color: #1d4ed8; }
+.status-badge.s-accepted    { background: rgba(124,58,237,0.08); color: #1e40af; }
+.status-badge.s-in_progress { background: rgba(124,58,237,0.10); color: #6d28d9; }
 .status-badge.s-outsourced  { background: rgba(217,119,6,0.10); color: #92400e; }
 .status-badge.s-done        { background: rgba(124,58,237,0.08); color: #6d28d9; }
 .status-badge.s-delivered   { background: rgba(5,150,105,0.08); color: #047857; }
@@ -149,7 +149,7 @@ body {
 .form-group textarea { resize: vertical; min-height: 72px; }
 .form-group input:focus,
 .form-group textarea:focus,
-.form-group select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.10); background: var(--surface); }
+.form-group select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(124,58,237,0.10); background: var(--surface); }
 .modal-footer { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
 .modal-footer .btn { width: auto; }
 

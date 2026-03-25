@@ -9,17 +9,17 @@
 <style>
 :root {
   --font:       -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
-  --bg:         #eef2f9;
+  --bg:         #f5f3ff;
   --surface:    #ffffff;
-  --border:     rgba(15,23,42,0.08);
-  --text:       #0f172a;
+  --border:     rgba(124,58,237,0.10);
+  --text:       #1e1b4b;
   --muted:      #64748b;
   --dim:        #94a3b8;
-  --primary:    #2563eb;
-  --primary-dk: #1d4ed8;
+  --primary:    #7c3aed;
+  --primary-dk: #6d28d9;
   --success:    #059669;
   --success-bg: rgba(5,150,105,0.07);
-  --danger:     #dc2626;
+  --danger:     #ef4444;
   --danger-bg:  rgba(220,38,38,0.07);
   --warning:    #d97706;
   --warning-bg: rgba(217,119,6,0.07);
@@ -46,8 +46,8 @@ body {
 .btn-back {
   display: inline-flex; align-items: center; padding: 6px 12px;
   border-radius: 7px; font-size: 0.78rem; font-weight: 700;
-  color: var(--primary); background: rgba(37,99,235,0.07);
-  border: 1px solid rgba(37,99,235,0.18); cursor: pointer;
+  color: var(--primary); background: rgba(124,58,237,0.07);
+  border: 1px solid rgba(124,58,237,0.18); cursor: pointer;
   font-family: var(--font); transition: all 0.15s; white-space: nowrap; flex-shrink: 0;
 }
 .btn-back:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
@@ -75,12 +75,12 @@ body {
   font-family: var(--font); transition: border-color 0.15s, box-shadow 0.15s;
   outline: none; -webkit-appearance: none;
 }
-.form-group input:focus, .form-group select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.08); background: var(--surface); }
+.form-group input:focus, .form-group select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(124,58,237,0.08); background: var(--surface); }
 
 /* ── Work list ────────────────────────────────── */
 .work-list { display: flex; flex-direction: column; gap: 10px; }
 .work-item { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; transition: border-color 0.15s; }
-.work-item:hover { border-color: rgba(37,99,235,0.2); }
+.work-item:hover { border-color: rgba(124,58,237,0.2); }
 .work-item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 10px; flex-wrap: wrap; }
 .work-service-name { font-weight: 700; font-size: 0.88rem; color: var(--text); }
 .work-base-salary { font-size: 0.72rem; font-weight: 700; color: var(--success); background: var(--success-bg); padding: 3px 10px; border-radius: 20px; white-space: nowrap; border: 1px solid rgba(5,150,105,0.18); }
@@ -104,7 +104,7 @@ body {
   color: var(--text); font-size: 16px; font-family: var(--font);
   outline: none; transition: border-color 0.15s, box-shadow 0.15s; -webkit-appearance: none;
 }
-.executor-select-wrap select:focus, .executor-manual-wrap .manual-name-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.08); }
+.executor-select-wrap select:focus, .executor-manual-wrap .manual-name-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(124,58,237,0.08); }
 .executor-select-wrap, .executor-manual-wrap { min-width: 0; }
 .salary-input {
   padding: 8px 12px; background: var(--surface); border: 1px solid var(--border);
@@ -125,11 +125,11 @@ body {
 .save-to-list-label input[type="checkbox"] { accent-color: var(--success); width: 13px; height: 13px; cursor: pointer; }
 .add-executor-btn {
   margin-top: 8px; font-size: 0.75rem; padding: 6px 12px; color: var(--primary);
-  background: rgba(37,99,235,0.05); border: 1px dashed rgba(37,99,235,0.28);
+  background: rgba(124,58,237,0.05); border: 1px dashed rgba(124,58,237,0.28);
   border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;
   transition: all 0.15s; font-weight: 700; font-family: var(--font);
 }
-.add-executor-btn:hover { background: rgba(37,99,235,0.10); border-color: var(--primary); }
+.add-executor-btn:hover { background: rgba(124,58,237,0.10); border-color: var(--primary); }
 
 /* ── Добавить вручную ─────────────────────────── */
 .add-work-row { display: grid; grid-template-columns: 1fr 150px; gap: 10px; }
@@ -139,7 +139,7 @@ body {
   font-family: var(--font); outline: none;
   transition: border-color 0.15s, box-shadow 0.15s; -webkit-appearance: none;
 }
-.add-work-row input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.08); }
+.add-work-row input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(124,58,237,0.08); }
 
 /* ── Итого ────────────────────────────────────── */
 .summary-block { background: var(--success-bg); border: 1px solid rgba(5,150,105,0.2); border-radius: 12px; padding: 18px 20px; }
@@ -179,7 +179,7 @@ body {
 .exec-dates { display: flex; gap: 8px; align-items: flex-end; margin-top: 6px; flex-wrap: wrap; }
 .exec-dates .exec-date-group label { font-size: 0.7rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; display: block; margin-bottom: 3px; }
 .exec-dates input[type=date] { padding: 5px 8px; font-size: 0.8rem; border: 1.5px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); font-family: var(--font); outline: none; cursor: pointer; width: 140px; }
-.exec-dates input[type=date]:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.08); }
+.exec-dates input[type=date]:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(124,58,237,0.08); }
 .exec-conflict { display: none; align-items: center; gap: 5px; font-size: 0.75rem; font-weight: 700; color: var(--warning); background: rgba(217,119,6,0.08); border: 1px solid rgba(217,119,6,0.2); border-radius: 7px; padding: 5px 10px; margin-top: 5px; }
 .exec-conflict.visible { display: flex; }
 
@@ -870,12 +870,12 @@ function renderContent(services, existingAssignments = []) {
   const woLink = document.createElement('a');
   woLink.id = 'woLink';
   woLink.href = '#';
-  woLink.style.cssText = 'display:inline-flex;align-items:center;gap:6px;padding:10px 18px;background:#0f172a;color:#fff;border-radius:9px;font-size:0.85rem;font-weight:700;text-decoration:none';
+  woLink.style.cssText = 'display:inline-flex;align-items:center;gap:6px;padding:10px 18px;background:#1e1b4b;color:#fff;border-radius:9px;font-size:0.85rem;font-weight:700;text-decoration:none';
   woLink.textContent = 'Скачать заказ-наряд';
 
   const boardLink = document.createElement('a');
   boardLink.href = 'board.html';
-  boardLink.style.cssText = 'display:inline-flex;align-items:center;gap:6px;padding:10px 18px;background:#f1f5f9;color:#0f172a;border-radius:9px;font-size:0.85rem;font-weight:700;text-decoration:none;border:1px solid rgba(15,23,42,0.10)';
+  boardLink.style.cssText = 'display:inline-flex;align-items:center;gap:6px;padding:10px 18px;background:#f1f5f9;color: #1e1b4b;border-radius:9px;font-size:0.85rem;font-weight:700;text-decoration:none;border:1px solid rgba(124,58,237,0.10)';
   boardLink.textContent = '← На доску';
 
   banner.append(bannerIcon, bannerText, woLink, boardLink);

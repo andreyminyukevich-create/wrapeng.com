@@ -166,17 +166,17 @@ html, body {
 .col-waiting               { border-top: 3px solid #9ca3af; opacity: 0.9; }
 .col-waiting .column-sum   { color: #374151; }
 
-.col-closed .column-dot   { background: #0f172a; }
-.col-closed .column-title { color: #0f172a; }
-.col-closed .column-count { background: rgba(15,23,42,0.08); color: #0f172a; }
+.col-closed .column-dot   { background: #1e1b4b; }
+.col-closed .column-title { color: #1e1b4b; }
+.col-closed .column-count { background: rgba(15,23,42,0.08); color: #1e1b4b; }
 .col-closed               { border-top: 3px solid #334155; opacity: 0.8; }
 .col-closed .column-sum   { color: #334155; }
 
 
 .col-cancelled .column-title { color: #991b1b; }
-.col-cancelled .column-count { background: rgba(220,38,38,0.08); color: #dc2626; }
-.col-cancelled .column-sum   { color: #dc2626; }
-.col-cancelled               { border-top: 3px solid #dc2626; opacity: 0.85; }
+.col-cancelled .column-count { background: rgba(220,38,38,0.08); color: #ef4444; }
+.col-cancelled .column-sum   { color: #ef4444; }
+.col-cancelled               { border-top: 3px solid #ef4444; opacity: 0.85; }
 
 /* ── Kanban card ──────────────────────────── */
 .kanban-card {
@@ -210,10 +210,10 @@ html, body {
   overflow: hidden; text-overflow: ellipsis;
 }
 .card-client { font-size: 12px; color: #374151; margin-bottom: 2px; }
-.card-phone { font-size: 12px; color: #2563eb; margin-bottom: 4px; }
+.card-phone { font-size: 12px; color: #7c3aed; margin-bottom: 4px; }
 .card-since { font-size: 11px; color: #9ca3af; margin-top: 4px; }
 .card-client { font-size: 12px; color: #374151; margin-bottom: 2px; }
-.card-phone { font-size: 12px; color: #2563eb; margin-bottom: 4px; }
+.card-phone { font-size: 12px; color: #7c3aed; margin-bottom: 4px; }
 .card-since { font-size: 11px; color: #9ca3af; margin-top: 4px; }
 .card-price { font-size: 0.98rem; font-weight: 800; color: var(--success); letter-spacing: -0.4px; margin-bottom: 9px; }
 .card-actions { display: flex; flex-direction: column; gap: 5px; }
@@ -226,7 +226,7 @@ html, body {
 }
 .card-btn-primary   { background: var(--primary); color: #fff; }
 .card-btn-primary:hover { background: var(--primary-dark); }
-.card-btn-cancel    { background: rgba(220,38,38,0.06); color: #dc2626; border: 1px solid rgba(220,38,38,0.15); }
+.card-btn-cancel    { background: rgba(220,38,38,0.06); color: #ef4444; border: 1px solid rgba(220,38,38,0.15); }
 .card-btn-cancel:hover  { background: rgba(220,38,38,0.12); }
 .card-btn-secondary { background: var(--bg); color: var(--text-muted); border: 1px solid var(--border); }
 .card-btn-secondary:hover { color: var(--text); border-color: rgba(37,99,235,0.25); background: #fff; }
@@ -849,7 +849,7 @@ function buildExecutorsBlock(calc, status) {
 
   uniqueNames.forEach(name => {
     const el = document.createElement('div');
-    el.style.cssText = 'font-size:0.75rem;color:#0f172a;font-weight:600;line-height:1.5';
+    el.style.cssText = 'font-size:0.75rem;color:#1e1b4b;font-weight:600;line-height:1.5';
     el.textContent = name;
     block.appendChild(el);
   });

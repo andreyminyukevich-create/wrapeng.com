@@ -10,17 +10,17 @@
 <style>
 :root {
   --font:       -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
-  --bg:         #eef2f9;
+  --bg:         #f5f3ff;
   --surface:    #ffffff;
-  --border:     rgba(15,23,42,0.08);
-  --text:       #0f172a;
+  --border:     rgba(124,58,237,0.10);
+  --text:       #1e1b4b;
   --muted:      #64748b;
   --dim:        #94a3b8;
-  --primary:    #2563eb;
-  --primary-dk: #1d4ed8;
+  --primary:    #7c3aed;
+  --primary-dk: #6d28d9;
   --success:    #059669;
   --success-bg: rgba(5,150,105,0.07);
-  --danger:     #dc2626;
+  --danger:     #ef4444;
   --danger-bg:  rgba(220,38,38,0.07);
   --warning:    #d97706;
   --warning-bg: rgba(217,119,6,0.07);
@@ -52,8 +52,8 @@ body {
 .btn-back {
   display: inline-flex; align-items: center; padding: 6px 12px;
   border-radius: 7px; font-size: 0.78rem; font-weight: 700;
-  color: var(--primary); background: rgba(37,99,235,0.07);
-  border: 1px solid rgba(37,99,235,0.18); cursor: pointer;
+  color: var(--primary); background: rgba(124,58,237,0.07);
+  border: 1px solid rgba(124,58,237,0.18); cursor: pointer;
   font-family: var(--font); transition: all 0.15s; white-space: nowrap; flex-shrink: 0;
   text-decoration: none;
 }
@@ -103,8 +103,8 @@ body {
   font-size: 0.75rem; font-weight: 700;
 }
 .status-scheduled   { background: rgba(245,158,11,0.12); color: #92400e; }
-.status-accepted    { background: rgba(37,99,235,0.10);  color: #1e40af; }
-.status-in_progress { background: rgba(37,99,235,0.12);  color: #1e40af; }
+.status-accepted    { background: rgba(124,58,237,0.10);  color: #1e40af; }
+.status-in_progress { background: rgba(124,58,237,0.12);  color: #1e40af; }
 .status-outsourced  { background: rgba(124,58,237,0.12); color: #5b21b6; }
 .status-done        { background: rgba(124,58,237,0.12); color: #5b21b6; }
 .status-delivered   { background: rgba(5,150,105,0.12);  color: #065f46; }
@@ -684,7 +684,7 @@ function renderPaymentCard(delivery) {
     const notesSection = el('div', null);
     notesSection.style.marginTop = '12px';
     notesSection.style.paddingTop = '12px';
-    notesSection.style.borderTop = '1px solid rgba(15,23,42,0.06)';
+    notesSection.style.borderTop = '1px solid rgba(124,58,237,0.06)';
     const noteLabel = el('div', 'info-label', 'Примечание');
     noteLabel.style.marginBottom = '4px';
     const noteText = el('div', 'info-value', delivery.notes);

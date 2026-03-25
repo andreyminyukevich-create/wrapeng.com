@@ -11,7 +11,30 @@
       "Skill(gsd:map-codebase)",
       "Bash(wc -l .planning/codebase/*.md)",
       "Bash(grep -E '\\(sk-[a-zA-Z0-9]{20,}|sk_live_[a-zA-Z0-9]+|sk_test_[a-zA-Z0-9]+|ghp_[a-zA-Z0-9]{36}|gho_[a-zA-Z0-9]{36}|glpat-[a-zA-Z0-9_-]+|AKIA[A-Z0-9]{16}|xox[baprs]-[a-zA-Z0-9-]+|-----BEGIN.*PRIVATE KEY|eyJ[a-zA-Z0-9_-]+\\\\.eyJ[a-zA-Z0-9_-]+\\\\.\\)' .planning/codebase/*.md)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(bash deploy.sh)",
+      "Bash(ssh keep1r:*)",
+      "Bash(psql:*)",
+      "Bash(brew list:*)",
+      "Read(//opt/homebrew/bin/**)",
+      "Read(//usr/local/bin/**)",
+      "Bash(brew install:*)",
+      "Bash(/opt/homebrew/opt/libpq/bin/psql -h localhost -U postgres -d keep1r -c \"\\\\dt\" 2>&1)",
+      "Bash(brew services:*)",
+      "Skill(gsd:plan-phase)",
+      "Bash(sed -i '' 's/--bg:           #eef2f9/--bg:           #f5f3ff/g' calculations.html)",
+      "Bash(sed -i '' 's/--text:         #0f172a/--text:         #1e1b4b/g' calculations.html)",
+      "Bash(sed -i '' 's/--primary:      #2563eb/--primary:      #7c3aed/g' calculations.html)",
+      "Bash(sed -i '' 's/--primary-dark: #1d4ed8/--primary-dark: #6d28d9/g' calculations.html)",
+      "Bash(sed -i '' 's/--danger:       #dc2626/--danger:       #ef4444/g' calculations.html)",
+      "Bash(for f:*)",
+      "Bash(do)",
+      "Bash(if grep:*)",
+      "Bash(then)",
+      "Bash(sed -i '' 's/#eef2f9/#f5f3ff/g' \"$f\")",
+      "Bash(grep -rl \"#eef2f9\\\\|#2563eb\\\\|#1d4ed8\" *.html)"
     ]
   }
 }
