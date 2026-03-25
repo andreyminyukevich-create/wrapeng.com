@@ -10,20 +10,20 @@
 body { visibility: hidden; }
 :root {
   --font:         -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
-  --bg:           #eef2f9;
+  --bg:           #f5f3ff;
   --surface:      #ffffff;
-  --border:       rgba(15,23,42,0.08);
-  --text:         #0f172a;
-  --text-muted:   #64748b;
-  --text-dim:     #94a3b8;
-  --primary:      #2563eb;
-  --primary-dark: #1d4ed8;
+  --border:       rgba(124,58,237,0.10);
+  --text:         #1e1b4b;
+  --text-muted:   #6b7280;
+  --text-dim:     #9ca3af;
+  --primary:      #7c3aed;
+  --primary-dark: #6d28d9;
   --success:      #059669;
   --warning:      #d97706;
-  --danger:       #dc2626;
+  --danger:       #ef4444;
   --purple:       #7c3aed;
-  --shadow:       0 1px 3px rgba(0,0,0,0.05), 0 4px 16px rgba(0,0,0,0.07);
-  --shadow-modal: 0 8px 40px rgba(0,0,0,0.14);
+  --shadow:       0 1px 3px rgba(124,58,237,0.06), 0 4px 16px rgba(124,58,237,0.04);
+  --shadow-modal: 0 12px 48px rgba(124,58,237,0.18);
   --radius:       14px;
   --radius-sm:    10px;
 }
@@ -480,16 +480,16 @@ const COLUMNS = [
 ];
 
 const STATUS_COLORS = {
-  new:         { bg: 'rgba(148,163,184,0.12)', color: '#64748b' },
-  scheduled:   { bg: 'rgba(245,158,11,0.12)',  color: '#b45309' },
-  accepted:    { bg: 'rgba(234,179,8,0.12)',   color: '#92400e' },
-  in_progress: { bg: 'rgba(37,99,235,0.10)',   color: '#2563eb' },
-  outsourced:  { bg: 'rgba(249,115,22,0.12)', color: '#c2410c' },
-  waiting:     { bg: 'rgba(107,114,128,0.12)', color: '#374151' },
-  done:        { bg: 'rgba(124,58,237,0.10)',  color: '#7c3aed' },
+  new:         { bg: 'rgba(156,163,175,0.12)', color: '#6b7280' },
+  scheduled:   { bg: 'rgba(245,158,11,0.10)',  color: '#d97706' },
+  accepted:    { bg: 'rgba(168,85,247,0.10)',  color: '#7c3aed' },
+  in_progress: { bg: 'rgba(99,102,241,0.10)',  color: '#6366f1' },
+  outsourced:  { bg: 'rgba(249,115,22,0.10)',  color: '#ea580c' },
+  waiting:     { bg: 'rgba(107,114,128,0.10)', color: '#374151' },
+  done:        { bg: 'rgba(236,72,153,0.10)',  color: '#ec4899' },
   delivered:   { bg: 'rgba(5,150,105,0.10)',   color: '#059669' },
-  closed:      { bg: 'rgba(15,23,42,0.08)',    color: '#0f172a' },
-  cancelled:   { bg: 'rgba(220,38,38,0.10)',   color: '#dc2626' },
+  closed:      { bg: 'rgba(30,27,75,0.08)',    color: '#1e1b4b' },
+  cancelled:   { bg: 'rgba(239,68,68,0.10)',   color: '#ef4444' },
 };
 
 // ── Матрица разрешённых переходов ─────────────────────────────────
