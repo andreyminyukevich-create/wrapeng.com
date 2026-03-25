@@ -578,7 +578,8 @@ function fmtDate(d) {
 }
 // normalizeStatus — обратная совместимость со старыми значениями в БД
 function normalizeStatus(status) {
-  if (!status || status === 'draft' || status === 'pending' || status === 'new') return 'scheduled';
+  if (!status || status === 'draft') return 'draft'; // draft расчёты не отображаются на доске
+  if (status === 'pending' || status === 'new') return 'scheduled';
   // Старые значения → новые (данные в БД не меняем, только отображение)
   if (status === 'Принято в работу') return 'in_progress';
   if (status === 'Завершено')        return 'done';
