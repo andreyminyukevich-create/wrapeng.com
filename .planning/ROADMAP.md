@@ -45,7 +45,10 @@ Plans:
   3. A `done` card can be delivered via the delivery modal with 5 payment method options (cash, card/transfer, bank transfer with manual VAT%, deferred/debt, mixed per-method amounts) — the total is written to `delivery_acts` and mirrored back to `calculations.final_price`
   4. Any card can be cancelled from any status using a cancel modal that requires selecting a reason category and optionally entering a comment — the card moves to the cancelled column
   5. The `in_progress` transition from accepted captures master assignment (who is doing the work) via a modal — the user does not have to navigate away to `assign-work.html` for the primary transition
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 02-01-PLAN.md — Outsource, return, and cancel modals + board.html rewiring
+- [ ] 02-02-PLAN.md — Done and delivery modal migration with 5-method payment + board.html cleanup
 **UI hint**: yes
 
 ### Phase 3: Document Pages
@@ -80,12 +83,12 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 0/2 | Planned | - |
-| 2. Pipeline Transitions | 0/? | Not started | - |
+| 1. Foundation | 2/2 | Complete | 2026-03-25 |
+| 2. Pipeline Transitions | 0/2 | Planned | - |
 | 3. Document Pages | 0/? | Not started | - |
 | 4. Calculations Hub | 0/? | Not started | - |
 
 ---
 
 *Roadmap created: 2026-03-25*
-*Last updated: 2026-03-25 after Phase 1 planning*
+*Last updated: 2026-03-25 after Phase 2 planning*
