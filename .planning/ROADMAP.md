@@ -48,7 +48,7 @@ Plans:
 **Plans**: 2 plans
 Plans:
 - [x] 02-01-PLAN.md — Outsource, return, and cancel modals + board.html rewiring
-- [ ] 02-02-PLAN.md — Done and delivery modal migration with 5-method payment + board.html cleanup
+- [x] 02-02-PLAN.md — Done and delivery modal migration with 5-method payment + board.html cleanup
 **UI hint**: yes
 
 ### Phase 3: Document Pages

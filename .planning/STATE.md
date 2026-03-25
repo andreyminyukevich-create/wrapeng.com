@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-25T15:45:55.630Z"
+last_updated: "2026-03-25T15:52:39.717Z"
 progress:
   total_phases: 4
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 4
-  completed_plans: 3
+  completed_plans: 4
 ---
 
 # Project State: Keep1R CRM — Workshop Pipeline
@@ -61,6 +61,8 @@ Overall: 0/3 phases complete
 | outsourced->in_progress drag: check _dragStatus before generic in_progress redirect | Prevents assign-work.html routing when returning from outsource | 02 |
 | saveCancel uses _historyComment (no sub-table) | cancel reason stored in status_history.comment, simpler than cancellations table | 02 |
 | Phase 02-pipeline-transitions P01 metrics: 15 min, 2 tasks, 2 files | — | 02 |
+| status='done' (not 'waiting') for done transition | Fixes pre-existing bug; normalizeStatus maps waiting->done for backward compat | 02 |
+| JSONB payment_breakdown for delivery_acts single-method | Stored as {method: total}, mixed stores all 4 sub-amounts — consistent JSONB shape | 02 |
 
 ### Critical Pitfalls to Avoid
 
@@ -90,8 +92,8 @@ Overall: 0/3 phases complete
 
 ## Session Continuity
 
-**Last action:** Completed 02-pipeline-transitions 02-01-PLAN.md (2026-03-25)
-**Next action:** Execute 02-02-PLAN.md (remaining Phase 2 plan)
+**Last action:** Completed 02-pipeline-transitions 02-02-PLAN.md (2026-03-25)
+**Next action:** Phase 02 complete — proceed to Phase 03 (Document Pages)
 
 ### To resume:
 
@@ -103,4 +105,4 @@ Overall: 0/3 phases complete
 ---
 
 *State initialized: 2026-03-25*
-*Last updated: 2026-03-25 after 02-01-PLAN.md execution*
+*Last updated: 2026-03-25 after 02-02-PLAN.md execution*

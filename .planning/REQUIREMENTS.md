@@ -25,8 +25,8 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 - [ ] **FORM-01**: Acceptance modal (scheduled→accepted) — mileage, fuel level, damage description, equipment checklist (запаска, домкрат, аптечка, огнетушитель, документы, ключи), photo zone checkboxes, client agreed checkbox, notes
 - [x] **FORM-02**: Outsourcing modal (in_progress→outsourced) — contractor name, work type, deadline date, outsource type (car leaves / contractor arrives), notes
-- [ ] **FORM-03**: Check/done modal (in_progress/outsourced→done) — checked by (name), remarks/defects textarea, notes
-- [ ] **FORM-04**: Delivery modal (done→delivered) — 5 payment methods: cash, card/transfer, bank transfer (with VAT% input), deferred (debt), mixed (per-method amounts). Total amount, delivery notes
+- [x] **FORM-03**: Check/done modal (in_progress/outsourced→done) — checked by (name), remarks/defects textarea, notes
+- [x] **FORM-04**: Delivery modal (done→delivered) — 5 payment methods: cash, card/transfer, bank transfer (with VAT% input), deferred (debt), mixed (per-method amounts). Total amount, delivery notes
 - [x] **FORM-05**: Cancel modal (any→cancelled) — cancel reason (select: client no-show, client refused, scheduling conflict, other), comment textarea
 - [x] **FORM-06**: Return from outsourcing modal (outsourced→in_progress) — return date, return notes, condition remarks
 
@@ -94,8 +94,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | BOARD-04 | Phase 1 | Pending |
 | FORM-01 | Phase 1 | Pending |
 | FORM-02 | Phase 2 | Complete |
-| FORM-03 | Phase 2 | Pending |
-| FORM-04 | Phase 2 | Pending |
+| FORM-03 | Phase 2 | Complete |
+| FORM-04 | Phase 2 | Complete |
 | FORM-05 | Phase 2 | Complete |
 | FORM-06 | Phase 2 | Complete |
 | DOC-01 | Phase 3 | Pending |
