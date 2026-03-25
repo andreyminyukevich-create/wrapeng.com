@@ -106,8 +106,8 @@ body {
 
 .stat-card:nth-child(1) { --accent: #7c3aed; }
 .stat-card:nth-child(2) { --accent: #059669; }
-.stat-card:nth-child(3) { --accent: #7c3aed; }
-.stat-card:nth-child(4) { --accent: #d97706; }
+.stat-card:nth-child(3) { --accent: #ec4899; }
+.stat-card:nth-child(4) { --accent: #f59e0b; }
 
 /* ── Карточка-контейнер ─────────────────────────── */
 .card {
@@ -244,18 +244,27 @@ body {
   .container { padding: 14px 12px 24px; }
   .page-header-actions { display: none !important; }
   .page-header { margin-bottom: 14px; }
-  .studio-name { font-size: 1.05rem; }
-  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 12px; }
-  .stat-card  { padding: 14px 14px 12px; border-radius: 14px; }
-  .stat-icon  { font-size: 1.1rem; margin-bottom: 8px; }
-  .stat-value { font-size: 1.35rem; }
-  .stat-label { font-size: 0.62rem; }
-  .search-input { max-width: 100%; font-size: 0.9rem; }
+  .studio-name { font-size: 1.1rem; font-weight: 800; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 14px; }
+  .stat-card  { padding: 16px 14px 14px; border-radius: 16px; box-shadow: 0 2px 12px rgba(124,58,237,0.06); }
+  .stat-card:active { transform: scale(0.97); transition: transform 0.1s ease; }
+  .stat-icon  { font-size: 1.2rem; margin-bottom: 10px; }
+  .stat-value { font-size: 1.5rem; font-weight: 800; }
+  .stat-label { font-size: 0.65rem; }
+  .search-input { max-width: 100%; font-size: 0.9rem; border-radius: 14px; padding: 12px 16px; }
   .card-kanban { display: none; }
+  .mobile-active { display: block; border-radius: 16px; }
+  .mobile-active-item { padding: 14px 16px; border-radius: 14px; margin-bottom: 8px; }
+  .mobile-active-item:active { transform: scale(0.98); transition: transform 0.1s ease; }
+  .quick-actions { gap: 8px; margin-bottom: 16px; }
+  .qa-btn { padding: 12px 16px; font-size: 0.82rem; border-radius: 12px; }
+  .qa-primary:active { transform: scale(0.97); }
 }
 @media (max-width: 480px) {
   .search-input { max-width: 100%; }
   .stats-grid   { gap: 8px; }
+  .quick-actions { overflow-x: auto; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; }
+  .qa-btn { flex-shrink: 0; }
 }
 </style>
 </head>

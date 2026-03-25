@@ -388,13 +388,24 @@ html, body {
 .modal-footer .btn { width: auto; }
 
 @media (max-width: 640px) {
-  .board-outer  { padding: 10px 10px 24px; }
-  .board-toolbar { padding: 10px 10px 0; }
-  .column       { width: 240px; max-height: calc(100svh - 160px); }
-  .modal-content { padding: 22px 18px 20px; }
-  .modal-footer  { flex-direction: column-reverse; gap: 7px; }
-  .modal-footer .btn { width: 100%; }
-  .drawer       { width: 100vw; }
+  .board-outer  { padding: 10px 8px 24px; }
+  .board-toolbar { padding: 12px 10px 0; }
+  .column       { width: 260px; max-height: calc(100svh - 150px); }
+  .column-header { font-size: 0.72rem; padding: 10px 12px; }
+  .card         { padding: 14px; border-radius: 14px; }
+  .card:active  { transform: scale(0.98); transition: transform 0.1s ease; }
+  .card-car     { font-size: 0.88rem; }
+  .card-price   { font-size: 0.95rem; }
+  .modal-content { padding: 24px 20px 20px; border-radius: 20px 20px 0 0; }
+  .modal-footer  { flex-direction: column-reverse; gap: 8px; }
+  .modal-footer .btn { width: 100%; padding: 14px; font-size: 0.88rem; border-radius: 12px; }
+  .drawer       { width: 100vw; border-radius: 20px 0 0 20px; }
+  .drawer-header { padding: 18px 18px 14px; }
+  .drawer-body   { padding: 0 18px 18px; }
+  .drawer-actions { padding: 14px 18px; gap: 8px; }
+  .drawer-actions .btn { padding: 13px; font-size: 0.85rem; border-radius: 12px; }
+  .search-wrap input { padding: 12px 12px 12px 36px; font-size: 0.9rem; border-radius: 12px; }
+  .filter-btn { padding: 9px 14px; font-size: 0.78rem; border-radius: 10px; }
 }
 </style>
 </head>

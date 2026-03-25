@@ -97,9 +97,10 @@
         #k1r-sidebar{transform:translateX(-100%)}
         #k1r-sidebar.mobile-open{transform:translateX(0)}
         #k1r-main{margin-left:0}
-        #k1r-topbar{display:flex;align-items:center;gap:12px;padding:12px 16px;background:linear-gradient(135deg,#2e1065,#4c1d95);color:#fff;position:sticky;top:0;z-index:98;box-shadow:0 2px 12px rgba(124,58,237,0.15)}
-        #k1r-topbar .tb-title{font-size:16px;font-weight:700;flex:1}
-        #k1r-topbar .tb-menu{background:none;border:none;color:#fff;font-size:22px;cursor:pointer;padding:0}
+        #k1r-topbar{display:flex;align-items:center;gap:12px;padding:14px 16px;background:linear-gradient(135deg,#2e1065,#4c1d95);color:#fff;position:sticky;top:0;z-index:98;box-shadow:0 2px 16px rgba(124,58,237,0.2)}
+        #k1r-topbar .tb-title{font-size:17px;font-weight:800;flex:1;background:linear-gradient(135deg,#fff,#e9d5ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+        #k1r-topbar .tb-menu{background:none;border:none;color:#fff;font-size:24px;cursor:pointer;padding:4px;border-radius:8px;transition:background .2s ease;-webkit-tap-highlight-color:transparent}
+        #k1r-topbar .tb-menu:active{background:rgba(255,255,255,0.15)}
       }
     `;
     document.head.appendChild(style);
