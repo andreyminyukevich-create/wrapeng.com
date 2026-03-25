@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-25T15:22:04.694Z"
+last_updated: "2026-03-25T15:45:55.630Z"
 progress:
   total_phases: 4
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 4
+  completed_plans: 3
 ---
 
 # Project State: Keep1R CRM — Workshop Pipeline
@@ -16,14 +16,14 @@ progress:
 ## Project Reference
 
 **Core Value:** Every status transition captures structured data — nothing lost, accountability fixed, documents generated.
-**Current Focus:** Phase 01 — foundation
+**Current Focus:** Phase 02 — pipeline-transitions
 
 ---
 
 ## Current Position
 
-Phase: 2
-Plan: Not started
+Phase: 02 (pipeline-transitions) — EXECUTING
+Plan: 2 of 2
 
 ### Progress Bar
 
@@ -58,6 +58,9 @@ Overall: 0/3 phases complete
 | `pipeline-forms.js` module for modal logic | board.html already 1400+ lines; follows booking-popup.js precedent | Research |
 | JSONB for payment_breakdown in delivery_acts | Avoids 5 nullable columns; already used for calculation_data | Research |
 | Browser print (@media print) not server-side PDF | Zero new dependencies; covers 95% of studio need for legal documents | Research |
+| outsourced->in_progress drag: check _dragStatus before generic in_progress redirect | Prevents assign-work.html routing when returning from outsource | 02 |
+| saveCancel uses _historyComment (no sub-table) | cancel reason stored in status_history.comment, simpler than cancellations table | 02 |
+| Phase 02-pipeline-transitions P01 metrics: 15 min, 2 tasks, 2 files | — | 02 |
 
 ### Critical Pitfalls to Avoid
 
@@ -87,8 +90,8 @@ Overall: 0/3 phases complete
 
 ## Session Continuity
 
-**Last action:** Roadmap created (2026-03-25)
-**Next action:** Run `/gsd:plan-phase 1` to plan Phase 1 (Foundation)
+**Last action:** Completed 02-pipeline-transitions 02-01-PLAN.md (2026-03-25)
+**Next action:** Execute 02-02-PLAN.md (remaining Phase 2 plan)
 
 ### To resume:
 
@@ -100,4 +103,4 @@ Overall: 0/3 phases complete
 ---
 
 *State initialized: 2026-03-25*
-*Last updated: 2026-03-25 after roadmap creation*
+*Last updated: 2026-03-25 after 02-01-PLAN.md execution*

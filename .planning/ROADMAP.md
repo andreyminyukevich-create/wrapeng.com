@@ -47,7 +47,7 @@ Plans:
   5. The `in_progress` transition from accepted captures master assignment (who is doing the work) via a modal — the user does not have to navigate away to `assign-work.html` for the primary transition
 **Plans**: 2 plans
 Plans:
-- [ ] 02-01-PLAN.md — Outsource, return, and cancel modals + board.html rewiring
+- [x] 02-01-PLAN.md — Outsource, return, and cancel modals + board.html rewiring
 - [ ] 02-02-PLAN.md — Done and delivery modal migration with 5-method payment + board.html cleanup
 **UI hint**: yes
 
@@ -84,7 +84,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation | 2/2 | Complete | 2026-03-25 |
-| 2. Pipeline Transitions | 0/2 | Planned | - |
+| 2. Pipeline Transitions | 1/2 | In Progress|  |
 | 3. Document Pages | 0/? | Not started | - |
 | 4. Calculations Hub | 0/? | Not started | - |
 
