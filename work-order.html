@@ -820,12 +820,12 @@ function showError(message, detail) {
 // ── Загрузка данных ────────────────────────────────────────────────
 async function loadPage(calcId) {
   // Загружаем расчёт (основные данные)
-  const { data: calc, error: calcErr } = await sb
+  const { data: calcArr, error: calcErr } = await sb
     .from('calculations')
     .select('*')
-    .eq('id', calcId)
-    .single();
+    .eq('id', calcId);
 
+  const calc = (calcArr || [])[0] || null;
   if (calcErr || !calc) {
     console.error('[work-order] calc fetch:', calcErr);
     showError('Заказ-наряд не найден', 'Расчёт с указанным ID не существует или был удалён.');
@@ -834,13 +834,13 @@ async function loadPage(calcId) {
 
   // Параллельно загружаем все связанные данные
   const [deliveryRes, outsourceRes, historyRes, assignmentsRes] = await Promise.all([
-    sb.from('delivery_acts').select('*').eq('calc_id', calcId).single(),
+    sb.from('delivery_acts').select('*').eq('calc_id', calcId),
     sb.from('outsource_records').select('*').eq('calc_id', calcId),
     sb.from('status_history').select('*').eq('calc_id', calcId).order('created_at', { ascending: true }),
     sb.from('work_assignments').select('*').eq('calc_id', calcId),
   ]);
 
-  const delivery    = deliveryRes.data;
+  const delivery    = (deliveryRes.data || [])[0] || null;
   const outsources  = outsourceRes.data || [];
   const history     = historyRes.data || [];
   const assignments = assignmentsRes.data || [];
