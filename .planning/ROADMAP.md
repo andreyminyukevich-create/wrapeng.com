@@ -30,7 +30,7 @@
   5. Rapidly saving a modal multiple times does not cause duplicate board reloads or double-submit race conditions (the `_loading` guard prevents concurrent `loadBoard()` calls)
 **Plans**: 2 plans
 Plans:
-- [ ] 01-01-PLAN.md — SQL migration (4 tables) + outsourced column config + loadBoard guard
+- [x] 01-01-PLAN.md — SQL migration (4 tables) + outsourced column config + loadBoard guard
 - [ ] 01-02-PLAN.md — Transition guards + status history hook + acceptance modal
 **UI hint**: yes
 
