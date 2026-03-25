@@ -500,6 +500,7 @@ html, body {
 
 <script src="footer.js"></script>
 <script src="booking-popup.js"></script>
+<script src="pipeline-forms.js"></script>
 <script type="module">
 import { sb }               from './api.js';
 import { requireAuth }      from './auth.js';
@@ -551,6 +552,22 @@ const STATUS_COLORS = {
   cancelled:   { bg: 'rgba(220,38,38,0.10)',   color: '#dc2626' },
 };
 
+// ── Матрица разрешённых переходов ─────────────────────────────────
+const ALLOWED_TRANSITIONS = {
+  scheduled:   ['accepted', 'cancelled'],
+  accepted:    ['in_progress', 'cancelled'],
+  in_progress: ['outsourced', 'done', 'cancelled'],
+  outsourced:  ['in_progress', 'done', 'cancelled'],
+  done:        ['delivered', 'cancelled'],
+  delivered:   ['closed'],
+  cancelled:   [],
+  closed:      [],
+};
+
+function isAllowed(from, to) {
+  return (ALLOWED_TRANSITIONS[from] || []).includes(to);
+}
+
 // ── Утилиты ────────────────────────────────────────────────────────
 function fmt(n) {
   return new Intl.NumberFormat('ru-RU', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(n || 0);
@@ -571,6 +588,10 @@ function normalizeStatus(status) {
 
 // ── Обновление статуса в БД ────────────────────────────────────────
 async function updateStatus(calcId, status, extra = {}) {
+  // Strip internal metadata before sending to DB
+  const historyComment = extra._historyComment || null;
+  delete extra._historyComment;
+
   const { error } = await sb
     .from('calculations')
     .update({ status, updated_at: new Date().toISOString(), ...extra })
@@ -581,6 +602,18 @@ async function updateStatus(calcId, status, extra = {}) {
     showToast('error', 'Ошибка обновления статуса');
     return false;
   }
+  // Record status history (BOARD-04) — fire-and-forget, non-blocking
+  const fromStatus = allCalcs.find(c => c.id === calcId)?.status || null;
+  sb.from('status_history').insert({
+    calc_id: calcId,
+    studio_id: studioCtx.studioId,
+    from_status: fromStatus,
+    to_status: status,
+    changed_by: studioCtx.user?.id || null,
+    comment: historyComment,
+  }).then(({ error: hErr }) => {
+    if (hErr) console.error('[board] status_history insert:', hErr);
+  });
   return true;
 }
 
@@ -722,18 +755,30 @@ async function onDrop(e) {
   const toStatus = col?.dataset.status;
   if (!toStatus || !_dragCalcId || toStatus === _dragStatus) return;
 
-  const calc = allCalcs.find(c => c.id === _dragCalcId);
+  // Transition guard — card snaps back naturally (DOM not modified)
+  if (!isAllowed(_dragStatus, toStatus)) {
+    showToast('warning', 'Переход недоступен');
+    return;
+  }
 
-  // Статусы требующие модала — нельзя просто перетащить
+  const calc = allCalcs.find(c => c.id === _dragCalcId);
+  const carName = calc?.car_name || 'Без названия';
+
+  // Modal-requiring transitions
+  if (toStatus === 'accepted') {
+    PipelineForms.openModalAccept(_dragCalcId, carName);
+    return;
+  }
   if (toStatus === 'done') {
-    openModalDone(_dragCalcId, calc?.car_name || 'Без названия');
+    openModalDone(_dragCalcId, carName);
     return;
   }
   if (toStatus === 'delivered') {
-    openModalDeliver(_dragCalcId, calc?.car_name || 'Без названия', calc?.total_price || 0);
+    openModalDeliver(_dragCalcId, carName, calc?.total_price || 0);
     return;
   }
 
+  // Direct transitions (no modal needed)
   const ok = await updateStatus(_dragCalcId, toStatus);
   if (ok) {
     const label = COLUMNS.find(c => c.key === toStatus)?.label || toStatus;
@@ -1164,7 +1209,7 @@ function buildDrawerActions(calc, status) {
       btn('Открыть расчёт',   goCalc),
       btn('Изменить запись',  doBook),
       btn('Акт приёмки авто', goAct),
-      btn('Принять авто', () => move('accepted', 'Авто принято'), 'btn-primary'),
+      btn('Принять авто', () => { closeDrawer(); PipelineForms.openModalAccept(calc.id, calc.car_name || 'Без названия'); }, 'btn-primary'),
       btn('Отменить заказ', doCancel, 'btn-danger'),
     );
   } else if (status === 'accepted') {
@@ -1179,6 +1224,14 @@ function buildDrawerActions(calc, status) {
     el.append(
       btn('Открыть расчёт', goCalc),
       btn('Назначить ответственных', goAssign),
+      btn('На аутсорсинг', () => move('outsourced', 'Статус → Аутсорсинг')),
+      btn('Работа выполнена', doDone, 'btn-primary'),
+      btn('Отменить заказ', doCancel, 'btn-danger'),
+    );
+  } else if (status === 'outsourced') {
+    el.append(
+      btn('Открыть расчёт', goCalc),
+      btn('Вернуть в работу', () => move('in_progress', 'Возвращено в работу')),
       btn('Работа выполнена', doDone, 'btn-primary'),
       btn('Отменить заказ', doCancel, 'btn-danger'),
     );
@@ -1420,7 +1473,7 @@ function bindEvents() {
   document.addEventListener('keydown', e => {
     if (e.key !== 'Escape') return;
     if (document.getElementById('drawer').classList.contains('active')) { closeDrawer(); return; }
-    ['modalDone', 'modalDeliver'].forEach(id => closeModal(id));
+    ['modalDone', 'modalDeliver', 'modalAccept'].forEach(id => closeModal(id));
   });
 }
 
@@ -1439,6 +1492,12 @@ async function initPage() {
     showError(document.getElementById('board'), 'Ошибка загрузки данных студии', () => location.reload());
     return;
   }
+
+  // Expose for pipeline-forms.js (IIFE cannot access module scope)
+  window._boardCtx = studioCtx;
+  window._updateStatus = updateStatus;
+  window._loadBoard = loadBoard;
+  window._sb = sb;
 
   if (!studioCtx?.studioId) {
     showError(document.getElementById('board'), 'Студия не найдена. Обратитесь к администратору.');
