@@ -30,7 +30,7 @@
     { id: 'sales', icon: '💼', label: 'Продажи', children: [
       { href: 'sales.html',      icon: '🎯', label: 'Воронка' },
       { href: 'clients.html',    icon: '👤', label: 'Клиенты' },
-      { href: 'calculator.html', icon: '🧮', label: 'Расчёты' },
+      { href: 'calculations.html', icon: '🧮', label: 'Расчёты' },
     ]},
     { id: 'staff', icon: '👥', label: 'Сотрудники', children: [
       { href: 'executors.html', icon: '👤', label: 'Список' },
