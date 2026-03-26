@@ -9,9 +9,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="theme.css">
-<script src="nav.js"></script>
+<link rel="stylesheet" href="mobile.css?v=1774508385">
 <style>
-body { visibility: hidden; }
 :root {
   --font:         -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
   --bg:           #f5f3ff;
@@ -197,12 +196,13 @@ html, body {
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="theme.css">
+<link rel="stylesheet" href="mobile.css?v=1774508385">
   #navSidebar, .nav-sidebar, .nav-overlay { display: none !important; }
   .container { max-width: 100%; padding: 0; margin: 0; }
   .card { box-shadow: none; border: 1px solid #ddd; break-inside: avoid; margin-bottom: 12px; }
   .card-title { margin-bottom: 12px; }
   .print-header { display: block !important; text-align: center; margin-bottom: 20px; }
-  .print-header h1 { font-size: 16pt; font-weight: 800; color: #1e1b4b; margin-bottom: 4px; }
+  .print-header h1 { font-size: 16pt; font-weight: 800; color: var(--text); margin-bottom: 4px; }
   .print-header .studio-name { font-size: 12pt; color: #666; margin-bottom: 2px; }
   .print-header .print-date  { font-size: 10pt; color: #888; }
   .signature-line { display: flex !important; justify-content: space-between; margin-top: 40px; padding-top: 20px; }
@@ -241,7 +241,8 @@ html, body {
   <div>Клиент ___________________</div>
 </div>
 
-<script src="footer.js"></script>
+<script src="nav.js?v=1774551573"></script>
+<script src="footer.js?v=1774512457"></script>
 <script type="module">
 import { sb }                from './api.js';
 import { requireAuth }       from './auth.js';
@@ -270,18 +271,24 @@ const EQUIPMENT_LABELS = {
 };
 
 const PHOTO_ZONE_LABELS = {
-  front:        'Перед',
-  rear:         'Зад',
+  front:        'Спереди',
+  rear:         'Сзади',
   left:         'Левый бок',
   right:        'Правый бок',
   roof:         'Крыша',
   interior:     'Салон',
-  engine:       'Мотор',
+  engine:       'Моторный отсек',
   trunk:        'Багажник',
-  wheel_fl:     'Колесо ПЛ',
-  wheel_fr:     'Колесо ПП',
-  wheel_rl:     'Колесо ЗЛ',
-  wheel_rr:     'Колесо ЗП',
+  wheel_fl:     'Колесо переднее левое',
+  wheel_fr:     'Колесо переднее правое',
+  wheel_rl:     'Колесо заднее левое',
+  wheel_rr:     'Колесо заднее правое',
+  перед:        'Спереди',
+  зад:          'Сзади',
+  лев:          'Слева',
+  прав:         'Справа',
+  салон:        'Салон',
+  багаж:        'Багажник',
 };
 
 // ── Форматирование ─────────────────────────────────────────────────
@@ -723,12 +730,10 @@ async function loadPage(calcId, studioId, studioName) {
 // ── Точка входа ───────────────────────────────────────────────────
 async function initPage() {
   initNav();
-  document.body.style.visibility = 'visible';
 
   // Параметр calc_id
   const calcId = new URLSearchParams(location.search).get('calc_id');
   if (!calcId) {
-    document.body.style.visibility = 'visible';
     showPageError('Не указан расчёт', 'Передайте параметр calc_id в URL');
     return;
   }
@@ -761,7 +766,7 @@ async function initPage() {
   await loadPage(calcId, ctx.studioId, studioName);
 }
 
-document.addEventListener('DOMContentLoaded', initPage);
+initPage();
 </script>
 
 </body>

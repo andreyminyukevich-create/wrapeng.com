@@ -404,7 +404,7 @@ async function loadCalculationFromUrl() {
     
     if (error || !calculation) {
       console.error('Failed to load calculation:', error);
-      console.error('❌ Не удалось загрузить расчёт');
+      if (typeof showToast === 'function') showToast('error', 'Не удалось загрузить расчёт');
       return;
     }
     
@@ -413,8 +413,18 @@ async function loadCalculationFromUrl() {
     // Запоминаем ID открытого расчёта
     currentCalculationId = calcId;
     
-    const formData = calculation.calculation_data;
-    if (!formData) return;
+    let formData = calculation.calculation_data;
+    if (typeof formData === 'string') {
+      try { formData = JSON.parse(formData); } catch { formData = null; }
+    }
+    if (!formData || typeof formData !== 'object' || Object.keys(formData).length === 0) {
+      // Расчёт найден, но данных формы нет — заполняем хотя бы название авто
+      if (calculation.car_name) {
+        const brandManual = q('#brandManual');
+        if (brandManual) brandManual.value = calculation.car_name;
+      }
+      return;
+    }
     
     // Заполняем автомобиль
     if (formData.car) {
@@ -561,6 +571,7 @@ async function loadCalculationFromUrl() {
     
   } catch (e) {
     console.error('Error loading calculation:', e);
+    if (typeof showToast === 'function') showToast('error', 'Ошибка загрузки расчёта');
   }
 }
 
@@ -569,15 +580,4 @@ async function initAuthAndAccess() {
   return hasAccess;
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  if (window.location.search.includes('load=')) {
-    const tryLoad = () => {
-      if (window._crmApi || window._crmSb) {
-        loadCalculationFromUrl();
-      } else {
-        setTimeout(tryLoad, 100);
-      }
-    };
-    tryLoad();
-  }
-});
+// loadCalculationFromUrl вызывается из calculator-ui.js — здесь не дублируем

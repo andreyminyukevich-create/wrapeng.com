@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Подписка — Keep1R Partner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="theme.css">
+<style>
+:root { --font: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif; --bg: #f5f3ff; --surface: #fff; --border: rgba(124,58,237,0.10); --text: #1e1b4b; --muted: #64748b; --primary: #7c3aed; --success: #059669; --danger: #ef4444; --radius: 14px; --shadow: 0 1px 3px rgba(124,58,237,0.06), 0 4px 16px rgba(124,58,237,0.04); }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font); -webkit-font-smoothing: antialiased; background: var(--bg); color: var(--text); }
+.container { max-width: 820px; margin: 0 auto; padding: 24px; }
+h1 { font-size: 1.3rem; font-weight: 800; margin-bottom: 24px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; margin-bottom: 16px; box-shadow: var(--shadow); }
+.sub-status { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.sub-badge { padding: 6px 16px; border-radius: 20px; font-size: 0.82rem; font-weight: 700; }
+.sub-active { background: rgba(5,150,105,0.1); color: var(--success); }
+.sub-expired { background: rgba(239,68,68,0.1); color: var(--danger); }
+.sub-none { background: rgba(148,163,184,0.1); color: var(--muted); }
+.sub-info { font-size: 0.85rem; color: var(--muted); margin-bottom: 16px; }
+.price-block { background: var(--bg); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+.price-label { font-size: 0.75rem; color: var(--muted); font-weight: 700; text-transform: uppercase; margin-bottom: 4px; }
+.price-value { font-size: 1.4rem; font-weight: 800; color: var(--primary); }
+.bonus-line { display: flex; align-items: center; gap: 8px; margin: 12px 0; font-size: 0.85rem; }
+.bonus-line input { width: auto; }
+.total-line { font-size: 1rem; font-weight: 700; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+.btn-pay { width: 100%; padding: 14px; border-radius: 12px; border: none; background: linear-gradient(135deg, #7c3aed, #a855f7); color: #fff; font-size: 0.95rem; font-weight: 700; font-family: inherit; cursor: pointer; transition: all 0.15s; }
+.btn-pay:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(124,58,237,0.4); }
+.success-msg { display: none; text-align: center; padding: 20px; background: rgba(5,150,105,0.08); border-radius: 12px; color: var(--success); font-weight: 600; font-size: 0.88rem; margin-top: 16px; }
+@media (max-width: 640px) { .container { padding: 14px 12px 32px; } }
+</style>
+</head>
+<body>
+<script src="partner-nav.js"></script>
+<div class="container">
+  <h1>💳 Подписка CRM</h1>
+  <div class="card">
+    <div class="sub-status" id="subStatus"><span class="sub-badge sub-none">Загрузка...</span></div>
+    <div class="sub-info" id="subInfo"></div>
+  </div>
+
+  <div class="card">
+    <div class="price-block">
+      <div class="price-label">Стоимость подписки</div>
+      <div class="price-value">19 900 ₽ / год</div>
+    </div>
+    <div class="bonus-line">
+      <input type="checkbox" id="useBonuses" checked>
+      <label for="useBonuses">Использовать бонусы: <strong id="bonusAmount">0 ₽</strong></label>
+    </div>
+    <div class="total-line">К доплате: <strong id="toPay">19 900 ₽</strong></div>
+    <button class="btn-pay" id="btnPay" style="margin-top:16px">Оплатить / Продлить</button>
+    <div class="success-msg" id="successMsg">✅ Заявка на оплату отправлена. Мы свяжемся с вами в течение рабочего дня для выставления счёта.</div>
+  </div>
+</div>
+<script type="module">
+import { partnerFetch, requirePartnerAuth, fmt, fmtDate } from './partner-api.js';
+if (!requirePartnerAuth()) throw 'no auth';
+
+const PRICE = 19900;
+let cashbackBalance = 0;
+
+async function init() {
+  const [subRes, cashRes] = await Promise.all([
+    partnerFetch('/partner/subscription'),
+    partnerFetch('/partner/cashback'),
+  ]);
+
+  const sub = subRes.data || {};
+  const cash = cashRes.data?.account || {};
+  cashbackBalance = Number(cash.balance || 0);
+
+  // Статус
+  const statusEl = document.getElementById('subStatus');
+  const infoEl = document.getElementById('subInfo');
+  if (sub.status === 'active') {
+    statusEl.innerHTML = '<span class="sub-badge sub-active">✅ Активна</span>';
+    infoEl.textContent = 'Действует до ' + fmtDate(sub.end_date);
+  } else if (sub.status === 'expired') {
+    statusEl.innerHTML = '<span class="sub-badge sub-expired">❌ Истекла</span>';
+    infoEl.textContent = 'Истекла ' + fmtDate(sub.end_date);
+  } else {
+    statusEl.innerHTML = '<span class="sub-badge sub-none">— Не подключена</span>';
+    infoEl.textContent = 'Подключите подписку для доступа к CRM';
+  }
+
+  // Бонусы
+  document.getElementById('bonusAmount').textContent = fmt(cashbackBalance) + ' ₽';
+  updateTotal();
+}
+
+function updateTotal() {
+  const use = document.getElementById('useBonuses').checked;
+  const bonus = use ? Math.min(cashbackBalance, PRICE) : 0;
+  const toPay = PRICE - bonus;
+  document.getElementById('toPay').textContent = fmt(toPay) + ' ₽';
+}
+
+document.getElementById('useBonuses').addEventListener('change', updateTotal);
+
+document.getElementById('btnPay').addEventListener('click', function() {
+  this.disabled = true;
+  this.textContent = '⏳ Отправка...';
+  setTimeout(() => {
+    document.getElementById('successMsg').style.display = 'block';
+    this.style.display = 'none';
+  }, 1000);
+});
+
+init();
+</script>
+</body>
+</html>

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Калькулятор — Keep1R Partner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="theme.css">
+<style>
+:root { --font: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif; --bg: #f5f3ff; --surface: #fff; --border: rgba(124,58,237,0.10); --text: #1e1b4b; --muted: #64748b; --primary: #7c3aed; --radius: 14px; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font); -webkit-font-smoothing: antialiased; background: var(--bg); color: var(--text); }
+.container { max-width: 820px; margin: 0 auto; padding: 24px; text-align: center; }
+h1 { font-size: 1.3rem; font-weight: 800; margin-bottom: 12px; }
+.subtitle { font-size: 0.88rem; color: var(--muted); margin-bottom: 24px; }
+.calc-frame { width: 100%; border: none; border-radius: var(--radius); box-shadow: 0 4px 24px rgba(124,58,237,0.1); min-height: 80vh; background: var(--surface); }
+.trial-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 16px; border-radius: 20px; background: rgba(245,158,11,0.1); color: #b45309; font-size: 0.78rem; font-weight: 700; margin-bottom: 20px; }
+</style>
+</head>
+<body>
+<script src="partner-nav.js"></script>
+<div class="container">
+  <h1>🧮 Калькулятор КП</h1>
+  <div class="trial-badge">⚡ Триальный режим — сохранение отключено</div>
+  <div class="subtitle">Рассчитайте стоимость работ и экспортируйте PDF для клиента</div>
+  <iframe src="calculator.html?trial=1" class="calc-frame" id="calcFrame"></iframe>
+</div>
+<script type="module">
+import { requirePartnerAuth } from './partner-api.js';
+if (!requirePartnerAuth()) throw 'no auth';
+</script>
+</body>
+</html>

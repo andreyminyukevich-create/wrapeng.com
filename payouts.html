@@ -9,7 +9,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="theme.css">
-<script src="nav.js"></script>
+<link rel="stylesheet" href="mobile.css?v=1774508385">
+<script src="nav.js?v=1774551573"></script>
 <style>
 :root {
   --font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
@@ -23,7 +24,7 @@
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: var(--font); -webkit-font-smoothing: antialiased; background: var(--bg); color: var(--text); min-height: 100svh; }
-.container { max-width: 1100px; margin: 0 auto; padding: 24px 20px 60px; }
+.container { max-width: 1280px; margin: 0 auto; padding: 24px 20px 60px; }
 
 .summary { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:20px; }
 .summary-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:18px 20px; box-shadow:var(--shadow); position:relative; overflow:hidden; }
@@ -115,12 +116,13 @@ body { font-family: var(--font); -webkit-font-smoothing: antialiased; background
   <div id="tabContent"><div class="loading">Загрузка...</div></div>
 </div>
 
-<script src="footer.js"></script>
+<script src="footer.js?v=1774512457"></script>
 <script type="module">
 import { sb }              from "./api.js";
 import { requireAuth }     from "./auth.js";
 import { getStudioContext } from "./studio-context.js";
 import { confirmAction, lockButton } from "./ui.js";
+import { escapeHtml }      from "./formatters.js";
 
 let studioId       = null;
 let allAssignments = [];
@@ -160,10 +162,18 @@ async function loadAssignments() {
     return;
   }
 
+  // Подгружаем car_name из calculations (бэкенд не поддерживает JOINы)
+  const calcIds = [...new Set((data || []).map(a => a.calculation_id).filter(Boolean))];
+  let carMap = {};
+  if (calcIds.length) {
+    const { data: calcs } = await sb.from("calculations").select("id, car_name").in("id", calcIds);
+    (calcs || []).forEach(c => { carMap[c.id] = c.car_name; });
+  }
+
   allAssignments = (data || []).map(a => ({
     ...a,
-    executor_display: a.executors?.full_name || a.executor_name || "Неизвестно",
-    car_display:      a.calculations?.car_name || "—",
+    executor_display: a.executor_name || "Неизвестно",
+    car_display:      carMap[a.calculation_id] || "—",
   }));
 
   populateFilters();
@@ -227,7 +237,7 @@ function renderTab() {
 
     const info = document.createElement("div");
     info.className = "executor-info";
-    info.innerHTML = '<div class="executor-name">' + g.name + '</div><div class="executor-meta">' + g.items.length + ' ' + pluralWorks(g.items.length) + '</div>';
+    info.innerHTML = '<div class="executor-name">' + escapeHtml(g.name) + '</div><div class="executor-meta">' + g.items.length + ' ' + pluralWorks(g.items.length) + '</div>';
 
     const totalEl = document.createElement("div");
     totalEl.className = "executor-total";
@@ -277,7 +287,7 @@ function renderTab() {
       const svcLabel = a.service_name || (isAdmin ? "Продажа (" + a.admin_percent + "%)" : "—");
 
       const tdCar = document.createElement("td"); tdCar.className = "assign-car"; tdCar.textContent = a.car_display;
-      const tdSvc = document.createElement('td'); tdSvc.innerHTML = '<div class="assign-svc">' + svcLabel + '</div>';
+      const tdSvc = document.createElement('td'); tdSvc.innerHTML = '<div class="assign-svc">' + escapeHtml(svcLabel) + '</div>';
       const tdMon = document.createElement('td'); tdMon.innerHTML = '<span class="assign-month">' + fmtMonth(a.payment_month) + '</span>';
       const tdSal = document.createElement('td'); tdSal.style.textAlign = 'right';
       tdSal.innerHTML = '<span class="' + (isAdmin ? 'assign-admin' : 'assign-salary') + '">' + fmt(a.salary) + ' ₽</span>';
@@ -288,7 +298,8 @@ function renderTab() {
         const tdBtn = document.createElement("td");
         const btn = document.createElement("button");
         btn.className = "btn btn-unpay";
-        btn.textContent = "Отменить";
+        btn.textContent = "\u2715";
+        btn.title = "Отмена";
         btn.addEventListener("click", async () => {
           const ok = await confirmAction({ message: "Отменить выплату? Вернётся в «К выплате»." });
           if (!ok) return;

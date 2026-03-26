@@ -9,7 +9,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="theme.css">
-<script src="nav.js"></script>
+<link rel="stylesheet" href="mobile.css?v=1774508385">
+<script src="nav.js?v=1774551573"></script>
 <style>
 :root {
   --font:       -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
@@ -100,8 +101,8 @@ body { font-family: var(--font); -webkit-font-smoothing: antialiased; background
   .container { padding: 16px 14px 40px; }
   .executors-table thead { display: none; }
   .executors-table, .executors-table tbody { display: block; }
-  .executors-table tr { display: block; margin: 0; border-bottom: 1px solid var(--border); padding: 14px 16px; }
-  .executors-table tr:last-child { border-bottom: none; }
+  .executors-table tr { display: block; margin: 0 0 10px; padding: 14px 16px; background: var(--surface); border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+  .executors-table tr:last-child { margin-bottom: 0; }
   .executors-table td { display: inline-block; padding: 0; border: none; font-size: 0.82rem; }
   .executors-table td[data-label="ФИО"]      { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
   .executors-table td[data-label="Роль"]     { margin-right: 8px; }
@@ -198,7 +199,7 @@ body { font-family: var(--font); -webkit-font-smoothing: antialiased; background
 .exec-section-title { font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:#94a3b8;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid #f1f5f9 }
 .exec-kpi-grid { display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px }
 .exec-kpi { background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px 14px;text-align:center }
-.exec-kpi-val { font-size:1.1rem;font-weight:800;color: #1e1b4b;line-height:1 }
+.exec-kpi-val { font-size:1.1rem;font-weight:800;color: var(--text);line-height:1 }
 .exec-kpi-lbl { font-size:.65rem;color:#94a3b8;font-weight:700;text-transform:uppercase;margin-top:4px }
 .exec-assign-row { display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f1f5f9;font-size:.82rem }
 .exec-assign-row:last-child { border-bottom:none }
@@ -209,7 +210,7 @@ body { font-family: var(--font); -webkit-font-smoothing: antialiased; background
 .exec-empty { color:#94a3b8;font-size:.82rem;text-align:center;padding:20px 0 }
 </style>
 
-<script src="footer.js"></script>
+<script src="footer.js?v=1774512457"></script>
 <script type="module">
 import { sb }             from './api.js';
 import { requireAuth }     from './auth.js';
@@ -647,7 +648,7 @@ async function openExecutorCard(execId) {
   }
 }
 
-document.addEventListener('DOMContentLoaded', initPage);
+initPage();
 </script>
 </body>
 </html>

@@ -10,17 +10,15 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="theme.css">
-<script src="nav.js"></script>
+<link rel="stylesheet" href="mobile.css?v=1774508385">
 <style>
-body { visibility: hidden; }
-
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
-  background: #f5f3ff;
-  color: #1e1b4b;
+  background: var(--bg);
+  color: var(--text);
   min-height: 100svh;
 }
 
@@ -45,14 +43,14 @@ body {
 .studio-name {
   font-size: 1.25rem;
   font-weight: 800;
-  color: #1e1b4b;
+  color: var(--text);
   letter-spacing: -0.3px;
   line-height: 1.2;
 }
 
 .studio-sub {
   font-size: 0.78rem;
-  color: #64748b;
+  color: var(--text-muted);
   margin-top: 2px;
   font-weight: 500;
 }
@@ -60,8 +58,8 @@ body {
 .btn-logout {
   padding: 8px 16px;
   background: #fff;
-  color: #64748b;
-  border: 1px solid rgba(124,58,237,0.10);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
   border-radius: 9px;
   font-size: 0.81rem;
   font-weight: 700;
@@ -104,13 +102,13 @@ body {
 .stat-card:hover { box-shadow: 0 6px 24px rgba(124,58,237,0.10); transform: translateY(-2px); }
 
 .stat-icon    { font-size: 1.5rem; line-height: 1; margin-bottom: 14px; display: block; }
-.stat-label   { font-size: 0.7rem; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
-.stat-value   { font-size: 1.75rem; font-weight: 800; color: #1e1b4b; line-height: 1; margin-bottom: 6px; letter-spacing: -0.5px; }
-.stat-change  { font-size: 0.75rem; color: #64748b; font-weight: 500; }
+.stat-label   { font-size: 0.7rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+.stat-value   { font-size: 1.75rem; font-weight: 800; color: var(--text); line-height: 1; margin-bottom: 6px; letter-spacing: -0.5px; }
+.stat-change  { font-size: 0.75rem; color: var(--text-muted); font-weight: 500; }
 
-.stat-card:nth-child(1) { --accent: #7c3aed; }
+.stat-card:nth-child(1) { --accent: var(--brand); }
 .stat-card:nth-child(2) { --accent: #059669; }
-.stat-card:nth-child(3) { --accent: #ec4899; }
+.stat-card:nth-child(3) { --accent: var(--accent); }
 .stat-card:nth-child(4) { --accent: #f59e0b; }
 
 /* ── Карточка-контейнер ─────────────────────────── */
@@ -128,29 +126,29 @@ body {
   justify-content: space-between;
   margin-bottom: 16px;
 }
-.card-title   { font-size: 0.95rem; font-weight: 700; color: #1e1b4b; letter-spacing: -0.1px; }
+.card-title   { font-size: 0.95rem; font-weight: 700; color: var(--text); letter-spacing: -0.1px; }
 .card-link {
-  font-size: 0.78rem; font-weight: 700; color: #7c3aed;
+  font-size: 0.78rem; font-weight: 700; color: var(--brand);
   text-decoration: none; padding: 5px 12px; border-radius: 8px;
   border: 1px solid rgba(124,58,237,0.25); background: rgba(124,58,237,0.04);
   transition: all 0.15s; white-space: nowrap;
 }
-.card-link:hover { background: #7c3aed; color: #fff; border-color: #7c3aed; }
+.card-link:hover { background: var(--brand); color: #fff; border-color: var(--brand); }
 
 /* ── Поиск ──────────────────────────────────────── */
 .search-wrap { margin-bottom: 16px; }
 .search-input {
   width: 100%; max-width: 400px;
   padding: 10px 16px;
-  border: 1px solid rgba(124,58,237,0.10);
+  border: 1px solid var(--border);
   border-radius: 10px;
-  font-size: 0.88rem; font-family: inherit; color: #1e1b4b;
+  font-size: 0.88rem; font-family: inherit; color: var(--text);
   background: #fff; outline: none;
   transition: border-color 0.15s, box-shadow 0.15s;
   box-shadow: 0 1px 2px rgba(0,0,0,0.03);
 }
-.search-input::placeholder { color: #94a3b8; }
-.search-input:focus { border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124,58,237,0.08); }
+.search-input::placeholder { color: var(--text-dim); }
+.search-input:focus { border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-light); }
 
 /* ── Воронки ────────────────────────────────────── */
 .funnel-grid {
@@ -194,14 +192,14 @@ body {
   cursor: pointer; transition: all 0.15s;
 }
 .funnel-card:hover {
-  border-color: #7c3aed; background: #fff;
+  border-color: var(--brand); background: #fff;
   box-shadow: 0 2px 10px rgba(124,58,237,0.08);
   transform: translateY(-1px);
 }
 .funnel-card-name {
   font-size: 0.78rem; font-weight: 600;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  color: #1e1b4b; margin-bottom: 2px;
+  color: var(--text); margin-bottom: 2px;
 }
 .funnel-card-price { font-size: 0.75rem; color: #059669; font-weight: 700; }
 .funnel-col-more {
@@ -209,7 +207,7 @@ body {
   padding: 4px; cursor: pointer; border-radius: 7px;
   border: 1px dashed rgba(124,58,237,0.1); margin-top: 3px; transition: all 0.15s;
 }
-.funnel-col-more:hover { color: #7c3aed; border-color: rgba(124,58,237,0.3); background: rgba(124,58,237,0.03); }
+.funnel-col-more:hover { color: var(--brand); border-color: rgba(124,58,237,0.3); background: rgba(124,58,237,0.03); }
 .funnel-col-empty { font-size: 0.7rem; color: #94a3b8; text-align: center; padding: 14px 4px; }
 
 /* Funnel total bar */
@@ -220,7 +218,7 @@ body {
   border: 1px solid rgba(124,58,237,0.06);
 }
 .funnel-total-label { font-size: 0.72rem; color: #64748b; font-weight: 600; }
-.funnel-total-value { font-size: 1.1rem; font-weight: 800; color: #1e1b4b; letter-spacing: -0.3px; margin-left: auto; }
+.funnel-total-value { font-size: 1.1rem; font-weight: 800; color: var(--text); letter-spacing: -0.3px; margin-left: auto; }
 .funnel-total-count { font-size: 0.72rem; color: #94a3b8; font-weight: 600; }
 
 /* ── Sales funnel colors ────────────────────────── */
@@ -245,8 +243,8 @@ body {
   background: #f8fafc; border: 1px solid rgba(124,58,237,0.07);
   border-radius: 12px; padding: 15px; cursor: pointer; transition: all 0.15s;
 }
-.calc-card:hover { border-color: #7c3aed; box-shadow: 0 4px 16px rgba(124,58,237,0.08); transform: translateY(-1px); }
-.calc-card h3   { font-size: 0.9rem; font-weight: 700; margin-bottom: 4px; color: #1e1b4b; }
+.calc-card:hover { border-color: var(--brand); box-shadow: 0 4px 16px rgba(124,58,237,0.08); transform: translateY(-1px); }
+.calc-card h3   { font-size: 0.9rem; font-weight: 700; margin-bottom: 4px; color: var(--text); }
 .calc-price     { font-size: 1.1rem; font-weight: 800; color: #059669; margin-bottom: 12px; letter-spacing: -0.3px; }
 .calc-actions   { display: flex; gap: 7px; }
 
@@ -258,8 +256,8 @@ body {
   font-family: inherit; cursor: pointer;
   border: none; transition: all 0.15s; text-decoration: none;
 }
-.btn-primary { background: #7c3aed; color: #fff; }
-.btn-primary:hover { background: #6d28d9; }
+.btn-primary { background: var(--brand); color: #fff; }
+.btn-primary:hover { background: var(--brand-dark); }
 .btn-success { background: rgba(5,150,105,0.08); color: #059669; border: 1px solid rgba(5,150,105,0.2); }
 .btn-success:hover { background: #059669; color: #fff; }
 
@@ -267,7 +265,7 @@ body {
 .loading { text-align: center; padding: 40px; color: #64748b; font-size: 0.88rem; }
 .empty-state { text-align: center; padding: 48px 20px; color: #64748b; }
 .empty-state-icon { font-size: 2.2rem; margin-bottom: 10px; opacity: 0.35; }
-.empty-state h3 { font-size: 0.95rem; color: #1e1b4b; font-weight: 700; }
+.empty-state h3 { font-size: 0.95rem; color: var(--text); font-weight: 700; }
 
 /* ── Адаптив ────────────────────────────────────── */
 @media (max-width: 1100px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
@@ -289,7 +287,14 @@ body {
   .stat-value { font-size: 1.5rem; font-weight: 800; }
   .stat-label { font-size: 0.65rem; }
   .search-input { max-width: 100%; font-size: 0.9rem; border-radius: 14px; padding: 12px 16px; }
-  .funnel-grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; }
+  .funnel-grid { grid-template-columns: 1fr !important; gap: 8px; }
+  .funnel-col { min-width: 0; background: var(--surface,#fff); border-radius: 12px; border: 1px solid rgba(124,58,237,0.08); padding: 0; overflow: hidden; }
+  .funnel-col-header { padding: 12px 14px; margin-bottom: 0; cursor: pointer; -webkit-tap-highlight-color: transparent; border-bottom: none; }
+  .funnel-col-count::after { content: ' \203A'; font-size: 0.8rem; margin-left: 4px; transition: transform .25s; display: inline-block; }
+  .funnel-col.fcol-open .funnel-col-count::after { transform: rotate(90deg); }
+  .funnel-summary, .funnel-cards { max-height: 0; overflow: hidden; padding: 0 14px; transition: max-height .3s ease, padding .3s ease; }
+  .funnel-col.fcol-open .funnel-summary { max-height: 60px; padding: 0 14px 4px; }
+  .funnel-col.fcol-open .funnel-cards { max-height: 2000px; padding: 0 14px 10px; }
   .funnel-card { padding: 8px 9px; }
   .funnel-sum { font-size: 0.88rem; }
   .funnel-total { padding: 8px 12px; margin-bottom: 10px; }
@@ -383,7 +388,7 @@ body {
   <div class="card" id="workshopFunnelCard">
     <div class="card-header">
       <span class="card-title">🔧 Воронка цеха</span>
-      <a href="board.html" class="card-link">Открыть всё →</a>
+      <a href="calculations.html" class="card-link">Открыть все →</a>
     </div>
     <div id="workshopFunnel">
       <div class="loading">Загрузка...</div>
@@ -392,7 +397,8 @@ body {
 
 </div>
 
-<script src="footer.js"></script>
+<script src="nav.js?v=1774551573"></script>
+<script src="footer.js?v=1774512457"></script>
 <script type="module">
 import { sb }               from './api.js';
 import { requireAuth }      from './auth.js';
@@ -428,8 +434,6 @@ const WORKSHOP_COLS = [
   { key: 'in_progress', label: 'В работе',    icon: '🔧' },
   { key: 'outsourced',  label: 'Аутсорсинг',  icon: '🏭' },
   { key: 'done',        label: 'Готово',      icon: '✅' },
-  { key: 'delivered',   label: 'Выдано',      icon: '🚗' },
-  { key: 'cancelled',   label: 'Отменён',     icon: '❌' },
 ];
 
 function normalizeWorkshopStatus(status) {
@@ -572,6 +576,18 @@ function renderFunnel(containerId, columns, data, getPrice, getName, linkHref) {
   frag.appendChild(grid);
   container.innerHTML = '';
   container.appendChild(frag);
+
+  // Мобильный аккордеон — открытие одного закрывает остальные
+  if (window.innerWidth <= 640) {
+    var allFCols = grid.querySelectorAll('.funnel-col');
+    allFCols.forEach(function(col) {
+      col.querySelector('.funnel-col-header')?.addEventListener('click', function() {
+        var wasOpen = col.classList.contains('fcol-open');
+        allFCols.forEach(function(c) { c.classList.remove('fcol-open'); });
+        if (!wasOpen) col.classList.add('fcol-open');
+      });
+    });
+  }
 }
 
 // ── Поиск ─────────────────────────────────────────────────────────
@@ -728,9 +744,10 @@ async function loadData(studioId) {
     // Статистика по всем расчётам
     renderStats(allCalcs);
 
-    // Воронка цеха — только не-черновики
+    // Воронка цеха — только не-черновики, ограничено 10 последними
     const workshopData = allCalcs
       .filter(c => c.status && c.status !== 'draft')
+      .slice(0, 10)
       .map(c => ({
         ...c,
         _status: normalizeWorkshopStatus(c.status),
@@ -742,7 +759,7 @@ async function loadData(studioId) {
       workshopData,
       c => c.final_price || c.total_price || 0,
       c => c.car_name || 'Без названия',
-      'board.html'
+      'calculations.html'
     );
   }
 }
@@ -761,7 +778,6 @@ function bindEvents() {
 // ── Точка входа ───────────────────────────────────────────────────
 async function initPage() {
   initNav();
-  document.body.style.visibility = 'visible';
 
   const user = await requireAuth({ redirectTo: 'welcome.html' });
   if (!user) return;
@@ -800,7 +816,7 @@ async function initPage() {
   await loadData(ctx.studioId);
 }
 
-document.addEventListener('DOMContentLoaded', initPage);
+initPage();
 </script>
 
 </body>

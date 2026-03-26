@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Закупка — Keep1R Partner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="theme.css">
+<style>
+:root { --font: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif; --bg: #f5f3ff; --surface: #fff; --border: rgba(124,58,237,0.10); --text: #1e1b4b; --muted: #64748b; --primary: #7c3aed; --success: #059669; --radius: 14px; --shadow: 0 1px 3px rgba(124,58,237,0.06), 0 4px 16px rgba(124,58,237,0.04); }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font); -webkit-font-smoothing: antialiased; background: var(--bg); color: var(--text); }
+.container { max-width: 820px; margin: 0 auto; padding: 24px; }
+.btn-back { display: inline-flex; align-items: center; padding: 6px 12px; border-radius: 7px; font-size: 0.78rem; font-weight: 700; color: var(--primary); background: rgba(124,58,237,0.07); border: 1px solid rgba(124,58,237,0.18); cursor: pointer; text-decoration: none; margin-bottom: 20px; }
+.btn-back:hover { background: var(--primary); color: #fff; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 14px; box-shadow: var(--shadow); }
+.card-title { font-size: 0.9rem; font-weight: 700; margin-bottom: 16px; }
+.info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px 20px; }
+.info-row { display: flex; flex-direction: column; gap: 2px; }
+.info-label { font-size: 0.66rem; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
+.info-value { font-size: 0.88rem; font-weight: 500; }
+.info-value.big { font-size: 1.1rem; font-weight: 800; color: var(--success); }
+table { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+th { text-align: left; font-size: 0.66rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); padding: 0 8px 8px 0; border-bottom: 1px solid var(--border); }
+td { padding: 9px 8px 9px 0; border-bottom: 1px solid rgba(124,58,237,0.04); }
+tr:last-child td { border-bottom: none; }
+.td-price { text-align: right; white-space: nowrap; font-weight: 700; color: var(--success); }
+.badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; }
+.empty { text-align: center; padding: 40px; color: #94a3b8; }
+@media (max-width: 640px) { .container { padding: 14px 12px 32px; } .info-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<script src="partner-nav.js"></script>
+<div class="container">
+  <a href="partner-orders.html" class="btn-back">← Все закупки</a>
+  <div id="content"><div class="empty">Загрузка...</div></div>
+</div>
+<script type="module">
+import { partnerFetch, requirePartnerAuth, fmt, fmtDate } from './partner-api.js';
+if (!requirePartnerAuth()) throw 'no auth';
+
+const STATUS_LABEL = { new: 'Новый', confirmed: 'Подтверждён', shipped: 'Отгружен', completed: 'Завершён', canceled: 'Отменён' };
+const STATUS_STYLE = { new: 'background:rgba(148,163,184,0.1);color:#64748b', confirmed: 'background:rgba(59,130,246,0.1);color:#2563eb', shipped: 'background:rgba(245,158,11,0.1);color:#b45309', completed: 'background:rgba(5,150,105,0.1);color:#059669', canceled: 'background:rgba(239,68,68,0.1);color:#ef4444' };
+
+async function init() {
+  const id = new URLSearchParams(location.search).get('id');
+  if (!id) { document.getElementById('content').innerHTML = '<div class="empty">Заказ не найден</div>'; return; }
+
+  const { data, error } = await partnerFetch('/partner/orders/' + id);
+  if (error || !data) { document.getElementById('content').innerHTML = '<div class="empty">Ошибка загрузки</div>'; return; }
+
+  const o = data.order;
+  const items = data.items || [];
+  const content = document.getElementById('content');
+
+  let html = '<div class="card"><div class="card-title">Заказ ' + (o.order_number || '—') + '</div>';
+  html += '<div class="info-grid">';
+  html += '<div class="info-row"><div class="info-label">Дата</div><div class="info-value">' + fmtDate(o.order_date) + '</div></div>';
+  html += '<div class="info-row"><div class="info-label">Статус</div><div class="info-value"><span class="badge" style="' + (STATUS_STYLE[o.status] || '') + '">' + (STATUS_LABEL[o.status] || o.status) + '</span></div></div>';
+  html += '<div class="info-row"><div class="info-label">Сумма</div><div class="info-value big">' + fmt(o.total_amount) + ' ₽</div></div>';
+  html += '</div>';
+  if (o.comment) html += '<div style="margin-top:14px;padding:10px 12px;background:var(--bg);border-radius:8px;font-size:0.82rem;color:var(--muted)">💬 ' + o.comment + '</div>';
+  html += '</div>';
+
+  if (items.length) {
+    html += '<div class="card"><div class="card-title">Позиции</div><table><thead><tr><th>Наименование</th><th>Кол-во</th><th>Ед.</th><th style="text-align:right">Цена</th><th style="text-align:right">Сумма</th></tr></thead><tbody>';
+    items.forEach(i => {
+      html += '<tr><td>' + (i.product_name || '—') + '</td><td>' + (i.quantity || '') + '</td><td>' + (i.unit || '') + '</td><td class="td-price">' + fmt(i.unit_price) + ' ₽</td><td class="td-price">' + fmt(i.total_price) + ' ₽</td></tr>';
+    });
+    html += '</tbody></table></div>';
+  }
+
+  content.innerHTML = html;
+}
+
+init();
+</script>
+</body>
+</html>

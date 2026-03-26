@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Главная — Keep1R Partner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="theme.css">
+<style>
+:root { --font: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif; --bg: #f5f3ff; --surface: #fff; --border: rgba(124,58,237,0.10); --text: #1e1b4b; --muted: #64748b; --primary: #7c3aed; --success: #059669; --radius: 14px; --shadow: 0 1px 3px rgba(124,58,237,0.06), 0 4px 16px rgba(124,58,237,0.04); }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font); -webkit-font-smoothing: antialiased; background: var(--bg); color: var(--text); }
+.container { max-width: 960px; margin: 0 auto; padding: 24px; }
+.welcome { font-size: 1.3rem; font-weight: 800; margin-bottom: 24px; }
+.welcome span { color: var(--primary); }
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 24px; }
+.kpi-card { background: var(--surface); border-radius: var(--radius); padding: 18px; box-shadow: var(--shadow); border: 1px solid var(--border); }
+.kpi-label { font-size: 0.69rem; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+.kpi-value { font-size: 1.4rem; font-weight: 800; }
+.kpi-value.green { color: var(--success); }
+.kpi-value.purple { color: var(--primary); }
+.sub-badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
+.sub-active { background: rgba(5,150,105,0.1); color: #059669; }
+.sub-expired { background: rgba(239,68,68,0.1); color: #ef4444; }
+.sub-none { background: rgba(148,163,184,0.1); color: #64748b; }
+.actions-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 24px; }
+.action-card { display: flex; align-items: center; gap: 14px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; box-shadow: var(--shadow); cursor: pointer; text-decoration: none; color: var(--text); transition: border-color 0.15s, box-shadow 0.15s; }
+.action-card:hover { border-color: rgba(124,58,237,0.3); box-shadow: 0 4px 16px rgba(124,58,237,0.1); }
+.action-icon { font-size: 1.5rem; }
+.action-label { font-size: 0.88rem; font-weight: 700; }
+.action-desc { font-size: 0.75rem; color: var(--muted); }
+@media (max-width: 640px) { .container { padding: 14px 12px 32px; } .welcome { font-size: 1.1rem; } .kpi-grid { grid-template-columns: 1fr 1fr; gap: 8px; } .kpi-card { padding: 14px; } .kpi-value { font-size: 1.1rem; } }
+</style>
+</head>
+<body>
+<script src="partner-nav.js"></script>
+<div class="container">
+  <div class="welcome" id="welcomeText">👋 Добро пожаловать</div>
+
+  <div class="kpi-grid" id="kpiGrid">
+    <div class="kpi-card"><div class="kpi-label">Закупок</div><div class="kpi-value" id="kpiOrders">—</div></div>
+    <div class="kpi-card"><div class="kpi-label">Сумма закупок</div><div class="kpi-value green" id="kpiTotal">—</div></div>
+    <div class="kpi-card"><div class="kpi-label">Подписка CRM</div><div id="kpiSub"><span class="sub-badge sub-none">— Загрузка</span></div></div>
+    <div class="kpi-card"><div class="kpi-label">Бонусный баланс</div><div class="kpi-value purple" id="kpiCashback">—</div></div>
+  </div>
+
+  <div class="actions-grid">
+    <a class="action-card" href="partner-orders.html">
+      <div class="action-icon">📦</div>
+      <div><div class="action-label">Закупки</div><div class="action-desc">История заказов плёнки</div></div>
+    </a>
+    <a class="action-card" href="partner-calculator.html">
+      <div class="action-icon">🧮</div>
+      <div><div class="action-label">Калькулятор</div><div class="action-desc">Расчёт стоимости работ</div></div>
+    </a>
+    <a class="action-card" href="partner-subscription.html">
+      <div class="action-icon">💳</div>
+      <div><div class="action-label">Подписка</div><div class="action-desc">Управление CRM-подпиской</div></div>
+    </a>
+    <a class="action-card" href="partner-cashback.html">
+      <div class="action-icon">🎁</div>
+      <div><div class="action-label">Бонусы</div><div class="action-desc">Кешбэк 1% от закупок</div></div>
+    </a>
+    <a class="action-card" href="partner-referral.html">
+      <div class="action-icon">🤝</div>
+      <div><div class="action-label">Рефералы</div><div class="action-desc">Пригласить партнёра</div></div>
+    </a>
+    <a class="action-card" href="partner-profile.html">
+      <div class="action-icon">👤</div>
+      <div><div class="action-label">Профиль</div><div class="action-desc">Настройки аккаунта</div></div>
+    </a>
+  </div>
+</div>
+
+<script type="module">
+import { partnerFetch, requirePartnerAuth, fmt, fmtDate } from './partner-api.js';
+if (!requirePartnerAuth()) throw 'no auth';
+
+async function init() {
+  const { data, error } = await partnerFetch('/partner/me');
+  if (error) { console.error('[partner] me:', error); return; }
+
+  const client = data.client || {};
+  const sub = data.subscription || {};
+  const cash = data.cashback || {};
+
+  document.getElementById('welcomeText').innerHTML = '👋 Добро пожаловать, <span>' + (client.company_name || client.contact_name || '') + '</span>';
+
+  // KPI — закупки
+  const { data: orders } = await partnerFetch('/partner/orders');
+  const orderList = orders || [];
+  document.getElementById('kpiOrders').textContent = String(orderList.length);
+  const total = orderList.reduce((s, o) => s + Number(o.total_amount || 0), 0);
+  document.getElementById('kpiTotal').textContent = fmt(total) + ' ₽';
+
+  // Подписка
+  const subEl = document.getElementById('kpiSub');
+  if (sub.status === 'active') {
+    subEl.innerHTML = '<span class="sub-badge sub-active">✅ Активна до ' + fmtDate(sub.end_date) + '</span>';
+  } else if (sub.status === 'expired') {
+    subEl.innerHTML = '<span class="sub-badge sub-expired">❌ Истекла ' + fmtDate(sub.end_date) + '</span>';
+  } else {
+    subEl.innerHTML = '<span class="sub-badge sub-none">— Не подключена</span>';
+  }
+
+  // Кешбэк
+  document.getElementById('kpiCashback').textContent = fmt(cash.balance || 0) + ' ₽';
+}
+
+init();
+</script>
+</body>
+</html>

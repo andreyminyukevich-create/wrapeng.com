@@ -10,7 +10,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="theme.css">
-<script src="nav.js"></script>
+<link rel="stylesheet" href="mobile.css?v=1774508385">
+<script src="nav.js?v=1774551573"></script>
 <style>
 :root {
   --font:-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica Neue',Arial,sans-serif;
@@ -24,7 +25,7 @@
 }
 *{box-sizing:border-box;margin:0;padding:0} html{scrollbar-gutter:stable}
 body{font-family:var(--font);-webkit-font-smoothing:antialiased;background:var(--bg);color:var(--text);min-height:100svh}
-.page{max-width:1280px;min-width:900px;margin:0 auto;padding:24px 20px 48px}
+.page{max-width:1280px;margin:0 auto;padding:24px 20px 48px}
 .page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px}
 .page-title{font-size:1.2rem;font-weight:800;letter-spacing:-0.3px} .page-title span{color:var(--primary)}
 .stats-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px}
@@ -124,6 +125,8 @@ tbody tr:last-child td{border-bottom:none} tbody tr:hover{background:#f8fafc}
     <button class="tab-btn" data-tab="commissions">💰 Комиссии</button>
     <button class="tab-btn" data-tab="calcs">📊 Расчёты</button>
     <button class="tab-btn" data-tab="blacklist">🚫 Блок-лист</button>
+    <button class="tab-btn" data-tab="partners">🤝 Партнёры</button>
+    <button class="tab-btn" data-tab="access">🔑 Доступы</button>
   </div>
   <!-- Заявки -->
   <div id="tab-requests" style="display:none">
@@ -207,6 +210,88 @@ tbody tr:last-child td{border-bottom:none} tbody tr:hover{background:#f8fafc}
       <tbody id="blacklistBody"><tr><td colspan="4" style="text-align:center;color:var(--dim)">Загрузка...</td></tr></tbody>
     </table></div></div>
   </div>
+  <!-- Доступы -->
+  <div id="tab-access" style="display:none">
+    <div class="calcs-toolbar">
+      <span class="toolbar-title">🔑 Управление доступом</span>
+      <select id="accessFilter" style="padding:6px 10px;border:1px solid var(--border);border-radius:7px;font-size:0.8rem;font-family:var(--font)">
+        <option value="all">Все</option>
+        <option value="partner">Партнёры</option>
+        <option value="trial">Триал активен</option>
+        <option value="subscribed">Подписка активна</option>
+        <option value="expired">Истекла</option>
+        <option value="none">Без доступа</option>
+      </select>
+    </div>
+    <div class="card"><div class="table-wrap"><table>
+      <colgroup><col style="width:22%"><col style="width:18%"><col style="width:10%"><col style="width:16%"><col style="width:16%"><col style="width:18%"></colgroup>
+      <thead><tr><th>Пользователь</th><th>Email</th><th>Партнёр</th><th>Триал</th><th>Подписка до</th><th>Действия</th></tr></thead>
+      <tbody id="accessBody"><tr><td colspan="6" style="text-align:center;color:var(--dim)">Загрузка...</td></tr></tbody>
+    </table></div></div>
+  </div>
+  <!-- Партнёры -->
+  <div id="tab-partners" style="display:none">
+    <div class="calcs-toolbar">
+      <span class="toolbar-title">🤝 Партнёры (покупатели плёнки)</span>
+      <button class="btn btn-primary btn-sm" id="btnNewPartner">+ Новый партнёр</button>
+    </div>
+    <div class="card"><div class="table-wrap"><table>
+      <colgroup><col style="width:22%"><col style="width:16%"><col style="width:12%"><col style="width:12%"><col style="width:12%"><col style="width:10%"><col style="width:16%"></colgroup>
+      <thead><tr><th>Студия</th><th>Контакт</th><th>Телефон</th><th>Закупок</th><th>Подписка</th><th>Баланс</th><th>Действия</th></tr></thead>
+      <tbody id="partnersBody"><tr><td colspan="7" style="text-align:center;color:var(--dim)">Загрузка...</td></tr></tbody>
+    </table></div></div>
+  </div>
+</div>
+
+<!-- Модал: новый партнёр -->
+<div class="modal-overlay" id="partnerModal">
+  <div class="modal" style="max-width:520px">
+    <h3 id="partnerModalTitle">Новый партнёр</h3>
+    <div class="form-group"><label>Название студии *</label><input type="text" id="pmCompany" placeholder="ООО Авто Класс"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="form-group"><label>Контактное лицо</label><input type="text" id="pmContact" placeholder="Иванов Иван"></div>
+      <div class="form-group"><label>Телефон</label><input type="text" id="pmPhone" placeholder="+7 999 000 00 00"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="form-group"><label>Email * (логин)</label><input type="email" id="pmEmail" placeholder="partner@studio.ru"></div>
+      <div class="form-group"><label>Город</label><input type="text" id="pmCity" placeholder="Москва"></div>
+    </div>
+    <div class="form-group"><label>Пароль *</label><input type="text" id="pmPassword" placeholder="Минимум 6 символов"></div>
+    <div class="form-group">
+      <label>Подписка CRM</label>
+      <select id="pmSubStatus">
+        <option value="none">Не активна</option>
+        <option value="active">Активировать сразу (1 год)</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="document.getElementById('partnerModal').classList.remove('active')">Отмена</button>
+      <button class="btn btn-primary" id="btnSavePartner">Создать партнёра</button>
+    </div>
+  </div>
+</div>
+
+<!-- Модал: закупка партнёру -->
+<div class="modal-overlay" id="purchaseModal">
+  <div class="modal" style="max-width:600px;max-height:90vh;overflow-y:auto">
+    <h3>Добавить закупку</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="form-group"><label>Номер заказа</label><input type="text" id="poNumber" placeholder="ЗК-001"></div>
+      <div class="form-group"><label>Дата</label><input type="date" id="poDate"></div>
+    </div>
+    <div class="form-group"><label>Статус</label>
+      <select id="poStatus"><option value="new">Новый</option><option value="confirmed">Подтверждён</option><option value="shipped">Отгружен</option><option value="completed">Завершён</option></select>
+    </div>
+    <div class="form-group"><label>Комментарий</label><input type="text" id="poComment" placeholder="Примечание..."></div>
+    <div style="font-size:0.69rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);margin:12px 0 8px">Позиции</div>
+    <div id="poLines"></div>
+    <button class="btn btn-ghost btn-sm" id="btnAddLine" style="margin-bottom:12px">+ Позиция</button>
+    <div style="text-align:right;font-weight:700;font-size:0.9rem;margin-bottom:12px">Итого: <span id="poTotal">0</span> ₽</div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="document.getElementById('purchaseModal').classList.remove('active')">Отмена</button>
+      <button class="btn btn-primary" id="btnSavePurchase">Сохранить</button>
+    </div>
+  </div>
 </div>
 
 <!-- Модал: подписка -->
@@ -265,10 +350,10 @@ tbody tr:last-child td{border-bottom:none} tbody tr:hover{background:#f8fafc}
   </div>
 </div>
 
-<script src="footer.js"></script>
+<script src="footer.js?v=1774512457"></script>
 <script type="module">
 import { sb }           from './api.js';
-import { requireAuth }  from './auth.js';
+import { requireAuth, isGlobalAdmin }  from './auth.js';
 import { escapeHtml }   from './formatters.js';
 import { confirmAction, lockButton } from './ui.js';
 
@@ -309,7 +394,7 @@ function setPills(id,pills) {
 }
 
 // ── Tab switching ─────────────────────────────────────────────────────────
-const ALL_TABS=['requests','trial','studios','referrals','commissions','calcs','blacklist'];
+const ALL_TABS=['requests','trial','studios','referrals','commissions','calcs','blacklist','partners','access'];
 function switchTab(tab) {
   ALL_TABS.forEach(t => {
     const el=document.getElementById('tab-'+t); if(el) el.style.display=t===tab?'block':'none';
@@ -317,6 +402,8 @@ function switchTab(tab) {
   document.querySelectorAll('.tab-btn[data-tab]').forEach(btn=>btn.classList.toggle('active',btn.dataset.tab===tab));
   if(tab==='calcs'&&!_calcsLoaded){ _calcsLoaded=true; loadCalcs(); }
   if(tab==='blacklist') loadBlacklist();
+  if(tab==='partners') loadPartners();
+  if(tab==='access') loadAccessTab();
 }
 
 // ── Blacklist ─────────────────────────────────────────────────────────────
@@ -768,7 +855,333 @@ function bindStaticEvents() {
   // Calcs filters
   document.getElementById('calcsStudioFilter').addEventListener('change',renderCalcs);
   document.getElementById('calcsSearch').addEventListener('input',renderCalcs);
+  // Partners
+  document.getElementById('btnNewPartner').addEventListener('click', () => {
+    ['pmCompany','pmContact','pmPhone','pmEmail','pmCity','pmPassword'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('pmSubStatus').value = 'none';
+    document.getElementById('partnerModal').classList.add('active');
+  });
+  document.getElementById('btnSavePartner').addEventListener('click', savePartner);
+  document.getElementById('btnAddLine').addEventListener('click', addPurchaseLine);
+  document.getElementById('btnSavePurchase').addEventListener('click', savePurchase);
+  document.getElementById('accessFilter').addEventListener('change', renderAccessTab);
 }
+
+// ── Partners ─────────────────────────────────────────────────────────────
+let _partners = [];
+let _partnerPurchaseClientId = null;
+
+async function loadPartners() {
+  const tbody = document.getElementById('partnersBody');
+  tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--dim)">Загрузка...</td></tr>';
+
+  const { data, error } = await sb.from('partner_clients').select('*').order('created_at', { ascending: false });
+  if (error || !data) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--dim)">Ошибка загрузки</td></tr>';
+    return;
+  }
+  _partners = data;
+
+  if (!data.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--dim)">Партнёров пока нет</td></tr>';
+    return;
+  }
+
+  // Подгружаем подписки и кешбэк
+  const ids = data.map(p => p.id);
+  const [subRes, cashRes, ordRes] = await Promise.all([
+    sb.from('partner_subscriptions').select('client_id, status, end_date').in('client_id', ids).order('created_at', { ascending: false }),
+    sb.from('partner_cashback_accounts').select('client_id, balance').in('client_id', ids),
+    sb.from('partner_orders').select('client_id').in('client_id', ids),
+  ]);
+
+  const subMap = {}, cashMap = {}, ordCount = {};
+  (subRes.data || []).forEach(s => { if (!subMap[s.client_id]) subMap[s.client_id] = s; });
+  (cashRes.data || []).forEach(c => { cashMap[c.client_id] = c.balance; });
+  (ordRes.data || []).forEach(o => { ordCount[o.client_id] = (ordCount[o.client_id] || 0) + 1; });
+
+  const fmt = n => new Intl.NumberFormat('ru-RU').format(n || 0);
+
+  tbody.innerHTML = data.map(p => {
+    const sub = subMap[p.id];
+    const subBadge = sub?.status === 'active'
+      ? '<span class="badge badge-success">Активна</span>'
+      : sub?.status === 'expired'
+        ? '<span class="badge badge-danger">Истекла</span>'
+        : '<span class="badge" style="background:var(--bg);color:var(--dim)">Нет</span>';
+    const bal = cashMap[p.id] || 0;
+    const cnt = ordCount[p.id] || 0;
+
+    return `<tr>
+      <td><strong>${e(p.company_name || '—')}</strong><div style="font-size:0.72rem;color:var(--muted)">${e(p.email || '')}</div></td>
+      <td>${e(p.contact_name || '—')}</td>
+      <td style="font-size:0.8rem">${e(p.phone || '—')}</td>
+      <td style="text-align:center">${cnt}</td>
+      <td>${subBadge}</td>
+      <td style="font-weight:700;color:var(--primary)">${fmt(bal)} ₽</td>
+      <td>
+        <button class="btn btn-sm btn-primary" onclick="openAddPurchase('${p.id}','${e(p.company_name||'')}')">+ Закупка</button>
+        <button class="btn btn-sm btn-warning" onclick="managePartnerSub('${p.id}','${e(p.company_name||'')}')">💳</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+window.openAddPurchase = function(clientId, name) {
+  _partnerPurchaseClientId = clientId;
+  document.getElementById('poNumber').value = '';
+  document.getElementById('poDate').value = new Date().toISOString().slice(0, 10);
+  document.getElementById('poStatus').value = 'new';
+  document.getElementById('poComment').value = '';
+  document.getElementById('poLines').innerHTML = '';
+  document.getElementById('poTotal').textContent = '0';
+  addPurchaseLine();
+  document.getElementById('purchaseModal').classList.add('active');
+};
+
+function addPurchaseLine() {
+  const div = document.createElement('div');
+  div.style.cssText = 'display:grid;grid-template-columns:1fr 80px 60px 90px 30px;gap:6px;margin-bottom:6px;align-items:center';
+  div.innerHTML = '<input type="text" placeholder="Наименование" class="po-name" style="padding:7px 8px;border:1px solid var(--border);border-radius:6px;font-size:0.82rem">' +
+    '<input type="number" placeholder="Кол-во" class="po-qty" min="0" step="0.01" style="padding:7px 8px;border:1px solid var(--border);border-radius:6px;font-size:0.82rem" oninput="calcLineTotal(this)">' +
+    '<input type="text" placeholder="Ед." class="po-unit" value="м" style="padding:7px 8px;border:1px solid var(--border);border-radius:6px;font-size:0.82rem">' +
+    '<input type="number" placeholder="Цена" class="po-price" min="0" step="0.01" style="padding:7px 8px;border:1px solid var(--border);border-radius:6px;font-size:0.82rem" oninput="calcLineTotal(this)">' +
+    '<button onclick="this.parentElement.remove();calcAllTotal()" style="background:none;border:none;cursor:pointer;font-size:1rem;color:var(--danger)">✕</button>';
+  document.getElementById('poLines').appendChild(div);
+}
+
+window.calcLineTotal = function() { calcAllTotal(); };
+function calcAllTotal() {
+  let total = 0;
+  document.querySelectorAll('#poLines > div').forEach(row => {
+    const qty = parseFloat(row.querySelector('.po-qty')?.value) || 0;
+    const price = parseFloat(row.querySelector('.po-price')?.value) || 0;
+    total += qty * price;
+  });
+  document.getElementById('poTotal').textContent = new Intl.NumberFormat('ru-RU').format(Math.round(total));
+}
+
+async function savePurchase() {
+  const lines = [];
+  let total = 0;
+  document.querySelectorAll('#poLines > div').forEach(row => {
+    const name = row.querySelector('.po-name')?.value?.trim();
+    const qty = parseFloat(row.querySelector('.po-qty')?.value) || 0;
+    const unit = row.querySelector('.po-unit')?.value?.trim() || '';
+    const price = parseFloat(row.querySelector('.po-price')?.value) || 0;
+    if (name && qty > 0) {
+      const lineTotal = Math.round(qty * price * 100) / 100;
+      lines.push({ product_name: name, quantity: qty, unit, unit_price: price, total_price: lineTotal });
+      total += lineTotal;
+    }
+  });
+
+  if (!lines.length) return;
+
+  const btn = document.getElementById('btnSavePurchase');
+  const release = lockButton(btn, '⏳');
+
+  const { data: order, error } = await sb.from('partner_orders').insert({
+    client_id: _partnerPurchaseClientId,
+    order_number: document.getElementById('poNumber').value.trim() || null,
+    order_date: document.getElementById('poDate').value,
+    status: document.getElementById('poStatus').value,
+    total_amount: total,
+    comment: document.getElementById('poComment').value.trim() || null,
+  }).select().single();
+
+  if (error) { release(); console.error('[admin] savePurchase:', error); return; }
+
+  // Вставляем позиции
+  for (const line of lines) {
+    await sb.from('partner_order_items').insert({ order_id: order.id, ...line });
+  }
+
+  // Если статус completed — начисляем кешбэк
+  if (document.getElementById('poStatus').value === 'completed' && total > 0) {
+    const cashback = Math.round(total * 0.01 * 100) / 100;
+    await sb.from('partner_cashback_transactions').insert({
+      client_id: _partnerPurchaseClientId, type: 'accrual', amount: cashback,
+      source_type: 'purchase', source_id: order.id,
+      comment: '1% от заказа ' + (document.getElementById('poNumber').value.trim() || order.id),
+    });
+    // Обновляем баланс
+    const { data: existing } = await sb.from('partner_cashback_accounts').select('*').eq('client_id', _partnerPurchaseClientId);
+    if (existing?.length) {
+      await sb.from('partner_cashback_accounts').update({
+        balance: (parseFloat(existing[0].balance) || 0) + cashback,
+        total_earned: (parseFloat(existing[0].total_earned) || 0) + cashback,
+      }).eq('client_id', _partnerPurchaseClientId);
+    } else {
+      await sb.from('partner_cashback_accounts').insert({
+        client_id: _partnerPurchaseClientId, balance: cashback, total_earned: cashback,
+      });
+    }
+  }
+
+  release();
+  document.getElementById('purchaseModal').classList.remove('active');
+  loadPartners();
+}
+
+window.managePartnerSub = async function(clientId, name) {
+  const ok = await confirmAction({ message: `Активировать подписку CRM для «${name}» на 1 год?`, confirmText: 'Активировать' });
+  if (!ok) return;
+  const now = new Date();
+  const endDate = new Date(now.getTime() + 365 * 86400000).toISOString().slice(0, 10);
+  await sb.from('partner_subscriptions').insert({
+    client_id: clientId, subscription_type: 'annual', status: 'active',
+    start_date: now.toISOString().slice(0, 10), end_date: endDate, price: 19900, payment_status: 'manual',
+  });
+  loadPartners();
+};
+
+async function savePartner() {
+  const company = document.getElementById('pmCompany').value.trim();
+  const email = document.getElementById('pmEmail').value.trim();
+  const password = document.getElementById('pmPassword').value;
+  if (!company || !email || password.length < 6) return;
+
+  const btn = document.getElementById('btnSavePartner');
+  const release = lockButton(btn, '⏳');
+
+  try {
+    // Создаём пользователя через API
+    const regRes = await fetch('/api/auth/register', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password, role: 'partner' }),
+    });
+    const regData = await regRes.json();
+    if (!regRes.ok) throw new Error(regData.message || 'Ошибка регистрации');
+
+    const profileId = regData.user?.id || regData.id;
+    const refCode = 'KEEP-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+
+    // Создаём запись партнёра
+    const { data: client, error: cErr } = await sb.from('partner_clients').insert({
+      profile_id: profileId, company_name: company,
+      contact_name: document.getElementById('pmContact').value.trim() || null,
+      phone: document.getElementById('pmPhone').value.trim() || null,
+      email, city: document.getElementById('pmCity').value.trim() || null,
+      referral_code: refCode,
+    }).select().single();
+
+    if (cErr) throw cErr;
+
+    // Кешбэк аккаунт
+    await sb.from('partner_cashback_accounts').insert({ client_id: client.id, balance: 0, total_earned: 0 });
+
+    // Подписка
+    if (document.getElementById('pmSubStatus').value === 'active') {
+      const now = new Date();
+      await sb.from('partner_subscriptions').insert({
+        client_id: client.id, subscription_type: 'annual', status: 'active',
+        start_date: now.toISOString().slice(0, 10),
+        end_date: new Date(now.getTime() + 365 * 86400000).toISOString().slice(0, 10),
+        price: 19900, payment_status: 'manual',
+      });
+    }
+
+    release();
+    document.getElementById('partnerModal').classList.remove('active');
+    loadPartners();
+  } catch (err) {
+    release();
+    console.error('[admin] savePartner:', err);
+    alert('Ошибка: ' + err.message);
+  }
+}
+
+// ── Access management ─────────────────────────────────────────────────────
+let _allProfiles = [];
+
+async function loadAccessTab() {
+  const tbody = document.getElementById('accessBody');
+  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--dim)">Загрузка...</td></tr>';
+
+  let data;
+  try {
+    const token = localStorage.getItem('k1r_token');
+    const res = await fetch('/api/admin/profiles', { headers: { 'Authorization': 'Bearer ' + token } });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    data = await res.json();
+  } catch (err) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--dim)">Ошибка: ' + (err.message||'') + '</td></tr>';
+    return;
+  }
+  _allProfiles = data;
+  renderAccessTab();
+}
+
+function renderAccessTab() {
+  const tbody = document.getElementById('accessBody');
+  const filter = document.getElementById('accessFilter').value;
+  const now = new Date();
+
+  let rows = _allProfiles;
+  if (filter === 'partner') rows = rows.filter(p => p.is_partner);
+  if (filter === 'trial') rows = rows.filter(p => p.trial_ends_at && new Date(p.trial_ends_at) > now);
+  if (filter === 'subscribed') rows = rows.filter(p => p.subscription_ends_at && new Date(p.subscription_ends_at) > now);
+  if (filter === 'expired') rows = rows.filter(p => (p.trial_ends_at && new Date(p.trial_ends_at) <= now) || (p.subscription_ends_at && new Date(p.subscription_ends_at) <= now));
+  if (filter === 'none') rows = rows.filter(p => !p.is_partner && !p.trial_ends_at && !p.subscription_ends_at);
+
+  if (!rows.length) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--dim)">Пусто</td></tr>'; return; }
+
+  const fmtD = d => d ? new Date(d).toLocaleDateString('ru-RU') : '—';
+  const fmt = n => new Intl.NumberFormat('ru-RU').format(n || 0);
+
+  tbody.innerHTML = rows.map(p => {
+    const trialActive = p.trial_ends_at && new Date(p.trial_ends_at) > now;
+    const subActive = p.subscription_ends_at && new Date(p.subscription_ends_at) > now;
+    const trialBadge = trialActive
+      ? '<span class="badge badge-trial" style="background:rgba(245,158,11,0.1);color:#b45309">Активен до ' + fmtD(p.trial_ends_at) + '</span>'
+      : p.trial_ends_at
+        ? '<span class="badge" style="background:#f1f5f9;color:var(--dim)">Истёк ' + fmtD(p.trial_ends_at) + '</span>'
+        : '<span style="color:var(--dim);font-size:0.78rem">—</span>';
+    const subBadge = subActive
+      ? '<span class="badge badge-success">до ' + fmtD(p.subscription_ends_at) + '</span>'
+      : p.subscription_ends_at
+        ? '<span class="badge badge-danger">Истекла ' + fmtD(p.subscription_ends_at) + '</span>'
+        : '<span style="color:var(--dim);font-size:0.78rem">—</span>';
+    const partnerBadge = p.is_partner ? '<span class="badge" style="background:rgba(124,58,237,0.08);color:var(--primary)">Да</span>' : '—';
+
+    return '<tr>' +
+      '<td><strong>' + e(p.email || '—') + '</strong><div style="font-size:0.7rem;color:var(--dim)">' + (p.role || 'owner') + '</div></td>' +
+      '<td style="font-size:0.8rem">' + e(p.email || '') + '</td>' +
+      '<td>' + partnerBadge + '</td>' +
+      '<td>' + trialBadge + '</td>' +
+      '<td>' + subBadge + '</td>' +
+      '<td>' +
+        '<button class="btn btn-sm btn-primary" onclick="grantTrial(\'' + p.id + '\')">+72ч</button> ' +
+        '<button class="btn btn-sm btn-warning" onclick="grantSub(\'' + p.id + '\',30)">+30д</button> ' +
+        '<button class="btn btn-sm btn-success" onclick="grantSub(\'' + p.id + '\',365)">+1г</button>' +
+      '</td></tr>';
+  }).join('');
+}
+
+window.grantTrial = async function(userId) {
+  const trialEnd = new Date(Date.now() + 72 * 3600 * 1000);
+  const token = localStorage.getItem('k1r_token');
+  await fetch('/api/admin/profiles/' + userId, { method: 'PATCH', headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }, body: JSON.stringify({ trial_ends_at: trialEnd.toISOString() }) });
+  loadAccessTab();
+};
+
+window.grantSub = async function(userId, days) {
+  const token = localStorage.getItem('k1r_token');
+  const profRes = await fetch('/api/admin/profiles', { headers: { 'Authorization': 'Bearer ' + token } });
+  const profiles = await profRes.json();
+  const prof = profiles.find(p => p.id === userId);
+  const current = prof?.subscription_ends_at;
+  const base = (current && new Date(current) > new Date()) ? new Date(current) : new Date();
+  const end = new Date(base.getTime() + days * 86400000);
+  await fetch('/api/admin/profiles/' + userId, { method: 'PATCH', headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }, body: JSON.stringify({ subscription_ends_at: end.toISOString() }) });
+  // Синхронизируем studios
+  const { data: sm } = await sb.from('studio_members').select('studio_id').eq('user_id', userId).eq('is_active', true);
+  if (sm?.[0]?.studio_id) {
+    await sb.from('studios').update({ subscription_tier: 'active', subscription_expires_at: end.toISOString() }).eq('id', sm[0].studio_id);
+  }
+  loadAccessTab();
+};
 
 // ── Init ──────────────────────────────────────────────────────────────────
 async function initPage() {
@@ -778,7 +1191,7 @@ async function initPage() {
 
   const {data:{session}}=await sb.auth.getSession();
   if(!session){window.location.href='welcome.html';return;}
-  if(session.user.id!==ADMIN_USER_ID){
+  if(session.user.id!==ADMIN_USER_ID && !isGlobalAdmin(session.user)){
     document.body.innerHTML='<div style="text-align:center;padding:60px;font-family:sans-serif"><h2>🚫 Доступ запрещён</h2><p style="color:#64748b;margin-top:8px">Эта страница только для администратора</p><a href="dashboard.html" style="color: #7c3aed">← Вернуться</a></div>';
     return;
   }
@@ -788,7 +1201,7 @@ async function initPage() {
   await loadRequests();
 }
 
-document.addEventListener('DOMContentLoaded', initPage);
+initPage();
 </script>
 </body>
 </html>

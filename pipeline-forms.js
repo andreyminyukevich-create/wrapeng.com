@@ -48,6 +48,14 @@ const ACCEPT_HTML = `
     <div style="font-size:0.69rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--text-muted);margin-bottom:8px;margin-top:12px">Фото</div>
     <div id="acceptPhotos" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:13px"></div>
 
+    <div style="font-size:0.69rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--text-muted);margin-bottom:8px;margin-top:12px">Фотофиксация</div>
+    <div style="margin-bottom:13px">
+      <input type="file" id="acceptPhotoInput" accept="image/*" capture="environment" multiple style="display:none">
+      <button type="button" id="btnAcceptPhoto" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;background:rgba(124,58,237,0.08);color:#7c3aed;border:1px solid rgba(124,58,237,0.2);cursor:pointer;font-size:0.82rem;font-weight:700;font-family:inherit">📷 Сделать фото</button>
+      <span id="acceptPhotoCount" style="font-size:0.75rem;color:#64748b;margin-left:8px"></span>
+      <div id="acceptPhotoPreview" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"></div>
+    </div>
+
     <div style="font-size:0.69rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--text-muted);margin-bottom:8px;margin-top:12px">Подтверждение</div>
     <label style="display:flex;align-items:center;gap:10px;cursor:pointer;margin-bottom:10px">
       <input type="checkbox" id="acceptClientAgreed" style="width:auto;min-width:18px;min-height:18px">
@@ -67,7 +75,14 @@ const ACCEPT_HTML = `
 `;
 
 const EQUIPMENT_ITEMS = ['Запаска', 'Домкрат', 'Аптечка', 'Огнетушитель', 'Документы', 'Ключи'];
-const PHOTO_ZONES = ['Перед', 'Зад', 'Лев', 'Прав', 'Салон', 'Багаж'];
+const PHOTO_ZONES = [
+  { key: 'перед', label: 'Спереди' },
+  { key: 'зад',   label: 'Сзади' },
+  { key: 'лев',   label: 'Слева' },
+  { key: 'прав',  label: 'Справа' },
+  { key: 'салон', label: 'Салон' },
+  { key: 'багаж', label: 'Багажник' },
+];
 
 // ── Инъекция HTML ─────────────────────────────────────────────────
 function injectAccept() {
@@ -88,9 +103,14 @@ function injectAccept() {
   PHOTO_ZONES.forEach(zone => {
     const label = document.createElement('label');
     label.style.cssText = 'display:flex;align-items:center;gap:6px;font-size:0.85rem;cursor:pointer';
-    label.innerHTML = `<input type="checkbox" data-key="${zone.toLowerCase()}" style="width:auto"> ${zone}`;
+    label.innerHTML = `<input type="checkbox" data-key="${zone.key}" style="width:auto"> ${zone.label}`;
     phContainer.appendChild(label);
   });
+
+  // Bind photo upload
+  const photoInput = document.getElementById('acceptPhotoInput');
+  document.getElementById('btnAcceptPhoto').addEventListener('click', () => photoInput.click());
+  photoInput.addEventListener('change', handleAcceptPhotos);
 
   // Bind events
   document.getElementById('btnAcceptCancel').addEventListener('click', () => {
@@ -101,6 +121,61 @@ function injectAccept() {
     if (e.target === document.getElementById('modalAccept')) {
       document.getElementById('modalAccept').classList.remove('active');
     }
+  });
+}
+
+// ── Фотофиксация ────────────────────────────────────────────────
+let _acceptPhotos = [];
+
+function compressImage(file, maxW, quality) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const img = new Image();
+      img.onload = function() {
+        const canvas = document.createElement('canvas');
+        let w = img.width, h = img.height;
+        if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+async function handleAcceptPhotos() {
+  const input = document.getElementById('acceptPhotoInput');
+  const files = Array.from(input.files || []);
+  for (const file of files) {
+    if (!file.type.startsWith('image/')) continue;
+    const dataUrl = await compressImage(file, 800, 0.6);
+    _acceptPhotos.push({ name: file.name, data: dataUrl, ts: new Date().toISOString() });
+  }
+  input.value = '';
+  renderAcceptPhotoPreview();
+}
+
+function renderAcceptPhotoPreview() {
+  const preview = document.getElementById('acceptPhotoPreview');
+  const count = document.getElementById('acceptPhotoCount');
+  if (!preview) return;
+  count.textContent = _acceptPhotos.length ? _acceptPhotos.length + ' фото' : '';
+  preview.innerHTML = '';
+  _acceptPhotos.forEach((p, i) => {
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'position:relative;width:60px;height:60px;border-radius:8px;overflow:hidden;border:1px solid rgba(124,58,237,0.15)';
+    const img = document.createElement('img');
+    img.src = p.data;
+    img.style.cssText = 'width:100%;height:100%;object-fit:cover';
+    const del = document.createElement('button');
+    del.style.cssText = 'position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,0.5);color:#fff;border:none;cursor:pointer;font-size:10px;line-height:1;display:flex;align-items:center;justify-content:center';
+    del.textContent = '✕';
+    del.onclick = function() { _acceptPhotos.splice(i, 1); renderAcceptPhotoPreview(); };
+    wrap.append(img, del);
+    preview.appendChild(wrap);
   });
 }
 
@@ -124,6 +199,7 @@ function gatherAcceptanceForm() {
     photo_checks,
     client_agreed: document.getElementById('acceptClientAgreed').checked,
     notes: document.getElementById('acceptNotes').value.trim() || null,
+    photos: _acceptPhotos.length ? _acceptPhotos : null,
   };
 }
 
@@ -141,6 +217,8 @@ function openModalAccept(calcId, carName) {
   document.getElementById('acceptDamages').value = '';
   document.getElementById('acceptClientAgreed').checked = false;
   document.getElementById('acceptNotes').value = '';
+  _acceptPhotos = [];
+  renderAcceptPhotoPreview();
   document.querySelectorAll('#acceptEquipment input[type=checkbox], #acceptPhotos input[type=checkbox]').forEach(cb => {
     cb.checked = false;
   });
@@ -787,6 +865,12 @@ const DELIVER_HTML = `
       <textarea id="deliverNote" rows="2" placeholder="Пожелания, замечания..."></textarea>
     </div>
 
+    <div style="font-size:0.69rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--text-muted);margin-bottom:8px;margin-top:12px">Подпись клиента</div>
+    <div style="position:relative;border:1.5px solid rgba(124,58,237,0.15);border-radius:10px;background:#fafbfd;margin-bottom:12px">
+      <canvas id="signatureCanvas" width="480" height="140" style="width:100%;height:140px;display:block;touch-action:none;cursor:crosshair"></canvas>
+      <button type="button" id="btnClearSign" style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,0.06);border:none;border-radius:6px;padding:3px 8px;cursor:pointer;font-size:0.7rem;color:#64748b;font-weight:600">Очистить</button>
+    </div>
+
     <div class="modal-footer">
       <button class="btn btn-secondary" id="btnDeliverCancel">Отмена</button>
       <button class="btn" style="background:var(--success);color:#fff" id="btnDeliverSave">Выдать</button>
@@ -838,6 +922,53 @@ function injectDeliver() {
       document.getElementById('modalDeliver').classList.remove('active');
     }
   });
+
+  // ── Подпись клиента (canvas) ──
+  initSignatureCanvas();
+}
+
+let _signCtx = null;
+let _signing = false;
+
+function initSignatureCanvas() {
+  const canvas = document.getElementById('signatureCanvas');
+  if (!canvas) return;
+  _signCtx = canvas.getContext('2d');
+  _signCtx.strokeStyle = '#1e1b4b';
+  _signCtx.lineWidth = 2;
+  _signCtx.lineCap = 'round';
+  _signCtx.lineJoin = 'round';
+
+  function getPos(e) {
+    const r = canvas.getBoundingClientRect();
+    const t = e.touches ? e.touches[0] : e;
+    return { x: (t.clientX - r.left) * (canvas.width / r.width), y: (t.clientY - r.top) * (canvas.height / r.height) };
+  }
+  function start(e) { e.preventDefault(); _signing = true; const p = getPos(e); _signCtx.beginPath(); _signCtx.moveTo(p.x, p.y); }
+  function move(e) { if (!_signing) return; e.preventDefault(); const p = getPos(e); _signCtx.lineTo(p.x, p.y); _signCtx.stroke(); }
+  function end() { _signing = false; }
+
+  canvas.addEventListener('mousedown', start);
+  canvas.addEventListener('mousemove', move);
+  canvas.addEventListener('mouseup', end);
+  canvas.addEventListener('mouseleave', end);
+  canvas.addEventListener('touchstart', start, { passive: false });
+  canvas.addEventListener('touchmove', move, { passive: false });
+  canvas.addEventListener('touchend', end);
+
+  document.getElementById('btnClearSign').addEventListener('click', () => {
+    _signCtx.clearRect(0, 0, canvas.width, canvas.height);
+  });
+}
+
+function getSignatureData() {
+  const canvas = document.getElementById('signatureCanvas');
+  if (!canvas || !_signCtx) return null;
+  // Проверяем пустой ли canvas
+  const blank = document.createElement('canvas');
+  blank.width = canvas.width; blank.height = canvas.height;
+  if (canvas.toDataURL() === blank.toDataURL()) return null;
+  return canvas.toDataURL('image/png', 0.8);
 }
 
 function gatherDeliverForm() {
@@ -859,7 +990,8 @@ function gatherDeliverForm() {
     paymentBreakdown = { [method]: totalAmount };
   }
 
-  return { payment_method: method, payment_breakdown: paymentBreakdown, total_amount: totalAmount, vat_percent: vatPercent, notes, delivered_by: deliveredBy };
+  const signature = getSignatureData();
+  return { payment_method: method, payment_breakdown: paymentBreakdown, total_amount: totalAmount, vat_percent: vatPercent, notes, delivered_by: deliveredBy, client_signature: signature };
 }
 
 function openModalDeliver(calcId, carName, price) {
@@ -878,6 +1010,9 @@ function openModalDeliver(calcId, carName, price) {
   document.getElementById('mixedTotal').textContent = '';
   document.getElementById('deliverBy').value   = '';
   document.getElementById('deliverNote').value = '';
+  // Очистить canvas подписи
+  const signCanvas = document.getElementById('signatureCanvas');
+  if (signCanvas) signCanvas.getContext('2d').clearRect(0, 0, signCanvas.width, signCanvas.height);
 
   document.getElementById('modalDeliver').classList.add('active');
 }

@@ -6,6 +6,8 @@
 (function () {
 'use strict';
 
+function esc(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
 const CSS = `
 #bpOverlay {
   display:none; position:fixed; inset:0; z-index:4000;
@@ -157,11 +159,11 @@ function roleRu(r) { return ROLE_RU[r] || r || 'Сотрудник'; }
 function toISO(d) {
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
-function parseDate(s) { const [y,m,d]=s.split('-'); return new Date(+y,+m-1,+d); }
-function formatRu(s)  { return parseDate(s).toLocaleDateString('ru-RU',{day:'numeric',month:'short'}); }
+function parseDate(s) { if(!s) return null; const [y,m,d]=s.split('-'); const dt=new Date(+y,+m-1,+d); return isNaN(dt.getTime())?null:dt; }
+function formatRu(s)  { const d=parseDate(s); if(!d) return '—'; return d.toLocaleDateString('ru-RU',{day:'numeric',month:'short'}); }
 function fmt(n)       { return new Intl.NumberFormat('ru-RU').format(n||0); }
 function datesOverlap(f1,t1,f2,t2) { return f1<=t2 && t1>=f2; }
-function daysBetween(a,b) { return Math.round((parseDate(b)-parseDate(a))/86400000)+1; }
+function daysBetween(a,b) { const da=parseDate(a),db=parseDate(b); if(!da||!db) return 0; return Math.round((db-da)/86400000)+1; }
 
 function buildDOM() {
   if (document.getElementById('bpOverlay')) return;
@@ -243,7 +245,7 @@ async function loadData() {
       initSvcState();
       renderServices();
       const te=document.getElementById('bpCarTitle'), pe=document.getElementById('bpCarPrice');
-      if (te) te.innerHTML=`&#x1F4C5; ${c.car_name||'Авто'}`;
+      if (te) te.innerHTML=`&#x1F4C5; ${esc(c.car_name||'Авто')}`;
       if (pe) pe.innerHTML=`&#x20BD; ${fmt(c.final_price||c.total_price||0)}`;
     }
   }
@@ -489,7 +491,7 @@ window.BookingPopup = {
     _calcId=id||null;
     const calc=_calcId?_calcs.find(c=>c.id===_calcId):null;
     const te=document.getElementById('bpCarTitle'), pe=document.getElementById('bpCarPrice');
-    if(te) te.innerHTML=calc?`&#x1F4C5; ${calc.car_name}`:'&#x1F4C5; Записать авто';
+    if(te) te.innerHTML=calc?`&#x1F4C5; ${esc(calc.car_name)}`:'&#x1F4C5; Записать авто';
     if(pe) pe.innerHTML=calc?`&#x20BD; ${fmt(calc.final_price||calc.total_price||0)}`:'';
     _calcServices=calc?extractServices(calc):[]; _svcState={}; _openSvc=null;
     initSvcState(); renderServices(); renderPosts();

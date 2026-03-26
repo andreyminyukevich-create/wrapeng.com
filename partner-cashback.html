@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Бонусы — Keep1R Partner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="theme.css">
+<style>
+:root { --font: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif; --bg: #f5f3ff; --surface: #fff; --border: rgba(124,58,237,0.10); --text: #1e1b4b; --muted: #64748b; --primary: #7c3aed; --success: #059669; --danger: #ef4444; --radius: 14px; --shadow: 0 1px 3px rgba(124,58,237,0.06), 0 4px 16px rgba(124,58,237,0.04); }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font); -webkit-font-smoothing: antialiased; background: var(--bg); color: var(--text); }
+.container { max-width: 1280px; margin: 0 auto; padding: 24px; }
+h1 { font-size: 1.3rem; font-weight: 800; margin-bottom: 24px; }
+.kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px; }
+.kpi-card { background: var(--surface); border-radius: var(--radius); padding: 18px; box-shadow: var(--shadow); border: 1px solid var(--border); text-align: center; }
+.kpi-label { font-size: 0.69rem; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+.kpi-value { font-size: 1.4rem; font-weight: 800; }
+.rules { background: var(--surface); border-radius: var(--radius); padding: 20px; border: 1px solid var(--border); box-shadow: var(--shadow); margin-bottom: 24px; font-size: 0.84rem; line-height: 1.7; color: var(--muted); }
+.rules h3 { font-size: 0.85rem; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+.rules ul { padding-left: 20px; }
+.table-wrap { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--border); overflow: hidden; }
+.table-header { padding: 16px 20px; border-bottom: 1px solid var(--border); font-weight: 700; font-size: 0.92rem; }
+.table-scroll { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+th { padding: 10px 16px; text-align: left; font-size: 0.69rem; font-weight: 700; color: var(--muted); text-transform: uppercase; border-bottom: 1px solid var(--border); background: rgba(124,58,237,0.02); white-space: nowrap; }
+td { padding: 10px 16px; font-size: 0.85rem; border-bottom: 1px solid rgba(124,58,237,0.04); }
+tr:last-child td { border-bottom: none; }
+.amount-plus { color: var(--success); font-weight: 700; }
+.amount-minus { color: var(--danger); font-weight: 700; }
+.empty { text-align: center; padding: 40px; color: #94a3b8; }
+@media (max-width: 640px) { .container { padding: 14px 12px 32px; } .kpi-grid { grid-template-columns: 1fr; gap: 8px; } table { min-width: 500px; } }
+</style>
+</head>
+<body>
+<script src="partner-nav.js"></script>
+<div class="container">
+  <h1>🎁 Бонусный баланс</h1>
+  <div class="kpi-grid">
+    <div class="kpi-card"><div class="kpi-label">Текущий баланс</div><div class="kpi-value" id="kpiBalance" style="color:var(--primary)">—</div></div>
+    <div class="kpi-card"><div class="kpi-label">Начислено всего</div><div class="kpi-value" id="kpiEarned" style="color:var(--success)">—</div></div>
+    <div class="kpi-card"><div class="kpi-label">Потрачено всего</div><div class="kpi-value" id="kpiSpent" style="color:var(--muted)">—</div></div>
+  </div>
+
+  <div class="rules">
+    <h3>Как начисляются бонусы</h3>
+    <ul>
+      <li>1% от суммы каждой завершённой закупки</li>
+      <li>Начисление автоматически при статусе "Завершён"</li>
+      <li>При возврате — бонусы пересчитываются</li>
+    </ul>
+    <h3 style="margin-top:12px">Как использовать</h3>
+    <ul>
+      <li>Только на оплату подписки Keep1R CRM</li>
+      <li>Нельзя вывести деньгами или передать</li>
+    </ul>
+  </div>
+
+  <div class="table-wrap">
+    <div class="table-header">История операций</div>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Дата</th><th>Тип</th><th>Основание</th><th style="text-align:right">Сумма</th><th style="text-align:right">Баланс после</th></tr></thead>
+        <tbody id="tbody"><tr><td colspan="5" class="empty">Загрузка...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<script type="module">
+import { partnerFetch, requirePartnerAuth, fmt, fmtDate } from './partner-api.js';
+if (!requirePartnerAuth()) throw 'no auth';
+
+const TYPE_LABEL = { accrual: 'Начисление', write_off: 'Списание', correction: 'Корректировка', reversal: 'Отмена' };
+
+async function init() {
+  const { data, error } = await partnerFetch('/partner/cashback');
+  if (error) { document.getElementById('tbody').innerHTML = '<tr><td colspan="5" class="empty">Ошибка загрузки</td></tr>'; return; }
+
+  const acc = data.account || {};
+  const history = data.history || [];
+
+  document.getElementById('kpiBalance').textContent = fmt(acc.balance || 0) + ' ₽';
+  document.getElementById('kpiEarned').textContent = fmt(acc.total_earned || 0) + ' ₽';
+  document.getElementById('kpiSpent').textContent = fmt(acc.total_spent || 0) + ' ₽';
+
+  if (!history.length) { document.getElementById('tbody').innerHTML = '<tr><td colspan="5" class="empty">Операций пока нет</td></tr>'; return; }
+
+  document.getElementById('tbody').innerHTML = history.map(h => {
+    const isPlus = h.type === 'accrual';
+    const cls = isPlus ? 'amount-plus' : 'amount-minus';
+    const sign = isPlus ? '+' : '-';
+    return `<tr>
+      <td>${fmtDate(h.created_at)}</td>
+      <td>${TYPE_LABEL[h.type] || h.type}</td>
+      <td style="color:var(--muted);font-size:0.8rem">${h.comment || '—'}</td>
+      <td class="${cls}" style="text-align:right">${sign}${fmt(Math.abs(h.amount))} ₽</td>
+      <td style="text-align:right;font-weight:600">${fmt(h.balance_after)} ₽</td>
+    </tr>`;
+  }).join('');
+}
+
+init();
+</script>
+</body>
+</html>

@@ -9,9 +9,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="theme.css">
-<script src="nav.js"></script>
+<link rel="stylesheet" href="mobile.css?v=1774508385">
 <style>
-body { visibility: hidden; }
 :root {
   --font:         -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
   --bg:           #f5f3ff;
@@ -253,13 +252,28 @@ html, body {
 .btn-danger    { background: rgba(220,38,38,0.07); color: var(--danger); border: 1px solid rgba(220,38,38,0.15); }
 .btn-danger:hover { background: rgba(220,38,38,0.14); }
 
-@media (max-width: 640px) {
-  .board-outer  { padding: 10px 10px 24px; }
+@media (max-width: 768px) {
+  .board-outer  { padding: 10px 10px 24px; overflow-x: visible; }
+  .board-wrap   { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
   .board-toolbar { padding: 10px 10px 0; }
-  .column       { width: 240px; max-height: calc(100svh - 160px); }
-  .modal-content { padding: 22px 18px 20px; }
+  .column       { width: 100%; max-height: none; border-top-width: 3px; }
+  .column-header { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+  .column-cards { max-height: 0; overflow: hidden; padding: 0 10px; transition: max-height .3s ease, padding .3s ease; }
+  .column.col-open .column-cards { max-height: 2000px; padding: 10px; }
+  .column-count::after { content: ' \203A'; font-size: 0.8rem; margin-left: 4px; transition: transform .25s; display: inline-block; }
+  .column.col-open .column-count::after { transform: rotate(90deg); }
+  /* Карточки лидов на мобиле */
+  .kanban-card { cursor: pointer; padding: 14px; border-radius: 14px; }
+  .kanban-card:active { transform: scale(0.98); transition: transform 0.1s; }
+  .kanban-card:hover { transform: none; box-shadow: none; }
+  .card-name { white-space: normal; font-size: 0.9rem; }
+  .card-car  { white-space: normal; }
+  .card-comment, .card-reject-reason { white-space: normal; }
+  .modal-content { padding: 22px 18px 20px; max-width: 100% !important; width: 100% !important; border-radius: 20px 20px 0 0 !important; max-height: 85dvh !important; align-self: flex-end; }
+  .modal-overlay.active { align-items: flex-end !important; }
   .modal-footer  { flex-direction: column-reverse; gap: 7px; }
   .modal-footer .btn { width: 100%; }
+  .form-row { grid-template-columns: 1fr !important; }
 }
 </style>
 </head>
@@ -283,8 +297,8 @@ html, body {
 </div>
 
 <!-- Modal: Новый / Редактировать лид -->
-<div class="modal" id="modalLead">
-  <div class="modal-content">
+<div class="modal" id="modalLead" onclick="if(event.target===this)closeLeadModal()">
+  <div class="modal-content" onclick="event.stopPropagation()">
     <div class="modal-title" id="leadModalTitle">Новый лид</div>
     <div class="form-row">
       <div class="form-group"><label>Фамилия</label><input id="f-last" placeholder="Иванов"></div>
@@ -319,8 +333,8 @@ html, body {
 </div>
 
 <!-- Modal: Комментарий при смене статуса -->
-<div class="modal" id="modalMove">
-  <div class="modal-content">
+<div class="modal" id="modalMove" onclick="if(event.target===this){this.classList.remove('active')}">
+  <div class="modal-content" onclick="event.stopPropagation()">
     <div class="modal-title" id="moveModalTitle">Перемещение лида</div>
     <div class="form-group">
       <label>Комментарий</label>
@@ -334,8 +348,8 @@ html, body {
 </div>
 
 <!-- Modal: Причина отказа -->
-<div class="modal" id="modalReject">
-  <div class="modal-content">
+<div class="modal" id="modalReject" onclick="if(event.target===this){this.classList.remove('active')}">
+  <div class="modal-content" onclick="event.stopPropagation()">
     <div class="modal-title">Причина отказа</div>
     <div class="form-group">
       <label>Причина</label>
@@ -359,7 +373,8 @@ html, body {
   </div>
 </div>
 
-<script src="footer.js"></script>
+<script src="nav.js?v=1774551573"></script>
+<script src="footer.js?v=1774512457"></script>
 <script type="module">
 import { sb }               from './api.js';
 import { requireAuth }      from './auth.js';
@@ -401,7 +416,6 @@ const REJECT_LABELS = {
 // ── Init ─────────────────────────────────────────────────────────────
 async function init() {
   initNav();
-  document.body.style.visibility = 'visible';
 
   // 1. Проверяем авторизацию
   const user = await requireAuth({ redirectTo: 'welcome.html' });
@@ -541,6 +555,18 @@ function renderBoard() {
   board.appendChild(frag);
   applySearch();
   updateBadge(total);
+
+  // Мобильный аккордеон — открытие одного закрывает остальные
+  if (window.innerWidth <= 768) {
+    var allCols = board.querySelectorAll('.column');
+    allCols.forEach(function(col) {
+      col.querySelector('.column-header').addEventListener('click', function() {
+        var wasOpen = col.classList.contains('col-open');
+        allCols.forEach(function(c) { c.classList.remove('col-open'); });
+        if (!wasOpen) col.classList.add('col-open');
+      });
+    });
+  }
 }
 
 // ── Build card ───────────────────────────────────────────────────────

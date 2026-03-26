@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Закупки — Keep1R Partner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="theme.css">
+<style>
+:root { --font: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif; --bg: #f5f3ff; --surface: #fff; --border: rgba(124,58,237,0.10); --text: #1e1b4b; --muted: #64748b; --primary: #7c3aed; --success: #059669; --radius: 14px; --shadow: 0 1px 3px rgba(124,58,237,0.06), 0 4px 16px rgba(124,58,237,0.04); }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font); -webkit-font-smoothing: antialiased; background: var(--bg); color: var(--text); }
+.container { max-width: 1280px; margin: 0 auto; padding: 24px; }
+.page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+.page-header h1 { font-size: 1.3rem; font-weight: 800; }
+.filters { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+.filters input, .filters select { padding: 8px 12px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 0.85rem; outline: none; background: var(--surface); font-family: var(--font); color: var(--text); }
+.filters input:focus, .filters select:focus { border-color: var(--primary); }
+.table-wrap { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--border); overflow: hidden; }
+.table-scroll { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+th { padding: 10px 16px; text-align: left; font-size: 0.69rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--border); background: rgba(124,58,237,0.02); white-space: nowrap; }
+td { padding: 11px 16px; font-size: 0.85rem; color: var(--text); border-bottom: 1px solid rgba(124,58,237,0.04); }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: rgba(124,58,237,0.02); cursor: pointer; }
+.td-amount { font-weight: 700; color: var(--success); white-space: nowrap; }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 0.68rem; font-weight: 700; }
+.badge-new { background: rgba(148,163,184,0.1); color: #64748b; }
+.badge-confirmed { background: rgba(59,130,246,0.1); color: #2563eb; }
+.badge-shipped { background: rgba(245,158,11,0.1); color: #b45309; }
+.badge-completed { background: rgba(5,150,105,0.1); color: #059669; }
+.badge-canceled { background: rgba(239,68,68,0.1); color: #ef4444; }
+.empty { text-align: center; padding: 60px 20px; color: #94a3b8; }
+@media (max-width: 640px) { .container { padding: 14px 12px 32px; } table { min-width: 500px; } th, td { padding: 8px 10px; font-size: 0.78rem; } }
+</style>
+</head>
+<body>
+<script src="partner-nav.js"></script>
+<div class="container">
+  <div class="page-header"><h1>📦 Закупки</h1></div>
+  <div class="filters">
+    <input type="date" id="fFrom" title="Дата от">
+    <input type="date" id="fTo" title="Дата до">
+    <select id="fStatus"><option value="all">Все статусы</option><option value="new">Новый</option><option value="confirmed">Подтверждён</option><option value="shipped">Отгружен</option><option value="completed">Завершён</option><option value="canceled">Отменён</option></select>
+  </div>
+  <div class="table-wrap"><div class="table-scroll">
+    <table>
+      <thead><tr><th>#</th><th>Дата</th><th>Статус</th><th style="text-align:right">Сумма</th><th>Комментарий</th></tr></thead>
+      <tbody id="tbody"><tr><td colspan="5" class="empty">Загрузка...</td></tr></tbody>
+    </table>
+  </div></div>
+</div>
+<script type="module">
+import { partnerFetch, requirePartnerAuth, fmt, fmtDate } from './partner-api.js';
+if (!requirePartnerAuth()) throw 'no auth';
+
+const STATUS_LABEL = { new: 'Новый', confirmed: 'Подтверждён', shipped: 'Отгружен', completed: 'Завершён', canceled: 'Отменён' };
+const STATUS_CLS = { new: 'badge-new', confirmed: 'badge-confirmed', shipped: 'badge-shipped', completed: 'badge-completed', canceled: 'badge-canceled' };
+
+let allOrders = [];
+
+async function load() {
+  const { data, error } = await partnerFetch('/partner/orders');
+  if (error) { document.getElementById('tbody').innerHTML = '<tr><td colspan="5" class="empty">Ошибка загрузки</td></tr>'; return; }
+  allOrders = data || [];
+  render();
+}
+
+function render() {
+  const tbody = document.getElementById('tbody');
+  const from = document.getElementById('fFrom').value;
+  const to = document.getElementById('fTo').value;
+  const status = document.getElementById('fStatus').value;
+
+  let filtered = allOrders;
+  if (from) filtered = filtered.filter(o => (o.order_date || '').slice(0, 10) >= from);
+  if (to) filtered = filtered.filter(o => (o.order_date || '').slice(0, 10) <= to);
+  if (status !== 'all') filtered = filtered.filter(o => o.status === status);
+
+  if (!filtered.length) { tbody.innerHTML = '<tr><td colspan="5" class="empty">Закупок не найдено</td></tr>'; return; }
+
+  tbody.innerHTML = filtered.map(o => `<tr onclick="location.href='partner-order.html?id=${o.id}'">
+    <td>${o.order_number || '—'}</td>
+    <td>${fmtDate(o.order_date)}</td>
+    <td><span class="badge ${STATUS_CLS[o.status] || ''}">${STATUS_LABEL[o.status] || o.status}</span></td>
+    <td class="td-amount" style="text-align:right">${fmt(o.total_amount)} ₽</td>
+    <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted);font-size:0.8rem">${o.comment || ''}</td>
+  </tr>`).join('');
+}
+
+document.getElementById('fFrom').addEventListener('change', render);
+document.getElementById('fTo').addEventListener('change', render);
+document.getElementById('fStatus').addEventListener('change', render);
+load();
+</script>
+</body>
+</html>

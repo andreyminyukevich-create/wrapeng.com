@@ -64,7 +64,12 @@ class QueryBuilder {
   lte(col, val)   { this._filters.push([col, 'lte',   val]); return this; }
   ilike(col, val) { this._filters.push([col, 'ilike', val]); return this; }
   is(col, val)    { this._filters.push([col, 'is',    val]); return this; }
-  in(col, vals)   { this._filters.push([col, 'eq',    vals[0]]); return this; }
+  in(col, vals) {
+    if (Array.isArray(vals) && vals.length > 0) {
+      this._filters.push([col, 'in', vals.join(',')]);
+    }
+    return this;
+  }
   order(col, opts) { this._order = col + '.' + ((opts && opts.ascending === false) ? 'desc' : 'asc'); return this; }
   limit(n)  { this._limit = n; return this; }
   single()     { this._single = true; return this; }

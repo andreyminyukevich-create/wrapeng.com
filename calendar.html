@@ -9,27 +9,28 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="theme.css">
-<script src="nav.js"></script>
+<link rel="stylesheet" href="mobile.css?v=1774508385">
+<script src="nav.js?v=1774551573"></script>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif; -webkit-font-smoothing: antialiased; background: #f5f3ff; color: #1e1b4b; min-height: 100svh; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif; -webkit-font-smoothing: antialiased; background: var(--bg); color: var(--text); min-height: 100svh; }
 .page { max-width: 1280px; margin: 0 auto; padding: 20px 18px 60px; }
 .toolbar { display:flex; align-items:center; gap:10px; margin-bottom:20px; flex-wrap:wrap; }
-.toolbar-title { font-size:1.15rem; font-weight:800; letter-spacing:-0.3px; color:#1e1b4b; margin-right:6px; }
+.toolbar-title { font-size:1.15rem; font-weight:800; letter-spacing:-0.3px; color:var(--text); margin-right:6px; }
 .month-nav { display:flex; align-items:center; gap:6px; }
-.month-nav button { width:32px; height:32px; border-radius:8px; border:1px solid rgba(124,58,237,0.10); background:#fff; cursor:pointer; font-size:1rem; display:flex; align-items:center; justify-content:center; transition:all 0.15s; color:#1e1b4b; }
+.month-nav button { width:32px; height:32px; border-radius:8px; border:1px solid var(--border); background:#fff; cursor:pointer; font-size:1rem; display:flex; align-items:center; justify-content:center; transition:all 0.15s; color:var(--text); }
 .month-nav button:hover { background:#e8eef8; }
-.month-label { font-size:0.9rem; font-weight:700; color:#1e1b4b; min-width:130px; text-align:center; }
-.btn-today { padding:6px 14px; border-radius:8px; border:1px solid rgba(124,58,237,0.3); background:rgba(124,58,237,0.06); color:#7c3aed; font-size:0.78rem; font-weight:700; cursor:pointer; font-family:inherit; transition:all 0.15s; }
-.btn-today:hover { background:#7c3aed; color:#fff; }
+.month-label { font-size:0.9rem; font-weight:700; color:var(--text); min-width:130px; text-align:center; }
+.btn-today { padding:6px 14px; border-radius:8px; border:1px solid rgba(124,58,237,0.3); background:rgba(124,58,237,0.06); color:var(--brand); font-size:0.78rem; font-weight:700; cursor:pointer; font-family:inherit; transition:all 0.15s; }
+.btn-today:hover { background:var(--brand); color:#fff; }
 .legend { display:flex; gap:14px; flex-wrap:wrap; margin-left:auto; align-items:center; }
 .legend-item { display:flex; align-items:center; gap:5px; font-size:0.72rem; color:#64748b; font-weight:600; }
 .legend-dot { width:10px; height:10px; border-radius:3px; }
 .view-tabs { display:flex; gap:2px; background:#f1f5f9; border:1px solid rgba(124,58,237,0.08); border-radius:9px; padding:3px; }
 .view-tab { padding:5px 14px; border-radius:6px; font-size:0.78rem; font-weight:700; border:none; cursor:pointer; background:transparent; color:#64748b; font-family:inherit; transition:all 0.15s; white-space:nowrap; }
-.view-tab.active { background:#fff; color:#1e1b4b; box-shadow:0 1px 4px rgba(0,0,0,0.1); }
-.master-role-badge { font-size:0.62rem; font-weight:700; padding:2px 7px; border-radius:20px; background:rgba(124,58,237,0.08); color:#7c3aed; border:1px solid rgba(124,58,237,0.15); }
-.master-role-badge.wrapper  { background:rgba(124,58,237,0.08); color:#7c3aed; border-color:rgba(124,58,237,0.15); }
+.view-tab.active { background:#fff; color:var(--text); box-shadow:0 1px 4px rgba(0,0,0,0.1); }
+.master-role-badge { font-size:0.62rem; font-weight:700; padding:2px 7px; border-radius:20px; background:var(--brand-light); color:var(--brand); border:1px solid rgba(124,58,237,0.15); }
+.master-role-badge.wrapper  { background:var(--brand-light); color:var(--brand); border-color:rgba(124,58,237,0.15); }
 .master-role-badge.armature { background:rgba(220,38,38,0.07); color:#ef4444; border-color:rgba(220,38,38,0.15); }
 .master-role-badge.detailer,.master-role-badge.preparer { background:rgba(5,150,105,0.08); color:#059669; border-color:rgba(5,150,105,0.15); }
 .master-role-badge.universal { background:rgba(100,116,139,0.1); color:#475569; border-color:rgba(100,116,139,0.18); }
@@ -39,53 +40,57 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvet
 .post-block { background:#fff; border:1px solid rgba(124,58,237,0.07); border-radius:14px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,0.04); }
 .post-header { display:flex; align-items:center; gap:10px; padding:10px 14px; border-bottom:1px solid rgba(124,58,237,0.06); background:#f8fafc; }
 .post-color-bar { width:4px; height:20px; border-radius:3px; flex-shrink:0; }
-.post-name { font-size:0.85rem; font-weight:800; color:#1e1b4b; letter-spacing:-0.1px; }
+.post-name { font-size:0.85rem; font-weight:800; color:var(--text); letter-spacing:-0.1px; }
 .post-type-badge { font-size:0.65rem; font-weight:700; padding:2px 7px; border-radius:20px; background:rgba(100,116,139,0.1); color:#64748b; border:1px solid rgba(100,116,139,0.15); }
-.post-cap-badge { font-size:0.65rem; font-weight:700; padding:2px 7px; border-radius:20px; background:rgba(124,58,237,0.07); color:#7c3aed; border:1px solid rgba(124,58,237,0.15); margin-left:auto; }
+.post-cap-badge { font-size:0.65rem; font-weight:700; padding:2px 7px; border-radius:20px; background:rgba(124,58,237,0.07); color:var(--brand); border:1px solid rgba(124,58,237,0.15); margin-left:auto; }
 .month-grid-wrap { overflow-x:auto; padding:10px 12px 14px; }
 .month-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:3px; min-width:0; }
 .day-header { text-align:center; font-size:0.55rem; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; color:#94a3b8; padding:2px 0 4px; height:20px; }
 .day-header.weekend { color:#f87171; }
 .day-cell { height:80px; min-height:80px; border-radius:8px; border:1.5px solid rgba(124,58,237,0.06); background:#f8fafc; position:relative; overflow:hidden; cursor:pointer; transition:all 0.15s; display:flex; flex-direction:column; }
-.day-cell:hover { border-color:#7c3aed; box-shadow:0 2px 8px rgba(124,58,237,0.12); }
-.day-cell.today { border-color:#7c3aed; background:rgba(124,58,237,0.04); }
+.day-cell:hover { border-color:var(--brand); box-shadow:0 2px 8px rgba(124,58,237,0.12); }
+.day-cell.today { border-color:var(--brand); background:rgba(124,58,237,0.04); }
 .day-cell.other-month { opacity:0.25; cursor:default; }
 .day-cell.other-month:hover { border-color:rgba(124,58,237,0.06); box-shadow:none; }
 .day-cell.weekend-cell { background:#fafbfd; }
 .day-num { font-size:0.62rem; font-weight:700; color:#64748b; padding:3px 5px 1px; line-height:1; flex-shrink:0; }
-.day-cell.today .day-num { color:#7c3aed; }
+.day-cell.today .day-num { color:var(--brand); }
 .day-bookings { flex:1; display:flex; flex-direction:column; gap:2px; padding:0 4px 4px; overflow:hidden; }
 .booking-chip { border-radius:5px; padding:2px 5px; font-size:0.66rem; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:#fff; line-height:1.4; cursor:pointer; transition:opacity 0.15s; }
 .booking-chip:hover { opacity:0.85; }
 .booking-chip.start { border-left:3px solid rgba(0,0,0,0.2); }
 .booking-chip.mid   { opacity:0.8; }
 .booking-chip.end   { opacity:0.7; }
-.day-add-btn { position:absolute; bottom:4px; right:4px; width:18px; height:18px; border-radius:50%; background:rgba(124,58,237,0.12); color:#7c3aed; font-size:0.7rem; font-weight:900; display:none; align-items:center; justify-content:center; line-height:1; border:none; cursor:pointer; }
+.day-add-btn { position:absolute; bottom:4px; right:4px; width:18px; height:18px; border-radius:50%; background:rgba(124,58,237,0.12); color:var(--brand); font-size:0.7rem; font-weight:900; display:none; align-items:center; justify-content:center; line-height:1; border:none; cursor:pointer; }
 .day-cell:hover .day-add-btn { display:flex; }
 .empty-posts { background:#fff; border-radius:16px; border:1px solid rgba(124,58,237,0.07); padding:60px 20px; text-align:center; box-shadow:0 1px 3px rgba(0,0,0,0.04); }
 .empty-icon  { font-size:2.5rem; margin-bottom:14px; opacity:0.4; }
-.empty-title { font-size:1rem; font-weight:700; color:#1e1b4b; margin-bottom:6px; }
+.empty-title { font-size:1rem; font-weight:700; color:var(--text); margin-bottom:6px; }
 .empty-sub   { font-size:0.82rem; color:#64748b; margin-bottom:20px; }
 .modal-overlay { display:none; position:fixed; inset:0; z-index:2000; background:rgba(124,58,237,0.5); backdrop-filter:blur(5px); align-items:center; justify-content:center; padding:20px; }
 .modal-overlay.active { display:flex; animation:fadein 0.15s ease; }
 @keyframes fadein  { from { opacity:0; } to { opacity:1; } }
 @keyframes slideup { from { transform:translateY(10px);opacity:0; } to { transform:translateY(0);opacity:1; } }
 .modal { background:#fff; border-radius:16px; border:1px solid rgba(124,58,237,0.08); padding:24px 26px 22px; width:100%; max-width:440px; box-shadow:0 16px 60px rgba(0,0,0,0.18); animation:slideup 0.18s ease; }
+@media (max-width:768px) {
+  .modal-overlay.active { align-items:flex-end !important; padding:0; }
+  .modal { max-width:100% !important; border-radius:20px 20px 0 0 !important; max-height:85dvh !important; overflow-y:auto; }
+}
 .modal h3 { font-size:1rem; font-weight:800; margin-bottom:18px; letter-spacing:-0.2px; }
 .form-group { margin-bottom:14px; }
 .form-group label { display:block; font-size:0.67rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:#64748b; margin-bottom:5px; }
 .form-group select,
 .form-group input[type="date"],
-.form-group input[type="text"] { width:100%; padding:9px 12px; background:#f5f3ff; border:1.5px solid rgba(124,58,237,0.10); border-radius:9px; font-size:0.88rem; font-family:inherit; color:#1e1b4b; outline:none; -webkit-appearance:none; transition:border-color 0.15s; }
+.form-group input[type="text"] { width:100%; padding:9px 12px; background:var(--bg); border:1.5px solid var(--border); border-radius:9px; font-size:0.88rem; font-family:inherit; color:var(--text); outline:none; -webkit-appearance:none; transition:border-color 0.15s; }
 .form-group select:focus,
-.form-group input:focus { border-color:#7c3aed; box-shadow:0 0 0 3px rgba(124,58,237,0.08); background:#fff; }
+.form-group input:focus { border-color:var(--brand); box-shadow:0 0 0 3px var(--brand-light); background:#fff; }
 .date-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
 .modal-actions { display:flex; gap:8px; margin-top:20px; }
 .modal-actions .btn { flex:1; padding:10px; justify-content:center; }
 .btn { display:inline-flex; align-items:center; gap:5px; padding:8px 16px; border-radius:9px; font-size:0.82rem; font-weight:700; font-family:inherit; cursor:pointer; border:none; transition:all 0.15s; white-space:nowrap; text-decoration:none; }
 .btn[disabled] { opacity:0.5; cursor:not-allowed; }
-.btn-primary { background:#7c3aed; color:#fff; }
-.btn-primary:hover { background:#6d28d9; }
+.btn-primary { background:var(--brand); color:#fff; }
+.btn-primary:hover { background:var(--brand-dark); }
 .btn-ghost { background:rgba(124,58,237,0.05); color:#64748b; border:1px solid rgba(124,58,237,0.10); }
 .btn-ghost:hover { background:#fee2e2; color:#ef4444; border-color:rgba(220,38,38,0.2); }
 .btn-danger { background:rgba(220,38,38,0.07); color:#ef4444; border:1px solid rgba(220,38,38,0.15); }
@@ -94,15 +99,18 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvet
 .conflict-warn.show { display:block; }
 .detail-section-title { font-size:0.65rem; font-weight:800; text-transform:uppercase; letter-spacing:0.07em; color:#94a3b8; margin:14px 0 8px; }
 .service-row { display:flex; align-items:flex-start; justify-content:space-between; padding:8px 10px; border-radius:8px; background:#f8fafc; border:1px solid rgba(124,58,237,0.06); margin-bottom:4px; gap:10px; }
-.service-name  { font-size:0.82rem; font-weight:700; color:#1e1b4b; flex:1; line-height:1.3; }
-.service-price { font-size:0.8rem; font-weight:800; color:#7c3aed; white-space:nowrap; }
+.service-name  { font-size:0.82rem; font-weight:700; color:var(--text); flex:1; line-height:1.3; }
+.service-price { font-size:0.8rem; font-weight:800; color:var(--brand); white-space:nowrap; }
 .exec-tags { display:flex; flex-wrap:wrap; gap:4px; margin-top:6px; }
-.exec-tag { font-size:0.68rem; font-weight:700; padding:2px 8px; border-radius:20px; background:rgba(124,58,237,0.08); color:#7c3aed; border:1px solid rgba(124,58,237,0.15); }
+.exec-tag { font-size:0.68rem; font-weight:700; padding:2px 8px; border-radius:20px; background:var(--brand-light); color:var(--brand); border:1px solid rgba(124,58,237,0.15); }
 .booking-detail-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:16px; }
-.bd-item  { background:#f5f3ff; border-radius:8px; padding:9px 12px; }
+.bd-item  { background:var(--bg); border-radius:8px; padding:9px 12px; }
 .bd-label { font-size:0.62rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:#94a3b8; margin-bottom:2px; }
-.bd-value { font-size:0.88rem; font-weight:700; color:#1e1b4b; }
+.bd-value { font-size:0.88rem; font-weight:700; color:var(--text); }
 .cal-loading { text-align:center; padding:60px; color:#64748b; font-size:0.9rem; }
+.master-chip { display:inline-flex; align-items:center; gap:4px; padding:5px 10px; border-radius:20px; font-size:0.75rem; font-weight:700; cursor:pointer; border:1.5px solid var(--border); background:#f8fafc; color:#64748b; transition:all 0.15s; user-select:none; }
+.master-chip.selected { background:rgba(124,58,237,0.1); color:var(--brand); border-color:rgba(124,58,237,0.3); }
+.master-chip input { display:none; }
 @media (max-width:640px) { .page { padding:14px 10px 48px; } .toolbar-title { font-size:1rem; } .legend { display:none; } }
 </style>
 </head>
@@ -136,16 +144,25 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvet
 </div>
 
 <!-- Модал: назначить авто на пост -->
-<div class="modal-overlay" id="assignModal">
-  <div class="modal">
+<div class="modal-overlay" id="assignModal" onclick="if(event.target===this)closeAssignModal()">
+  <div class="modal" onclick="event.stopPropagation()">
     <h3 id="assignModalTitle">📅 Назначить на пост</h3>
     <div class="form-group">
-      <label>Расчёт (автомобиль)</label>
-      <select id="assignCalcSelect"></select>
+      <label>Автомобиль</label>
+      <input type="text" id="assignCarName" placeholder="Марка и модель, напр. Toyota Camry">
+    </div>
+    <div class="form-group">
+      <label>Привязать к расчёту (необязательно)</label>
+      <input type="text" id="assignCalcSearch" placeholder="Поиск по авто / клиенту..." autocomplete="off">
+      <select id="assignCalcSelect" style="margin-top:4px"><option value="">— без расчёта —</option></select>
     </div>
     <div class="date-row">
       <div class="form-group"><label>Дата заезда</label><input type="date" id="assignDateFrom"></div>
       <div class="form-group"><label>Дата выезда</label><input type="date" id="assignDateTo"></div>
+    </div>
+    <div class="form-group">
+      <label>Мастера (необязательно)</label>
+      <div id="assignMasters" style="display:flex;flex-wrap:wrap;gap:6px"></div>
     </div>
     <div class="form-group">
       <label>Комментарий (необязательно)</label>
@@ -174,7 +191,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvet
   </div>
 </div>
 
-<script src="footer.js"></script>
+<script src="footer.js?v=1774512457"></script>
 <script src="booking-popup.js"></script>
 <script type="module">
 import { sb }               from './api.js';
@@ -209,12 +226,16 @@ function parseDate(s) { if(!s) return null; const [y,m,d]=s.split('-').map(Numbe
 function fmt(n)  { return new Intl.NumberFormat('ru-RU').format(n||0); }
 function formatDate(s) {
   if(!s) return '—';
-  return parseDate(s).toLocaleDateString('ru-RU',{day:'numeric',month:'short'});
+  const d = parseDate(s);
+  if(!d || isNaN(d.getTime())) return '—';
+  return d.toLocaleDateString('ru-RU',{day:'numeric',month:'short'});
 }
 function daysBetween(from,to) {
   const f=parseDate(from),t=parseDate(to);
-  if(!f||!t) return '—';
-  return Math.round((t-f)/86400000)+1+' д.';
+  if(!f||!t||isNaN(f.getTime())||isNaN(t.getTime())) return '—';
+  const days = Math.round((t-f)/86400000)+1;
+  if(isNaN(days)) return '—';
+  return days + ' ' + (days===1?'день':days<5?'дня':'дней');
 }
 function dateRange(from,to) {
   const result=[],cur=parseDate(from),end=parseDate(to);
@@ -236,7 +257,7 @@ async function loadMasters() {
   masters = data||[];
 }
 async function loadCalcs() {
-  const { data } = await sb.from('calculations').select('id,car_name,status,final_price,total_price').eq('studio_id',studioId).not('status','eq','cancelled').order('created_at',{ascending:false});
+  const { data } = await sb.from('calculations').select('id,car_name,client_name,status,final_price,total_price').eq('studio_id',studioId).neq('status','cancelled').order('created_at',{ascending:false});
   calcs = data||[];
 }
 async function loadBookings() {
@@ -492,25 +513,65 @@ function renderPostsView() {
 }
 
 // ── Assign modal ──────────────────────────────────────────────────────────
+function fillCalcSelect(search) {
+  const sel = document.getElementById('assignCalcSelect');
+  sel.innerHTML = '';
+  const def = document.createElement('option'); def.value = ''; def.textContent = '— без расчёта —'; sel.appendChild(def);
+  let filtered = calcs;
+  if (search) {
+    filtered = calcs.filter(c => {
+      const car = (c.car_name || '').toLowerCase();
+      const client = (c.client_name || '').toLowerCase();
+      return car.includes(search) || client.includes(search);
+    });
+  }
+  filtered.slice(0, 50).forEach(c => {
+    const o = document.createElement('option'); o.value = c.id;
+    const label = (c.car_name || 'Без названия') + (c.client_name ? ' · ' + c.client_name : '') + (STATUS_LABEL[c.status] ? ' (' + STATUS_LABEL[c.status] + ')' : '');
+    o.textContent = label;
+    sel.appendChild(o);
+  });
+}
+
 function openAssign(postId, dateStr) {
   activePostId = postId;
   activeDate   = dateStr;
   const post = posts.find(p=>p.id===postId);
-  document.getElementById('assignModalTitle').textContent = `📅 ${post?.name||'Пост'} — назначить авто`;
+  document.getElementById('assignModalTitle').textContent = `📅 ${post?.name||'Пост'} — записать авто`;
 
   const sel = document.getElementById('assignCalcSelect');
-  sel.innerHTML = '';
-  const def = document.createElement('option'); def.value=''; def.textContent='Выберите расчёт...'; sel.appendChild(def);
-  calcs.forEach(c => {
-    const o = document.createElement('option'); o.value=c.id;
-    o.textContent=(c.car_name||'Без названия')+' '+(STATUS_LABEL[c.status]?'('+STATUS_LABEL[c.status]+')':'');
-    sel.appendChild(o);
-  });
+  const searchInput = document.getElementById('assignCalcSearch');
+  searchInput.value = '';
+  fillCalcSelect('');
 
+  // Поиск по расчётам
+  searchInput.oninput = function() { fillCalcSelect(this.value.trim().toLowerCase()); };
+
+  // При выборе расчёта — подставить название авто
+  sel.onchange = function() {
+    var c = calcs.find(x => x.id === sel.value);
+    if (c && c.car_name) document.getElementById('assignCarName').value = c.car_name;
+  };
+
+  document.getElementById('assignCarName').value = '';
   document.getElementById('assignDateFrom').value = dateStr;
   document.getElementById('assignDateTo').value   = dateStr;
   document.getElementById('assignNote').value     = '';
   document.getElementById('conflictWarn').classList.remove('show');
+
+  // Рендерим чипы мастеров
+  const mastersEl = document.getElementById('assignMasters');
+  mastersEl.innerHTML = '';
+  masters.forEach(m => {
+    const chip = document.createElement('label');
+    chip.className = 'master-chip';
+    chip.innerHTML = '<input type="checkbox" value="' + esc(m.id) + '"> 👤 ' + esc(m.full_name || '—');
+    chip.querySelector('input').addEventListener('change', function() {
+      chip.classList.toggle('selected', this.checked);
+    });
+    mastersEl.appendChild(chip);
+  });
+
   document.getElementById('assignModal').classList.add('active');
 }
 
@@ -530,26 +591,33 @@ function closeAssignModal() {
 }
 
 async function saveAssignment() {
-  const calcId = document.getElementById('assignCalcSelect').value;
-  const from   = document.getElementById('assignDateFrom').value;
-  const to     = document.getElementById('assignDateTo').value;
-  const note   = document.getElementById('assignNote').value.trim();
-  if (!calcId||!from||!to||from>to) return;
+  const calcId  = document.getElementById('assignCalcSelect').value || null;
+  const carName = document.getElementById('assignCarName').value.trim();
+  const from    = document.getElementById('assignDateFrom').value;
+  const to      = document.getElementById('assignDateTo').value;
+  const note    = document.getElementById('assignNote').value.trim();
+  if (!carName||!from||!to||from>to) { document.getElementById('assignCarName').focus(); return; }
 
   const btn     = document.getElementById('btnSaveAssign');
   const release = lockButton(btn,'⏳');
 
-  const calc = getCalcById(calcId);
+  // Собираем выбранных мастеров
+  const selectedMasters = [];
+  document.querySelectorAll('#assignMasters input:checked').forEach(cb => selectedMasters.push(cb.value));
+
   const { error } = await sb.from('calendar_bookings').insert({
     studio_id: studioId, post_id: activePostId, calc_id: calcId,
-    car_name: calc?.car_name||'', date_from: from, date_to: to, note: note||null,
+    car_name: carName, date_from: from, date_to: to, note: note||null,
+    executor_ids: selectedMasters.length ? selectedMasters : null,
   });
 
   if (error) { console.error('[calendar] saveAssignment:', error); release(); return; }
 
-  if (calc?.status==='new') {
-    await sb.from('calculations').update({status:'scheduled',scheduled_from:from,scheduled_to:to,post_id:activePostId}).eq('id',calcId);
-    const c = calcs.find(x=>x.id===calcId); if(c) c.status='scheduled';
+  // Обновляем статус расчёта на "Запись" если он ещё черновик
+  const calc = calcId ? calcs.find(c=>c.id===calcId) : null;
+  if (calc && (calc.status === 'new' || calc.status === 'draft')) {
+    await sb.from('calculations').update({ status: 'scheduled', checkin_date: from, checkin_time: null, schedule_note: note || null }).eq('id', calcId);
+    calc.status = 'scheduled';
   }
 
   release();
@@ -713,18 +781,31 @@ async function initPage() {
   bindEvents();
 
   const user = await requireAuth({ redirectTo:'welcome.html' }); if(!user) return;
-  const ctx  = await getStudioContext();
+
+  let ctx;
+  try {
+    ctx = await getStudioContext();
+  } catch (err) {
+    console.error('[calendar] getStudioContext:', err);
+    document.getElementById('calendarWrap').innerHTML = '<div class="cal-loading">❌ Ошибка загрузки данных студии</div>';
+    return;
+  }
   if (!ctx?.studioId) {
     document.getElementById('calendarWrap').innerHTML = '<div class="cal-loading">⚠️ Студия не найдена</div>';
     return;
   }
   studioId = ctx.studioId;
 
-  await Promise.all([loadPosts(), loadMasters(), loadCalcs(), loadBookings()]);
-  renderCalendar();
+  try {
+    await Promise.all([loadPosts(), loadMasters(), loadCalcs(), loadBookings()]);
+    renderCalendar();
+  } catch (err) {
+    console.error('[calendar] load data:', err);
+    document.getElementById('calendarWrap').innerHTML = '<div class="cal-loading">❌ Ошибка загрузки данных</div>';
+  }
 }
 
-document.addEventListener('DOMContentLoaded', initPage);
+initPage();
 </script>
 </body>
 </html>

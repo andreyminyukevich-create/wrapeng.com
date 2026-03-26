@@ -1,0 +1,401 @@
+/* ═══════════════════════════════════════════
+   mobile.css — Keep1R CRM Global Mobile Fixes
+   Подключается ко всем HTML страницам
+   Фиксит таблицы, сетки, контейнеры
+═══════════════════════════════════════════ */
+
+/* ── Sidebar height fix (Yandex/Chrome address bar) ── */
+#k1r-sidebar {
+  height: 100vh;
+  height: 100dvh;
+  height: -webkit-fill-available;
+}
+#k1r-overlay {
+  height: 100vh;
+  height: 100dvh;
+  height: -webkit-fill-available;
+}
+
+/* ── Chart / Graph Fullscreen ─────────────── */
+.chart-fullscreen-wrap {
+  position: relative;
+}
+
+.btn-chart-fs {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid rgba(124,58,237,0.12);
+  background: rgba(255,255,255,0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #7c3aed;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+  transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  padding: 0;
+  line-height: 1;
+}
+.btn-chart-fs:hover {
+  background: #7c3aed;
+  color: #fff;
+  border-color: #7c3aed;
+}
+
+/* Fullscreen overlay for chart */
+.chart-fs-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: rgba(255,255,255,0.97);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  animation: chartFsIn 0.2s ease;
+}
+@keyframes chartFsIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+.chart-fs-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  flex-shrink: 0;
+}
+.chart-fs-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1e1b4b;
+}
+.chart-fs-close {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: none;
+  background: rgba(124,58,237,0.08);
+  color: #7c3aed;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.chart-fs-close:active { background: rgba(124,58,237,0.15); }
+.chart-fs-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.chart-fs-body canvas {
+  max-width: 100% !important;
+  max-height: 100% !important;
+  width: 100% !important;
+  height: auto !important;
+}
+
+/* ══════════════════════════════════════════
+   TABLET (≤ 900px)
+══════════════════════════════════════════ */
+@media (max-width: 900px) {
+  /* Analytics */
+  .charts-2col,
+  .charts-equal {
+    grid-template-columns: 1fr !important;
+  }
+
+  .check-cards {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Calendar */
+  .calendar-wrap {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Settings */
+  .settings-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ══════════════════════════════════════════
+   MOBILE (≤ 768px)
+══════════════════════════════════════════ */
+@media (max-width: 768px) {
+  /* ── Global container fix ──────────── */
+  .container,
+  .page-wrap,
+  .page,
+  #k1r-main > .container,
+  #k1r-main > div:not(#k1r-topbar) {
+    max-width: 100% !important;
+    overflow-x: hidden;
+  }
+
+  /* ── Admin page: remove min-width ──── */
+  .page { min-width: 0 !important; }
+
+  /* ── Bottom nav padding contract ───── */
+  .container,
+  .page-wrap,
+  .page {
+    padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px) + 16px) !important;
+  }
+
+  /* ── Sticky subheaders: clear nav bar ─ */
+  .page-subheader {
+    top: 48px !important;
+  }
+
+  /* ── Grid minmax 320px fix ─────────── */
+  .calc-grid,
+  .clients-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* ── Modal bottom-sheet for ALL modal patterns ── */
+  .modal,
+  .modal-content,
+  .modal-box {
+    max-width: 100% !important;
+    width: 100% !important;
+    border-radius: 20px 20px 0 0 !important;
+    max-height: 85vh !important;
+    max-height: 85dvh !important;
+    align-self: flex-end !important;
+  }
+  .modal-overlay,
+  .modal-overlay.open {
+    align-items: flex-end !important;
+  }
+
+  /* ── Small buttons: exclude from 44px rule ── */
+  .btn-icon,
+  .btn-remove-exec,
+  .pline-del,
+  .day-add-btn,
+  .drawer-close,
+  .btn-chart-fs,
+  .chart-fs-close,
+  .sb-close-btn,
+  button[aria-label="Удалить"],
+  .post-row button {
+    min-height: auto !important;
+  }
+
+  /* ── KPI grids ─────────────────────── */
+  .kpi-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+
+  .summary {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  /* ── Tables → horizontal scroll ───── */
+  table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    font-size: 0.8rem !important;
+  }
+  thead { display: table-header-group; }
+  tbody { display: table-row-group; }
+  tr { display: table-row; }
+  th, td {
+    display: table-cell;
+    padding: 8px 10px !important;
+  }
+  /* Заголовки и ячейки — не переносить (таблица скроллится) */
+  th, td {
+    white-space: nowrap !important;
+  }
+
+  /* Scroll indicator shadow */
+  .table-wrap,
+  .data-table-wrap {
+    position: relative;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .table-wrap::after,
+  .data-table-wrap::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 20px;
+    background: linear-gradient(to right, transparent, rgba(245,243,255,0.8));
+    pointer-events: none;
+  }
+
+  /* ── Form rows → single column ─────── */
+  .form-row,
+  .form-grid-2 {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* ── Payment rows → stack ──────────── */
+  .payment-row {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  /* ── Executor cards ────────────────── */
+  .executor-head {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+
+  /* ── Post rows (settings) ──────────── */
+  .post-row {
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+  }
+  .post-row select,
+  .post-row input[type="number"] {
+    min-width: 80px;
+  }
+
+  /* ── Calendar day cells ────────────── */
+  .day-cell {
+    height: 60px !important;
+    min-height: 60px !important;
+  }
+  .month-grid {
+    gap: 2px !important;
+  }
+  .booking-chip {
+    font-size: 0.6rem !important;
+    padding: 1px 3px !important;
+  }
+}
+
+/* ══════════════════════════════════════════
+   SMALL PHONE (≤ 480px)
+══════════════════════════════════════════ */
+@media (max-width: 480px) {
+  /* ── KPI grids collapse ────────────── */
+  .kpi-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+  }
+
+  .check-cards {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+  }
+
+  .summary {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* ── Containers ─────────────────────── */
+  .container,
+  .page-wrap,
+  .page {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+
+  /* ── Cards ──────────────────────────── */
+  .card,
+  .summary-card,
+  .kpi-card {
+    padding: 14px !important;
+    border-radius: 14px !important;
+  }
+
+  /* ── Chart containers ──────────────── */
+  .cw, .cwt {
+    height: 180px !important;
+  }
+
+  /* ── Calendar cells ────────────────── */
+  .day-cell {
+    height: 48px !important;
+  }
+
+  /* ── Filter/tabs scroll ────────────── */
+  .filter-tabs,
+  .period-tabs {
+    overflow-x: auto !important;
+    flex-wrap: nowrap !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    gap: 4px !important;
+  }
+  .filter-tabs::-webkit-scrollbar,
+  .period-tabs::-webkit-scrollbar {
+    display: none;
+  }
+  .filter-tab,
+  .period-tab {
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
+  }
+
+  /* ── Modal → full width bottom sheet ── */
+  .modal-content {
+    max-width: 100% !important;
+    width: 100% !important;
+    border-radius: 20px 20px 0 0 !important;
+    max-height: 90vh !important;
+    max-height: 90dvh !important;
+  }
+
+  /* ── Executor head compact ─────────── */
+  .executor-head {
+    padding: 12px !important;
+  }
+  .executor-total {
+    font-size: 1rem !important;
+  }
+  .assign-svc {
+    max-width: 100px !important;
+  }
+
+  /* ── Btn fullscreen chart — bigger ── */
+  .btn-chart-fs {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+/* ══════════════════════════════════════════
+   Reduced Motion
+══════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  .chart-fs-overlay {
+    animation: none !important;
+  }
+}
+
+/* ══════════════════════════════════════════
+   Print — hide mobile chrome
+══════════════════════════════════════════ */
+@media print {
+  .btn-chart-fs,
+  .chart-fs-overlay {
+    display: none !important;
+  }
+}

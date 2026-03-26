@@ -9,17 +9,17 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="theme.css">
-<script src="nav.js"></script>
+<link rel="stylesheet" href="mobile.css?v=1774508385">
 <style>
-body { visibility: hidden; background: #f5f7fa; }
+body { background: #f5f7fa; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif; }
-.container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+.container { max-width: 1280px; margin: 0 auto; padding: 24px; }
 .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
-.page-header h1 { font-size: 1.4rem; font-weight: 800; color: #1e1b4b; }
+.page-header h1 { font-size: 1.4rem; font-weight: 800; color: var(--text); }
 .btn { padding: 10px 18px; border-radius: 8px; border: none; cursor: pointer; font-size: 0.875rem; font-weight: 600; transition: all .15s; }
-.btn-primary { background: #7c3aed; color: #fff; }
-.btn-primary:hover { background: #6d28d9; }
+.btn-primary { background: var(--brand); color: #fff; }
+.btn-primary:hover { background: var(--brand-dark); }
 .btn-secondary { background: #f1f5f9; color: #374151; }
 .btn-secondary:hover { background: #e2e8f0; }
 .btn-danger { background: #fee2e2; color: #ef4444; }
@@ -29,22 +29,22 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif
 .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 24px; }
 .summary-card { background: #fff; border-radius: 12px; padding: 16px; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
 .summary-label { font-size: 0.75rem; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 6px; }
-.summary-value { font-size: 1.4rem; font-weight: 800; color: #1e1b4b; }
+.summary-value { font-size: 1.4rem; font-weight: 800; color: var(--text); }
 .summary-value.green { color: #059669; }
 .summary-value.red { color: #ef4444; }
-.summary-value.blue { color: #7c3aed; }
+.summary-value.blue { color: var(--brand); }
 
 /* Filters */
 .filters { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
 .filters select, .filters input { padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.875rem; outline: none; background: #fff; }
-.filters select:focus, .filters input:focus { border-color: #7c3aed; }
-.filter-tag { display: flex; align-items: center; gap: 6px; padding: 6px 12px; background: #eff6ff; color: #7c3aed; border-radius: 20px; font-size: 0.78rem; font-weight: 600; cursor: pointer; }
+.filters select:focus, .filters input:focus { border-color: var(--brand); }
+.filter-tag { display: flex; align-items: center; gap: 6px; padding: 6px 12px; background: #eff6ff; color: var(--brand); border-radius: 20px; font-size: 0.78rem; font-weight: 600; cursor: pointer; }
 .filter-tag:hover { background: #dbeafe; }
 
 /* Table */
 .table-wrap { background: #fff; border-radius: 12px; box-shadow: 0 1px 4px rgba(0,0,0,.06); overflow: hidden; }
 .table-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid #f1f5f9; }
-.table-title { font-size: 0.95rem; font-weight: 700; color: #1e1b4b; }
+.table-title { font-size: 0.95rem; font-weight: 700; color: var(--text); }
 table { width: 100%; border-collapse: collapse; }
 th { padding: 12px 16px; text-align: left; font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: .04em; border-bottom: 1px solid #f1f5f9; background: #f8fafc; }
 td { padding: 12px 16px; font-size: 0.875rem; color: #374151; border-bottom: 1px solid #f8fafc; }
@@ -56,7 +56,7 @@ tr:hover td { background: #f8fafc; }
 .badge-paid { background: #dcfce7; color: #166534; }
 .badge-debt { background: #fee2e2; color: #991b1b; }
 .badge-cash { background: #f0fdf4; color: #166534; }
-.badge-bank { background: #eff6ff; color: #6d28d9; }
+.badge-bank { background: #eff6ff; color: var(--brand-dark); }
 .badge-card { background: #fdf4ff; color: #7e22ce; }
 .empty { text-align: center; padding: 60px 20px; color: #94a3b8; }
 .empty-icon { font-size: 3rem; margin-bottom: 12px; }
@@ -69,7 +69,7 @@ tr:hover td { background: #f8fafc; }
 .form-group { display: flex; flex-direction: column; gap: 4px; margin-bottom: 14px; }
 .form-group label { font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; }
 .form-group input, .form-group select, .form-group textarea { padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.875rem; outline: none; }
-.form-group input:focus, .form-group select:focus { border-color: #7c3aed; }
+.form-group input:focus, .form-group select:focus { border-color: var(--brand); }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
 .type-toggle { display: flex; gap: 0; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; margin-bottom: 16px; }
@@ -78,9 +78,11 @@ tr:hover td { background: #f8fafc; }
 .type-btn.active-expense { background: #fee2e2; color: #991b1b; }
 
 @media (max-width: 640px) {
+  .container { padding: 14px 12px 32px; }
   .form-row { grid-template-columns: 1fr; }
-  table { font-size: 0.8rem; }
-  th, td { padding: 8px 10px; }
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table { font-size: 0.8rem; min-width: 600px; }
+  th, td { padding: 8px 10px; white-space: nowrap; }
 }
 </style>
 </head>
@@ -102,13 +104,16 @@ tr:hover td { background: #f8fafc; }
     <div class="summary-card"><div class="summary-label">Долги (мы должны)</div><div class="summary-value red" id="sumDebtOut">—</div></div>
   </div>
 
+  <!-- Type tabs -->
+  <div style="display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch">
+    <button class="filter-tab active" onclick="setFilterType(this,'')" style="padding:7px 14px;border-radius:8px;border:1px solid #e5e7eb;background:var(--brand,#7c3aed);color:#fff;cursor:pointer;font-size:13px;font-weight:600;white-space:nowrap;flex-shrink:0">Все</button>
+    <button class="filter-tab" onclick="setFilterType(this,'income')" style="padding:7px 14px;border-radius:8px;border:1px solid #e5e7eb;background:#fff;cursor:pointer;font-size:13px;font-weight:600;color:#6b7280;white-space:nowrap;flex-shrink:0">Поступления</button>
+    <button class="filter-tab" onclick="setFilterType(this,'expense')" style="padding:7px 14px;border-radius:8px;border:1px solid #e5e7eb;background:#fff;cursor:pointer;font-size:13px;font-weight:600;color:#6b7280;white-space:nowrap;flex-shrink:0">Расходы</button>
+  </div>
+
   <!-- Filters -->
   <div class="filters">
-    <select id="filterType" onchange="applyFilters()">
-      <option value="">Все операции</option>
-      <option value="income">Только доходы</option>
-      <option value="expense">Только расходы</option>
-    </select>
+    <input type="hidden" id="filterType" value="">
     <select id="filterPayment" onchange="applyFilters()">
       <option value="">Все формы оплаты</option>
       <option value="cash">Наличные</option>
@@ -220,18 +225,30 @@ tr:hover td { background: #f8fafc; }
   </div>
 </div>
 
-<script src="footer.js"></script>
+<script src="nav.js?v=1774551573"></script>
+<script src="footer.js?v=1774512457"></script>
 <script type="module">
 import { sb } from './api.js';
 import { requireAuth } from './auth.js';
 import { getStudioContext } from './studio-context.js';
 import { showToast } from './ui.js';
+import { escapeHtml } from './formatters.js';
 
 let studioId, allRows = [], categories = [], currentType = 'income', editId = null;
 
 const fmt = n => new Intl.NumberFormat('ru-RU', {minimumFractionDigits: 0, maximumFractionDigits: 0}).format(n||0) + ' ₽';
 const payLabels = {cash:'Наличные', bank:'БН (QR и счёт)', card:'Карта', acquiring:'Эквайринг', transfer:'Перевод'};
 const payBadge  = {cash:'badge-cash', bank:'badge-bank', card:'badge-card', acquiring:'badge-card', transfer:'badge-bank'};
+
+window.setFilterType = function(btn, type) {
+  document.getElementById('filterType').value = type;
+  document.querySelectorAll('.filter-tab').forEach(b => {
+    b.style.background = b === btn ? 'var(--brand,#7c3aed)' : '#fff';
+    b.style.color = b === btn ? '#fff' : '#6b7280';
+    b.style.borderColor = b === btn ? 'var(--brand,#7c3aed)' : '#e5e7eb';
+  });
+  applyFilters();
+};
 
 window.setType = function(t) {
   currentType = t;
@@ -277,9 +294,9 @@ window.closeModal = function() {
 
 window.saveOperation = async function() {
   const amount = parseFloat(document.getElementById('fAmount').value);
-  if (!amount || amount <= 0) { alert('Укажите сумму'); return; }
+  if (!amount || amount <= 0) { showToast('warning', 'Укажите сумму'); return; }
   const catId = document.getElementById('fCategory').value;
-  if (!catId) { alert('Выберите категорию'); return; }
+  if (!catId) { showToast('warning', 'Выберите категорию'); return; }
 
   const payload = {
     studio_id: studioId,
@@ -296,24 +313,34 @@ window.saveOperation = async function() {
     created_at: document.getElementById('fDate').value || new Date().toISOString().slice(0,10),
   };
 
-  let err;
-  if (editId) {
-    ({ error: err } = await sb.from('cash_flow').update(payload).eq('id', editId));
-  } else {
-    ({ error: err } = await sb.from('cash_flow').insert(payload));
+  try {
+    let err;
+    if (editId) {
+      ({ error: err } = await sb.from('cash_flow').update(payload).eq('id', editId));
+    } else {
+      ({ error: err } = await sb.from('cash_flow').insert(payload));
+    }
+    if (err) { showToast('error', 'Ошибка сохранения: ' + err.message); return; }
+    closeModal();
+    await loadData();
+    showToast('success', editId ? 'Операция обновлена' : 'Операция добавлена');
+  } catch (e) {
+    console.error('[cashflow] saveOperation:', e);
+    showToast('error', 'Не удалось сохранить операцию');
   }
-  if (err) { alert('Ошибка: ' + err.message); return; }
-  closeModal();
-  await loadData();
-  showToast('success', editId ? 'Операция обновлена' : 'Операция добавлена');
 };
 
 window.deleteOp = async function(id) {
   if (!confirm('Удалить операцию?')) return;
-  const { error } = await sb.from('cash_flow').delete().eq('id', id);
-  if (error) { alert('Ошибка: ' + error.message); return; }
-  await loadData();
-  showToast('success', 'Удалено');
+  try {
+    const { error } = await sb.from('cash_flow').delete().eq('id', id);
+    if (error) { showToast('error', 'Ошибка удаления: ' + error.message); return; }
+    await loadData();
+    showToast('success', 'Удалено');
+  } catch (e) {
+    console.error('[cashflow] deleteOp:', e);
+    showToast('error', 'Не удалось удалить операцию');
+  }
 };
 
 window.applyFilters = function() { renderTable(); };
@@ -322,7 +349,7 @@ function fillCategories() {
   const sel = document.getElementById('fCategory');
   const filtered = categories.filter(c => c.type === currentType);
   sel.innerHTML = '<option value="">— выберите —</option>' +
-    filtered.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+    filtered.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
 }
 
 function renderTable() {
@@ -359,12 +386,12 @@ function renderTable() {
     return `<tr>
       <td>${date}</td>
       <td>${r.type === 'income' ? '➕ Доход' : '➖ Расход'}</td>
-      <td>${cat?.name || '—'}</td>
+      <td>${escapeHtml(cat?.name || '—')}</td>
       <td class="${amtClass}">${amtSign}${fmt(r.amount)}</td>
-      <td><span class="badge ${payBadgeClass}">${payLabels[r.payment_method]||r.payment_method}</span></td>
-      <td>${r.counterparty?.name || '—'}</td>
+      <td><span class="badge ${payBadgeClass}">${escapeHtml(payLabels[r.payment_method]||r.payment_method)}</span></td>
+      <td>${escapeHtml(r.counterparty?.name || '—')}</td>
       <td>${statusBadge}</td>
-      <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.description||'—'}</td>
+      <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(r.description||'—')}</td>
       <td>
         <button class="btn btn-secondary btn-sm" onclick="openModal('${r.id}')">✏️</button>
         <button class="btn btn-danger btn-sm" onclick="deleteOp('${r.id}')">🗑</button>
@@ -398,29 +425,37 @@ function renderSummary() {
 }
 
 async function loadData() {
-  const [cfRes, catRes, cpRes, calcRes] = await Promise.all([
-    sb.from('cash_flow').select('*, counterparty:counterparties(name)').eq('studio_id', studioId).order('created_at', {ascending: false}),
-    sb.from('cash_flow_categories').select('*').eq('studio_id', studioId).order('sort_order'),
-    sb.from('counterparties').select('id, name').eq('studio_id', studioId).order('name'),
-    sb.from('calculations').select('id, car_name').eq('studio_id', studioId).order('created_at', {ascending: false}).limit(50),
-  ]);
+  try {
+    const [cfRes, catRes, cpRes, calcRes] = await Promise.all([
+      sb.from('cash_flow').select('*, counterparty:counterparties(name)').eq('studio_id', studioId).order('created_at', {ascending: false}),
+      sb.from('cash_flow_categories').select('*').eq('studio_id', studioId).order('sort_order'),
+      sb.from('counterparties').select('id, name').eq('studio_id', studioId).order('name'),
+      sb.from('calculations').select('id, car_name').eq('studio_id', studioId).order('created_at', {ascending: false}).limit(50),
+    ]);
 
-  allRows    = cfRes.data  || [];
-  categories = catRes.data || [];
+    if (cfRes.error) { showToast('error', 'Ошибка загрузки операций'); console.error('[cashflow] loadData cfRes:', cfRes.error); }
+    if (catRes.error) { showToast('error', 'Ошибка загрузки категорий'); console.error('[cashflow] loadData catRes:', catRes.error); }
 
-  // Fill counterparties dropdown
-  const cpSel = document.getElementById('fCounterparty');
-  cpSel.innerHTML = '<option value="">— не выбран —</option>' +
-    (cpRes.data||[]).map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+    allRows    = cfRes.data  || [];
+    categories = catRes.data || [];
 
-  // Fill calculations dropdown
-  const calcSel = document.getElementById('fCalculation');
-  calcSel.innerHTML = '<option value="">— не выбран —</option>' +
-    (calcRes.data||[]).map(c=>`<option value="${c.id}">${c.car_name||'Без названия'}</option>`).join('');
+    // Fill counterparties dropdown
+    const cpSel = document.getElementById('fCounterparty');
+    cpSel.innerHTML = '<option value="">— не выбран —</option>' +
+      (cpRes.data||[]).map(c=>`<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
 
-  fillCategories();
-  renderSummary();
-  renderTable();
+    // Fill calculations dropdown
+    const calcSel = document.getElementById('fCalculation');
+    calcSel.innerHTML = '<option value="">— не выбран —</option>' +
+      (calcRes.data||[]).map(c=>`<option value="${c.id}">${escapeHtml(c.car_name||'Без названия')}</option>`).join('');
+
+    fillCategories();
+    renderSummary();
+    renderTable();
+  } catch (e) {
+    console.error('[cashflow] loadData:', e);
+    showToast('error', 'Не удалось загрузить данные');
+  }
 }
 
 // Показывать/скрывать поле срока долга
@@ -431,7 +466,6 @@ document.getElementById('fStatus').addEventListener('change', e => {
 // Init
 (async () => {
   initNav();
-  document.body.style.visibility = 'visible';
   const user = await requireAuth({ redirectTo: 'welcome.html' });
   if (!user) return;
   const ctx = await getStudioContext();

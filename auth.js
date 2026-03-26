@@ -45,10 +45,8 @@ export async function logout({ redirectTo = 'welcome.html' } = {}) {
 }
 
 // ── Проверить, является ли пользователь глобальным админом ────────
-const ADMIN_ID = 'c5db87ec-8e4a-4c48-bad3-5747513224d9';
-
+// Роль global_admin хранится в БД (profiles.role)
 export function isGlobalAdmin(user) {
-  return user?.id === ADMIN_ID;
+  return user?.role === 'global_admin'
+      || user?.user_metadata?.role === 'global_admin';
 }
-
-export { ADMIN_ID };

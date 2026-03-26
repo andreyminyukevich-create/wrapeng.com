@@ -9,7 +9,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="theme.css">
-<script src="nav.js"></script>
+<link rel="stylesheet" href="mobile.css?v=1774508385">
+<script src="nav.js?v=1774551573"></script>
 <style>
 :root {
   --font:       -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
@@ -224,7 +225,7 @@ body {
   </div>
 </div>
 
-<script src="footer.js"></script>
+<script src="footer.js?v=1774512457"></script>
 
 </div>
 
@@ -263,14 +264,23 @@ function fmt(n) {
 
 // ── Загрузка исполнителей ───────────────────────────────────────────
 async function loadExecutors() {
-  const { data, error } = await sb
-    .from('executors')
-    .select('id, full_name, role, is_admin')
-    .eq('studio_id', studioCtx.studioId)
-    .eq('is_active', true)
-    .order('full_name');
-  if (error) { console.error('[assign] loadExecutors:', error); return; }
-  executors = data || [];
+  try {
+    const { data, error } = await sb
+      .from('executors')
+      .select('id, full_name, role, is_admin')
+      .eq('studio_id', studioCtx.studioId)
+      .eq('is_active', true)
+      .order('full_name');
+    if (error) {
+      console.error('[assign] loadExecutors:', error);
+      showToast('error', 'Не удалось загрузить исполнителей');
+      return;
+    }
+    executors = data || [];
+  } catch (err) {
+    console.error('[assign] loadExecutors:', err);
+    showToast('error', 'Не удалось загрузить исполнителей');
+  }
 }
 
 function roleRu(r) {
@@ -1019,12 +1029,21 @@ async function saveAssignments(btnEl) {
       adminExecName = document.getElementById('adminManualName')?.value?.trim() || '';
       const saveToList = document.getElementById('adminSaveToList')?.checked;
       if (adminExecName && saveToList) {
-        const { data: saved } = await sb.from('executors').insert({
-          studio_id: studioCtx.studioId,
-          full_name: adminExecName,
-          role: 'universal', is_active: true, is_admin: true,
-        }).select().single();
-        if (saved) { adminExecId = saved.id; executors.push(saved); }
+        try {
+          const { data: saved, error: adminExecErr } = await sb.from('executors').insert({
+            studio_id: studioCtx.studioId,
+            full_name: adminExecName,
+            role: 'universal', is_active: true, is_admin: true,
+          }).select().single();
+          if (adminExecErr) {
+            console.error('[assign] save admin executor:', adminExecErr);
+            showToast('error', 'Не удалось сохранить продавца в список');
+          }
+          if (saved) { adminExecId = saved.id; executors.push(saved); }
+        } catch (err) {
+          console.error('[assign] save admin executor:', err);
+          showToast('error', 'Не удалось сохранить продавца в список');
+        }
       }
     } else {
       adminExecId   = document.getElementById('adminExecutorId')?.value || null;
@@ -1245,52 +1264,60 @@ async function initPage() {
     return;
   }
 
-  const { data: calcData, error: calcError } = await sb
-    .from('calculations')
-    .select('*')
-    .eq('id', calcId)
-    .single();
+  try {
+    const { data: calcData, error: calcError } = await sb
+      .from('calculations')
+      .select('*')
+      .eq('id', calcId)
+      .single();
 
-  if (calcError || !calcData) {
-    showNotFound(document.getElementById('mainContent'), 'Расчёт не найден');
-    return;
+    if (calcError || !calcData) {
+      showNotFound(document.getElementById('mainContent'), 'Расчёт не найден');
+      return;
+    }
+
+    calculation = calcData;
+    checkinDate = calcData.checkin_date || null;
+    await loadExecutors();
+
+    // Загружаем все бронирования студии для мини-календарей
+    const { data: bookingsData, error: bookingsError } = await sb
+      .from('calendar_bookings')
+      .select('post_id, date_from, date_to, executor_ids, calc_id')
+      .eq('studio_id', studioCtx.studioId);
+    if (bookingsError) console.error('[assign] loadBookings:', bookingsError);
+    allBookings = bookingsData || [];
+
+    const { data: existingData, error: assignError } = await sb
+      .from('work_assignments')
+      .select('*')
+      .eq('calculation_id', calcId);
+    if (assignError) console.error('[assign] loadAssignments:', assignError);
+
+    const services = extractServices(calcData.calculation_data || {});
+
+    let assignments = existingData || [];
+    if (!assignments.length) {
+      const bookingAssignments = calcData.calculation_data?.service_assignments || [];
+      assignments = bookingAssignments
+        .filter(a => a.executor_id)
+        .map(a => ({
+          service_key:  a.key,
+          service_name: a.name,
+          executor_id:  a.executor_id,
+          salary: 0,
+        }));
+    }
+
+    renderContent(services, assignments);
+  } catch (err) {
+    console.error('[assign] initPage:', err);
+    showToast('error', 'Не удалось загрузить данные');
+    showError(document.getElementById('mainContent'), 'Ошибка загрузки данных', () => location.reload());
   }
-
-  calculation = calcData;
-  checkinDate = calcData.checkin_date || null;
-  await loadExecutors();
-
-  // Загружаем все бронирования студии для мини-календарей
-  const { data: bookingsData } = await sb
-    .from('calendar_bookings')
-    .select('post_id, date_from, date_to, executor_ids, calc_id')
-    .eq('studio_id', studioCtx.studioId);
-  allBookings = bookingsData || [];
-
-  const { data: existingData } = await sb
-    .from('work_assignments')
-    .select('*')
-    .eq('calculation_id', calcId);
-
-  const services = extractServices(calcData.calculation_data || {});
-
-  let assignments = existingData || [];
-  if (!assignments.length) {
-    const bookingAssignments = calcData.calculation_data?.service_assignments || [];
-    assignments = bookingAssignments
-      .filter(a => a.executor_id)
-      .map(a => ({
-        service_key:  a.key,
-        service_name: a.name,
-        executor_id:  a.executor_id,
-        salary: 0,
-      }));
-  }
-
-  renderContent(services, assignments);
 }
 
-document.addEventListener('DOMContentLoaded', initPage);
+initPage();
 </script>
 
 </body>

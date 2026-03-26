@@ -9,7 +9,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="theme.css">
-<script src="nav.js"></script>
+<link rel="stylesheet" href="mobile.css?v=1774508385">
+<script src="nav.js?v=1774551573"></script>
 <style>
 :root {
   --font:      -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
@@ -64,7 +65,7 @@ body { font-family: var(--font); -webkit-font-smoothing: antialiased; background
 .btn-sm { padding: 6px 12px; font-size: 0.75rem; }
 .btn[disabled] { opacity: 0.5; cursor: not-allowed; }
 
-#saveToast { position: fixed; bottom: 24px; right: 24px; background: #1e1b4b; color: #fff; padding: 10px 18px; border-radius: 10px; font-size: 0.82rem; font-weight: 600; font-family: var(--font); opacity: 0; transform: translateY(8px); transition: all 0.2s; z-index: 100; pointer-events: none; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+#saveToast { position: fixed; bottom: 24px; right: 24px; background: var(--text); color: #fff; padding: 10px 18px; border-radius: 10px; font-size: 0.82rem; font-weight: 600; font-family: var(--font); opacity: 0; transform: translateY(8px); transition: all 0.2s; z-index: 100; pointer-events: none; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
 #saveToast.show { opacity: 1; transform: translateY(0); }
 
 .members-table { width: 100%; border-collapse: collapse; }
@@ -112,13 +113,13 @@ body { font-family: var(--font); -webkit-font-smoothing: antialiased; background
 </div>
 <div id="saveToast"></div>
 
-<script src="footer.js"></script>
+<script src="footer.js?v=1774512457"></script>
 <script type="module">
 import { sb }               from './api.js';
 import { requireAuth }      from './auth.js';
 import { getStudioContext }  from './studio-context.js';
 import { escapeHtml }        from './formatters.js';
-import { confirmAction, lockButton } from './ui.js';
+import { confirmAction, lockButton, showToast } from './ui.js';
 
 // ── State ──────────────────────────────────────────────────────────────
 let currentUser = null;
@@ -278,8 +279,19 @@ function renderAll() {
             <div class="card-title">👥 Участники студии</div>
             <div class="card-subtitle">Пользователи с доступом к CRM</div>
           </div>
+          <button class="btn btn-primary btn-sm" id="btnAddMember" style="display:none">+ Добавить</button>
         </div>
         <div id="membersBlock"><div class="loading" style="padding:20px">⏳ Загрузка...</div></div>
+        <!-- Форма добавления участника -->
+        <div id="addMemberForm" style="display:none;padding:16px 20px;border-top:1px solid var(--border)">
+          <div style="font-size:0.75rem;font-weight:700;color:var(--text-muted);margin-bottom:10px">ПРИГЛАСИТЬ УЧАСТНИКА</div>
+          <div style="display:grid;grid-template-columns:1fr 120px 100px;gap:8px;align-items:end">
+            <div class="form-group" style="margin:0"><label>Email</label><input type="email" id="newMemberEmail" placeholder="user@email.com"></div>
+            <div class="form-group" style="margin:0"><label>Роль</label><select id="newMemberRole"><option value="staff">Сотрудник</option><option value="manager">Менеджер</option></select></div>
+            <button class="btn btn-primary btn-sm" id="btnSaveMember">Добавить</button>
+          </div>
+          <div id="addMemberError" style="color:var(--danger);font-size:0.8rem;margin-top:6px;display:none"></div>
+        </div>
       </div>
 
     </div>
@@ -332,7 +344,7 @@ function updateKPLogoPreview() {
 // ── Logo ───────────────────────────────────────────────────────────────
 async function handleLogoChange(file) {
   if (!file) return;
-  if (file.size > 2 * 1024 * 1024) { toast('❌ Файл слишком большой. Максимум — 2MB.'); return; }
+  if (file.size > 2 * 1024 * 1024) { showToast('error', 'Файл слишком большой. Максимум — 2MB.'); return; }
 
   const btn     = document.getElementById('btnUploadLogo');
   const fn      = document.getElementById('logoFilename');
@@ -355,7 +367,7 @@ async function handleLogoChange(file) {
     updateKPLogoPreview();
   } catch (err) {
     console.error('[settings] logo upload:', err);
-    toast('❌ Ошибка загрузки: ' + err.message);
+    showToast('error', 'Ошибка загрузки: ' + err.message);
     if (fn) fn.textContent = 'Ошибка загрузки';
   } finally { release(); }
 }
@@ -363,28 +375,59 @@ async function handleLogoChange(file) {
 async function removeLogo() {
   const ok = await confirmAction({ message: 'Удалить логотип?' });
   if (!ok) return;
-  if (logoUrl) {
-    for (const ext of ['png','jpg','jpeg','webp','svg']) {
-      await sb.storage.from(LOGO_BUCKET).remove([`${studio.id}/logo.${ext}`]);
+  try {
+    if (logoUrl) {
+      for (const ext of ['png','jpg','jpeg','webp','svg']) {
+        await sb.storage.from(LOGO_BUCKET).remove([`${studio.id}/logo.${ext}`]);
+      }
     }
+    logoUrl = null;
+    const box = document.getElementById('logoPreviewBox');
+    if (box) { box.innerHTML = ''; const sp = document.createElement('span'); sp.className = 'logo-preview-placeholder'; sp.textContent = '🏢'; box.appendChild(sp); }
+    const fn = document.getElementById('logoFilename');
+    if (fn) fn.textContent = 'PNG, JPG, WEBP — до 2MB';
+    document.getElementById('btnRemoveLogo')?.remove();
+    updateKPLogoPreview();
+    showToast('success', 'Логотип удалён');
+  } catch (e) {
+    console.error('[settings] removeLogo:', e);
+    showToast('error', 'Не удалось удалить логотип');
   }
-  logoUrl = null;
-  const box = document.getElementById('logoPreviewBox');
-  if (box) { box.innerHTML = ''; const sp = document.createElement('span'); sp.className = 'logo-preview-placeholder'; sp.textContent = '🏢'; box.appendChild(sp); }
-  const fn = document.getElementById('logoFilename');
-  if (fn) fn.textContent = 'PNG, JPG, WEBP — до 2MB';
-  document.getElementById('btnRemoveLogo')?.remove();
-  updateKPLogoPreview();
 }
 
 // ── Members ────────────────────────────────────────────────────────────
 async function loadMembers() {
   const el = document.getElementById('membersBlock');
-  const { data: members, error } = await sb
+  try {
+  // Пробуем загрузить всех участников студии
+  let members = null;
+  const { data, error } = await sb
     .from('studio_members').select('id, role, is_active, user_id')
     .eq('studio_id', studio.id).eq('is_active', true).order('created_at');
 
-  if (error || !members?.length) {
+  if (!error && data?.length) {
+    members = data;
+  } else {
+    // Fallback: загружаем через /api/studio-members/me
+    console.warn('[settings] studio_members query failed, trying fallback:', error);
+    try {
+      const token = localStorage.getItem('k1r_token');
+      const res = await fetch('/api/studio-members/me', { headers: { 'Authorization': 'Bearer ' + token } });
+      if (res.ok) {
+        const fallbackData = await res.json();
+        if (Array.isArray(fallbackData) && fallbackData.length) {
+          members = fallbackData.map(m => ({
+            id: m.id || m.user_id,
+            role: m.role || 'staff',
+            is_active: true,
+            user_id: m.user_id,
+          }));
+        }
+      }
+    } catch (e2) { console.error('[settings] fallback failed:', e2); }
+  }
+
+  if (!members?.length) {
     el.textContent = 'Участники не найдены.';
     el.style.cssText = 'color:var(--muted);font-size:0.82rem;padding:10px 0';
     return;
@@ -434,14 +477,27 @@ async function loadMembers() {
   note.style.cssText = 'margin-top:12px;font-size:0.75rem;color:var(--muted)';
   note.textContent = 'Для добавления новых участников обратитесь в поддержку Keep1R.';
   el.appendChild(note);
+  } catch (e) {
+    console.error('[settings] loadMembers:', e);
+    showToast('error', 'Не удалось загрузить участников');
+  }
 }
 
 // ── Posts ──────────────────────────────────────────────────────────────
 async function loadPosts() {
-  const { data, error } = await sb.from('posts').select('*')
-    .eq('studio_id', studio.id).eq('is_active', true).order('created_at');
-  postsData = (error && error.code !== 'PGRST116') ? [] : (data || []);
-  renderPosts();
+  try {
+    const { data, error } = await sb.from('posts').select('*')
+      .eq('studio_id', studio.id).eq('is_active', true).order('created_at');
+    if (error && error.code !== 'PGRST116') {
+      console.error('[settings] loadPosts:', error);
+      showToast('error', 'Ошибка загрузки постов');
+    }
+    postsData = (error && error.code !== 'PGRST116') ? [] : (data || []);
+    renderPosts();
+  } catch (e) {
+    console.error('[settings] loadPosts:', e);
+    showToast('error', 'Не удалось загрузить посты');
+  }
 }
 
 function syncPostsFromDOM() {
@@ -520,10 +576,18 @@ async function deletePost(idx) {
   if (!p._new && p.id) {
     const ok = await confirmAction({ message: `Удалить пост «${p.name || 'без названия'}»?` });
     if (!ok) return;
-    await sb.from('posts').update({ is_active: false }).eq('id', p.id);
+    try {
+      const { error } = await sb.from('posts').update({ is_active: false }).eq('id', p.id);
+      if (error) { showToast('error', 'Ошибка удаления поста: ' + error.message); return; }
+    } catch (e) {
+      console.error('[settings] deletePost:', e);
+      showToast('error', 'Не удалось удалить пост');
+      return;
+    }
   }
   postsData.splice(idx, 1);
   renderPosts();
+  showToast('success', 'Пост удалён');
 }
 
 function cycleColor(idx) {
@@ -540,43 +604,51 @@ async function savePosts() {
   const release = lockButton(btn, '⏳ Сохранение...');
   let hasError  = false;
 
-  for (const p of postsData) {
-    if (!p.name?.trim()) continue;
-    const payload = { studio_id: studio.id, name: p.name.trim(), type: p.type || 'universal', color: p.color || '#7c3aed', capacity: p.capacity || 1, is_active: true };
-    const { error } = p._new
-      ? await sb.from('posts').insert(payload)
-      : await sb.from('posts').update(payload).eq('id', p.id);
-    if (error) { hasError = true; console.error('[settings] savePosts:', error); }
-  }
+  try {
+    for (const p of postsData) {
+      if (!p.name?.trim()) continue;
+      const payload = { studio_id: studio.id, name: p.name.trim(), type: p.type || 'universal', color: p.color || '#7c3aed', capacity: p.capacity || 1, is_active: true };
+      const { error } = p._new
+        ? await sb.from('posts').insert(payload)
+        : await sb.from('posts').update(payload).eq('id', p.id);
+      if (error) { hasError = true; console.error('[settings] savePosts:', error); }
+    }
 
-  release();
-  if (hasError) { toast('❌ Ошибка сохранения. Проверьте консоль.'); }
-  else          { toast('✅ Посты сохранены'); await loadPosts(); }
+    if (hasError) { showToast('error', 'Ошибка сохранения постов'); }
+    else          { showToast('success', 'Посты сохранены'); await loadPosts(); }
+  } catch (e) {
+    console.error('[settings] savePosts:', e);
+    showToast('error', 'Не удалось сохранить посты');
+  } finally { release(); }
 }
 
 // ── Save main ──────────────────────────────────────────────────────────
 async function saveMain() {
   const nameEl = document.getElementById('studioName');
   const name   = nameEl?.value.trim();
-  if (!name) { nameEl?.focus(); return; }
+  if (!name) { nameEl?.focus(); showToast('warning', 'Укажите название студии'); return; }
 
   const btn     = document.getElementById('btnSaveMain');
   const release = lockButton(btn, '⏳...');
 
-  const newSettings = {
-    ...(studio.settings || {}),
-    phone:         document.getElementById('studioPhone')?.value.trim(),
-    city:          document.getElementById('studioCity')?.value.trim(),
-    website:       document.getElementById('studioWebsite')?.value.trim(),
-    contact_email: document.getElementById('studioEmail')?.value.trim(),
-    address:       document.getElementById('studioAddress')?.value.trim(),
-  };
+  try {
+    const newSettings = {
+      ...(studio.settings || {}),
+      phone:         document.getElementById('studioPhone')?.value.trim(),
+      city:          document.getElementById('studioCity')?.value.trim(),
+      website:       document.getElementById('studioWebsite')?.value.trim(),
+      contact_email: document.getElementById('studioEmail')?.value.trim(),
+      address:       document.getElementById('studioAddress')?.value.trim(),
+    };
 
-  const { error } = await sb.from('studios').update({ name, settings: newSettings }).eq('id', studio.id);
-  release();
-  if (error) { console.error(error); toast('❌ Ошибка: ' + error.message); return; }
-  studio.name = name; studio.settings = newSettings;
-  toast('✅ Основная информация сохранена');
+    const { error } = await sb.from('studios').update({ name, settings: newSettings }).eq('id', studio.id);
+    if (error) { console.error(error); showToast('error', 'Ошибка сохранения: ' + error.message); return; }
+    studio.name = name; studio.settings = newSettings;
+    showToast('success', 'Основная информация сохранена');
+  } catch (e) {
+    console.error('[settings] saveMain:', e);
+    showToast('error', 'Не удалось сохранить настройки');
+  } finally { release(); }
 }
 
 // ── Save branding ──────────────────────────────────────────────────────
@@ -584,18 +656,22 @@ async function saveBranding() {
   const btn     = document.getElementById('btnSaveBranding');
   const release = lockButton(btn, '⏳...');
 
-  const newSettings = {
-    ...(studio.settings || {}),
-    kp_logo:    logoUrl || null,
-    kp_phone:   document.getElementById('kpPhone')?.value.trim(),
-    kp_website: document.getElementById('kpWebsite')?.value.trim(),
-  };
+  try {
+    const newSettings = {
+      ...(studio.settings || {}),
+      kp_logo:    logoUrl || null,
+      kp_phone:   document.getElementById('kpPhone')?.value.trim(),
+      kp_website: document.getElementById('kpWebsite')?.value.trim(),
+    };
 
-  const { error } = await sb.from('studios').update({ settings: newSettings }).eq('id', studio.id);
-  release();
-  if (error) { console.error(error); toast('❌ Ошибка: ' + error.message); return; }
-  studio.settings = newSettings;
-  toast('✅ Брендинг сохранён');
+    const { error } = await sb.from('studios').update({ settings: newSettings }).eq('id', studio.id);
+    if (error) { console.error(error); showToast('error', 'Ошибка сохранения: ' + error.message); return; }
+    studio.settings = newSettings;
+    showToast('success', 'Брендинг сохранён');
+  } catch (e) {
+    console.error('[settings] saveBranding:', e);
+    showToast('error', 'Не удалось сохранить брендинг');
+  } finally { release(); }
 }
 
 // ── Bind events ────────────────────────────────────────────────────────
@@ -646,9 +722,80 @@ async function initPage() {
   renderAll();
   bindPageEvents();
   await Promise.all([loadMembers(), loadPosts()]);
+
+  // Кнопка добавления участника — только для владельцев
+  if (memberRole === 'owner') {
+    const btnAdd = document.getElementById('btnAddMember');
+    if (btnAdd) {
+      btnAdd.style.display = '';
+      btnAdd.addEventListener('click', () => {
+        const form = document.getElementById('addMemberForm');
+        form.style.display = form.style.display === 'none' ? '' : 'none';
+      });
+    }
+    document.getElementById('btnSaveMember')?.addEventListener('click', addMember);
+  }
 }
 
-document.addEventListener('DOMContentLoaded', initPage);
+async function addMember() {
+  const email = document.getElementById('newMemberEmail').value.trim();
+  const role = document.getElementById('newMemberRole').value;
+  const errEl = document.getElementById('addMemberError');
+  errEl.style.display = 'none';
+
+  if (!email) { errEl.textContent = 'Введите email'; errEl.style.display = 'block'; return; }
+
+  const btn = document.getElementById('btnSaveMember');
+  btn.disabled = true; btn.textContent = '⏳';
+
+  try {
+    // Проверяем есть ли пользователь с таким email
+    const token = localStorage.getItem('k1r_token');
+    // Ищем profile по email через register (если нет — создаём)
+    let userId = null;
+
+    // Сначала проверим через generic route
+    const { data: existing } = await sb.from('profiles').select('id').eq('email', email);
+    if (existing?.length) {
+      userId = existing[0].id;
+    } else {
+      // Создаём нового пользователя через /auth/register
+      const regRes = await fetch('/api/auth/register', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password: Math.random().toString(36).slice(2, 10), role: 'owner' }),
+      });
+      const regData = await regRes.json();
+      if (!regRes.ok) throw new Error(regData.error || 'Ошибка создания');
+      userId = regData.user.id;
+    }
+
+    // Проверяем нет ли уже в studio_members
+    const { data: existingMember } = await sb.from('studio_members').select('id').eq('studio_id', studio.id).eq('user_id', userId);
+    if (existingMember?.length) {
+      errEl.textContent = 'Пользователь уже добавлен в студию';
+      errEl.style.display = 'block';
+      btn.disabled = false; btn.textContent = 'Добавить';
+      return;
+    }
+
+    // Добавляем в studio_members
+    const { error } = await sb.from('studio_members').insert({
+      studio_id: studio.id, user_id: userId, role: role, is_active: true,
+    });
+    if (error) throw error;
+
+    showToast('success', 'Участник добавлен');
+    document.getElementById('newMemberEmail').value = '';
+    document.getElementById('addMemberForm').style.display = 'none';
+    await loadMembers();
+  } catch (err) {
+    errEl.textContent = err.message || 'Ошибка';
+    errEl.style.display = 'block';
+  }
+  btn.disabled = false; btn.textContent = 'Добавить';
+}
+
+initPage();
 </script>
 </body>
 </html>

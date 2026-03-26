@@ -9,17 +9,17 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="theme.css">
-<script src="nav.js"></script>
+<link rel="stylesheet" href="mobile.css?v=1774508385">
 <style>
-body { visibility: hidden; background: #f5f7fa; }
+body { background: #f5f7fa; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif; }
-.container { max-width: 1100px; margin: 0 auto; padding: 24px; }
+.container { max-width: 1280px; margin: 0 auto; padding: 24px; }
 .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
 .page-header h1 { font-size: 1.4rem; font-weight: 800; color: #0f172a; }
 .btn { padding: 10px 18px; border-radius: 8px; border: none; cursor: pointer; font-size: 0.875rem; font-weight: 600; transition: all .15s; }
-.btn-primary { background: #7c3aed; color: #fff; }
-.btn-primary:hover { background: #6d28d9; }
+.btn-primary { background: var(--brand); color: #fff; }
+.btn-primary:hover { background: var(--brand-dark); }
 .btn-secondary { background: #f1f5f9; color: #374151; }
 .btn-secondary:hover { background: #e2e8f0; }
 .btn-danger { background: #fee2e2; color: #dc2626; }
@@ -52,11 +52,16 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif
 .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 200; align-items: center; justify-content: center; padding: 16px; }
 .modal-overlay.open { display: flex; }
 .modal { background: #fff; border-radius: 16px; padding: 28px; width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; }
+@media (max-width: 768px) {
+  .modal-overlay.open { align-items: flex-end !important; padding: 0; }
+  .modal { max-width: 100% !important; border-radius: 20px 20px 0 0 !important; max-height: 85dvh !important; padding: 22px 18px; }
+  .form-row { grid-template-columns: 1fr !important; }
+}
 .modal h2 { font-size: 1.1rem; font-weight: 800; margin-bottom: 20px; }
 .form-group { display: flex; flex-direction: column; gap: 4px; margin-bottom: 14px; }
 .form-group label { font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; }
 .form-group input, .form-group select, .form-group textarea { padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.875rem; outline: none; }
-.form-group input:focus, .form-group select:focus { border-color: #7c3aed; }
+.form-group input:focus, .form-group select:focus { border-color: var(--brand); }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
 .act-detail { background: #f8fafc; border-radius: 10px; padding: 16px; margin-top: 16px; }
@@ -75,6 +80,13 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif
   <div class="page-header">
     <h1>📑 Акты сверок</h1>
     <button class="btn btn-primary" onclick="openModal()">+ Создать акт</button>
+  </div>
+
+  <div class="type-tabs" style="display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch">
+    <button class="filter-tab active" data-cptype="" onclick="setCpType(this,'')" style="padding:7px 14px;border-radius:8px;border:1px solid #e5e7eb;background:#fff;cursor:pointer;font-size:13px;font-weight:600;color:#6b7280;white-space:nowrap;flex-shrink:0">Все</button>
+    <button class="filter-tab" data-cptype="client" onclick="setCpType(this,'client')" style="padding:7px 14px;border-radius:8px;border:1px solid #e5e7eb;background:#fff;cursor:pointer;font-size:13px;font-weight:600;color:#6b7280;white-space:nowrap;flex-shrink:0">Покупатели</button>
+    <button class="filter-tab" data-cptype="supplier" onclick="setCpType(this,'supplier')" style="padding:7px 14px;border-radius:8px;border:1px solid #e5e7eb;background:#fff;cursor:pointer;font-size:13px;font-weight:600;color:#6b7280;white-space:nowrap;flex-shrink:0">Поставщики</button>
+    <button class="filter-tab" data-cptype="employee" onclick="setCpType(this,'employee')" style="padding:7px 14px;border-radius:8px;border:1px solid #e5e7eb;background:#fff;cursor:pointer;font-size:13px;font-weight:600;color:#6b7280;white-space:nowrap;flex-shrink:0">Сотрудники</button>
   </div>
 
   <div class="filters">
@@ -96,8 +108,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif
 </div>
 
 <!-- Create/Edit modal -->
-<div class="modal-overlay" id="modal">
-  <div class="modal">
+<div class="modal-overlay" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal" onclick="event.stopPropagation()">
     <h2 id="modalTitle">Создать акт сверки</h2>
     <div class="form-group">
       <label>Контрагент *</label>
@@ -127,8 +139,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif
 </div>
 
 <!-- Detail modal -->
-<div class="modal-overlay" id="detailModal">
-  <div class="modal" style="max-width:640px">
+<div class="modal-overlay" id="detailModal" onclick="if(event.target===this)closeDetail()">
+  <div class="modal" style="max-width:640px" onclick="event.stopPropagation()">
     <h2 id="detailTitle">Акт сверки</h2>
     <div id="detailBody"></div>
     <div class="modal-footer">
@@ -139,7 +151,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif
   </div>
 </div>
 
-<script src="footer.js"></script>
+<script src="nav.js?v=1774551573"></script>
+<script src="footer.js?v=1774512457"></script>
 <script type="module">
 import { sb } from './api.js';
 import { requireAuth } from './auth.js';
@@ -289,6 +302,17 @@ window.deleteAct = async function(id) {
   showToast('success', 'Удалено');
 };
 
+let cpTypeFilter = '';
+window.setCpType = function(btn, type) {
+  cpTypeFilter = type;
+  document.querySelectorAll('.filter-tab').forEach(b => {
+    b.classList.toggle('active', b === btn);
+    b.style.background = b === btn ? 'var(--brand,#7c3aed)' : '#fff';
+    b.style.color = b === btn ? '#fff' : '#6b7280';
+    b.style.borderColor = b === btn ? 'var(--brand,#7c3aed)' : '#e5e7eb';
+  });
+  renderActs();
+};
 window.applyFilters = function() { renderActs(); };
 
 function renderActs() {
@@ -300,6 +324,10 @@ function renderActs() {
     if (cpF     && a.counterparty_id !== cpF) return false;
     if (statusF && a.status !== statusF) return false;
     if (yearF   && !a.period_start?.startsWith(yearF)) return false;
+    if (cpTypeFilter) {
+      const cp = counterparties.find(c => c.id === a.counterparty_id);
+      if (!cp || cp.type !== cpTypeFilter) return false;
+    }
     return true;
   });
 
@@ -356,7 +384,6 @@ async function loadData() {
 
 (async () => {
   initNav();
-  document.body.style.visibility = 'visible';
   const user = await requireAuth({ redirectTo: 'welcome.html' });
   if (!user) return;
   const ctx = await getStudioContext();

@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="theme.css">
-<script src="nav.js"></script>
+<link rel="stylesheet" href="mobile.css?v=1774508385">
 <style>
 :root {
   --font:       -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
@@ -37,7 +37,6 @@
 body {
   font-family: var(--font); -webkit-font-smoothing: antialiased;
   background: var(--bg); color: var(--text); min-height: 100svh;
-  visibility: hidden;
 }
 
 /* ── Субшапка ──────────────────────────────────── */
@@ -235,14 +234,155 @@ body {
   padding: 16px 0; font-style: italic;
 }
 
-/* ── Адаптив ────────────────────────────────────── */
+/* ── Kanban-стиль (как board/sales) ──────────── */
+.board-page  { display: flex; flex-direction: column; min-height: 100svh; }
+.board-toolbar {
+  padding: 10px 20px 0;
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+}
+.search-wrap { position: relative; flex: 1; min-width: 180px; max-width: 320px; }
+.search-wrap input {
+  width: 100%; padding: 8px 12px 8px 34px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; font-family: var(--font); font-size: 0.83rem;
+  color: var(--text); outline: none; transition: border-color .15s, box-shadow .15s;
+}
+.search-wrap input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(124,58,237,.10); }
+.search-wrap .search-icon {
+  position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+  font-size: .82rem; pointer-events: none;
+}
+.board-count-badge { font-size: 0.72rem; color: var(--dim); font-weight: 600; white-space: nowrap; }
+.board-outer {
+  flex: 1; overflow-x: auto; padding: 14px 20px 32px;
+  -webkit-overflow-scrolling: touch; scrollbar-width: thin;
+  scrollbar-color: rgba(124,58,237,0.2) transparent;
+}
+.board-outer::-webkit-scrollbar       { height: 6px; }
+.board-outer::-webkit-scrollbar-track { background: transparent; }
+.board-outer::-webkit-scrollbar-thumb { background: rgba(124,58,237,0.18); border-radius: 3px; }
+.board-wrap  { display: flex; gap: 14px; align-items: flex-start; min-width: max-content; }
+
+/* ── Колонка ──────────────────────────────────── */
+.column {
+  width: 272px; flex-shrink: 0; background: var(--surface);
+  border-radius: var(--radius); border: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  max-height: calc(100svh - 120px); box-shadow: var(--shadow);
+}
+.column-header {
+  padding: 14px 16px 12px; display: flex; align-items: center;
+  justify-content: space-between; border-bottom: 1px solid var(--border);
+  border-radius: var(--radius) var(--radius) 0 0;
+  position: sticky; top: 0; background: var(--surface); z-index: 1;
+}
+.column-title {
+  display: flex; align-items: center; gap: 7px;
+  font-weight: 700; font-size: 0.82rem; letter-spacing: 0.01em; text-transform: uppercase;
+}
+.column-dot   { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.column-count {
+  font-size: 0.7rem; font-weight: 700; padding: 2px 8px;
+  border-radius: 20px; background: var(--bg); color: var(--muted);
+  min-width: 24px; text-align: center;
+}
+.column-sum {
+  font-size: 0.68rem; font-weight: 700; color: var(--success);
+  white-space: nowrap;
+}
+.column-cards {
+  padding: 10px; display: flex; flex-direction: column; gap: 7px;
+  overflow-y: auto; flex: 1; scrollbar-width: thin;
+  scrollbar-color: rgba(0,0,0,0.08) transparent; min-height: 60px;
+}
+
+/* ── Цвета колонок ────────────────────────────── */
+.col-accepted .column-dot   { background: #7c3aed; }
+.col-accepted .column-title { color: #5b21b6; }
+.col-accepted .column-count { background: rgba(124,58,237,0.08); color: #7c3aed; }
+.col-accepted               { border-top: 3px solid #7c3aed; }
+
+.col-in_progress .column-dot   { background: #6366f1; }
+.col-in_progress .column-title { color: #4338ca; }
+.col-in_progress .column-count { background: rgba(99,102,241,0.08); color: #6366f1; }
+.col-in_progress               { border-top: 3px solid #6366f1; }
+
+.col-done .column-dot   { background: #ec4899; }
+.col-done .column-title { color: #be185d; }
+.col-done .column-count { background: rgba(236,72,153,0.08); color: #ec4899; }
+.col-done               { border-top: 3px solid #ec4899; }
+
+.col-delivered .column-dot   { background: #059669; }
+.col-delivered .column-title { color: #065f46; }
+.col-delivered .column-count { background: rgba(5,150,105,0.08); color: #059669; }
+.col-delivered               { border-top: 3px solid #059669; }
+
+.col-correction .column-dot   { background: #ef4444; }
+.col-correction .column-title { color: #991b1b; }
+.col-correction .column-count { background: rgba(220,38,38,0.08); color: #ef4444; }
+.col-correction               { border-top: 3px solid #ef4444; opacity: 0.85; }
+
+/* ── Карточка ─────────────────────────────────── */
+.kanban-card {
+  background: #f8fafc; border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 12px 13px;
+  cursor: pointer; transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s, background 0.15s;
+  text-decoration: none; color: inherit; display: block;
+}
+.kanban-card:hover {
+  background: var(--surface); border-color: rgba(124,58,237,0.3);
+  box-shadow: 0 3px 14px rgba(124,58,237,0.09); transform: translateY(-2px);
+}
+.kanban-card.hidden-by-search { display: none; }
+.card-car {
+  font-weight: 700; font-size: 0.88rem; margin-bottom: 3px;
+  letter-spacing: -0.2px; white-space: nowrap; overflow: hidden;
+  text-overflow: ellipsis; color: var(--text);
+}
+.card-client {
+  font-size: 0.76rem; color: var(--muted); margin-bottom: 2px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.card-phone { font-size: 0.76rem; color: var(--primary); margin-bottom: 2px; }
+.card-price {
+  font-size: 0.92rem; font-weight: 800; color: var(--success);
+  letter-spacing: -0.4px; margin-top: 4px;
+}
+.card-date { font-size: 0.68rem; color: var(--dim); margin-top: 4px; }
+.empty-col {
+  text-align: center; padding: 18px 0; font-size: 0.78rem; color: var(--dim);
+}
+
+/* ── Мобильный аккордеон ──────────────────────── */
+@media (max-width: 768px) {
+  .board-outer  { padding: 10px 10px 24px; overflow-x: visible; }
+  .board-wrap   { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+  .board-toolbar { padding: 10px 10px 0; }
+  .column       { width: 100%; max-height: none; border-top-width: 3px; }
+  .column-header { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+  .column-cards { max-height: 0; overflow: hidden; padding: 0 10px; transition: max-height .3s ease, padding .3s ease; }
+  .column.col-open .column-cards { max-height: 2000px; padding: 10px; }
+  .column-count::after { content: ' \203A'; font-size: 0.8rem; margin-left: 4px; transition: transform .25s; display: inline-block; }
+  .column.col-open .column-count::after { transform: rotate(90deg); }
+  .kanban-card { cursor: pointer; padding: 14px; border-radius: 14px; }
+  .kanban-card:active { transform: scale(0.98); transition: transform 0.1s ease; }
+  .kanban-card:hover { transform: none; box-shadow: none; }
+  .card-car { white-space: normal; font-size: 0.9rem; }
+  .card-client { white-space: normal; }
+}
+
+/* ── Адаптив (детальный вид) ───────────────────── */
 @media (max-width: 600px) {
+  .page-subheader { top: 48px; }
   .container { padding: 14px 12px 32px; }
   .info-grid { grid-template-columns: 1fr; gap: 8px; }
   .payment-grid { grid-template-columns: 1fr; }
   .doc-table th, .doc-table td { font-size: 0.78rem; }
   .executor-item { flex-wrap: wrap; gap: 4px; }
 }
+
+/* ── Режим печати для клиента — скрываем внутреннюю информацию ─── */
+body.print-client .card-internal { display: none !important; }
 
 /* ── @media print ──────────────────────────────── */
 @media print {
@@ -270,28 +410,48 @@ body {
 </head>
 <body>
 
-<!-- Печатный заголовок — скрыт на экране, показывается при печати -->
-<div class="print-header">
-  <div class="studio-name" id="printStudioName"></div>
-  <h1>ЗАКАЗ-НАРЯД</h1>
-  <div class="print-car" id="printCarName"></div>
-  <div class="print-date" id="printDate"></div>
-</div>
-
-<!-- Субшапка (кнопка «Назад» + заголовок + «Печать») -->
-<div class="page-subheader no-print">
-  <div class="page-subheader-left">
-    <a href="board.html" class="btn-back">← Доска</a>
-    <span class="page-subheader-title">Заказ-наряд</span>
-    <span class="car-subtitle" id="subCarName"></span>
+<!-- ═══ Режим списка (без ?calc_id) ═══ -->
+<div id="listView" style="display:none" class="board-page">
+  <div class="board-toolbar">
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="woSearch" placeholder="Поиск по авто, клиенту..." autocomplete="off">
+    </div>
+    <span class="board-count-badge" id="woCount"></span>
   </div>
-  <button class="btn-print" id="btnPrint">Печать</button>
+  <div class="board-outer">
+    <div class="board-wrap" id="woBoard">
+      <div style="text-align:center;padding:60px 0;color:#94a3b8;font-size:0.88rem;width:100%">Загрузка...</div>
+    </div>
+  </div>
 </div>
 
-<!-- Основной контент -->
-<div class="container" id="mainContent">
-  <div style="text-align:center; padding: 60px 0; color: #94a3b8; font-size: 0.88rem;" id="loadingState">
-    Загрузка данных...
+<!-- ═══ Режим детального просмотра (с ?calc_id) ═══ -->
+<div id="detailView" style="display:none">
+  <!-- Печатный заголовок — скрыт на экране, показывается при печати -->
+  <div class="print-header">
+    <div class="studio-name" id="printStudioName"></div>
+    <h1>ЗАКАЗ-НАРЯД</h1>
+    <div class="print-car" id="printCarName"></div>
+    <div class="print-date" id="printDate"></div>
+  </div>
+
+  <!-- Субшапка (кнопка «Назад» + заголовок + «Печать») -->
+  <div class="page-subheader no-print">
+    <div class="page-subheader-left">
+      <a href="work-order.html" class="btn-back">← Все наряды</a>
+      <span class="page-subheader-title">Заказ-наряд</span>
+      <span class="car-subtitle" id="subCarName"></span>
+    </div>
+    <button class="btn-print" id="btnPrintClient">🖨 Для клиента</button>
+    <button class="btn-print" id="btnPrintWorkshop" style="background:rgba(124,58,237,0.07);color:var(--primary);border-color:rgba(124,58,237,0.2)">🖨 Для цеха</button>
+  </div>
+
+  <!-- Основной контент -->
+  <div class="container" id="mainContent">
+    <div style="text-align:center; padding: 60px 0; color: #94a3b8; font-size: 0.88rem;" id="loadingState">
+      Загрузка данных...
+    </div>
   </div>
 </div>
 
@@ -301,7 +461,8 @@ body {
   <div>Клиент</div>
 </div>
 
-<script src="footer.js"></script>
+<script src="nav.js?v=1774551573"></script>
+<script src="footer.js?v=1774512457"></script>
 <script type="module">
 import { sb }             from './api.js';
 import { requireAuth }    from './auth.js';
@@ -409,52 +570,57 @@ function renderVehicleCard(calc) {
   return card;
 }
 
-// ── Рендеринг карточки «Услуги» ────────────────────────────────────
+// ── Извлечение услуг из calculation_data ────────────────────────────
 /**
- * Пытается разобрать calculation_data JSONB и извлечь список услуг.
- * Структура может быть разной — обрабатываем несколько вариантов.
+ * Парсит JSONB calculation_data калькулятора и возвращает список услуг с ценами.
+ * Формат данных: { package: { wrapMat, wrapMot, ... }, impact: { ... },
+ *   services_detail: { arm: [...], det: [...], ... }, additionalCosts: [...] }
  * @param {object|string|null} data
- * @returns {{ name: string, price: number|null }[]}
+ * @returns {{ name: string, price: number }[]}
  */
-function parseServices(data) {
+function extractServicesFromCalcData(data) {
   if (!data) return [];
-  let parsed = data;
-  if (typeof data === 'string') {
-    try { parsed = JSON.parse(data); } catch { return []; }
+  let cd = data;
+  if (typeof cd === 'string') {
+    try { cd = JSON.parse(cd); } catch { return []; }
   }
 
-  // Вариант 1: массив объектов { name, price } или { service_name, price }
-  if (Array.isArray(parsed)) {
-    return parsed.map(item => ({
-      name:  item.name || item.service_name || item.title || JSON.stringify(item),
-      price: item.price || item.total || item.cost || null,
-    }));
-  }
+  const services = [];
+  const r = n => parseFloat(n) || 0;
 
-  // Вариант 2: объект с ключом services[]
-  if (parsed.services && Array.isArray(parsed.services)) {
-    return parsed.services.map(item => ({
-      name:  item.name || item.service_name || item.title || JSON.stringify(item),
-      price: item.price || item.total || item.cost || null,
-    }));
-  }
+  // Пакет (Полная защита кузова)
+  const pkg = cd.package || {};
+  const pkgWrap = r(pkg.wrapMat) + r(pkg.wrapMot);
+  if (pkgWrap > 0) services.push({ name: 'Оклейка (Полная защита кузова)', price: pkgWrap });
+  const pkgPrep = r(pkg.prepMat) + r(pkg.prepMot);
+  if (pkgPrep > 0) services.push({ name: 'Подготовка (Полная защита кузова)', price: pkgPrep });
+  const pkgArm = r(pkg.armMat) + r(pkg.armMot);
+  if (pkgArm > 0) services.push({ name: 'Арматурные работы (Полная защита кузова)', price: pkgArm });
 
-  // Вариант 3: объект с ключами, где каждый значение — цена или объект
-  const entries = Object.entries(parsed);
-  if (entries.length > 0) {
-    return entries.map(([key, val]) => {
-      if (typeof val === 'number') return { name: key, price: val };
-      if (val && typeof val === 'object') {
-        return {
-          name:  val.name || val.service_name || val.title || key,
-          price: val.price || val.total || val.cost || null,
-        };
-      }
-      return { name: key, price: null };
+  // Ударная часть
+  const imp = cd.impact || {};
+  const impWrap = r(imp.wrapMat) + r(imp.wrapMot);
+  if (impWrap > 0) services.push({ name: 'Оклейка (Ударная часть)', price: impWrap });
+  const impPrep = r(imp.prepMat) + r(imp.prepMot);
+  if (impPrep > 0) services.push({ name: 'Подготовка (Ударная часть)', price: impPrep });
+  const impArm = r(imp.armMat) + r(imp.armMot);
+  if (impArm > 0) services.push({ name: 'Арматурные работы (Ударная часть)', price: impArm });
+
+  // Детальные услуги по категориям
+  const sd = cd.services_detail || {};
+  ['arm', 'det', 'gl', 'ms', 'wrap'].forEach(key => {
+    (sd[key] || []).forEach(svc => {
+      const total = r(svc.mat) + r(svc.mot);
+      if (total > 0 && svc.name) services.push({ name: svc.name, price: total });
     });
-  }
+  });
 
-  return [];
+  // Доп. расходы
+  (cd.additionalCosts || []).forEach(c => {
+    if (r(c.value) > 0 && c.name) services.push({ name: '+ ' + c.name, price: r(c.value) });
+  });
+
+  return services;
 }
 
 /** @param {object} calc */
@@ -462,7 +628,7 @@ function renderServicesCard(calc) {
   const card = el('div', 'card');
   card.appendChild(el('div', 'card-title', 'Услуги'));
 
-  const services = parseServices(calc.calculation_data);
+  const services = extractServicesFromCalcData(calc.calculation_data);
 
   if (services.length === 0) {
     card.appendChild(el('div', 'empty-section', 'Перечень услуг не заполнен'));
@@ -486,10 +652,10 @@ function renderServicesCard(calc) {
   services.forEach(svc => {
     const tr = document.createElement('tr');
     const tdName = el('td', null, svc.name);
-    const tdPrice = el('td', 'td-price', svc.price !== null ? fmt(svc.price) + ' ₽' : '—');
+    const tdPrice = el('td', 'td-price', svc.price > 0 ? fmt(svc.price) + ' ₽' : '—');
     tr.append(tdName, tdPrice);
     tbody.appendChild(tr);
-    if (svc.price) totalSum += svc.price;
+    totalSum += svc.price;
   });
 
   // Строка итога
@@ -510,7 +676,7 @@ function renderServicesCard(calc) {
 // ── Рендеринг карточки «Мастера» ──────────────────────────────────
 /** @param {object[]} assignments */
 function renderExecutorsCard(assignments) {
-  const card = el('div', 'card');
+  const card = el('div', 'card card-internal');
   card.appendChild(el('div', 'card-title', 'Назначенные исполнители'));
 
   if (!assignments || assignments.length === 0) {
@@ -539,59 +705,12 @@ function renderExecutorsCard(assignments) {
 }
 
 // ── Рендеринг карточки «Материалы» ────────────────────────────────
-/**
- * Пытается извлечь материалы из fact_materials или calculation_data.materials
- * @param {object} calc
- */
-function parseMaterials(calc) {
-  // Приоритет — fact_materials
-  if (calc.fact_materials) {
-    let data = calc.fact_materials;
-    if (typeof data === 'string') {
-      try { data = JSON.parse(data); } catch { return []; }
-    }
-    if (Array.isArray(data)) {
-      return data.map(m => ({
-        name:  m.name || m.material_name || JSON.stringify(m),
-        qty:   m.qty || m.quantity || null,
-        price: m.price || m.cost || null,
-      }));
-    }
-    if (typeof data === 'object') {
-      return Object.entries(data).map(([key, val]) => ({
-        name:  key,
-        qty:   typeof val === 'object' ? (val.qty || val.quantity || null) : null,
-        price: typeof val === 'number' ? val : (val?.price || val?.cost || null),
-      }));
-    }
-  }
-
-  // Вторичный источник — materials в calculation_data
-  if (calc.calculation_data) {
-    let data = calc.calculation_data;
-    if (typeof data === 'string') {
-      try { data = JSON.parse(data); } catch { return []; }
-    }
-    if (data && Array.isArray(data.materials)) {
-      return data.materials.map(m => ({
-        name:  m.name || m.material_name || JSON.stringify(m),
-        qty:   m.qty || m.quantity || null,
-        price: m.price || m.cost || null,
-      }));
-    }
-  }
-
-  return [];
-}
-
-/** @param {object} calc */
-function renderMaterialsCard(calc) {
-  const card = el('div', 'card');
+/** @param {object[]} txData — записи из inventory_transactions */
+function renderMaterialsCard(txData) {
+  const card = el('div', 'card card-internal');
   card.appendChild(el('div', 'card-title', 'Материалы'));
 
-  const materials = parseMaterials(calc);
-
-  if (materials.length === 0) {
+  if (!txData || txData.length === 0) {
     card.appendChild(el('div', 'empty-section', 'Материалы не указаны'));
     return card;
   }
@@ -604,14 +723,35 @@ function renderMaterialsCard(calc) {
   table.appendChild(thead);
 
   const tbody = document.createElement('tbody');
-  materials.forEach(m => {
+  let totalCost = 0;
+
+  txData.forEach(tx => {
+    const qty = Math.abs(tx.qty || 0);
+    const cost = qty * (tx.unit_cost || 0);
+    const roll = tx.roll?.roll_number ? ' · рулон ' + tx.roll.roll_number : '';
+    const name = (tx.item?.name || tx.notes || '—') + roll;
+    const unit = tx.item?.unit || '';
+
     const tr = document.createElement('tr');
-    const tdName  = el('td', null, m.name);
-    const tdQty   = el('td', null, m.qty !== null ? String(m.qty) : '—');
-    const tdPrice = el('td', 'td-price', m.price !== null ? fmt(m.price) + ' ₽' : '—');
-    tr.append(tdName, tdQty, tdPrice);
+    tr.append(
+      el('td', null, name),
+      el('td', null, qty + (unit ? ' ' + unit : '')),
+      el('td', 'td-price', cost > 0 ? fmt(cost) + ' ₽' : '—'),
+    );
     tbody.appendChild(tr);
+    totalCost += cost;
   });
+
+  if (txData.length > 1 && totalCost > 0) {
+    const trTotal = document.createElement('tr');
+    trTotal.className = 'tr-total';
+    trTotal.append(
+      el('td', 'td-total', 'Итого материалов'),
+      el('td', null, ''),
+      el('td', 'td-price td-total', fmt(totalCost) + ' ₽'),
+    );
+    tbody.appendChild(trTotal);
+  }
 
   table.appendChild(tbody);
   card.appendChild(table);
@@ -703,7 +843,7 @@ function renderPaymentCard(delivery) {
 // ── Рендеринг карточки «Аутсорсинг» ───────────────────────────────
 /** @param {object[]} records */
 function renderOutsourceCard(records) {
-  const card = el('div', 'card');
+  const card = el('div', 'card card-internal');
   card.appendChild(el('div', 'card-title', 'Аутсорсинг'));
 
   if (!records || records.length === 0) {
@@ -766,6 +906,38 @@ function renderOutsourceCard(records) {
   return card;
 }
 
+// ── Рендеринг карточки «Проверки качества» ────────────────────────
+function renderQualityChecks(history) {
+  // Проверки = переходы в статус done (проверено) или checked
+  const checks = (history || []).filter(e => e.to_status === 'done' || e.to_status === 'checked');
+  if (checks.length === 0) return null;
+
+  const card = el('div', 'card card-internal');
+  card.appendChild(el('div', 'card-title', 'Проверки качества'));
+
+  const list = el('div', 'timeline');
+  checks.forEach(entry => {
+    const item = el('div', 'timeline-item');
+    const dot = el('div', 'timeline-dot done');
+    item.appendChild(dot);
+
+    const header = el('div', 'timeline-header');
+    header.appendChild(el('span', 'timeline-to', '✅ Проверено'));
+    item.appendChild(header);
+
+    item.appendChild(el('div', 'timeline-date', fmtDateTime(entry.created_at)));
+
+    if (entry.comment) {
+      item.appendChild(el('div', 'timeline-comment', entry.comment));
+    }
+
+    list.appendChild(item);
+  });
+
+  card.appendChild(list);
+  return card;
+}
+
 // ── Рендеринг карточки «История статусов» ─────────────────────────
 /** @param {object[]} history */
 function renderHistoryCard(history) {
@@ -807,23 +979,166 @@ function renderHistoryCard(history) {
 }
 
 // ── Показ ошибки ───────────────────────────────────────────────────
-function showError(message, detail) {
+function showPageError(message, detail) {
   const content = document.getElementById('mainContent');
   content.innerHTML = '';
   const state = el('div', 'error-state');
   state.appendChild(el('h2', null, message));
   if (detail) state.appendChild(el('p', null, detail));
-  const backLink = el('a', 'btn-back', '← Вернуться на доску');
-  backLink.href = 'board.html';
+  const backLink = el('a', 'btn-back', '← Все наряды');
+  backLink.href = 'work-order.html';
   backLink.style.marginTop = '16px';
   backLink.style.display = 'inline-flex';
   state.appendChild(backLink);
   content.appendChild(state);
 }
 
-// ── Загрузка данных ────────────────────────────────────────────────
-async function loadPage(calcId) {
-  // Загружаем расчёт (основные данные)
+// ══════════════════════════════════════════════════════════════════
+// ═══ РЕЖИМ СПИСКА ═══════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════════
+
+let _allOrders = [];
+let _studioCtx = null;
+let _searchTerm = '';
+
+// ── Колонки воронки заказ-нарядов ───────────────────────────────────
+// ЗН появляется когда машина принята. Нет «записан», нет «отмена».
+const WO_COLUMNS = [
+  { key: 'accepted',    label: 'Принято',        icon: '🔑', statuses: ['accepted'] },
+  { key: 'in_progress', label: 'В работе',       icon: '🔧', statuses: ['in_progress', 'outsourced'] },
+  { key: 'done',        label: 'Готово',          icon: '✅', statuses: ['done'] },
+  { key: 'delivered',   label: 'Выдано',          icon: '🚗', statuses: ['delivered', 'closed'] },
+  { key: 'correction',  label: 'Корректировка',   icon: '⚠️', statuses: ['correction'] },
+];
+
+const WO_VISIBLE = new Set(WO_COLUMNS.flatMap(s => s.statuses));
+
+async function loadList() {
+  const { data, error } = await sb
+    .from('calculations')
+    .select('id, car_name, car_brand, car_model, client_name, client_phone, status, total_price, final_price, created_at, updated_at')
+    .eq('studio_id', _studioCtx.studioId)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('[work-order] list fetch:', error);
+    document.getElementById('woBoard').innerHTML =
+      '<div style="padding:40px;text-align:center;color:var(--danger);width:100%">Ошибка загрузки</div>';
+    return;
+  }
+
+  _allOrders = (data || []).filter(c => WO_VISIBLE.has(c.status));
+  renderBoard();
+}
+
+function renderBoard() {
+  const board = document.getElementById('woBoard');
+  board.innerHTML = '';
+  const frag = document.createDocumentFragment();
+  let totalVisible = 0;
+
+  WO_COLUMNS.forEach(col => {
+    let cards = _allOrders.filter(c => col.statuses.includes(c.status));
+
+    const colEl = document.createElement('div');
+    colEl.className = 'column col-' + col.key;
+
+    // Заголовок
+    const header = document.createElement('div');
+    header.className = 'column-header';
+
+    const titleEl = document.createElement('div');
+    titleEl.className = 'column-title';
+    const dot = document.createElement('div');
+    dot.className = 'column-dot';
+    titleEl.appendChild(dot);
+    titleEl.append(' ' + col.icon + ' ' + col.label);
+
+    const metaEl = document.createElement('div');
+    metaEl.style.cssText = 'display:flex;flex-direction:column;align-items:flex-end;gap:2px';
+    const countEl = document.createElement('div');
+    countEl.className = 'column-count';
+    countEl.textContent = cards.length;
+    metaEl.appendChild(countEl);
+
+    const colSum = cards.reduce((s, c) => s + (c.final_price || c.total_price || 0), 0);
+    if (colSum > 0) {
+      const sumEl = document.createElement('div');
+      sumEl.className = 'column-sum';
+      sumEl.textContent = fmt(colSum) + ' ₽';
+      metaEl.appendChild(sumEl);
+    }
+    header.append(titleEl, metaEl);
+
+    // Карточки
+    const cardsEl = document.createElement('div');
+    cardsEl.className = 'column-cards';
+
+    if (cards.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'empty-col';
+      empty.textContent = 'Пусто';
+      cardsEl.appendChild(empty);
+    } else {
+      cards.forEach(c => {
+        const a = document.createElement('a');
+        a.className = 'kanban-card';
+        a.href = 'work-order.html?calc_id=' + encodeURIComponent(c.id);
+        a.dataset.carName = (c.car_name || '').toLowerCase();
+        a.dataset.clientName = (c.client_name || '').toLowerCase();
+
+        a.appendChild(el('div', 'card-car', c.car_name || 'Без названия'));
+        if (c.client_name) a.appendChild(el('div', 'card-client', '👤 ' + c.client_name));
+        if (c.client_phone) a.appendChild(el('div', 'card-phone', '📞 ' + c.client_phone));
+
+        const price = c.final_price || c.total_price || 0;
+        if (price > 0) a.appendChild(el('div', 'card-price', fmt(price) + ' ₽'));
+
+        a.appendChild(el('div', 'card-date', fmtDate(c.created_at)));
+
+        cardsEl.appendChild(a);
+        totalVisible++;
+      });
+    }
+
+    colEl.append(header, cardsEl);
+    frag.appendChild(colEl);
+  });
+
+  board.appendChild(frag);
+  applySearch();
+
+  // Мобильный аккордеон
+  if (window.innerWidth <= 768) {
+    const allCols = board.querySelectorAll('.column');
+    allCols.forEach(function(col) {
+      col.querySelector('.column-header').addEventListener('click', function() {
+        const wasOpen = col.classList.contains('col-open');
+        allCols.forEach(function(c) { c.classList.remove('col-open'); });
+        if (!wasOpen) col.classList.add('col-open');
+      });
+    });
+  }
+}
+
+function applySearch() {
+  const term = _searchTerm.trim().toLowerCase();
+  let visible = 0;
+  document.querySelectorAll('#woBoard .kanban-card').forEach(card => {
+    const car = card.dataset.carName || '';
+    const client = card.dataset.clientName || '';
+    const match = !term || car.includes(term) || client.includes(term);
+    card.classList.toggle('hidden-by-search', !match);
+    if (match) visible++;
+  });
+  document.getElementById('woCount').textContent = visible ? visible + ' авто' : '';
+}
+
+// ══════════════════════════════════════════════════════════════════
+// ═══ РЕЖИМ ДЕТАЛЬНОГО ПРОСМОТРА ════════════════════════════════
+// ══════════════════════════════════════════════════════════════════
+
+async function loadDetail(calcId) {
   const { data: calcArr, error: calcErr } = await sb
     .from('calculations')
     .select('*')
@@ -832,126 +1147,126 @@ async function loadPage(calcId) {
   const calc = (calcArr || [])[0] || null;
   if (calcErr || !calc) {
     console.error('[work-order] calc fetch:', calcErr);
-    showError('Заказ-наряд не найден', 'Расчёт с указанным ID не существует или был удалён.');
+    showPageError('Заказ-наряд не найден', 'Расчёт с указанным ID не существует или был удалён.');
     return;
   }
 
-  // Параллельно загружаем все связанные данные
-  const [deliveryRes, outsourceRes, historyRes, assignmentsRes] = await Promise.all([
+  const [deliveryRes, outsourceRes, historyRes, assignmentsRes, materialsRes] = await Promise.all([
     sb.from('delivery_acts').select('*').eq('calc_id', calcId),
     sb.from('outsource_records').select('*').eq('calc_id', calcId),
     sb.from('status_history').select('*').eq('calc_id', calcId).order('created_at', { ascending: true }),
     sb.from('work_assignments').select('*').eq('calc_id', calcId),
+    sb.from('inventory_transactions').select('qty, unit_cost, notes, item:item_id(name, unit), roll:roll_id(roll_number)')
+      .eq('studio_id', _studioCtx.studioId).eq('calculation_id', calcId).eq('type', 'writeoff'),
   ]);
 
-  const delivery    = (deliveryRes.data || [])[0] || null;
-  const outsources  = outsourceRes.data || [];
-  const history     = historyRes.data || [];
-  const assignments = assignmentsRes.data || [];
-
-  return { calc, delivery, outsources, history, assignments };
+  return {
+    calc,
+    delivery:    (deliveryRes.data || [])[0] || null,
+    outsources:  outsourceRes.data || [],
+    history:     historyRes.data || [],
+    assignments: assignmentsRes.data || [],
+    materials:   materialsRes.data || [],
+  };
 }
 
-// ── Рендеринг страницы ─────────────────────────────────────────────
-function renderPage(data, studioName) {
-  const { calc, delivery, outsources, history, assignments } = data;
-
+function renderDetail(data, studioName) {
+  const { calc, delivery, outsources, history, assignments, materials } = data;
   const carName = calc.car_name || 'Без названия';
 
-  // Заполняем заголовки (экранные и печатные)
-  const subCarName = document.getElementById('subCarName');
-  if (subCarName) subCarName.textContent = carName;
-
-  const printStudio = document.getElementById('printStudioName');
-  if (printStudio) printStudio.textContent = studioName || '';
-
-  const printCar = document.getElementById('printCarName');
-  if (printCar) printCar.textContent = carName;
-
-  const printDate = document.getElementById('printDate');
-  if (printDate) printDate.textContent = 'Дата: ' + fmtDate(new Date().toISOString());
-
-  // Заголовок вкладки
+  setText(document.getElementById('subCarName'), carName);
+  setText(document.getElementById('printStudioName'), studioName || '');
+  setText(document.getElementById('printCarName'), carName);
+  setText(document.getElementById('printDate'), 'Дата: ' + fmtDate(new Date().toISOString()));
   document.title = 'Заказ-наряд — ' + carName;
 
-  // Строим контент
   const content = document.getElementById('mainContent');
   content.innerHTML = '';
-
   const frag = document.createDocumentFragment();
 
   frag.appendChild(renderVehicleCard(calc));
   frag.appendChild(renderServicesCard(calc));
   frag.appendChild(renderExecutorsCard(assignments));
-  frag.appendChild(renderMaterialsCard(calc));
-
-  if (delivery) {
-    frag.appendChild(renderPaymentCard(delivery));
-  }
-
-  if (outsources.length > 0) {
-    frag.appendChild(renderOutsourceCard(outsources));
-  }
-
+  frag.appendChild(renderMaterialsCard(materials));
+  if (delivery) frag.appendChild(renderPaymentCard(delivery));
+  if (outsources.length > 0) frag.appendChild(renderOutsourceCard(outsources));
+  const qualityCard = renderQualityChecks(history);
+  if (qualityCard) frag.appendChild(qualityCard);
   frag.appendChild(renderHistoryCard(history));
 
   content.appendChild(frag);
 }
 
-// ── Точка входа ────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════
+// ═══ ТОЧКА ВХОДА ═══════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════════
+
 async function initPage() {
   initNav();
-  document.body.style.visibility = 'visible';
 
-  // 1. Разбираем URL
   const params = new URLSearchParams(location.search);
   const calcId = params.get('calc_id');
 
-  if (!calcId) {
-    document.body.style.visibility = 'visible';
-    showError('Не указан ID заказ-наряда', 'Откройте эту страницу через доску или передайте ?calc_id=UUID в URL.');
-    return;
-  }
-
-  // 2. Авторизация
+  // Авторизация
   const user = await requireAuth({ redirectTo: 'welcome.html' });
   if (!user) return;
 
-  // 3. Контекст студии
-  let ctx;
+  // Контекст студии
   try {
-    ctx = await getStudioContext();
+    _studioCtx = await getStudioContext();
   } catch (err) {
     console.error('[work-order] getStudioContext:', err);
-    showError('Ошибка загрузки данных студии', 'Попробуйте перезагрузить страницу.');
     return;
   }
-
-  if (!ctx || !ctx.studioId) {
+  if (!_studioCtx || !_studioCtx.studioId) {
     window.location.href = 'welcome.html';
     return;
   }
 
-  // 4. Загружаем данные
-  let pageData;
-  try {
-    pageData = await loadPage(calcId);
-  } catch (err) {
-    console.error('[work-order] loadPage:', err);
-    showError('Ошибка загрузки', 'Не удалось загрузить данные заказ-наряда.');
-    return;
+  if (calcId) {
+    // ── Детальный просмотр ──
+    document.getElementById('detailView').style.display = '';
+    document.body.style.visibility = 'visible';
+
+    let pageData;
+    try {
+      pageData = await loadDetail(calcId);
+    } catch (err) {
+      console.error('[work-order] loadDetail:', err);
+      showPageError('Ошибка загрузки', 'Не удалось загрузить данные заказ-наряда.');
+      return;
+    }
+    if (!pageData) return;
+    renderDetail(pageData, _studioCtx.studio?.name || '');
+  } else {
+    // ── Режим списка (kanban) ──
+    document.getElementById('listView').style.display = '';
+    document.body.style.visibility = 'visible';
+
+    // Поиск
+    document.getElementById('woSearch').addEventListener('input', e => {
+      _searchTerm = e.target.value;
+      applySearch();
+    });
+
+    await loadList();
   }
-
-  if (!pageData) return; // showError уже вызван внутри loadPage
-
-  // 5. Рендерим страницу
-  renderPage(pageData, ctx.studio?.name || '');
 }
 
 // ── Кнопка «Печать» ───────────────────────────────────────────────
-document.getElementById('btnPrint')?.addEventListener('click', () => window.print());
+// Печать для клиента — скрываем зарплаты, материалы, аутсорсинг
+document.getElementById('btnPrintClient')?.addEventListener('click', () => {
+  document.body.classList.add('print-client');
+  window.print();
+  document.body.classList.remove('print-client');
+});
+// Печать для цеха — полная версия
+document.getElementById('btnPrintWorkshop')?.addEventListener('click', () => {
+  document.body.classList.remove('print-client');
+  window.print();
+});
 
-document.addEventListener('DOMContentLoaded', initPage);
+initPage();
 </script>
 
 </body>

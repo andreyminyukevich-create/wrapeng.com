@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Рефералы — Keep1R Partner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="theme.css">
+<style>
+:root { --font: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif; --bg: #f5f3ff; --surface: #fff; --border: rgba(124,58,237,0.10); --text: #1e1b4b; --muted: #64748b; --primary: #7c3aed; --success: #059669; --radius: 14px; --shadow: 0 1px 3px rgba(124,58,237,0.06), 0 4px 16px rgba(124,58,237,0.04); }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font); -webkit-font-smoothing: antialiased; background: var(--bg); color: var(--text); }
+.container { max-width: 820px; margin: 0 auto; padding: 24px; }
+h1 { font-size: 1.3rem; font-weight: 800; margin-bottom: 24px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; margin-bottom: 16px; box-shadow: var(--shadow); }
+.ref-code { font-size: 1.1rem; font-weight: 800; color: var(--primary); background: rgba(124,58,237,0.06); padding: 12px 18px; border-radius: 10px; display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.ref-link { font-size: 0.8rem; color: var(--muted); word-break: break-all; }
+.btn-copy { padding: 8px 16px; border-radius: 8px; border: 1px solid rgba(124,58,237,0.2); background: rgba(124,58,237,0.08); color: var(--primary); font-size: 0.82rem; font-weight: 700; cursor: pointer; font-family: inherit; white-space: nowrap; }
+.btn-copy:hover { background: var(--primary); color: #fff; }
+table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+th { padding: 8px 12px; text-align: left; font-size: 0.69rem; font-weight: 700; color: var(--muted); text-transform: uppercase; border-bottom: 1px solid var(--border); }
+td { padding: 10px 12px; font-size: 0.85rem; border-bottom: 1px solid rgba(124,58,237,0.04); }
+tr:last-child td { border-bottom: none; }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 0.68rem; font-weight: 700; }
+.badge-active { background: rgba(5,150,105,0.1); color: var(--success); }
+.badge-invited { background: rgba(245,158,11,0.1); color: #b45309; }
+.empty { text-align: center; padding: 40px; color: #94a3b8; font-size: 0.85rem; }
+@media (max-width: 640px) { .container { padding: 14px 12px 32px; } }
+</style>
+</head>
+<body>
+<script src="partner-nav.js"></script>
+<div class="container">
+  <h1>🤝 Пригласить партнёра</h1>
+  <div class="card">
+    <div class="ref-code">
+      <span id="refCode">—</span>
+      <button class="btn-copy" id="btnCopy">Скопировать</button>
+    </div>
+    <div class="ref-link" id="refLink">—</div>
+  </div>
+  <div class="card">
+    <strong>Приглашённые партнёры</strong>
+    <div id="refList"><div class="empty">Загрузка...</div></div>
+  </div>
+</div>
+<script type="module">
+import { partnerFetch, requirePartnerAuth, fmtDate } from './partner-api.js';
+if (!requirePartnerAuth()) throw 'no auth';
+
+const STATUS_LABEL = { invited: 'Приглашён', registered: 'Зарегистрирован', activated: 'Активен', paid: 'Оплатил' };
+const STATUS_CLS = { invited: 'badge-invited', registered: 'badge-invited', activated: 'badge-active', paid: 'badge-active' };
+
+async function init() {
+  const { data, error } = await partnerFetch('/partner/referral');
+  if (error) { document.getElementById('refList').innerHTML = '<div class="empty">Ошибка загрузки</div>'; return; }
+
+  document.getElementById('refCode').textContent = data.referral_code || '—';
+  document.getElementById('refLink').textContent = data.referral_link || '';
+
+  document.getElementById('btnCopy').addEventListener('click', () => {
+    navigator.clipboard.writeText(data.referral_link || '').then(() => {
+      document.getElementById('btnCopy').textContent = '✅ Скопировано';
+      setTimeout(() => { document.getElementById('btnCopy').textContent = 'Скопировать'; }, 2000);
+    });
+  });
+
+  const invited = data.invited || [];
+  if (!invited.length) { document.getElementById('refList').innerHTML = '<div class="empty">Пока никого не пригласили</div>'; return; }
+
+  let html = '<table><thead><tr><th>Студия</th><th>Статус</th><th>Дата</th></tr></thead><tbody>';
+  invited.forEach(r => {
+    html += '<tr><td><b>' + (r.company_name || '—') + '</b></td><td><span class="badge ' + (STATUS_CLS[r.status] || '') + '">' + (STATUS_LABEL[r.status] || r.status) + '</span></td><td>' + fmtDate(r.created_at) + '</td></tr>';
+  });
+  html += '</tbody></table>';
+  document.getElementById('refList').innerHTML = html;
+}
+
+init();
+</script>
+</body>
+</html>
