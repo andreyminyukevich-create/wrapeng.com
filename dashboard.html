@@ -6,6 +6,10 @@
 <title>Keep1R CRM — Главная</title>
 
 <link rel="stylesheet" href="nav.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="theme.css">
 <script src="nav.js"></script>
 <style>
 body { visibility: hidden; }
@@ -148,59 +152,92 @@ body {
 .search-input::placeholder { color: #94a3b8; }
 .search-input:focus { border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124,58,237,0.08); }
 
-/* ── Мини-канбан ────────────────────────────────── */
-.mini-kanban {
+/* ── Воронки ────────────────────────────────────── */
+.funnel-grid {
   display: grid;
-  grid-template-columns: repeat(6, minmax(130px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
   gap: 10px;
   overflow-x: auto;
   padding-bottom: 4px;
 }
-.mini-col { min-width: 130px; }
-.mini-col-header {
+.funnel-col { min-width: 130px; }
+.funnel-col-header {
   display: flex; align-items: center; gap: 6px;
-  margin-bottom: 8px; font-size: 0.7rem; font-weight: 700;
-  text-transform: uppercase; letter-spacing: 0.06em; color: #64748b;
-  padding-bottom: 8px; border-bottom: 2px solid rgba(124,58,237,0.06);
+  margin-bottom: 4px; font-size: 0.68rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.04em;
+  padding-bottom: 8px; border-bottom: 2.5px solid var(--col-color, #94a3b8);
 }
-.mini-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
-.mini-cards { display: flex; flex-direction: column; gap: 5px; }
-.mini-card {
+.funnel-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; background: var(--col-color, #94a3b8); }
+.funnel-col-header span { color: var(--col-color-text, #64748b); }
+.funnel-col-count {
+  font-size: 0.65rem; font-weight: 700; margin-left: auto;
+  padding: 1px 6px; border-radius: 10px;
+  background: var(--col-color-bg, rgba(148,163,184,0.12));
+  color: var(--col-color-text, #64748b);
+}
+
+.funnel-summary {
+  display: flex; flex-direction: column; gap: 2px; margin-bottom: 8px;
+}
+.funnel-sum {
+  font-size: 1rem; font-weight: 800; letter-spacing: -0.3px;
+  color: var(--col-color-text, #1e1b4b);
+}
+.funnel-sum-label {
+  font-size: 0.62rem; color: #94a3b8; font-weight: 500;
+}
+
+.funnel-cards { display: flex; flex-direction: column; gap: 5px; }
+.funnel-card {
   background: #f8fafc; border: 1px solid rgba(124,58,237,0.07);
-  border-radius: 10px; padding: 10px 11px;
+  border-radius: 10px; padding: 9px 10px;
   cursor: pointer; transition: all 0.15s;
 }
-.mini-card:hover {
+.funnel-card:hover {
   border-color: #7c3aed; background: #fff;
   box-shadow: 0 2px 10px rgba(124,58,237,0.08);
   transform: translateY(-1px);
 }
-.mini-card-car {
-  font-size: 0.82rem; font-weight: 600;
+.funnel-card-name {
+  font-size: 0.78rem; font-weight: 600;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  color: #1e1b4b; margin-bottom: 3px;
+  color: #1e1b4b; margin-bottom: 2px;
 }
-.mini-card-price { font-size: 0.78rem; color: #059669; font-weight: 700; }
-.mini-col-more {
-  font-size: 0.68rem; color: #94a3b8; text-align: center;
-  padding: 5px; cursor: pointer; border-radius: 7px;
-  border: 1px dashed rgba(124,58,237,0.1); margin-top: 2px; transition: all 0.15s;
+.funnel-card-price { font-size: 0.75rem; color: #059669; font-weight: 700; }
+.funnel-col-more {
+  font-size: 0.66rem; color: #94a3b8; text-align: center;
+  padding: 4px; cursor: pointer; border-radius: 7px;
+  border: 1px dashed rgba(124,58,237,0.1); margin-top: 3px; transition: all 0.15s;
 }
-.mini-col-more:hover { color: #7c3aed; border-color: rgba(124,58,237,0.3); background: rgba(124,58,237,0.03); }
-.mini-col-empty { font-size: 0.7rem; color: #94a3b8; text-align: center; padding: 16px 4px; }
+.funnel-col-more:hover { color: #7c3aed; border-color: rgba(124,58,237,0.3); background: rgba(124,58,237,0.03); }
+.funnel-col-empty { font-size: 0.7rem; color: #94a3b8; text-align: center; padding: 14px 4px; }
 
-.mini-col-new         .mini-dot { background: #94a3b8; }
-.mini-col-new         .mini-col-header { color: #64748b; border-bottom-color: #94a3b8; }
-.mini-col-scheduled   .mini-dot { background: #f59e0b; }
-.mini-col-scheduled   .mini-col-header { color: #92400e; border-bottom-color: #f59e0b; }
-.mini-col-in_progress .mini-dot { background: #7c3aed; }
-.mini-col-in_progress .mini-col-header { color: #1e40af; border-bottom-color: #7c3aed; }
-.mini-col-done        .mini-dot { background: #7c3aed; }
-.mini-col-done        .mini-col-header { color: #5b21b6; border-bottom-color: #7c3aed; }
-.mini-col-delivered   .mini-dot { background: #059669; }
-.mini-col-delivered   .mini-col-header { color: #065f46; border-bottom-color: #059669; }
-.mini-col-cancelled   .mini-dot { background: #ef4444; }
-.mini-col-cancelled   .mini-col-header { color: #991b1b; border-bottom-color: #ef4444; }
+/* Funnel total bar */
+.funnel-total {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px; margin-bottom: 14px;
+  background: rgba(124,58,237,0.03); border-radius: 10px;
+  border: 1px solid rgba(124,58,237,0.06);
+}
+.funnel-total-label { font-size: 0.72rem; color: #64748b; font-weight: 600; }
+.funnel-total-value { font-size: 1.1rem; font-weight: 800; color: #1e1b4b; letter-spacing: -0.3px; margin-left: auto; }
+.funnel-total-count { font-size: 0.72rem; color: #94a3b8; font-weight: 600; }
+
+/* ── Sales funnel colors ────────────────────────── */
+.fcol-new_lead     { --col-color: #6366f1; --col-color-text: #4338ca; --col-color-bg: rgba(99,102,241,0.10); }
+.fcol-negotiation  { --col-color: #f59e0b; --col-color-text: #92400e; --col-color-bg: rgba(245,158,11,0.10); }
+.fcol-quote_sent   { --col-color: #7c3aed; --col-color-text: #6d28d9; --col-color-bg: rgba(124,58,237,0.10); }
+.fcol-booked       { --col-color: #059669; --col-color-text: #047857; --col-color-bg: rgba(5,150,105,0.10); }
+.fcol-rejected     { --col-color: #ef4444; --col-color-text: #b91c1c; --col-color-bg: rgba(239,68,68,0.10); }
+
+/* ── Workshop funnel colors ─────────────────────── */
+.fcol-scheduled    { --col-color: #f59e0b; --col-color-text: #92400e; --col-color-bg: rgba(245,158,11,0.10); }
+.fcol-accepted     { --col-color: #eab308; --col-color-text: #92400e; --col-color-bg: rgba(234,179,8,0.10); }
+.fcol-in_progress  { --col-color: #7c3aed; --col-color-text: #6d28d9; --col-color-bg: rgba(124,58,237,0.10); }
+.fcol-outsourced   { --col-color: #f97316; --col-color-text: #c2410c; --col-color-bg: rgba(249,115,22,0.10); }
+.fcol-done         { --col-color: #8b5cf6; --col-color-text: #7c3aed; --col-color-bg: rgba(139,92,246,0.10); }
+.fcol-delivered    { --col-color: #059669; --col-color-text: #047857; --col-color-bg: rgba(5,150,105,0.10); }
+.fcol-cancelled    { --col-color: #ef4444; --col-color-text: #b91c1c; --col-color-bg: rgba(239,68,68,0.10); }
 
 /* ── Результаты поиска ──────────────────────────── */
 .calc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
@@ -238,7 +275,7 @@ body {
   .container { padding: 16px 14px 40px; }
   .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
   .stat-value { font-size: 1.4rem; }
-  .mini-kanban { grid-template-columns: repeat(6, minmax(120px, 1fr)); }
+  .funnel-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
 }
 @media (max-width: 640px) {
   .container { padding: 14px 12px 24px; }
@@ -252,10 +289,10 @@ body {
   .stat-value { font-size: 1.5rem; font-weight: 800; }
   .stat-label { font-size: 0.65rem; }
   .search-input { max-width: 100%; font-size: 0.9rem; border-radius: 14px; padding: 12px 16px; }
-  .card-kanban { display: none; }
-  .mobile-active { display: block; border-radius: 16px; }
-  .mobile-active-item { padding: 14px 16px; border-radius: 14px; margin-bottom: 8px; }
-  .mobile-active-item:active { transform: scale(0.98); transition: transform 0.1s ease; }
+  .funnel-grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; }
+  .funnel-card { padding: 8px 9px; }
+  .funnel-sum { font-size: 0.88rem; }
+  .funnel-total { padding: 8px 12px; margin-bottom: 10px; }
   .quick-actions { gap: 8px; margin-bottom: 16px; }
   .qa-btn { padding: 12px 16px; font-size: 0.82rem; border-radius: 12px; }
   .qa-primary:active { transform: scale(0.97); }
@@ -318,7 +355,7 @@ body {
       type="text"
       class="search-input"
       id="searchInput"
-      placeholder="🔍 Поиск по машине..."
+      placeholder="🔍 Поиск по машине или клиенту..."
       autocomplete="off"
     >
   </div>
@@ -326,23 +363,32 @@ body {
   <!-- Результаты поиска -->
   <div class="card" id="searchResultsCard" style="display:none">
     <div class="card-header">
-      <span class="card-title">🔍 Результаты поиска</span>
+      <span class="card-title">Результаты поиска</span>
     </div>
     <div id="searchResults"></div>
   </div>
 
-  <!-- Мини-канбан -->
-  <div class="card card-kanban">
+  <!-- Воронка продаж -->
+  <div class="card" id="salesFunnelCard">
     <div class="card-header">
-      <span class="card-title">В работе</span>
-      <a href="board.html" class="card-link">Открыть всё →</a>
+      <span class="card-title">📞 Воронка продаж</span>
+      <a href="sales.html" class="card-link">Открыть всё →</a>
     </div>
-    <div class="mini-kanban" id="miniKanban">
+    <div id="salesFunnel">
       <div class="loading">Загрузка...</div>
     </div>
   </div>
 
-
+  <!-- Воронка цеха -->
+  <div class="card" id="workshopFunnelCard">
+    <div class="card-header">
+      <span class="card-title">🔧 Воронка цеха</span>
+      <a href="board.html" class="card-link">Открыть всё →</a>
+    </div>
+    <div id="workshopFunnel">
+      <div class="loading">Загрузка...</div>
+    </div>
+  </div>
 
 </div>
 
@@ -356,6 +402,7 @@ import { showLoading, showError, showEmpty, showToast } from './ui.js';
 
 // ── Состояние страницы ────────────────────────────────────────────
 let allCalcsForSearch = [];
+let allLeadsForSearch = [];
 let searchTimeout     = null;
 
 // ── Форматирование ────────────────────────────────────────────────
@@ -366,8 +413,31 @@ function fmt(n) {
   }).format(n || 0);
 }
 
-function normalizeStatus(status) {
-  if (!status || status === 'draft' || status === 'pending') return 'new';
+// ── Определения воронок ──────────────────────────────────────────
+const SALES_COLS = [
+  { key: 'new_lead',    label: 'Новый лид',  icon: '📞' },
+  { key: 'negotiation', label: 'Переговоры', icon: '🤝' },
+  { key: 'quote_sent',  label: 'Расчёт',    icon: '📋' },
+  { key: 'booked',      label: 'Запись',     icon: '✅' },
+  { key: 'rejected',    label: 'Отказ',      icon: '❌' },
+];
+
+const WORKSHOP_COLS = [
+  { key: 'scheduled',   label: 'Запись',      icon: '📅' },
+  { key: 'accepted',    label: 'Принято',     icon: '🔑' },
+  { key: 'in_progress', label: 'В работе',    icon: '🔧' },
+  { key: 'outsourced',  label: 'Аутсорсинг',  icon: '🏭' },
+  { key: 'done',        label: 'Готово',      icon: '✅' },
+  { key: 'delivered',   label: 'Выдано',      icon: '🚗' },
+  { key: 'cancelled',   label: 'Отменён',     icon: '❌' },
+];
+
+function normalizeWorkshopStatus(status) {
+  if (!status || status === 'pending' || status === 'new') return 'scheduled';
+  if (status === 'Принято в работу') return 'in_progress';
+  if (status === 'Завершено') return 'done';
+  if (status === 'Отказ') return 'cancelled';
+  if (status === 'waiting') return 'done';
   return status;
 }
 
@@ -377,7 +447,7 @@ function renderStats(calculations) {
   const month      = calculations.filter(c => new Date(c.created_at) >= monthStart);
   const total      = month.length;
   const sum        = month.reduce((a, c) => a + (c.total_price || 0), 0);
-  const done       = month.filter(c => ['done', 'delivered'].includes(normalizeStatus(c.status)));
+  const done       = month.filter(c => ['done', 'delivered'].includes(normalizeWorkshopStatus(c.status)));
   const doneSum    = done.reduce((a, c) => a + (c.final_price || c.total_price || 0), 0);
   const avg        = total > 0 ? Math.round(sum / total) : 0;
 
@@ -396,82 +466,110 @@ function resetStats() {
   });
 }
 
-// ── Мини-канбан ───────────────────────────────────────────────────
-const MINI_COLS = [
-  { key: 'new',         label: 'Расчёт',    icon: '📋' },
-  { key: 'scheduled',   label: 'Дата',      icon: '📅' },
-  { key: 'in_progress', label: 'В работе',  icon: '🔧' },
-  { key: 'done',        label: 'Готово',    icon: '✅' },
-  { key: 'delivered',   label: 'Выдано',    icon: '🚗' },
-  { key: 'cancelled',   label: 'Отказ',     icon: '❌' },
-];
+// ── Универсальный рендер воронки ──────────────────────────────────
+function renderFunnel(containerId, columns, data, getPrice, getName, linkHref) {
+  const container = document.getElementById(containerId);
 
-function renderKanban(data) {
-  const container = document.getElementById('miniKanban');
   if (!data || data.length === 0) {
-    showEmpty(container, 'Заказов пока нет', 'Создайте первый расчёт');
+    showEmpty(container, 'Пока пусто', 'Данные появятся, когда будут записи');
     return;
   }
 
-  // Строим через DOM — безопасно, без innerHTML с данными
   const frag = document.createDocumentFragment();
 
-  MINI_COLS.forEach(col => {
-    const cards   = data.filter(c => normalizeStatus(c.status) === col.key);
-    const visible = cards.slice(0, 5);
-    const rest    = cards.length - 5;
+  // Итого по воронке
+  const totalSum = data.reduce((a, c) => a + (getPrice(c) || 0), 0);
+  const totalBar = document.createElement('div');
+  totalBar.className = 'funnel-total';
+  const totalLabel = document.createElement('span');
+  totalLabel.className = 'funnel-total-label';
+  totalLabel.textContent = 'Итого в воронке';
+  const totalCount = document.createElement('span');
+  totalCount.className = 'funnel-total-count';
+  totalCount.textContent = data.length + ' шт.';
+  const totalValue = document.createElement('span');
+  totalValue.className = 'funnel-total-value';
+  totalValue.textContent = fmt(totalSum) + ' ₽';
+  totalBar.append(totalLabel, totalCount, totalValue);
+  frag.appendChild(totalBar);
+
+  // Колонки
+  const grid = document.createElement('div');
+  grid.className = 'funnel-grid';
+
+  columns.forEach(col => {
+    const cards   = data.filter(c => c._status === col.key);
+    const colSum  = cards.reduce((a, c) => a + (getPrice(c) || 0), 0);
+    const visible = cards.slice(0, 4);
+    const rest    = cards.length - 4;
 
     const colEl = document.createElement('div');
-    colEl.className = `mini-col mini-col-${col.key}`;
+    colEl.className = `funnel-col fcol-${col.key}`;
 
-    // Заголовок колонки
+    // Заголовок
     const header = document.createElement('div');
-    header.className = 'mini-col-header';
+    header.className = 'funnel-col-header';
     const dot = document.createElement('div');
-    dot.className = 'mini-dot';
-    header.appendChild(dot);
-    header.append(` ${col.icon} ${col.label}`);
+    dot.className = 'funnel-dot';
+    const labelSpan = document.createElement('span');
+    labelSpan.textContent = col.icon + ' ' + col.label;
+    const countBadge = document.createElement('span');
+    countBadge.className = 'funnel-col-count';
+    countBadge.textContent = cards.length;
+    header.append(dot, labelSpan, countBadge);
     colEl.appendChild(header);
 
+    // Сумма колонки
+    const summary = document.createElement('div');
+    summary.className = 'funnel-summary';
+    const sumEl = document.createElement('div');
+    sumEl.className = 'funnel-sum';
+    sumEl.textContent = fmt(colSum) + ' ₽';
+    summary.appendChild(sumEl);
+    colEl.appendChild(summary);
+
+    // Карточки
     const cardsEl = document.createElement('div');
-    cardsEl.className = 'mini-cards';
+    cardsEl.className = 'funnel-cards';
 
     if (cards.length === 0) {
       const empty = document.createElement('div');
-      empty.className = 'mini-col-empty';
-      empty.textContent = 'Нет';
+      empty.className = 'funnel-col-empty';
+      empty.textContent = '—';
       cardsEl.appendChild(empty);
     } else {
       visible.forEach(c => {
         const card = document.createElement('div');
-        card.className = 'mini-card';
-        card.dataset.calcId = c.id;
+        card.className = 'funnel-card';
+        card.addEventListener('click', () => { window.location.href = linkHref; });
 
-        const carName = document.createElement('div');
-        carName.className = 'mini-card-car';
-        carName.textContent = c.car_name || 'Без названия'; // textContent — безопасно
+        const nameEl = document.createElement('div');
+        nameEl.className = 'funnel-card-name';
+        nameEl.textContent = getName(c) || 'Без названия';
 
-        const price = document.createElement('div');
-        price.className = 'mini-card-price';
-        price.textContent = fmt(c.final_price || c.total_price || 0);
+        const priceEl = document.createElement('div');
+        priceEl.className = 'funnel-card-price';
+        const p = getPrice(c);
+        priceEl.textContent = p ? fmt(p) + ' ₽' : '—';
 
-        card.append(carName, price);
+        card.append(nameEl, priceEl);
         cardsEl.appendChild(card);
       });
 
       if (rest > 0) {
         const more = document.createElement('div');
-        more.className = 'mini-col-more';
-        more.textContent = `+ ещё ${rest}`;
-        more.dataset.href = 'board.html';
+        more.className = 'funnel-col-more';
+        more.textContent = '+ ещё ' + rest;
+        more.addEventListener('click', () => { window.location.href = linkHref; });
         cardsEl.appendChild(more);
       }
     }
 
     colEl.appendChild(cardsEl);
-    frag.appendChild(colEl);
+    grid.appendChild(colEl);
   });
 
+  frag.appendChild(grid);
   container.innerHTML = '';
   container.appendChild(frag);
 }
@@ -486,51 +584,73 @@ function renderSearchResults(term) {
     return;
   }
 
-  const found = allCalcsForSearch.filter(c =>
-    (c.car_name || '').toLowerCase().includes(term)
+  // Ищем и в расчётах, и в лидах
+  const foundCalcs = allCalcsForSearch.filter(c =>
+    (c.car_name || '').toLowerCase().includes(term) ||
+    (c.client_name || '').toLowerCase().includes(term)
+  );
+
+  const foundLeads = allLeadsForSearch.filter(l =>
+    ((l.last_name || '') + ' ' + (l.first_name || '')).toLowerCase().includes(term) ||
+    ((l.brand || '') + ' ' + (l.model || '')).toLowerCase().includes(term) ||
+    (l.phone || '').includes(term)
   );
 
   card.style.display = 'block';
 
-  if (found.length === 0) {
-    showEmpty(box, 'Ничего не найдено', `Нет расчётов по запросу «${term}»`);
+  if (foundCalcs.length === 0 && foundLeads.length === 0) {
+    showEmpty(box, 'Ничего не найдено', 'Нет результатов по запросу «' + term + '»');
     return;
   }
 
-  // Сетка через DOM — escapeHtml для всех данных из БД
   const grid = document.createElement('div');
   grid.className = 'calc-grid';
 
-  found.forEach(c => {
+  foundCalcs.forEach(c => {
     const calcCard = document.createElement('div');
     calcCard.className = 'calc-card';
-    calcCard.dataset.calcId = c.id;
 
     const title = document.createElement('h3');
     title.textContent = c.car_name || 'Без названия';
 
     const priceEl = document.createElement('div');
     priceEl.className = 'calc-price';
-    priceEl.textContent = fmt(c.final_price || c.total_price || 0);
+    priceEl.textContent = fmt(c.final_price || c.total_price || 0) + ' ₽';
 
     const actions = document.createElement('div');
     actions.className = 'calc-actions';
-
     const openLink = document.createElement('a');
     openLink.className = 'btn btn-primary';
-    openLink.href = `calculator.html?load=${encodeURIComponent(c.id)}`;
-    openLink.textContent = '📂 Открыть';
+    openLink.href = 'calculator.html?load=' + encodeURIComponent(c.id);
+    openLink.textContent = 'Открыть';
     openLink.addEventListener('click', e => e.stopPropagation());
+    actions.appendChild(openLink);
 
-    const workLink = document.createElement('a');
-    workLink.className = 'btn btn-success';
-    workLink.href = `assign-work.html?calc_id=${encodeURIComponent(c.id)}`;
-    workLink.textContent = '👥 Работы';
-    workLink.addEventListener('click', e => e.stopPropagation());
-
-    actions.append(openLink, workLink);
     calcCard.append(title, priceEl, actions);
     grid.appendChild(calcCard);
+  });
+
+  foundLeads.forEach(l => {
+    const leadCard = document.createElement('div');
+    leadCard.className = 'calc-card';
+    leadCard.style.cursor = 'pointer';
+    leadCard.addEventListener('click', () => { window.location.href = 'sales.html'; });
+
+    const title = document.createElement('h3');
+    const name = [l.last_name, l.first_name].filter(Boolean).join(' ') || 'Лид';
+    const car = [l.brand, l.model].filter(Boolean).join(' ');
+    title.textContent = name + (car ? ' — ' + car : '');
+
+    const priceEl = document.createElement('div');
+    priceEl.className = 'calc-price';
+    priceEl.textContent = l.deal_amount ? fmt(l.deal_amount) + ' ₽' : '—';
+
+    const badge = document.createElement('span');
+    badge.style.cssText = 'font-size:0.7rem;color:#6366f1;font-weight:700;';
+    badge.textContent = '📞 Лид';
+
+    leadCard.append(title, priceEl, badge);
+    grid.appendChild(leadCard);
   });
 
   box.innerHTML = '';
@@ -539,18 +659,14 @@ function renderSearchResults(term) {
 
 // ── Экран без подписки ────────────────────────────────────────────
 function showLockedState() {
-  // Статы — сбрасываем в нейтральное состояние без фейковых данных
   resetStats();
-  ['statMonthTotal', 'statMonthSum', 'statMonthDone', 'statMonthAvg'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.textContent = '—';
-  });
 
-  // Канбан — нейтральный empty state
-  const kanban = document.getElementById('miniKanban');
-  showEmpty(kanban, 'Нет доступа', 'Оформите подписку, чтобы увидеть доску заказов');
+  const salesFunnel = document.getElementById('salesFunnel');
+  showEmpty(salesFunnel, 'Нет доступа', 'Оформите подписку');
 
-  // Поиск — отключить
+  const workshopFunnel = document.getElementById('workshopFunnel');
+  showEmpty(workshopFunnel, 'Нет доступа', 'Оформите подписку');
+
   const searchEl = document.getElementById('searchInput');
   if (searchEl) {
     searchEl.disabled = true;
@@ -560,45 +676,85 @@ function showLockedState() {
 
 // ── Загрузка данных ───────────────────────────────────────────────
 async function loadData(studioId) {
-  const kanban = document.getElementById('miniKanban');
-  showLoading(kanban, 'Загрузка данных...');
+  const salesContainer    = document.getElementById('salesFunnel');
+  const workshopContainer = document.getElementById('workshopFunnel');
+  showLoading(salesContainer, 'Загрузка...');
+  showLoading(workshopContainer, 'Загрузка...');
 
-  const { data, error } = await sb
-    .from('calculations')
-    .select('id, car_name, total_price, final_price, status, created_at')
-    .eq('studio_id', studioId)
-    .order('created_at', { ascending: false });
+  // Параллельная загрузка leads + calculations
+  const [leadsRes, calcsRes] = await Promise.all([
+    sb.from('leads')
+      .select('id, first_name, last_name, brand, model, phone, deal_amount, status, created_at')
+      .eq('studio_id', studioId)
+      .order('created_at', { ascending: false }),
+    sb.from('calculations')
+      .select('id, car_name, total_price, final_price, status, created_at, client_name, client_phone')
+      .eq('studio_id', studioId)
+      .order('created_at', { ascending: false }),
+  ]);
 
-  if (error) {
-    showError(kanban, 'Не удалось загрузить расчёты', () => loadData(studioId));
-    console.error('[dashboard] loadData:', error);
-    return;
+  // Обработка лидов (воронка продаж)
+  if (leadsRes.error) {
+    console.error('[dashboard] leads:', leadsRes.error);
+    showError(salesContainer, 'Не удалось загрузить лиды');
+  } else {
+    const leads = (leadsRes.data || []).map(l => ({
+      ...l,
+      _status: l.status || 'new_lead',
+    }));
+    allLeadsForSearch = leads;
+    renderFunnel(
+      'salesFunnel',
+      SALES_COLS,
+      leads,
+      l => l.deal_amount || 0,
+      l => {
+        const name = [l.last_name, l.first_name].filter(Boolean).join(' ');
+        const car  = [l.brand, l.model].filter(Boolean).join(' ');
+        return name || car || 'Лид';
+      },
+      'sales.html'
+    );
   }
 
-  allCalcsForSearch = data || [];
-  renderStats(allCalcsForSearch);
-  renderKanban(allCalcsForSearch);
+  // Обработка расчётов (воронка цеха) — исключаем черновики
+  if (calcsRes.error) {
+    console.error('[dashboard] calculations:', calcsRes.error);
+    showError(workshopContainer, 'Не удалось загрузить расчёты');
+  } else {
+    const allCalcs = calcsRes.data || [];
+    allCalcsForSearch = allCalcs;
+
+    // Статистика по всем расчётам
+    renderStats(allCalcs);
+
+    // Воронка цеха — только не-черновики
+    const workshopData = allCalcs
+      .filter(c => c.status && c.status !== 'draft')
+      .map(c => ({
+        ...c,
+        _status: normalizeWorkshopStatus(c.status),
+      }));
+
+    renderFunnel(
+      'workshopFunnel',
+      WORKSHOP_COLS,
+      workshopData,
+      c => c.final_price || c.total_price || 0,
+      c => c.car_name || 'Без названия',
+      'board.html'
+    );
+  }
 }
 
 // ── Привязка событий ──────────────────────────────────────────────
 function bindEvents() {
-  // Выход
   document.getElementById('btnLogout')?.addEventListener('click', window._navLogout);
 
-  // Поиск
   document.getElementById('searchInput')?.addEventListener('input', e => {
     clearTimeout(searchTimeout);
     const term = e.target.value.trim().toLowerCase();
     searchTimeout = setTimeout(() => renderSearchResults(term), 300);
-  });
-
-  // Event delegation для канбана — клик по карточке → board.html
-  document.getElementById('miniKanban')?.addEventListener('click', e => {
-    const card = e.target.closest('.mini-card');
-    const more = e.target.closest('.mini-col-more');
-    if (card || more) {
-      window.location.href = 'board.html';
-    }
   });
 }
 
@@ -607,18 +763,15 @@ async function initPage() {
   initNav();
   document.body.style.visibility = 'visible';
 
-  // 1. Проверяем авторизацию
   const user = await requireAuth({ redirectTo: 'welcome.html' });
   if (!user) return;
 
-  // 2. Получаем контекст студии
   let ctx;
   try {
     ctx = await getStudioContext();
   } catch (err) {
     console.error('[dashboard] getStudioContext:', err);
-    const kanban = document.getElementById('miniKanban');
-    showError(kanban, 'Ошибка загрузки данных студии', () => location.reload());
+    showError(document.getElementById('salesFunnel'), 'Ошибка загрузки данных студии', () => location.reload());
     return;
   }
 
@@ -628,29 +781,24 @@ async function initPage() {
   }
 
   if (!ctx.studioId) {
-    const kanban = document.getElementById('miniKanban');
-    showError(kanban, 'Студия не найдена. Обратитесь к администратору.');
+    showError(document.getElementById('salesFunnel'), 'Студия не найдена. Обратитесь к администратору.');
     return;
   }
 
-  // 3. Показываем название студии
   const nameEl = document.getElementById('studioNameHeader');
   const subEl  = document.getElementById('studioSubheader');
   if (nameEl) nameEl.textContent = ctx.studio?.name || 'Студия';
   if (subEl)  subEl.textContent  = 'Keep1R CRM';
 
-  // 4. Проверяем подписку
   if (!ctx.hasAccess) {
     showLockedState();
     window.showPaywall?.(ctx.subscriptionStatus === 'expired');
     return;
   }
 
-  // 5. Привязываем события и грузим данные
   bindEvents();
   await loadData(ctx.studioId);
 }
-
 
 document.addEventListener('DOMContentLoaded', initPage);
 </script>

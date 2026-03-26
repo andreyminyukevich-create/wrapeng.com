@@ -1,0 +1,617 @@
+/* ═══════════════════════════════════════════
+   theme.css — Keep1R CRM Enhanced Design Layer
+   Glassmorphism + Inter font + micro-animations
+   Layers on top of nav.css + page inline styles
+═══════════════════════════════════════════ */
+
+/* ── Enhanced Design Tokens ───────────────── */
+:root {
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
+
+  /* Enhanced brand palette */
+  --brand:         #7c3aed;
+  --brand-dark:    #6d28d9;
+  --brand-light:   rgba(124,58,237,0.08);
+  --brand-glow:    rgba(124,58,237,0.25);
+  --accent:        #ec4899;
+  --accent-dark:   #db2777;
+  --accent-light:  rgba(236,72,153,0.08);
+  --gradient-brand: linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #ec4899 100%);
+  --gradient-brand-subtle: linear-gradient(135deg, rgba(124,58,237,0.06) 0%, rgba(236,72,153,0.04) 100%);
+
+  /* Enhanced surfaces */
+  --bg:            #f5f3ff;
+  --bg-primary:    #f5f3ff;
+  --bg-card:       rgba(255,255,255,0.72);
+  --bg-card-solid: #ffffff;
+  --bg-input:      rgba(250,248,255,0.8);
+  --surface:       rgba(255,255,255,0.72);
+  --surface-solid: #ffffff;
+
+  /* Text — improved contrast */
+  --text:          #1e1b4b;
+  --text-muted:    #5b5e6e;
+  --text-dim:      #8b8fa3;
+
+  /* Enhanced shadows — layered depth */
+  --shadow:        0 1px 2px rgba(124,58,237,0.04),
+                   0 4px 12px rgba(124,58,237,0.06);
+  --shadow-md:     0 2px 4px rgba(124,58,237,0.04),
+                   0 8px 24px rgba(124,58,237,0.08);
+  --shadow-lg:     0 4px 8px rgba(124,58,237,0.04),
+                   0 12px 40px rgba(124,58,237,0.12);
+  --shadow-xl:     0 8px 16px rgba(124,58,237,0.06),
+                   0 20px 60px rgba(124,58,237,0.16);
+  --shadow-modal:  0 12px 48px rgba(124,58,237,0.18),
+                   0 0 0 1px rgba(124,58,237,0.06);
+  --shadow-glow:   0 0 20px rgba(124,58,237,0.15),
+                   0 0 60px rgba(124,58,237,0.08);
+
+  /* Radius — slightly larger for modern feel */
+  --radius:        16px;
+  --radius-sm:     10px;
+  --radius-xs:     6px;
+  --radius-full:   9999px;
+
+  /* Timing */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --duration-slow: 400ms;
+}
+
+/* ── Global Base ──────────────────────────── */
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font) !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  letter-spacing: -0.011em;
+  line-height: 1.5;
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* ── Animated Background Gradient Orbs ──── */
+body::before {
+  content: '';
+  position: fixed;
+  top: -30%;
+  left: -20%;
+  width: 70vw;
+  height: 70vw;
+  max-width: 800px;
+  max-height: 800px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(124,58,237,0.07) 0%, transparent 70%);
+  z-index: -1;
+  pointer-events: none;
+  animation: orbFloat1 25s ease-in-out infinite;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  bottom: -20%;
+  right: -15%;
+  width: 60vw;
+  height: 60vw;
+  max-width: 700px;
+  max-height: 700px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(236,72,153,0.05) 0%, transparent 70%);
+  z-index: -1;
+  pointer-events: none;
+  animation: orbFloat2 30s ease-in-out infinite;
+}
+
+@keyframes orbFloat1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(5vw, 3vh) scale(1.05); }
+  66% { transform: translate(-3vw, -2vh) scale(0.98); }
+}
+
+@keyframes orbFloat2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(-4vw, -3vh) scale(1.03); }
+  66% { transform: translate(3vw, 2vh) scale(0.97); }
+}
+
+/* ── Page Enter Animation ─────────────────── */
+@keyframes pageEnter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+body[style*="visible"] > .container,
+body[style*="visible"] > .board-page,
+body[style*="visible"] > .page-header,
+body[style*="visible"] > .filter-tabs,
+body[style*="visible"] > div:first-of-type,
+.page {
+  animation: pageEnter 0.4s var(--ease-out) both;
+}
+
+/* ── Glassmorphism Cards ──────────────────── */
+.card,
+.stat-card,
+.calc-card,
+.auth-card {
+  background: rgba(255,255,255,0.72) !important;
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255,255,255,0.5) !important;
+  box-shadow: var(--shadow),
+              inset 0 1px 0 rgba(255,255,255,0.6) !important;
+  transition: transform var(--duration-normal) var(--ease-out),
+              box-shadow var(--duration-normal) var(--ease-out),
+              border-color var(--duration-normal) var(--ease-out) !important;
+}
+
+.card:hover,
+.stat-card:hover,
+.calc-card:hover {
+  box-shadow: var(--shadow-md),
+              inset 0 1px 0 rgba(255,255,255,0.8) !important;
+  border-color: rgba(124,58,237,0.15) !important;
+  transform: translateY(-2px) !important;
+}
+
+.stat-card:active,
+.calc-card:active {
+  transform: translateY(0) scale(0.98) !important;
+  transition-duration: 100ms !important;
+}
+
+/* ── Stat Card Accent Bar Enhancement ──── */
+.stat-card::after {
+  height: 3px !important;
+  background: var(--gradient-brand) !important;
+  opacity: 0.6;
+  transition: opacity var(--duration-normal) var(--ease-out);
+}
+.stat-card:hover::after {
+  opacity: 1;
+}
+
+/* ── Enhanced Buttons ─────────────────────── */
+.btn {
+  font-family: var(--font) !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.01em;
+  border-radius: var(--radius-sm) !important;
+  transition: all var(--duration-fast) var(--ease-out) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #7c3aed, #a855f7) !important;
+  color: #fff !important;
+  box-shadow: 0 2px 12px rgba(124,58,237,0.25),
+              inset 0 1px 0 rgba(255,255,255,0.15) !important;
+  border: none !important;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #6d28d9, #9333ea) !important;
+  box-shadow: 0 4px 20px rgba(124,58,237,0.35),
+              inset 0 1px 0 rgba(255,255,255,0.2) !important;
+  transform: translateY(-1px) !important;
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: translateY(0) scale(0.98) !important;
+  box-shadow: 0 1px 8px rgba(124,58,237,0.2) !important;
+}
+
+/* Button shimmer effect */
+.btn-primary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
+  transition: left 0.5s ease;
+}
+.btn-primary:hover::before {
+  left: 100%;
+}
+
+.btn-secondary,
+.btn-outline {
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* ── Enhanced Form Inputs ─────────────────── */
+.form-group input,
+.form-group textarea,
+.form-group select,
+.search-input,
+.search-wrap input {
+  font-family: var(--font) !important;
+  background: rgba(250,248,255,0.6) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1.5px solid rgba(124,58,237,0.10) !important;
+  border-radius: var(--radius-sm) !important;
+  transition: border-color var(--duration-fast),
+              box-shadow var(--duration-fast),
+              background var(--duration-fast) !important;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus,
+.search-input:focus,
+.search-wrap input:focus {
+  border-color: var(--brand) !important;
+  box-shadow: 0 0 0 3px rgba(124,58,237,0.10),
+              0 1px 3px rgba(124,58,237,0.08) !important;
+  background: rgba(255,255,255,0.9) !important;
+}
+
+/* ── Form Labels ──────────────────────────── */
+.form-group label {
+  font-family: var(--font) !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.04em;
+}
+
+/* ── Enhanced Modal ───────────────────────── */
+.modal {
+  backdrop-filter: blur(8px) saturate(120%) !important;
+  -webkit-backdrop-filter: blur(8px) saturate(120%) !important;
+}
+
+.modal-content {
+  background: rgba(255,255,255,0.88) !important;
+  backdrop-filter: blur(24px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(200%) !important;
+  border: 1px solid rgba(255,255,255,0.6) !important;
+  box-shadow: var(--shadow-xl),
+              inset 0 1px 0 rgba(255,255,255,0.5) !important;
+}
+
+/* ── Status Badges ────────────────────────── */
+.status-badge {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  font-family: var(--font) !important;
+  letter-spacing: 0.01em;
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+/* ── Mini Kanban Cards ────────────────────── */
+.mini-card {
+  background: rgba(248,250,252,0.7) !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.5) !important;
+}
+
+.mini-card:hover {
+  background: rgba(255,255,255,0.85) !important;
+  border-color: rgba(124,58,237,0.2) !important;
+  box-shadow: 0 4px 16px rgba(124,58,237,0.10) !important;
+}
+
+/* ── Column Headers (Board) ───────────────── */
+.column {
+  background: rgba(255,255,255,0.6) !important;
+  backdrop-filter: blur(16px) saturate(150%);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+  border: 1px solid rgba(255,255,255,0.5) !important;
+  box-shadow: var(--shadow) !important;
+}
+
+.column-header {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* ── Nav Enhancement ──────────────────────── */
+#navTopBar {
+  background: rgba(255,255,255,0.82) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  box-shadow: 0 1px 0 rgba(124,58,237,0.06),
+              0 4px 20px rgba(124,58,237,0.04) !important;
+}
+
+#navTopBar .nav-brand {
+  font-family: var(--font) !important;
+}
+
+#navTopBar .nav-link {
+  font-family: var(--font) !important;
+  border-radius: 8px;
+  transition: all var(--duration-fast) var(--ease-out) !important;
+}
+
+#navTopBar .nav-link:hover:not(.nav-soon) {
+  background: rgba(124,58,237,0.06) !important;
+}
+
+#navTopBar .nav-link.active {
+  background: rgba(124,58,237,0.08) !important;
+  box-shadow: inset 0 0 0 1px rgba(124,58,237,0.1);
+}
+
+/* ── Bottom Tab Bar Enhancement ──────────── */
+@media (max-width: 640px) {
+  #navBottomBar {
+    background: rgba(255,255,255,0.88) !important;
+    backdrop-filter: blur(20px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+    box-shadow: 0 -2px 20px rgba(124,58,237,0.06) !important;
+    border-top: 1px solid rgba(255,255,255,0.5) !important;
+  }
+
+  .nav-tab {
+    font-family: var(--font) !important;
+  }
+}
+
+/* ── Enhanced Loading States ──────────────── */
+.loading {
+  position: relative;
+  font-family: var(--font) !important;
+}
+
+.loading::after {
+  content: '';
+  display: block;
+  width: 28px;
+  height: 28px;
+  margin: 12px auto 0;
+  border: 2.5px solid rgba(124,58,237,0.12);
+  border-top-color: var(--brand);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Skeleton Loader ──────────────────────── */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg,
+    rgba(124,58,237,0.04) 25%,
+    rgba(124,58,237,0.08) 50%,
+    rgba(124,58,237,0.04) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease infinite;
+  border-radius: var(--radius-sm);
+}
+
+/* ── Empty States ─────────────────────────── */
+.empty-state {
+  font-family: var(--font) !important;
+}
+
+.empty-state-icon,
+.status-icon {
+  filter: drop-shadow(0 2px 8px rgba(124,58,237,0.15));
+}
+
+/* ── Filter Tabs Enhancement ──────────────── */
+.filter-tab,
+.filter-btn {
+  font-family: var(--font) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: all var(--duration-fast) var(--ease-out) !important;
+}
+
+.filter-tab.active,
+.filter-btn.active {
+  background: linear-gradient(135deg, #7c3aed, #a855f7) !important;
+  border-color: transparent !important;
+  box-shadow: 0 2px 10px rgba(124,58,237,0.25) !important;
+}
+
+/* ── Auth Tabs Enhancement ────────────────── */
+.auth-tab {
+  font-family: var(--font) !important;
+  transition: all var(--duration-fast) var(--ease-out) !important;
+}
+
+.auth-tab.active {
+  background: linear-gradient(135deg, #7c3aed, #a855f7) !important;
+  box-shadow: 0 2px 10px rgba(124,58,237,0.25) !important;
+}
+
+/* ── Card Link Buttons ────────────────────── */
+.card-link {
+  font-family: var(--font) !important;
+  transition: all var(--duration-fast) var(--ease-out) !important;
+}
+
+.card-link:hover {
+  background: linear-gradient(135deg, #7c3aed, #a855f7) !important;
+  color: #fff !important;
+  border-color: transparent !important;
+  box-shadow: 0 2px 10px rgba(124,58,237,0.25) !important;
+}
+
+/* ── Page Header ──────────────────────────── */
+.page-title,
+.studio-name,
+.card-title,
+.modal-title {
+  font-family: var(--font) !important;
+  letter-spacing: -0.02em;
+}
+
+/* ── Logout Button ────────────────────────── */
+.btn-logout {
+  font-family: var(--font) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: all var(--duration-fast) var(--ease-out) !important;
+}
+
+/* ── Drawer Enhancement ──────────────────── */
+.drawer,
+.drawer-content {
+  background: rgba(255,255,255,0.92) !important;
+  backdrop-filter: blur(24px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(200%) !important;
+}
+
+/* ── Table Enhancement ────────────────────── */
+table {
+  font-family: var(--font) !important;
+}
+
+th {
+  font-weight: 600 !important;
+  letter-spacing: 0.02em;
+}
+
+tr {
+  transition: background var(--duration-fast) ease !important;
+}
+
+/* ── Tooltip / Popover Glass ──────────────── */
+[role="tooltip"],
+.popover,
+.dropdown-menu {
+  background: rgba(255,255,255,0.88) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  border: 1px solid rgba(255,255,255,0.5) !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+/* ── Text Selection ───────────────────────── */
+::selection {
+  background: rgba(124,58,237,0.15);
+  color: var(--text);
+}
+
+/* ── Scrollbar ────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(124,58,237,0.15);
+  border-radius: 3px;
+  transition: background 0.2s;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(124,58,237,0.3);
+}
+
+/* ── Focus Ring Enhancement ───────────────── */
+:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ── Link Styles ──────────────────────────── */
+a {
+  transition: color var(--duration-fast) ease;
+}
+
+/* ── Reduced Motion ──────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  body::before,
+  body::after {
+    animation: none !important;
+  }
+}
+
+/* ── Responsive Refinements ───────────────── */
+@media (max-width: 640px) {
+  /* Reduce blur on mobile for performance */
+  .card,
+  .stat-card,
+  .calc-card,
+  .auth-card {
+    backdrop-filter: blur(12px) saturate(150%);
+    -webkit-backdrop-filter: blur(12px) saturate(150%);
+  }
+
+  .column {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  #navTopBar {
+    backdrop-filter: blur(16px) saturate(150%) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(150%) !important;
+  }
+
+  /* Softer orbs on mobile */
+  body::before {
+    width: 90vw;
+    height: 90vw;
+    opacity: 0.7;
+  }
+  body::after {
+    width: 80vw;
+    height: 80vw;
+    opacity: 0.5;
+  }
+}
+
+/* ── Print Styles ─────────────────────────── */
+@media print {
+  body::before,
+  body::after {
+    display: none !important;
+  }
+
+  .card,
+  .stat-card,
+  .calc-card {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: #fff !important;
+    box-shadow: none !important;
+    border: 1px solid #e5e7eb !important;
+  }
+
+  #navTopBar,
+  #navBottomBar {
+    display: none !important;
+  }
+}

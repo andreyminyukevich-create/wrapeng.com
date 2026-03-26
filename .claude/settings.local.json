@@ -34,7 +34,23 @@
       "Bash(if grep:*)",
       "Bash(then)",
       "Bash(sed -i '' 's/#eef2f9/#f5f3ff/g' \"$f\")",
-      "Bash(grep -rl \"#eef2f9\\\\|#2563eb\\\\|#1d4ed8\" *.html)"
+      "Bash(grep -rl \"#eef2f9\\\\|#2563eb\\\\|#1d4ed8\" *.html)",
+      "Bash(python3:*)",
+      "Bash(grep -l \"<style>\" *.html)",
+      "Bash(ls -1 *.html)",
+      "Bash(for file:*)",
+      "Bash(do echo:*)",
+      "Bash(sed -n '/<style>/,/<\\\\/style>/p' \"$file\")",
+      "Bash(done)",
+      "Bash(grep -h \":root\" *.html)",
+      "Bash(grep -h \"emoji\\\\|🔧\\\\|✅\\\\|📋\\\\|💰\\\\|🚗\" *.html)",
+      "Bash(grep -h \"<svg\\\\|<img src.*\\\\.svg\" *.html)",
+      "Bash(grep -h \"color:\\\\|background:\\\\|#[0-9a-f]\\\\{6\\\\}\\\\|rgba\\\\|font-size\\\\|border-radius\" *.html)",
+      "Bash(grep -h \"\\\\.modal\\\\|\\\\.btn-\\\\|\\\\.card\\\\|\\\\.form-\\\\|\\\\.table\\\\|\\\\.input\\\\|aria-\" *.html)",
+      "Bash(grep -h \"min-height:\\\\|focus\\\\|:active\\\\|outline\\\\|aria-label\\\\|aria-\" *.html)",
+      "Bash(grep -h \"aria-label\\\\|aria-hidden\\\\|role=\\\\|tabindex\\\\|:focus-visible\\\\|min-height: 44px\\\\|min-height: 48px\" *.html)",
+      "Bash(grep -h \"disabled:disabled\\\\|opacity.*0\\\\|contrast\" *.html)",
+      "Bash(grep \"contrast\\\\|WCAG\\\\|a11y\" nav.css *.html)"
     ]
   }
 }

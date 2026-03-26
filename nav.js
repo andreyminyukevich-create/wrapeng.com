@@ -58,6 +58,14 @@
     try { return JSON.parse(localStorage.getItem('k1r_user')); } catch { return null; }
   }
 
+  // ── Close sidebar helper (mobile) ───────────────────────
+  function closeSidebar() {
+    const sidebar = document.getElementById('k1r-sidebar');
+    const overlay = document.getElementById('k1r-overlay');
+    if (sidebar) sidebar.classList.remove('mobile-open');
+    if (overlay) overlay.classList.remove('show');
+  }
+
   function buildSidebar(user) {
     const isAdmin = user && user.id === ADMIN_ID;
     const cur = currentPage();
@@ -67,11 +75,13 @@
       *,*::before,*::after{box-sizing:border-box}
       body{margin:0;display:flex;min-height:100vh;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
       #k1r-sidebar{width:230px;min-width:230px;background:linear-gradient(180deg,#2e1065 0%,#4c1d95 40%,#5b21b6 100%);color:#fff;display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;transition:transform .3s cubic-bezier(.4,0,.2,1);overflow-y:auto;box-shadow:4px 0 24px rgba(124,58,237,0.15)}
-      #k1r-sidebar .sb-logo{padding:22px 18px 14px;border-bottom:1px solid rgba(255,255,255,0.1)}
+      #k1r-sidebar .sb-logo{padding:22px 18px 14px;border-bottom:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:space-between}
       #k1r-sidebar .sb-logo span{font-size:19px;font-weight:800;background:linear-gradient(135deg,#fff 0%,#e9d5ff 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
       #k1r-sidebar .sb-logo small{display:block;font-size:11px;color:rgba(255,255,255,0.5);margin-top:2px;letter-spacing:0.05em}
+      #k1r-sidebar .sb-close{display:none;background:none;border:none;color:rgba(255,255,255,0.6);font-size:22px;cursor:pointer;padding:4px 8px;border-radius:8px;transition:all .2s ease;-webkit-tap-highlight-color:transparent;line-height:1}
+      #k1r-sidebar .sb-close:hover,#k1r-sidebar .sb-close:active{background:rgba(255,255,255,0.15);color:#fff}
       #k1r-sidebar nav{flex:1;padding:8px 0}
-      #k1r-sidebar .sb-item{display:flex;align-items:center;gap:10px;padding:9px 16px;cursor:pointer;border-radius:10px;margin:1px 8px;font-size:14px;color:rgba(255,255,255,0.7);text-decoration:none;transition:all .2s ease;user-select:none}
+      #k1r-sidebar .sb-item{display:flex;align-items:center;gap:10px;padding:9px 16px;cursor:pointer;border-radius:10px;margin:1px 8px;font-size:14px;color:rgba(255,255,255,0.7);text-decoration:none;transition:all .2s ease;user-select:none;-webkit-tap-highlight-color:transparent}
       #k1r-sidebar .sb-item:hover{background:rgba(255,255,255,0.1);color:#fff}
       #k1r-sidebar .sb-item.active{background:rgba(255,255,255,0.18);color:#fff;font-weight:600}
       #k1r-sidebar .sb-item .sb-icon{font-size:16px;width:20px;text-align:center;flex-shrink:0}
@@ -79,23 +89,24 @@
       #k1r-sidebar .sb-item.open .sb-arrow{transform:rotate(90deg);color:rgba(255,255,255,0.7)}
       #k1r-sidebar .sb-children{overflow:hidden;max-height:0;transition:max-height .3s ease}
       #k1r-sidebar .sb-children.open{max-height:400px}
-      #k1r-sidebar .sb-child{display:flex;align-items:center;gap:8px;padding:7px 16px 7px 46px;font-size:13px;color:rgba(255,255,255,0.55);text-decoration:none;border-radius:8px;margin:1px 8px;transition:all .2s ease}
+      #k1r-sidebar .sb-child{display:flex;align-items:center;gap:8px;padding:7px 16px 7px 46px;font-size:13px;color:rgba(255,255,255,0.55);text-decoration:none;border-radius:8px;margin:1px 8px;transition:all .2s ease;-webkit-tap-highlight-color:transparent}
       #k1r-sidebar .sb-child:hover{background:rgba(255,255,255,0.08);color:#fff}
       #k1r-sidebar .sb-child.active{color:#c4b5fd;font-weight:600;background:rgba(196,181,253,0.1)}
       #k1r-sidebar .sb-divider{height:1px;background:rgba(255,255,255,0.08);margin:8px 16px}
       #k1r-sidebar .sb-bottom{padding:12px 8px;border-top:1px solid rgba(255,255,255,0.08);margin-top:auto}
       #k1r-sidebar .sb-user{padding:6px 16px;font-size:11px;color:rgba(255,255,255,0.4);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-      #k1r-sidebar .sb-btn-new{display:flex;align-items:center;justify-content:center;gap:6px;background:linear-gradient(135deg,#a855f7,#ec4899);color:#fff;border:none;border-radius:10px;padding:11px;margin:8px 10px;cursor:pointer;font-size:13px;font-weight:700;text-decoration:none;transition:all .2s ease;box-shadow:0 2px 12px rgba(168,85,247,0.3)}
+      #k1r-sidebar .sb-btn-new{display:flex;align-items:center;justify-content:center;gap:6px;background:linear-gradient(135deg,#a855f7,#ec4899);color:#fff;border:none;border-radius:10px;padding:11px;margin:8px 10px;cursor:pointer;font-size:13px;font-weight:700;text-decoration:none;transition:all .2s ease;box-shadow:0 2px 12px rgba(168,85,247,0.3);-webkit-tap-highlight-color:transparent}
       #k1r-sidebar .sb-btn-new:hover{transform:translateY(-1px);box-shadow:0 4px 20px rgba(168,85,247,0.4)}
-      #k1r-sidebar .sb-btn-record{display:flex;align-items:center;justify-content:center;gap:6px;background:rgba(255,255,255,0.12);color:#fff;border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:10px;margin:4px 10px 8px;cursor:pointer;font-size:13px;font-weight:600;text-decoration:none;transition:all .2s ease}
+      #k1r-sidebar .sb-btn-record{display:flex;align-items:center;justify-content:center;gap:6px;background:rgba(255,255,255,0.12);color:#fff;border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:10px;margin:4px 10px 8px;cursor:pointer;font-size:13px;font-weight:600;text-decoration:none;transition:all .2s ease;-webkit-tap-highlight-color:transparent}
       #k1r-sidebar .sb-btn-record:hover{background:rgba(255,255,255,0.18);border-color:rgba(255,255,255,0.25)}
       #k1r-main{margin-left:230px;flex:1;min-width:0;display:flex;flex-direction:column}
       #k1r-topbar{display:none}
-      #k1r-overlay{display:none;position:fixed;inset:0;background:rgba(46,16,101,.6);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);z-index:99;transition:opacity .3s ease}
+      #k1r-overlay{display:none;position:fixed;inset:0;background:rgba(46,16,101,.6);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);z-index:99;transition:opacity .3s ease;-webkit-tap-highlight-color:transparent}
       #k1r-overlay.show{display:block}
       @media(max-width:768px){
-        #k1r-sidebar{transform:translateX(-100%)}
+        #k1r-sidebar{transform:translateX(-100%);width:280px;min-width:280px}
         #k1r-sidebar.mobile-open{transform:translateX(0)}
+        #k1r-sidebar .sb-close{display:block}
         #k1r-main{margin-left:0}
         #k1r-topbar{display:flex;align-items:center;gap:12px;padding:14px 16px;background:linear-gradient(135deg,#2e1065,#4c1d95);color:#fff;position:sticky;top:0;z-index:98;box-shadow:0 2px 16px rgba(124,58,237,0.2)}
         #k1r-topbar .tb-title{font-size:17px;font-weight:800;flex:1;background:linear-gradient(135deg,#fff,#e9d5ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
@@ -108,7 +119,10 @@
     const sidebar = document.createElement('div');
     sidebar.id = 'k1r-sidebar';
 
-    let html = `<div class="sb-logo"><span>Keep1R</span><small>CRM</small></div>`;
+    let html = `<div class="sb-logo">
+      <div><span>Keep1R</span><small>CRM</small></div>
+      <button class="sb-close" id="sb-close" aria-label="Закрыть меню">✕</button>
+    </div>`;
     html += `<a class="sb-btn-new" href="calculator.html">＋ Новый расчёт</a>`;
     html += `<a class="sb-btn-record" href="booking-popup.js" onclick="event.preventDefault();window.openBookingPopup?.()">🚗 Записать авто</a>`;
     html += `<nav>`;
@@ -149,13 +163,14 @@
 
     const topbar = document.createElement('div');
     topbar.id = 'k1r-topbar';
-    topbar.innerHTML = `<button class="tb-menu" id="sb-toggle">☰</button><span class="tb-title">Keep1R CRM</span>`;
+    topbar.innerHTML = `<button class="tb-menu" id="sb-toggle" aria-label="Открыть меню">☰</button><span class="tb-title">Keep1R CRM</span>`;
     main.insertBefore(topbar, main.firstChild);
 
     const overlay = document.createElement('div');
     overlay.id = 'k1r-overlay';
     document.body.appendChild(overlay);
 
+    // ── Section toggles ────────────────────────
     sidebar.querySelectorAll('[data-section]').forEach(el => {
       el.addEventListener('click', () => {
         el.classList.toggle('open');
@@ -163,21 +178,80 @@
       });
     });
 
+    // ── Toggle sidebar (mobile) ────────────────
     document.getElementById('sb-toggle')?.addEventListener('click', () => {
       sidebar.classList.toggle('mobile-open');
       overlay.classList.toggle('show');
     });
-    overlay.addEventListener('click', () => {
-      sidebar.classList.remove('mobile-open');
-      overlay.classList.remove('show');
+
+    // ── Close button inside sidebar ────────────
+    document.getElementById('sb-close')?.addEventListener('click', closeSidebar);
+
+    // ── Overlay click closes sidebar ───────────
+    overlay.addEventListener('click', closeSidebar);
+
+    // ── ESC key closes sidebar ─────────────────
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && sidebar.classList.contains('mobile-open')) {
+        closeSidebar();
+      }
     });
 
+    // ── Nav links auto-close sidebar on mobile ─
+    sidebar.querySelectorAll('a[href]').forEach(link => {
+      link.addEventListener('click', () => {
+        // Close sidebar after a short delay to allow navigation
+        if (window.innerWidth <= 768) {
+          setTimeout(closeSidebar, 150);
+        }
+      });
+    });
+
+    // ── Swipe to close (mobile) ────────────────
+    let touchStartX = 0;
+    let touchCurrentX = 0;
+    let isSwiping = false;
+
+    sidebar.addEventListener('touchstart', (e) => {
+      touchStartX = e.touches[0].clientX;
+      touchCurrentX = touchStartX;
+      isSwiping = true;
+    }, { passive: true });
+
+    sidebar.addEventListener('touchmove', (e) => {
+      if (!isSwiping) return;
+      touchCurrentX = e.touches[0].clientX;
+      const diff = touchStartX - touchCurrentX;
+      // Only allow swiping left (to close)
+      if (diff > 0 && diff < 280) {
+        sidebar.style.transform = `translateX(${-diff}px)`;
+        sidebar.style.transition = 'none';
+      }
+    }, { passive: true });
+
+    sidebar.addEventListener('touchend', () => {
+      if (!isSwiping) return;
+      isSwiping = false;
+      const diff = touchStartX - touchCurrentX;
+      sidebar.style.transition = '';
+      sidebar.style.transform = '';
+
+      // If swiped more than 80px left, close the sidebar
+      if (diff > 80) {
+        closeSidebar();
+      }
+    }, { passive: true });
+
+    // ── Logout ─────────────────────────────────
     document.getElementById('sb-logout')?.addEventListener('click', async e => {
       e.preventDefault();
       localStorage.removeItem('k1r_token');
       localStorage.removeItem('k1r_user');
       window.location.href = 'welcome.html';
     });
+
+    // Expose close function globally
+    window._navCloseSidebar = closeSidebar;
   }
 
   function init() {
